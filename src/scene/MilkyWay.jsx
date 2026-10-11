@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC, buildGalaxyParticles, galaxyOpacity } from './galaxy.js';
+import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC, buildGalaxyParticles, galaxyOpacity, galaxyFacing } from './galaxy.js';
 import { solarDistance } from './scale.js';
 
 const vertex = `
@@ -55,8 +55,6 @@ export default function MilkyWay({ origin, onStatus, muted = false }) {
   const lastVisible=useRef(false);
   const rotation=useMemo(()=>new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
     new THREE.Vector3(...GALACTIC_X),new THREE.Vector3(...GALACTIC_Y),new THREE.Vector3(...GALACTIC_Z))),[]);
-  const normal=useMemo(()=>new THREE.Vector3(...GALACTIC_Z),[]);
-  const direction=useMemo(()=>new THREE.Vector3(),[]);
   useEffect(()=>{
     if(!requested) return;
     let active=true, texture;
@@ -87,9 +85,8 @@ export default function MilkyWay({ origin, onStatus, muted = false }) {
     if(asset && lastVisible.current!==visible){lastVisible.current=visible;onStatus(visible?'visible':'ready');}
     if(group.current)group.current.visible=visible;
     if(disc.current){
-      camera.getWorldDirection(direction);
       disc.current.uniforms.opacity.value=alpha;
-      const face=THREE.MathUtils.smoothstep(Math.abs(direction.dot(normal)),.03,.3);
+      const face=galaxyFacing(camera.position,origin);
       disc.current.uniforms.face.value=face;
       // At grazing angles the same samples stack into fewer pixels. Compress
       // their exposure instead of turning the disc into a white line.
@@ -121,7 +118,7 @@ export default function MilkyWay({ origin, onStatus, muted = false }) {
       </points>
     </group>
     <Html position={origin.map(v=>-v)} zIndexRange={[5,0]} style={{pointerEvents:'none'}}>
-      <div ref={sunLabel} className="galaxy-marker"><i/>Sol · Estamos aquí</div>
+      <div ref={sunLabel} className="galaxy-marker"><i/>Sol</div>
     </Html>
     <Html position={GALAXY_CENTER.map((v,i)=>v-origin[i])} zIndexRange={[4,0]} style={{pointerEvents:'none'}}>
       <div ref={centerLabel} className="galaxy-marker galaxy-center">Centro galáctico</div>

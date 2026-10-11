@@ -31,6 +31,7 @@ import { KUIPER_VIEW } from './scene/kuiper';
 import CameraNavigation from './scene/CameraNavigation';
 import { PULSAR_VIEW } from './scene/navigation';
 import { CURATED_STARS } from './scene/curatedStars';
+import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 
 const stars = identifyStellarTargets([...catalogue, ...CURATED_STARS])
   .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || stellarPhysics[star.i] || null }));
@@ -102,11 +103,11 @@ export default function App() {
   const focusBody = body => visitBody(body);
   const framePulsars = () => {
     setShowPulsars(true); setShowBodyPanel(false); setInspectedTarget(null);
-    navigate(PULSAR_VIEW, { duration: 4 });
+    navigate(PULSAR_VIEW, { duration: 4 * JOURNEY_TIME_SCALE });
   };
   const frameGalaxy = (edgeOn = false) => {
     setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null);
-    navigate(galaxyView(edgeOn), { duration: 8 });
+    navigate(galaxyView(edgeOn), { duration: 8 * JOURNEY_TIME_SCALE });
   };
   const toggleFlight = () => {
     if (freeFlight) { aimAtSun(); return; }

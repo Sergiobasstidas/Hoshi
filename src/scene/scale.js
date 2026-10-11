@@ -9,6 +9,7 @@ export const LIGHT_YEAR_PC = 1 / 3.26156;
 export const LIGHT_DAY_PC = 299792.458 * 86400 * KM_TO_PC;
 export const LIGHT_DAY_RULER_LIMIT_PC = 0.02 * LIGHT_YEAR_PC;
 export const MAX_VIEW_DISTANCE_PC = 200000 * LIGHT_YEAR_PC;
+export const MAX_FLIGHT_SPEED_PC = 15000 * LIGHT_YEAR_PC;
 export const OORT_INNER_PC = 2000 * AU_TO_PC;
 export const OORT_OUTER_PC = 100000 * AU_TO_PC;
 export const OORT_REVEAL_PC = 0.1 * LIGHT_YEAR_PC;
@@ -56,14 +57,14 @@ export function stellarVisualWeight(magnitude) {
 }
 
 export function flightSpeed(distancePc) {
-  return Math.max(AU_TO_PC * 0.1, distancePc) * 0.4;
+  return Math.min(MAX_FLIGHT_SPEED_PC, Math.max(AU_TO_PC * 0.1, distancePc) * 0.4);
 }
 
 // Same wheel response as DESI; speeds here are parsecs per second.
 export function wheelSpeed(speed, { deltaY, deltaMode = 0, shiftKey = false }, pageHeight) {
   const delta = deltaY * (deltaMode === 1 ? 16 : deltaMode === 2 ? pageHeight : 1);
   const factor = Math.exp(-Math.max(-100, Math.min(100, delta)) * (shiftKey ? 0.0069 : 0.0005));
-  return Math.max(1e-14, Math.min(2000, speed * factor));
+  return Math.max(1e-14, Math.min(MAX_FLIGHT_SPEED_PC, speed * factor));
 }
 
 export function oortOpacity(distancePc) {

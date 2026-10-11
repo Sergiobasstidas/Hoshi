@@ -26,6 +26,16 @@ export function galaxyFieldOfView(aspect) {
 export function galaxyOpacity(solarDistancePc) {
   return smoothRange(solarDistancePc / LIGHT_YEAR_PC, 1800, 7000);
 }
+// A disc's viewing angle depends on the observer's position, not their gaze.
+// Work in world coordinates so visiting a rebased star cannot change exposure.
+export function galaxyFacing(position, origin) {
+  const x=position.x+origin[0]-GALAXY_CENTER[0];
+  const y=position.y+origin[1]-GALAXY_CENTER[1];
+  const z=position.z+origin[2]-GALAXY_CENTER[2];
+  const distance=Math.hypot(x,y,z);
+  if(distance<1e-9)return 0;
+  return smoothRange(Math.abs(x*GALACTIC_Z[0]+y*GALACTIC_Z[1]+z*GALACTIC_Z[2])/distance,.03,.3);
+}
 export function catalogueGalaxyGain(distancePc) {
   return 1 - 0.985*smoothRange(distancePc / LIGHT_YEAR_PC, 8000, 55000);
 }

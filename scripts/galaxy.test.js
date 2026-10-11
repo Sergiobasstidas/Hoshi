@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Vector3, PerspectiveCamera } from 'three';
-import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, SUN_GALACTIC_DISTANCE_PC, galaxyView, galaxyFieldOfView, galaxyOpacity, buildGalaxyParticles } from '../src/scene/galaxy.js';
+import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, SUN_GALACTIC_DISTANCE_PC, galaxyView, galaxyFieldOfView, galaxyOpacity, galaxyFacing, buildGalaxyParticles } from '../src/scene/galaxy.js';
 import { MAX_VIEW_DISTANCE_PC, LIGHT_YEAR_PC } from '../src/scene/scale.js';
 import { beginJourney, advanceJourney } from '../src/scene/navigation.js';
 
@@ -41,4 +41,20 @@ test('synthetic galactic samples are reproducible, finite, thick and handle empt
  assert.ok(a.position.every(Number.isFinite));
  assert.ok(a.position.some((v,i)=>i%3===2&&Math.abs(v)>100));
  assert.equal(buildGalaxyParticles(new Uint8ClampedArray(4),1,1,10).sizes.length,0);
+});
+
+test('disc exposure is invariant under looking around and rebasing, but dims edge-on',()=>{
+ const camera=new PerspectiveCamera();
+ camera.position.fromArray(GALAXY_CENTER).addScaledVector(new Vector3(...GALACTIC_Z),30000);
+ const expected=galaxyFacing(camera.position,[0,0,0]);
+ assert.equal(expected,1);
+ for(let i=0;i<12;i++){
+  camera.rotateY(.4); camera.rotateX(.2);
+  assert.equal(galaxyFacing(camera.position,[0,0,0]),expected);
+ }
+ const origin=[1000,2000,-4000];
+ assert.equal(galaxyFacing(camera.position.clone().sub(new Vector3(...origin)),origin),expected);
+ camera.position.fromArray(GALAXY_CENTER).addScaledVector(new Vector3(...GALACTIC_X),30000);
+ assert.equal(galaxyFacing(camera.position,[0,0,0]),0);
+ assert.equal(galaxyFacing(new Vector3(...GALAXY_CENTER),[0,0,0]),0);
 });

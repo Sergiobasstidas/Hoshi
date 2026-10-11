@@ -1,5 +1,6 @@
-// Shared by the body selector and star search: formerly three seconds in the selector.
-export const JOURNEY_SECONDS=5;
+// Slow every translation by 35%; aiming without travel keeps its own duration.
+export const JOURNEY_TIME_SCALE=1.35;
+export const JOURNEY_SECONDS=5*JOURNEY_TIME_SCALE;
 export function journeyDistance(start,end,progress) {
   const t=Math.max(0,Math.min(1,progress));
   // Spread the visible departure over more of the flight, instead of spending

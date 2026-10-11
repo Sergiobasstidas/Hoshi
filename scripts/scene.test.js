@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Vector3, PerspectiveCamera } from 'three';
-import { AU_KM, KM_TO_PC, BODY_CAMERA_NEAR_PC, SCENE_FAR_PC, SUN_RADIUS_PC, solarDistance } from '../src/scene/scale.js';
+import { AU_KM, KM_TO_PC, BODY_CAMERA_NEAR_PC, SCENE_FAR_PC, SUN_RADIUS_PC, solarDistance, MAX_FLIGHT_SPEED_PC } from '../src/scene/scale.js';
 import { SOLAR_BODIES, MOON, MOON_DISTANCE_KM, bodyView } from '../src/scene/solarBodies.js';
 import { encodedDepth } from '../src/scene/depthPrecision.js';
 import { readFileSync } from 'node:fs';
@@ -47,7 +47,7 @@ test('journey rebase preserves world pose, arrives at the star, and can be inter
     journey: { start: camera.position.toArray(), rotation: camera.quaternion.toArray(), arriveFree: true } };
   let motion = beginJourney(camera, view, origin);
   assert.ok(camera.position.clone().add(new Vector3(...origin)).distanceTo(new Vector3(1, 2, 3)) < 1e-10);
-  assert.equal(motion.duration, 5);
+  assert.equal(motion.duration, 6.75);
   for (let i = 0; i < 100; i++) advanceJourney(camera, motion, view, 50, 0.02);
   const interruptedPosition = camera.position.clone().add(new Vector3(...origin));
   const sunView = { target: [0,0,0], journey: {start:interruptedPosition.toArray(),rotation:camera.quaternion.toArray(),headingOnly:true} };
@@ -77,13 +77,13 @@ test('solar scenery keeps its apparent position and visibility when rebasing for
   assert.ok(Math.abs(kuiperOpacity(distance)-kuiperOpacity(solarDistance(camera.position,origin)))<1e-8);
 });
 
-test('selector and search use identical five-second motion, differing only in arrival controls', () => {
+test('selector and search use identical extended motion, differing only in arrival controls', () => {
   const origin=[-0.474,-0.363,-1.157];
   const body={kind:'star',position:origin,radiusKm:PROXIMA_PHYSICS.radiusKm};
   const cameras=[new PerspectiveCamera(),new PerspectiveCamera()];
   const views=[false,true].map(arriveFree=>({...bodyView(body),journey:{start:[.001,0,.001],rotation:[0,0,0,1],arriveFree}}));
   const motions=views.map((view,i)=>beginJourney(cameras[i],view,origin));
-  assert.equal(motions[0].duration,5);
+  assert.equal(motions[0].duration,6.75);
   for(let frame=0;frame<301;frame++) {
     for(let i=0;i<2;i++) advanceJourney(cameras[i],motions[i],views[i],50,1/60);
     assert.ok(cameras[0].position.distanceTo(cameras[1].position)<1e-14);
@@ -598,7 +598,9 @@ test('DESI wheel response accelerates upward, slows downward and normalizes inpu
   assert.equal(wheelSpeed(speed, { deltaY: 16 }, 800), wheelSpeed(speed, { deltaY: 1, deltaMode: 1 }, 800));
   assert.equal(wheelSpeed(speed, { deltaY: 80 }, 800), wheelSpeed(speed, { deltaY: 0.1, deltaMode: 2 }, 800));
   assert.equal(wheelSpeed(speed, { deltaY: 0 }, 800), speed);
-  assert.equal(wheelSpeed(2000, { deltaY: -100 }, 800), 2000);
+  assert.equal(wheelSpeed(MAX_FLIGHT_SPEED_PC, { deltaY: -100 }, 800), MAX_FLIGHT_SPEED_PC);
+  assert.equal(flightSpeed(1e8), MAX_FLIGHT_SPEED_PC);
+  assert.equal(MAX_FLIGHT_SPEED_PC / LIGHT_YEAR_PC, 15000);
   assert.equal(wheelSpeed(1e-14, { deltaY: 100 }, 800), 1e-14);
 });
 

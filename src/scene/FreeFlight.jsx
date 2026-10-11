@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import { flightSpeed, wheelSpeed, KM_TO_PC, AU_TO_PC } from './scale';
+import { flightSpeed, wheelSpeed, KM_TO_PC, AU_TO_PC, MAX_FLIGHT_SPEED_PC } from './scale';
 import { constrainFlight } from './navigation.js';
 import { advanceFlight, FLIGHT_KEYS, isFlightTypingTarget } from './flightMotion';
 import { approachSpeed, stopBeforeTarget, STAR_STOP_PC } from './starHeading';
@@ -27,6 +27,7 @@ export default function FreeFlight({ onSpeedChange, initialBody, origin, onManua
     const localDistance = initialBody ? Math.hypot(...camera.position.toArray().map((v, i) => v - (initialBody.position[i] - origin[i]))) : null;
     motion.current.speed = initialBody?.kind === 'system' ? Math.max(0.1 * AU_TO_PC, Math.min(localDistance * 0.08, 8 * AU_TO_PC))
       : initialBody ? Math.max((initialBody.radiusKm || 0) * KM_TO_PC, localDistance) * 0.4 : flightSpeed(camera.position.length());
+    motion.current.speed = Math.min(MAX_FLIGHT_SPEED_PC, motion.current.speed);
     const state = motion.current;
     let lastTick = performance.now();
     state.advance = () => {
