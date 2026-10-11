@@ -1,7 +1,7 @@
 import { MathUtils, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { BODY_CAMERA_NEAR_PC, MAX_VIEW_DISTANCE_PC, LIGHT_YEAR_PC } from './scale.js';
 import { PULSARS } from './pulsarData.js';
-import { JOURNEY_SECONDS, journeyDistance } from './starJourney.js';
+import { JOURNEY_SECONDS, JOURNEY_ACCELERATION, journeyDistance, journeyProgress } from './starJourney.js';
 
 export function beginJourney(camera, view, origin) {
   const target = new Vector3(...view.target).sub(new Vector3(...origin));
@@ -24,7 +24,7 @@ export function beginJourney(camera, view, origin) {
 export function advanceJourney(camera, transition, view, endFov, delta) {
   transition.elapsed = Math.min(transition.duration, transition.elapsed + Math.min(delta, 0.05));
   const t = transition.elapsed / transition.duration;
-  const ease = t * t * t * (t * (6 * t - 15) + 10);
+  const ease = transition.headingOnly ? t * t * t * (t * (6 * t - 15) + 10) : journeyProgress(t);
   if (!transition.headingOnly) {
     const distance = journeyDistance(transition.startDistance, view.distance, t);
     const arc = new Quaternion().slerp(transition.arc, ease);
@@ -33,7 +33,7 @@ export function advanceJourney(camera, transition, view, endFov, delta) {
   camera.lookAt(transition.target);
   const endRotation = camera.quaternion.clone();
   camera.quaternion.slerpQuaternions(transition.rotation, endRotation,
-    transition.headingOnly ? ease : MathUtils.smoothstep(t, 0, 0.25));
+    transition.headingOnly ? ease : MathUtils.smoothstep(t, 0, JOURNEY_ACCELERATION));
   camera.fov = MathUtils.lerp(transition.startFov, endFov, ease);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();

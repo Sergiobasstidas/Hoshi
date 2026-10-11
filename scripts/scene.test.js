@@ -11,7 +11,7 @@ import { canAimStar, createStarAim, advanceStarAim, STAR_AIM_SECONDS, STAR_STOP_
 import { selectStarLabels } from '../src/scene/starLabelSelection.js';
 import { buildSearchIndex, searchStars } from '../src/scene/starSearch.js';
 import { buildKuiperPositions, kuiperOpacity } from '../src/scene/kuiper.js';
-import { journeyDistance } from '../src/scene/starJourney.js';
+import { journeyDistance, journeyProgress, JOURNEY_SECONDS, JOURNEY_ACCELERATION, JOURNEY_DECELERATION } from '../src/scene/starJourney.js';
 import { beginJourney, advanceJourney, constrainFlight, PULSAR_VIEW, PULSAR_VIEW_DISTANCE_PC, pulsarFieldOfView } from '../src/scene/navigation.js';
 import { PULSARS } from '../src/scene/pulsarData.js';
 import { PROXIMA_CATALOGUE_ID, PROXIMA_PHYSICS } from '../src/scene/publishedStellarPhysics.js';
@@ -47,7 +47,7 @@ test('journey rebase preserves world pose, arrives at the star, and can be inter
     journey: { start: camera.position.toArray(), rotation: camera.quaternion.toArray(), arriveFree: true } };
   let motion = beginJourney(camera, view, origin);
   assert.ok(camera.position.clone().add(new Vector3(...origin)).distanceTo(new Vector3(1, 2, 3)) < 1e-10);
-  assert.equal(motion.duration, 6.75);
+  assert.equal(motion.duration, 8);
   for (let i = 0; i < 100; i++) advanceJourney(camera, motion, view, 50, 0.02);
   const interruptedPosition = camera.position.clone().add(new Vector3(...origin));
   const sunView = { target: [0,0,0], journey: {start:interruptedPosition.toArray(),rotation:camera.quaternion.toArray(),headingOnly:true} };
@@ -83,8 +83,8 @@ test('selector and search use identical extended motion, differing only in arriv
   const cameras=[new PerspectiveCamera(),new PerspectiveCamera()];
   const views=[false,true].map(arriveFree=>({...bodyView(body),journey:{start:[.001,0,.001],rotation:[0,0,0,1],arriveFree}}));
   const motions=views.map((view,i)=>beginJourney(cameras[i],view,origin));
-  assert.equal(motions[0].duration,6.75);
-  for(let frame=0;frame<301;frame++) {
+  assert.equal(motions[0].duration,8);
+  for(let frame=0;frame<Math.ceil(JOURNEY_SECONDS*60)+2;frame++) {
     for(let i=0;i<2;i++) advanceJourney(cameras[i],motions[i],views[i],50,1/60);
     assert.ok(cameras[0].position.distanceTo(cameras[1].position)<1e-14);
     assert.ok(1-Math.abs(cameras[0].quaternion.dot(cameras[1].quaternion))<1e-12);
@@ -714,5 +714,27 @@ test('pulsar rays join the actual Sun to every endpoint after rebasing', async (
   for(let i=0;i<14;i++) for(let axis=0;axis<3;axis++) {
     assert.equal(g.lines[i*6+axis],-origin[axis]);
     assert.ok(Math.abs(g.lines[i*6+3+axis]+origin[axis]-PULSARS[i].position[axis])<0.0003);
+  }
+});
+
+
+test('journeys sustain travel and ease continuously into a longer braking phase', () => {
+  const a=JOURNEY_ACCELERATION, d=JOURNEY_DECELERATION, h=1e-5;
+  const velocity=t=>(journeyProgress(t+h)-journeyProgress(t-h))/(2*h);
+  assert.ok(d>a);
+  assert.equal(journeyProgress(-1),0);
+  assert.equal(journeyProgress(2),1);
+  assert.ok(velocity(0)<1e-6 && velocity(1)<1e-6);
+  assert.ok(velocity(a/2)<velocity(.4));
+  assert.ok(Math.abs(velocity(.3)-velocity(.5))<1e-8, 'sustained middle section');
+  assert.ok(velocity(.7)>velocity(.85) && velocity(.85)>velocity(.97));
+  for(const join of [a,1-d]){
+    assert.ok(Math.abs(velocity(join-h)-velocity(join+h))<1e-6, 'no speed step at phase boundary');
+  }
+  for(const t of [.01,.1,.5,.9,.99]){
+    const inward=journeyDistance(1e4,1e-8,t);
+    const outward=journeyDistance(1e-8,1e4,t);
+    assert.ok(inward>1e-8 && inward<1e4);
+    assert.ok(outward>1e-8 && outward<1e4);
   }
 });

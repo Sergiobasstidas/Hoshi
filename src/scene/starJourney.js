@@ -1,11 +1,22 @@
-// Slow every translation by 35%; aiming without travel keeps its own duration.
-export const JOURNEY_TIME_SCALE=1.35;
+// Ordinary trips: 8 seconds. Other destinations retain their relative duration.
+// Timing is perceptual (log distance), not constant physical velocity.
+export const JOURNEY_TIME_SCALE=1.6;
 export const JOURNEY_SECONDS=5*JOURNEY_TIME_SCALE;
-export function journeyDistance(start,end,progress) {
+export const JOURNEY_ACCELERATION=0.22;
+export const JOURNEY_DECELERATION=0.38;
+
+// Integrate a smooth velocity envelope: shorter departure, sustained travel,
+// then a longer arrival. Velocity and acceleration match at both joins.
+export function journeyProgress(progress) {
   const t=Math.max(0,Math.min(1,progress));
-  // Spread the visible departure over more of the flight, instead of spending
-  // most of it already close to the destination. Keep a smooth zero-speed end.
-  const paced = t * t;
-  const eased=paced*paced*paced*(paced*(paced*6-15)+10);
+  const a=JOURNEY_ACCELERATION, d=JOURNEY_DECELERATION;
+  const area=1-(a+d)/2;
+  const integral=u=>u*u*u*(1-u/2);
+  if(t<a)return a*integral(t/a)/area;
+  if(t>1-d)return 1-d*integral((1-t)/d)/area;
+  return (t-a/2)/area;
+}
+export function journeyDistance(start,end,progress) {
+  const eased=journeyProgress(progress);
   return Math.exp(Math.log(start)*(1-eased)+Math.log(end)*eased);
 }
