@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hoshi</title>
+  </head>
+  <body>
+    <div id="boot-loader" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:9999;background:#020305;color:#b8cadb;display:grid;place-content:center;text-align:center;font:16px system-ui">
+      <div style="font-size:22px;letter-spacing:8px;margin-bottom:20px">HOSHI</div>
+      <div>Cargando datos y preparando el vecindario estelar…</div>
+      <div class="boot-track"><span></span></div>
+    </div>
+    <style>body{margin:0;background:#020305}.boot-track{width:220px;height:2px;background:#20303d;margin:24px auto;overflow:hidden}.boot-track span{display:block;width:45%;height:100%;background:#91bed2;animation:boot 1.8s ease-in-out infinite}@keyframes boot{from{transform:translateX(-110%)}to{transform:translateX(330%)}}@media(prefers-reduced-motion:reduce){.boot-track span{animation:none}}</style>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

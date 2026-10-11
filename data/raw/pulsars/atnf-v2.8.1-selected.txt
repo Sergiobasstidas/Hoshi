@@ -1,0 +1,2008 @@
+# ATNF catalogue 2.8.1; downloaded 2026-09-27
+-----------------------------------------------------------------
+PSRB     B1727-47                      lvw68
+PSRJ     J1731-4744 
+# RAJ_0, nc = 0 (kjk+24 versus skz+19).
+# Errors are >3.9e-05< [kjk+24] and >2.08333e-05< [skz+19]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus skz+19).
+# Errors are >0.0001< [kjk+24] and >1.66667e-05< [skz+19]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (kjk+24 versus skz+19).
+# Errors are >5< [kjk+24] and >15< [skz+19]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (kjk+24 versus skz+19).
+# Errors are >13< [kjk+24] and >14< [skz+19]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0054< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0054< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0055< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0055< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0054< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0054< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0055< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0055< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0055< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0056< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0055< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >0.0056< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus pkj+13).
+# Errors are >NULL< [kjk+24] and >0.004< [pkj+13]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus wmp+00).
+# Errors are >3.4e-11< [kjk+24] and >6e-11< [wmp+00]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus wmp+00).
+# Errors are >1.1e-18< [kjk+24] and >5e-18< [wmp+00]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus sjd+21).
+# Errors are >0.01< [kjk+24] and >0.5< [sjd+21]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+RAJ      17:31:42.160             5    skz+19
+DECJ     -47:44:36.26             6    skz+19
+POSEPOCH 53000                         skz+19
+PMRA     73                       5    kjk+24
+PMDEC    -127                     13   kjk+24
+DM       123.056                  4    pkj+13
+DMEPOCH  55000                         pkj+13
+F0       1.20489823105            4    kjk+24
+PEPOCH   59400                         kjk+24
+F1       -2.375626E-13            11   kjk+24
+F2       5.6E-24                  13   wmp+00
+RM       -444.490                 10   kjk+24
+S3000    7                        2    jvk+18
+S400     190                           mlt+78
+S200     424                      8    xbt+17
+S1400    27                       3    jvk+18
+S1284    28.061                   6    kjk+24
+S1284    38.84                    4    kjk+24
+S1284    34.01                    4    kjk+24
+S1284    26.43                    3    kjk+24
+S1284    39.70                    3    kjk+24
+S1284    44.64                    5    kjk+24
+S1284    41.55                    3    kjk+24
+S1284    29.42                    4    kjk+24
+S1284    47.84                    6    kjk+24
+S1284    34.86                    3    kjk+24
+S1284    28.56                    4    kjk+24
+S1284    64.58                    7    kjk+24
+W50      18                            pkj+21
+W10      24                            pkj+21
+TAU_SC   6.43E-5                  14   kmn+15
+NGLT 9
+DIST_AMX 0.7                           skz+19
+DIST_AMN 0.4                           skz+19
+DIST_DM  5.519                         ymw17
+DIST_DM1 2.785                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+TYPE     HE[sbc+19]
+ASSOC    GRS:4FGL_J1731.7-4744[aab+22],SNR:G343.0-6.0(RCW114)[skz+19]
+SURVEY   mol1,FermiAssoc,htru_pks,misc,mol2,pks70,pkssw
+
+@
+-----------------------------------------------------------------
+PSRB     B1451-68                      lvw68
+PSRJ     J1456-6843 
+# RAJ_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >2e-05< [kjk+24] and >1.25e-05< [jbv+19]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >8.6e-06< [kjk+24] and >5.55556e-06< [jbv+19]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (kjk+24 versus bmk+90b).
+# Errors are >0.4< [kjk+24] and >0.4< [bmk+90b]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (kjk+24 versus bmk+90b).
+# Errors are >0.3< [kjk+24] and >0.3< [bmk+90b]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus sjd+21).
+# Errors are >0.0035< [kjk+24] and >0.004< [sjd+21]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0041< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0054< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0039< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0048< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0047< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0051< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0059< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0051< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.007< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0056< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0061< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.005< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0068< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0046< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0061< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0072< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0049< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.006< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0055< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0057< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0061< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0046< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0045< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0052< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0062< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0054< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0059< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.004< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0066< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.005< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0041< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0053< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0053< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0046< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0076< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0043< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0044< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0065< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0048< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0077< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.005< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0061< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0042< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0047< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.006< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0045< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0067< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0045< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0071< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >NULL< [kjk+24] and >0.0035< [kjk+24]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >5.4e-12< [kjk+24] and >6e-12< [jbv+19]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >3.2e-19< [kjk+24] and >3e-19< [jbv+19]. Taking smallest uncertainty
+# PX_0, nc = 0 (kjk+24 versus bmk+90a).
+# Errors are >0.3< [kjk+24] and >0.3< [bmk+90a]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus sjd+21).
+# Errors are >0.01< [kjk+24] and >0.6< [sjd+21]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.23< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.11< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.11< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.13< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.18< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.12< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.16< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+RAJ      14:55:59.923             3    jbv+19
+DECJ     -68:43:39.50             2    jbv+19
+POSEPOCH 57600                         jbv+19
+PMRA     -39.5                    4    bmk+90b
+PMDEC    -12.3                    3    bmk+90b
+DM       8.635                    4    kjk+24
+DMEPOCH  58787.22                      kjk+24
+F0       3.796839809414           6    kjk+24
+PEPOCH   59400                         kjk+24
+F1       -1.4264E-15              3    jbv+19
+PX       2.2                      3    bmk+90a
+RM       -1.920                   10   kjk+24
+S400     350                           mlt+78
+S800     90                       30   jbv+19
+S150     930                      30   bmj+16
+S200     878                      28   xbt+17
+S1400    64                       13   jk18 
+S1284    134.12                   5    kjk+24
+S1284    98.81                    4    kjk+24
+S1284    59.60                    6    kjk+24
+S1284    47.36                    5    kjk+24
+S1284    58.08                    5    kjk+24
+S1284    106.46                   8    kjk+24
+S1284    376.2                    3    kjk+24
+S1284    78.57                    5    kjk+24
+S1284    84.43                    4    kjk+24
+S1284    35.75                    6    kjk+24
+S1284    178.26                   11   kjk+24
+S1284    42.55                    4    kjk+24
+S1284    27.69                    3    kjk+24
+S1284    53.13                    5    kjk+24
+S1284    70.10                    6    kjk+24
+S1284    26.37                    3    kjk+24
+S1284    34.81                    3    kjk+24
+S1284    81.85                    7    kjk+24
+S1284    77.18                    6    kjk+24
+S1284    59.75                    5    kjk+24
+S1284    87.19                    6    kjk+24
+S1284    25.25                    3    kjk+24
+S1284    14.859                   18   kjk+24
+S1284    54.75                    5    kjk+24
+S1284    107.32                   9    kjk+24
+S1284    183.52                   15   kjk+24
+S1284    83.43                    6    kjk+24
+S1284    83.35                    7    kjk+24
+S1284    56.23                    9    kjk+24
+S1284    15.958                   16   kjk+24
+S1284    133.46                   12   kjk+24
+S1284    92.80                    6    kjk+24
+S1284    86.56                    8    kjk+24
+S1284    209.40                   13   kjk+24
+S1284    99.34                    10   kjk+24
+S1284    315.10                   16   kjk+24
+S1284    88.95                    7    kjk+24
+S1284    93.99                    6    kjk+24
+S1284    43.39                    7    kjk+24
+S1284    36.09                    3    kjk+24
+S1284    32.95                    4    kjk+24
+S1284    172.29                   13   kjk+24
+S1284    37.86                    3    kjk+24
+S1284    35.28                    3    kjk+24
+S1284    43.81                    4    kjk+24
+S1284    114.10                   8    kjk+24
+S1284    87.33                    5    kjk+24
+S1284    19.76                    3    kjk+24
+S1284    32.40                    3    kjk+24
+S1284    42.30                    7    kjk+24
+S1284    15.88                    2    kjk+24
+S1284    83.64                    6    kjk+24
+S1284    34.15                    3    kjk+24
+S1284    90.61                    6    kjk+24
+W50      13                            pkj+21
+W10      26                            pkj+21
+SPINDX   -1.10                    10   bmj+16
+TAU_SC   9.800E-09                     cor86
+DIST_A   0.43                          vwc+12
+DIST_AMX 0.49                          vwc+12
+DIST_AMN 0.38                          vwc+12
+DIST_DM  0.437                         ymw17
+DIST_DM1 0.459                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+SURVEY   mol1,htru_pks,misc,mol2,pks70,pkssw
+
+@
+-----------------------------------------------------------------
+PSRB     B1240-64                      lvw69a
+PSRJ     J1243-6423 
+# RAJ_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >0.00017< [kjk+24] and >4.16667e-06< [jbv+19]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >0.0001< [kjk+24] and >2.77778e-06< [jbv+19]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus sjd+21).
+# Errors are >0.002< [kjk+24] and >0.02< [sjd+21]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0021< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.002< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.002< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0021< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.002< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.002< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0022< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.002< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0022< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0021< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >NULL< [kjk+24] and >0.002< [kjk+24]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >2.5e-10< [kjk+24] and >2e-12< [jbv+19]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >7.7e-18< [kjk+24] and >2e-19< [jbv+19]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus sjd+21).
+# Errors are >0.01< [kjk+24] and >0.8< [sjd+21]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+RAJ      12:43:17.101             1    jbv+19
+DECJ     -64:23:23.73             1    jbv+19
+POSEPOCH 57600                         jbv+19
+DM       297.019                  2    kjk+24
+DMEPOCH  58784.16                      kjk+24
+F0       2.574101117947           2    jbv+19
+PEPOCH   57600                         jbv+19
+F1       -2.97838E-14             2    jbv+19
+RM       160.830                  10   kjk+24
+S3000    4.1                      8    jvk+18
+S400     110                           mlt+78
+S800     119                      7    jbv+19
+S700     140                      30   jvk+18
+S1400    34                       7    jk18 
+S1284    43.994                   11   kjk+24
+S1284    53.43                    3    kjk+24
+S1284    52.40                    5    kjk+24
+S1284    46.17                    3    kjk+24
+S1284    48.996                   19   kjk+24
+S1284    49.348                   18   kjk+24
+S1284    39.610                   19   kjk+24
+S1284    36.884                   17   kjk+24
+S1284    38.10                    4    kjk+24
+S1284    42.074                   18   kjk+24
+S1284    34.960                   19   kjk+24
+W50      5.3                           pkj+21
+W10      8.0                           pkj+21
+DIST_A   2.0                           vwc+12
+DIST_AMX 4.0                           vwc+12
+DIST_AMN 0.0                           vwc+12
+DIST_DM  9.402                         ymw17
+DIST_DM1 5.988                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+SURVEY   mol1,htru_pks,misc,mol2,pks1,pks70,pksmb
+
+@
+-----------------------------------------------------------------
+PSRB     B0833-45                      lvm68
+PSRJ     J0835-4510 
+RAJ      08:35:20.61149           2    dlrm03
+DECJ     -45:10:34.8751           3    dlrm03
+POSEPOCH 51544                         dlrm03
+PMRA     -49.68                   6    dlrm03
+PMDEC    29.90                    10   dlrm03
+DM       67.771                   9    sjd+21
+DMEPOCH  58645.5                       sjd+21
+DM1      0.0050                   10   pkj+13
+F0       11.1946499395            5    dml02
+PEPOCH   51559.319                     dml02
+F1       -1.5666E-11              2    dml02
+F2       1.0280E-21               10   dml02
+PX       3.5                      2    dlrm03
+RM       31.380                   10   jhv+05
+S3000    170                      20   jvk+18
+S400     5000                          tml93
+S5000    7                        4    zyw+19
+S100G    0.25                     4    mpr+17
+S150     5400                     1600 bmj+16
+S150G    0.17                     3    mpr+17
+S700     3100                     200  jvk+18
+S1400    1050                     60   jvk+18
+W50      1.7                           pkj+21
+W10      3.8                           pkj+21
+SPINDX   -1.3                     2    bmj+16
+TAU_SC   3.96E-5                  3    kmn+15
+NGLT 23
+DIST_A   0.28                          vwc+12
+DIST_AMX 0.30                          vwc+12
+DIST_AMN 0.26                          vwc+12
+DIST_DM  0.328                         ymw17
+DIST_DM1 0.236                         cl02
+TYPE     HE[hg73],HE[tfko75]
+ASSOC    GRS:4FGL_J0835.3-4510[aab+22],SNR:Vela,GRS:HESS_J0835-455[aab+06c]
+SURVEY   mol1,FermiBlind,htru_pks,mol2,pks70,pksmb
+
+@
+-----------------------------------------------------------------
+PSRB     B0950+08                      phbc68
+PSRJ     J0953+0755 
+# RAJ_0, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >1.7e-05< [kjk+24] and >7.91667e-06< [hlk+04]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >4.4e-05< [kjk+24] and >2.22222e-05< [hlk+04]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (kjk+24 versus bbgt02).
+# Errors are >0.08< [kjk+24] and >0.08< [bbgt02]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (kjk+24 versus bbgt02).
+# Errors are >0.07< [kjk+24] and >0.07< [bbgt02]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0036< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0044< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0034< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.005< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0041< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0043< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0032< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0045< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0042< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0038< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.003< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0041< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0035< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0046< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0044< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0046< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.004< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0034< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0039< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0038< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0045< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0046< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0035< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0039< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0038< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0035< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0035< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0039< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0044< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0038< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0045< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0034< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0039< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0035< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0047< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0036< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0028< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0038< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0051< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0044< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0047< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0047< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0033< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >NULL< [kjk+24] and >8e-05< [srb+15]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >4.8e-12< [kjk+24] and >1.4e-11< [hlk+04]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >7.8e-19< [kjk+24] and >4e-20< [hlk+04]. Taking smallest uncertainty
+# PX_0, nc = 0 (kjk+24 versus bbgt02).
+# Errors are >0.07< [kjk+24] and >0.07< [bbgt02]. Taking smallest uncertainty
+# RM_0, nc = 0 (rvwc23 versus jhv+05).
+# Errors are >0.54< [rvwc23] and >0.04< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus jhv+05).
+# Errors are >0.02< [kjk+24] and >0.04< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.12< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+RAJ      09:53:09.3097            19    hlk+04
+DECJ     07:55:35.75              8    hlk+04
+POSEPOCH 46375.0                       hlk+04
+PMRA     -2.09                    8    bbgt02
+PMDEC    29.46                    7    bbgt02
+DM       2.96927                  8    srb+15
+DMEPOCH  56285                         srb+15
+F0       3.951547269235           5    kjk+24
+PEPOCH   59400                         kjk+24
+F1       -3.58762E-15             4    hlk+04
+F2       -7.6E-27                 4    hlk+04
+PX       3.82                     7    bbgt02
+RM       1.18                     2    kjk+24
+S3000    20                       20   jvk+18
+S400     400                      200  lylg95
+S5000    13                       3    zyw+19
+S50      2300                     1200 bgt+20
+S600     403                      59   lylg95
+S800     210                      40   jbv+19
+S150     2370                          scb+19
+S200     2123                     16   xbt+17
+S700     600                      600  jvk+18
+S900     260                      47   lylg95
+S1400    100                      40   jvk+18
+S1284    89.24                    17   kjk+24
+S1284    82.54                    13   kjk+24
+S1284    95.7                     3    kjk+24
+S1284    72.6                     3    kjk+24
+S1284    143.6                    4    kjk+24
+S1284    52.89                    13   kjk+24
+S1284    137.3                    4    kjk+24
+S1284    102.2                    4    kjk+24
+S1284    157.0                    4    kjk+24
+S1284    65.17                    17   kjk+24
+S1284    97.4                     3    kjk+24
+S1284    119.5                    3    kjk+24
+S1284    83.4                     3    kjk+24
+S1284    84.5                     3    kjk+24
+S1284    181.8                    4    kjk+24
+S1284    29.37                    9    kjk+24
+S1284    146.3                    4    kjk+24
+S1284    201.3                    6    kjk+24
+S1284    178.3                    4    kjk+24
+S1284    73.38                    14   kjk+24
+S1284    160.7                    4    kjk+24
+S1284    128.0                    4    kjk+24
+S1284    95.1                     3    kjk+24
+S1284    125.6                    4    kjk+24
+S1284    109.2                    3    kjk+24
+S1284    132.7                    5    kjk+24
+S1284    95.0                     3    kjk+24
+S1284    62.94                    13   kjk+24
+S1284    108.4                    3    kjk+24
+S1284    126.0                    3    kjk+24
+S1284    121.4                    4    kjk+24
+S1284    70.63                    19   kjk+24
+S1284    125.2                    4    kjk+24
+S1284    176.1                    4    kjk+24
+S1284    87.8                     3    kjk+24
+S1284    97.0                     3    kjk+24
+S1284    70.15                    18   kjk+24
+S1284    152.7                    4    kjk+24
+S1284    82.57                    14   kjk+24
+S1284    181.8                    4    kjk+24
+S1284    203.8                    4    kjk+24
+S1284    92.9                     3    kjk+24
+S1284    92.9                     2    kjk+24
+S1284    142.3                    4    kjk+24
+S1284    100.84                   17   kjk+24
+S1284    79.82                    18   kjk+24
+S1284    90.8                     3    kjk+24
+S1284    78.78                    19   kjk+24
+S1284    175.1                    4    kjk+24
+S1284    151.8                    5    kjk+24
+S1284    84.0                     3    kjk+24
+S1284    149.7                    4    kjk+24
+S1284    111.2                    2    kjk+24
+S1284    134.4                    3    kjk+24
+S1284    97.0                     2    kjk+24
+S1284    146.7                    3    kjk+24
+W50      8.6                           pkj+21
+W10      21                            pkj+21
+SPINDX   -1.30                    10   bmj+16
+TAU_SC   3.0E-10                  20   kl07 
+DIST_A   0.261                         vwc+12
+DIST_AMX 0.266                         vwc+12
+DIST_AMN 0.256                         vwc+12
+DIST_DM  0.187                         ymw17
+DIST_DM1 0.254                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+TYPE     HE[bwt+04]
+SURVEY   misc,ar4,gb4,lotaas,mol2,pkshl
+
+@
+-----------------------------------------------------------------
+PSRB     B0823+26                      cls68
+PSRJ     J0826+2637 
+# DM_0, nc = 0 (dmo+24 versus bkk+16).
+# Errors are >NULL< [dmo+24] and >0.00018< [bkk+16]. Taking smallest uncertainty
+# RM_0, nc = 0 (rvwc23 versus nsk+15).
+# Errors are >0.28< [rvwc23] and >0.06< [nsk+15]. Taking smallest uncertainty
+# Have both P and F. Choosing to keep F
+RAJ      08:26:51.5068            1    dgb+19
+DECJ     +26:37:21.297            1    dgb+19
+POSEPOCH 56000.0                       dgb+19
+PMRA     63.000                   10   dgb+19
+PMDEC    -96.75                   7    dgb+19
+DM       19.47633                 18   bkk+16
+DMEPOCH  56747                         bkk+16
+F0       1.88444396743            9    hlk+04
+PEPOCH   46450.0                       hlk+04
+F1       -6.0700E-15              3    hlk+04
+F2       1.5E-26                  3    hlk+04
+PX       2.010                    10   dgb+19
+RM       5.38                     6    nsk+15
+S400     73                       13   lylg95
+S5000    1.2                      8    zyw+19
+S50      400                      300  bgt+20
+S600     62                       9    lylg95
+S80      70                       30   srb+15
+S100     620                           ttol16
+S150     610                           scb+19
+S900     36                       14   lylg95
+S1400    10                       2    lylg95
+W50      5.8                           lylg95
+W10      12.4                          lylg95
+W50      8.0                           dmo+24
+W10      17.1                          dmo+24
+SPINDX   -1.6                     2    lylg95
+TAU_SC   2.1E-8                   10   kl07 
+DIST_A   0.5000                   10   dgb+19
+DIST_DM  0.315                         ymw17
+DIST_DM1 0.340                         cl02
+TYPE     HE[bwt+04]
+SURVEY   gb1,ar327,ar4,gb4,lotaas
+
+@
+-----------------------------------------------------------------
+PSRB     B0531+21                      sr68
+PSRJ     J0534+2200 
+# RAJ_0, nc = 0 (lvk+23 versus mcn71).
+# Errors are >2.9e-07< [lvk+23] and >2.08333e-05< [mcn71]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (lvk+23 versus mcn71).
+# Errors are >2.8e-07< [lvk+23] and >1.66667e-05< [mcn71]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (lvk+23 versus nr06).
+# Errors are >0.06< [lvk+23] and >0.8< [nr06]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (lvk+23 versus nr06).
+# Errors are >0.14< [lvk+23] and >0.8< [nr06]. Taking smallest uncertainty
+# DM_0, nc = 0 (dmo+24 versus bkk+16).
+# Errors are >NULL< [dmo+24] and >0.00024< [bkk+16]. Taking smallest uncertainty
+# Have both P and F. Choosing to keep F
+RAJ      05:34:31.93357           7    lvk+23
+DECJ     22:00:52.1927            10    lvk+23
+POSEPOCH 57680                         lvk+23
+PMRA     -11.34                   6    lvk+23
+PMDEC    2.65                     14   lvk+23
+DM       56.7712                  3    bkk+16
+DMEPOCH  56703                         bkk+16
+F0       29.9469230               10   ljg+15
+PEPOCH   48442.5                       ljg+15
+F1       -3.77535E-10             2    ljg+15
+F2       1.1147E-20               5    ljg+15
+F3       -2.73E-30                4    ljg+15
+PX       0.53                     6    lvk+23
+RM       -45.44                   8    sbg+19
+S400     646                      70   lylg95
+S400     550                      100  tbms98
+S600     211                      37   lylg95
+S150     8000                     4000 bkk+16
+S900     45                       10   lylg95
+S1400    14                       3    lylg95
+W50      3.0                           lylg95
+W10      4.7                           lylg95
+W50      2.0                           dmo+24
+W10      7.3                           dmo+24
+SPINDX   -3.1                     2    lylg95
+TAU_SC   1.455E-5                 14   kmn+15
+NGLT 40
+DIST_A   2.0                           tri68
+DIST_AMX 2.5                           tri68
+DIST_AMN 1.5                           tri68
+DIST_DM  1.311                         ymw17
+DIST_DM1 1.738                         cl02
+TYPE     HE[cdt69],HE[fhm+69],HE[hjm+70]
+ASSOC    GRS:4FGL_J0534.5+2200[aab+22],SNR:Crab[ccl+69],PWN:Crab[ccl+69],GRS:HESS_J0534+220[aab+06b]
+SURVEY   misc,FermiBlind,ar327,ar4,gb4,lotaas
+
+@
+-----------------------------------------------------------------
+PSRB     B0525+21                      sr68
+PSRJ     J0528+2200 
+# DM_0, nc = 0 (dmo+24 versus bkk+16).
+# Errors are >NULL< [dmo+24] and >0.0013< [bkk+16]. Taking smallest uncertainty
+# RM_0, nc = 0 (rvwc23 versus sbg+19).
+# Errors are >0.17< [rvwc23] and >0.07< [sbg+19]. Taking smallest uncertainty
+# Have both P and F. Choosing to keep F
+RAJ      05:28:52.264             9    ywml10
+DECJ     +22:00:04                2    ywml10
+POSEPOCH 53100                         ywml10
+PMRA     -20                      19   hla93
+PMDEC    7                        9    hla93
+DM       50.8695                  13   bkk+16
+DMEPOCH  56747                         bkk+16
+F0       0.266984253314           2    ywml10
+PEPOCH   54200                         ywml10
+F1       -2.85500E-15             10   ywml10
+RM       -40.02                   7    sbg+19
+S400     57                       5    lylg95
+S40      1000                     500  srb+15
+S5000    0.28                     13   zyw+19
+S50      257                      128  bgt+20
+S600     32                       6    lylg95
+S80      600                      300  srb+15
+S100     100                           ttol16
+S150     29.5                          scb+19
+S900     17                       5    lylg95
+S1400    8.9                      18   jk18 
+S1600    7                        2    lylg95
+S327     48                       5    dmo+24
+W50      151.9                         jk18 
+W10      214.2                         lylg95
+W50      64.0                          dmo+24
+W10      214.0                         dmo+24
+SPINDX   -1.50                    10   lylg95
+TAU_SC   6.3E-7                   31   kl07 
+NGLT 4
+DIST_DM  1.215                         ymw17
+DIST_DM1 1.607                         cl02
+SURVEY   gb1,ar327,gb3,gb4,lotaas
+
+@
+-----------------------------------------------------------------
+PSRB     B0329+54                      cp68
+PSRJ     J0332+5434 
+RAJ      03:32:59.4096            1    dgb+19
+DECJ     +54:34:43.329            1    dgb+19
+POSEPOCH 56000.0                       dgb+19
+PMRA     16.97                    3    dgb+19
+PMDEC    -10.37                   5    dgb+19
+DM       26.76410                 10   hsh+12
+F0       1.399541538720           6    hlk+04
+PEPOCH   46473.0                       hlk+04
+F1       -4.011970E-15            14   hlk+04
+F2       5.3E-28                  15   hlk+04
+PX       0.59                     2    dgb+19
+RM       -64.33                   6    sbg+19
+S400     1500                     200  lylg95
+S50      1800                     900  bgt+20
+S5000    10                       5    zyw+19
+S600     1300                     200  lylg95
+S80      4000                     2000 srb+15
+S350     507                      64   mss+20
+S900     386                      78   lylg95
+S1400    203                      57   lylg95
+W50      6.6                           lylg95
+W10      31.4                          lylg95
+SPINDX   -1.6                     2    lylg95
+TAU_SC   2.5E-8                   4    kl07 
+DIST_A   1.68                     7    dgb+19
+DIST_DM  1.183                         ymw17
+DIST_DM1 0.980                         cl02
+SURVEY   misc,gb1,gb2,gb3,gb4,gbncc,jb1,lotaas
+
+@
+-----------------------------------------------------------------
+PSRB     B2217+47                      th69
+PSRJ     J2219+4754 
+# DM_0, nc = 0 (whx+23 versus srb+15).
+# Errors are >NULL< [whx+23] and >0.0005< [srb+15]. Taking smallest uncertainty
+# RM_0, nc = 0 (whx+23 versus nsk+15).
+# Errors are >0.4< [whx+23] and >0.06< [nsk+15]. Taking smallest uncertainty
+RAJ      22:19:48.139             3    hlk+04
+DECJ     47:54:53.93              3    hlk+04
+POSEPOCH 46599.0                       hlk+04
+PMRA     -12                      8    las82
+PMDEC    -30                      6    las82
+DM       43.4975                  5    srb+15
+DMEPOCH  56842                         srb+15
+F0       1.857117736985           4    hlk+04
+PEPOCH   46599.0                       hlk+04
+F1       -9.536891E-15            14   hlk+04
+F2       -3.18E-27                13   hlk+04
+RM       -35.93                   6    nsk+15
+S400     111                      12   lylg95
+S50      1200                     700  bgt+20
+S600     36                       3    lylg95
+S80      2500                     1300 srb+15
+S150     780                           scb+19
+S1400    3                             fgl+92
+W50      7.5                           lylg95
+W10      13.1                          lylg95
+W50      8.2                      3    whx+23
+W10      16.3                     3    whx+23
+SPINDX   -1.98                    9    bkk+16
+TAU_SC   2.02E-7                  19   kl07 
+NGLT 1
+FRACL    0.15                     3    whx+23
+FRACV    0.04                     3    whx+23
+FRACAV   0.05                     3    whx+23
+DIST_DM  2.383                         ymw17
+DIST_DM1 2.217                         cl02
+SURVEY   misc,gb1,gb3,gb4,gbncc,jb1,lotaas,fast_gpps
+
+@
+-----------------------------------------------------------------
+PSRB     B2016+28                      csl68
+PSRJ     J2018+2839 
+# DM_0, nc = 0 (whx+23 versus srb+15).
+# Errors are >NULL< [whx+23] and >0.0006< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (dmo+24 versus srb+15).
+# Errors are >NULL< [dmo+24] and >0.0006< [srb+15]. Taking smallest uncertainty
+# RM_0, nc = 0 (rvwc23 versus sbg+19).
+# Errors are >2< [rvwc23] and >0.1< [sbg+19]. Taking smallest uncertainty
+# RM_0, nc = 0 (whx+23 versus sbg+19).
+# Errors are >0.3< [whx+23] and >0.1< [sbg+19]. Taking smallest uncertainty
+# Have both P and F. Choosing to keep F
+RAJ      20:18:03.8333            9    hlk+04
+DECJ     28:39:54.212             16    hlk+04
+POSEPOCH 46384.0                       hlk+04
+PMRA     -2.6                     2    bbgt02
+PMDEC    -6.2                     4    bbgt02
+DM       14.1977                  6    srb+15
+DMEPOCH  57009                         srb+15
+F0       1.792264113565           2    hlk+04
+PEPOCH   46384.0                       hlk+04
+F1       -4.75747E-16             5    hlk+04
+F2       4.86E-27                 5    hlk+04
+PX       1.03                     10   bbgt02
+RM       -34.90                   10   sbg+19
+S400     314                      30   lylg95
+S50      243                      121  bgt+20
+S5000    1.5                      3    zyw+19
+S600     101                      13   lylg95
+S80      600                      300  srb+15
+S100     260                           ttol16
+S150     620                           scb+19
+S200     561                      41   xbt+17
+S1400    30                       13   lylg95
+W50      14.9                          lylg95
+W10      22.2                          lylg95
+W50      12.7                     6    whx+23
+W10      22.4                     6    whx+23
+W50      15.5                          dmo+24
+W10      28.1                          dmo+24
+SPINDX   -2.3                     3    lylg95
+TAU_SC   7.5E-8                   13   kl07 
+FRACL    0.10                     3    whx+23
+FRACV    -0.06                    3    whx+23
+FRACAV   0.06                     3    whx+23
+MAGINC   159                      3    whx+23
+IMPANG   -3.0                     4    whx+23
+PASWING  52                       3    whx+23
+DIST_A   0.98                          vwc+12
+DIST_AMX 1.09                          vwc+12
+DIST_AMN 0.89                          vwc+12
+DIST_DM  0.959                         ymw17
+DIST_DM1 1.227                         cl02
+SURVEY   misc,ar327,gb1,gb3,gb4,jb1,lotaas,fast_gpps
+
+@
+-----------------------------------------------------------------
+PSRB     B1933+16                      dl70
+PSRJ     J1935+1616 
+# RAJ_0, nc = 0 (kjk+24 versus cbv+09).
+# Errors are >3.8e-06< [kjk+24] and >4.16667e-07< [cbv+09]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus cbv+09).
+# Errors are >6.1e-06< [kjk+24] and >5.55556e-07< [cbv+09]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (kjk+24 versus cbv+09).
+# Errors are >0.13< [kjk+24] and >0.13< [cbv+09]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (kjk+24 versus cbv+09).
+# Errors are >0.15< [kjk+24] and >0.15< [cbv+09]. Taking smallest uncertainty
+# DM_0, nc = 0 (whx+23 versus hlk+04).
+# Errors are >NULL< [whx+23] and >0.003< [hlk+04]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >0.00097< [kjk+24] and >0.003< [hlk+04]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.00094< [kjk+24] and >0.00097< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0013< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0013< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0013< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0013< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0011< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0014< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.0012< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >NULL< [kjk+24] and >0.00094< [kjk+24]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >7e-13< [kjk+24] and >4e-12< [hlk+04]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >3.4e-19< [kjk+24] and >1.1e-20< [hlk+04]. Taking smallest uncertainty
+# PX_0, nc = 0 (kjk+24 versus cbv+09).
+# Errors are >0.12< [kjk+24] and >0.12< [cbv+09]. Taking smallest uncertainty
+# RM_0, nc = 0 (rvwc23 versus jhv+05).
+# Errors are >1.2< [rvwc23] and >0.3< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (whx+23 versus jhv+05).
+# Errors are >0.2< [whx+23] and >0.3< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus whx+23).
+# Errors are >0.01< [kjk+24] and >0.2< [whx+23]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >NULL< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+RAJ      19:35:47.8259            1    cbv+09
+DECJ     +16:16:39.986            2    cbv+09
+POSEPOCH 52275                         cbv+09
+PMRA     1.13                     13   cbv+09
+PMDEC    -16.09                   15   cbv+09
+DM       158.6394                 10   kjk+24
+DMEPOCH  58833.67                      kjk+24
+F0       2.7874942067382          7    kjk+24
+PEPOCH   59400                         kjk+24
+F1       -4.6642103E-14           11   hlk+04
+F2       1.449E-26                11   hlk+04
+PX       0.22                     12   cbv+09
+RM       -2.380                   10   kjk+24
+S400     242                      22   lylg95
+S5000    3.0                      8    zyw+19
+S600     162                      13   lylg95
+S150     148                           scb+19
+S200     106                      9    xbt+17
+S1400    58.0                     10   jk18 
+S1284    60.136                   11   kjk+24
+S1284    67.406                   10   kjk+24
+S1284    55.58                    3    kjk+24
+S1284    92.07                    3    kjk+24
+S1284    46.021                   18   kjk+24
+S1284    42.55                    3    kjk+24
+S1284    53.52                    3    kjk+24
+S1284    63.35                    3    kjk+24
+S1284    69.25                    3    kjk+24
+S1284    60.93                    3    kjk+24
+S1284    57.16                    3    kjk+24
+S1284    35.64                    3    kjk+24
+S1284    99.71                    4    kjk+24
+S1284    57.13                    3    kjk+24
+S1284    46.43                    3    kjk+24
+S1284    87.37                    4    kjk+24
+S1284    45.760                   19   kjk+24
+S1284    65.069                   17   kjk+24
+S1284    94.36                    3    kjk+24
+S1284    74.42                    3    kjk+24
+S1284    69.99                    3    kjk+24
+S1284    75.87                    3    kjk+24
+S1284    68.35                    4    kjk+24
+S1284    64.607                   18   kjk+24
+S1284    74.32                    3    kjk+24
+S1284    90.36                    4    kjk+24
+S1284    43.010                   19   kjk+24
+S1284    47.21                    3    kjk+24
+S1284    55.73                    3    kjk+24
+S1284    111.67                   3    kjk+24
+S1284    67.063                   18   kjk+24
+S1284    48.95                    3    kjk+24
+S1284    52.52                    3    kjk+24
+W50      6.3                           pkj+21
+W10      9.1                           pkj+21
+W50      6.5                      2    whx+23
+W10      9.1                      2    whx+23
+SPINDX   -1.40                    10   lylg95
+TAU_SC   2.347E-5                 14   kmn+15
+FRACL    0.23                     3    whx+23
+FRACV    -0.01                    3    whx+23
+FRACAV   0.16                     3    whx+23
+DIST_A   3.7                           vwc+12
+DIST_AMX 5.0                           vwc+12
+DIST_AMN 2.9                           vwc+12
+DIST_DM  4.316                         ymw17
+DIST_DM1 5.616                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+SURVEY   jb1,ar1,ar2,ar3,ar4,gb3,gb4,lotaas,misc,mol2,palfa,fast_gpps
+
+@
+-----------------------------------------------------------------
+PSRB     B1929+10                      lvw68
+PSRJ     J1932+1059 
+# RAJ_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >5e-06< [kjk+24] and >3.33333e-06< [jbv+19]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >8.9e-06< [kjk+24] and >5.55556e-06< [jbv+19]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (kjk+24 versus ccv+04).
+# Errors are >0.11< [kjk+24] and >0.11< [ccv+04]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (kjk+24 versus ccv+04).
+# Errors are >0.16< [kjk+24] and >0.16< [ccv+04]. Taking smallest uncertainty
+# DM_0, nc = 0 (whx+23 versus bkk+16).
+# Errors are >NULL< [whx+23] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (dmo+24 versus bkk+16).
+# Errors are >NULL< [dmo+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0014< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0014< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0013< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0019< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0014< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0013< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0013< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0017< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0015< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0013< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.001< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0015< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0014< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0022< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0018< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0016< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0013< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0021< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0016< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0028< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0013< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0017< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0014< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0011< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.002< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0014< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.002< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >0.0012< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus bkk+16).
+# Errors are >NULL< [kjk+24] and >0.00016< [bkk+16]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >1.4e-12< [kjk+24] and >2e-11< [jbv+19]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus jbv+19).
+# Errors are >7.3e-19< [kjk+24] and >3e-19< [jbv+19]. Taking smallest uncertainty
+# PX_0, nc = 0 (kjk+24 versus ccv+04).
+# Errors are >0.07< [kjk+24] and >0.07< [ccv+04]. Taking smallest uncertainty
+# RM_0, nc = 0 (rvwc23 versus jhv+05).
+# Errors are >0.4< [rvwc23] and >0.02< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (whx+23 versus jhv+05).
+# Errors are >0.2< [whx+23] and >0.02< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus jhv+05).
+# Errors are >0.01< [kjk+24] and >0.02< [jhv+05]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >NULL< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >NULL< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# Have both P and F. Choosing to keep F
+RAJ      19:32:14.0570            8    jbv+19
+DECJ     +10:59:33.38             2    jbv+19
+POSEPOCH 57600                         jbv+19
+PMRA     94.09                    11   ccv+04
+PMDEC    42.99                    16   ccv+04
+DM       3.18321                  16   bkk+16
+DMEPOCH  56781                         bkk+16
+F0       4.4146421450799          14   kjk+24
+PEPOCH   59400                         kjk+24
+F1       -2.25455E-14             3    jbv+19
+F2       -1.21E-24                8    jbv+19
+PX       2.77                     7    ccv+04
+RM       -7.550                   10   kjk+24
+S400     303                      76   lylg95
+S5000    8                        3    zyw+19
+S50      306                      153  bgt+20
+S600     187                      43   lylg95
+S800     60                       20   jbv+19
+S150     500                      300  bkk+16
+S200     362                      15   xbt+17
+S1400    29                       6    jk18 
+S1284    33.61                    4    kjk+24
+S1284    83.76                    7    kjk+24
+S1284    110.94                   11   kjk+24
+S1284    147.2                    2    kjk+24
+S1284    77.94                    9    kjk+24
+S1284    79.31                    10   kjk+24
+S1284    61.27                    10   kjk+24
+S1284    88.14                    10   kjk+24
+S1284    56.85                    7    kjk+24
+S1284    9.18                     4    kjk+24
+S1284    116.94                   10   kjk+24
+S1284    99.36                    10   kjk+24
+S1284    26.45                    5    kjk+24
+S1284    27.76                    5    kjk+24
+S1284    49.75                    6    kjk+24
+S1284    16.89                    4    kjk+24
+S1284    31.45                    5    kjk+24
+S1284    52.61                    7    kjk+24
+S1284    119.37                   15   kjk+24
+S1284    19.21                    5    kjk+24
+S1284    42.52                    5    kjk+24
+S1284    80.26                    10   kjk+24
+S1284    73.50                    8    kjk+24
+S1284    23.55                    4    kjk+24
+S1284    18.38                    4    kjk+24
+S1284    47.93                    6    kjk+24
+S1284    59.88                    8    kjk+24
+S1284    54.96                    6    kjk+24
+S1284    34.56                    4    kjk+24
+S1284    138.06                   17   kjk+24
+S1284    171.77                   16   kjk+24
+S1284    11.44                    4    kjk+24
+S1284    16.12                    4    kjk+24
+S1284    131.2                    3    kjk+24
+S1284    130.78                   15   kjk+24
+S1284    11.89                    5    kjk+24
+S1284    49.26                    7    kjk+24
+S1284    145.87                   14   kjk+24
+S1284    84.29                    9    kjk+24
+S1284    44.16                    6    kjk+24
+S1284    37.70                    6    kjk+24
+S1284    200.5                    3    kjk+24
+S1284    53.47                    5    kjk+24
+S1284    50.61                    7    kjk+24
+S1284    11.97                    5    kjk+24
+S1284    18.61                    5    kjk+24
+S1284    128.14                   13   kjk+24
+S1284    59.43                    7    kjk+24
+S1284    59.81                    7    kjk+24
+S1284    10.59                    4    kjk+24
+S1284    44.53                    7    kjk+24
+S1284    11.07                    4    kjk+24
+S1284    36.67                    5    kjk+24
+S1284    66.69                    8    kjk+24
+S1284    90.90                    9    kjk+24
+S1284    59.16                    7    kjk+24
+S1284    75.43                    10   kjk+24
+W50      6.0                           pkj+21
+W10      12                            pkj+21
+W50      7.00                     10   whx+23
+W10      13.20                    10   whx+23
+W50      5.6                           dmo+24
+W10      14.7                          dmo+24
+SPINDX   -1.7                     2    lylg95
+TAU_SC   1.800E-09                     cor86
+FRACL    0.76                     3    whx+23
+FRACV    -0.05                    3    whx+23
+FRACAV   0.06                     3    whx+23
+DIST_A   0.31                          vwc+12
+DIST_AMX 0.40                          vwc+12
+DIST_AMN 0.25                          vwc+12
+DIST_DM  0.229                         ymw17
+DIST_DM1 0.335                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+TYPE     HE[yhh94]
+SURVEY   mol1,ar1,ar2,ar3,ar327,ar4,gb4,jb1,lotaas,misc,mol2,pksmb,fast_gpps
+
+@
+-----------------------------------------------------------------
+PSRB     B1642-03                      ht69
+PSRJ     J1645-0317 
+# RAJ_0, nc = 0 (kjk+24 versus dgb+19).
+# Errors are >1.8e-05< [kjk+24] and >4.16667e-07< [dgb+19]. Taking smallest uncertainty
+# DECJ_0, nc = 0 (kjk+24 versus dgb+19).
+# Errors are >5e-05< [kjk+24] and >5.55556e-07< [dgb+19]. Taking smallest uncertainty
+# PMRA_0, nc = 0 (kjk+24 versus dgb+19).
+# Errors are >0.027< [kjk+24] and >0.027< [dgb+19]. Taking smallest uncertainty
+# PMDEC_0, nc = 0 (kjk+24 versus dgb+19).
+# Errors are >0.2< [kjk+24] and >0.2< [dgb+19]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0024< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0028< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0024< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0027< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.004< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0024< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0024< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0027< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0024< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0028< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0023< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0022< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >0.0021< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# DM_0, nc = 0 (kjk+24 versus srb+15).
+# Errors are >NULL< [kjk+24] and >0.0008< [srb+15]. Taking smallest uncertainty
+# F_0, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >2.4e-12< [kjk+24] and >4e-11< [hlk+04]. Taking smallest uncertainty
+# F_1, nc = 0 (kjk+24 versus hlk+04).
+# Errors are >1.6e-18< [kjk+24] and >1.1e-19< [hlk+04]. Taking smallest uncertainty
+# PX_0, nc = 0 (kjk+24 versus dgb+19).
+# Errors are >0.02< [kjk+24] and >0.02< [dgb+19]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus hl87).
+# Errors are >0.02< [kjk+24] and >0.3< [hl87]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.01< [kjk+24] and >0.02< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.13< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.18< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.11< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.14< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.1< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.07< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.16< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.24< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.03< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.02< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.2< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.12< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.05< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.08< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.09< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.06< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.11< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+# RM_0, nc = 0 (kjk+24 versus kjk+24).
+# Errors are >0.04< [kjk+24] and >0.01< [kjk+24]. Taking smallest uncertainty
+RAJ      16:45:02.0406            1    dgb+19
+DECJ     -03:17:57.819            2    dgb+19
+POSEPOCH 56000.0                       dgb+19
+PMRA     -1.03                    3    dgb+19
+PMDEC    20.5                     2    dgb+19
+DM       35.7555                  8    srb+15
+DMEPOCH  56842                         srb+15
+F0       2.579369213821           3    kjk+24
+PEPOCH   59400                         kjk+24
+F1       -1.184559E-14            11   hlk+04
+PX       0.26                     2    dgb+19
+RM       15.430                   10   kjk+24
+S400     393                      43   lylg95
+S50      400                      300  bgt+20
+S5000    1.6                      5    zyw+19
+S600     173                      19   lylg95
+S80      800                      500  srb+15
+S800     80                       10   jbv+19
+S150     830                           scb+19
+S200     2224                     107  xbt+17
+S1400    25.76                    3    jsd+21
+S1284    24.331                   5    kjk+24
+S1284    27.83                    3    kjk+24
+S1284    18.245                   13   kjk+24
+S1284    98.55                    5    kjk+24
+S1284    32.40                    3    kjk+24
+S1284    22.593                   14   kjk+24
+S1284    36.84                    3    kjk+24
+S1284    51.38                    3    kjk+24
+S1284    22.305                   17   kjk+24
+S1284    27.72                    3    kjk+24
+S1284    22.962                   17   kjk+24
+S1284    124.79                   4    kjk+24
+S1284    34.02                    3    kjk+24
+S1284    49.62                    3    kjk+24
+S1284    150.40                   9    kjk+24
+S1284    23.120                   18   kjk+24
+S1284    29.281                   16   kjk+24
+S1284    25.406                   16   kjk+24
+S1284    14.69                    3    kjk+24
+S1284    14.71                    3    kjk+24
+S1284    129.51                   6    kjk+24
+S1284    45.66                    3    kjk+24
+S1284    10.646                   10   kjk+24
+S1284    15.417                   13   kjk+24
+S1284    27.894                   17   kjk+24
+S1284    29.044                   16   kjk+24
+S1284    4.733                    10   kjk+24
+S1284    73.09                    3    kjk+24
+S1284    18.556                   16   kjk+24
+S1284    29.40                    4    kjk+24
+S1284    91.26                    4    kjk+24
+S1284    28.578                   18   kjk+24
+S1284    38.16                    8    kjk+24
+S1284    7.583                    10   kjk+24
+S1284    82.68                    6    kjk+24
+S1284    17.751                   14   kjk+24
+S1284    12.534                   13   kjk+24
+S1284    51.60                    3    kjk+24
+S1284    61.84                    3    kjk+24
+S1284    34.25                    2    kjk+24
+S1284    36.34                    6    kjk+24
+S1284    31.305                   18   kjk+24
+S1284    108.42                   8    kjk+24
+S1284    11.269                   11   kjk+24
+S1284    17.429                   12   kjk+24
+S1284    26.09                    4    kjk+24
+S1284    20.41                    5    kjk+24
+S1284    32.83                    3    kjk+24
+S1284    37.33                    3    kjk+24
+S1284    43.727                   15   kjk+24
+S1284    16.68                    4    kjk+24
+S1284    49.17                    3    kjk+24
+S1284    27.38                    4    kjk+24
+S1284    11.435                   11   kjk+24
+S1284    23.782                   12   kjk+24
+W50      3.8                           pkj+21
+W10      7.9                           pkj+21
+SPINDX   -2.6                     2    jsd+21
+TAU_SC   9.4E-8                   31   kl07 
+NGLT 7
+DIST_A   4.0                      4    dgb+19
+DIST_DM  1.326                         ymw17
+DIST_DM1 1.126                         cl02
+EPHEM    DE440                         kjk+24
+CLK      TT(BIPM2019)                  kjk+24
+UNITS    TCB                           kjk+24
+SURVEY   misc,gb2,gb3,lotaas,mol1,mol2,pks70,pkssw

@@ -1,0 +1,3260 @@
+{
+  "11289": {
+    "temperatureK": 10625.406633713012,
+    "luminositySolar": 145.8568893931105,
+    "radiusSolar": 3.5638958148188027,
+    "radiusKm": 2479402.318369441,
+    "radiusPc": 8.03518813579371e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "12359": {
+    "temperatureK": 6988.564781536702,
+    "luminositySolar": 26.149557256925924,
+    "radiusSolar": 3.48825981071071,
+    "radiusKm": 2426782.350311441,
+    "radiusPc": 7.864658593285438e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "17696": {
+    "temperatureK": 13348.432762651251,
+    "luminositySolar": 2863.1328124542597,
+    "radiusSolar": 10.004901917780987,
+    "radiusKm": 6960410.264200233,
+    "radiusPc": 2.2557132241426315e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "25698": {
+    "temperatureK": 4943.405869870266,
+    "luminositySolar": 17.507082313055342,
+    "radiusSolar": 5.7043608925312945,
+    "radiusKm": 3968523.8729340215,
+    "radiusPc": 1.2861097896118905e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "34838": {
+    "temperatureK": 4551.904315057614,
+    "luminositySolar": 96.98771560944623,
+    "radiusSolar": 15.835244068370594,
+    "radiusKm": 11016579.298365422,
+    "radiusPc": 3.5702268494074444e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "37772": {
+    "temperatureK": 4455.034400111444,
+    "luminositySolar": 0.23646435320316764,
+    "radiusSolar": 0.8162691091623255,
+    "radiusKm": 567878.4192442299,
+    "radiusPc": 1.8403668912777935e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "48343": {
+    "temperatureK": 13489.107336777866,
+    "luminositySolar": 1443.3208553384832,
+    "radiusSolar": 6.956129641721184,
+    "radiusKm": 4839379.391745428,
+    "radiusPc": 1.5683345774529265e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "52707": {
+    "temperatureK": 4368.44640044032,
+    "luminositySolar": 954.4917419317804,
+    "radiusSolar": 53.936741991191155,
+    "radiusKm": 37523791.40327169,
+    "radiusPc": 0.0000012160621181150333,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "56551": {
+    "temperatureK": 4697.5780240644945,
+    "luminositySolar": 159.97276753568877,
+    "radiusSolar": 19.095352045044425,
+    "radiusKm": 13284636.417737406,
+    "radiusPc": 4.30525341294092e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "57553": {
+    "temperatureK": 5727.747329023016,
+    "luminositySolar": 0.7601018480058962,
+    "radiusSolar": 0.885361914603158,
+    "radiusKm": 615946.283989417,
+    "radiusPc": 1.9961440855039682e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "62405": {
+    "temperatureK": 5023.375177795588,
+    "luminositySolar": 0.28596225504019207,
+    "radiusSolar": 0.7060179956575069,
+    "radiusKm": 491176.71957892756,
+    "radiusPc": 1.5917938450320504e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "63250": {
+    "temperatureK": 6018.915262428434,
+    "luminositySolar": 1.1741941772222113,
+    "radiusSolar": 0.996520294692169,
+    "radiusKm": 693279.1690173419,
+    "radiusPc": 2.2467626622792492e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "72717": {
+    "temperatureK": 4848.409094920103,
+    "luminositySolar": 56.447143518299086,
+    "radiusSolar": 10.648173408922109,
+    "radiusKm": 7407934.240587111,
+    "radiusPc": 2.4007457313281495e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "72768": {
+    "temperatureK": 10737.848625196282,
+    "luminositySolar": 4440.130735939702,
+    "radiusSolar": 19.253778405147994,
+    "radiusKm": 13394853.63646146,
+    "radiusPc": 4.3409723473667824e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "82912": {
+    "temperatureK": 5917.104412474484,
+    "luminositySolar": 1.1966808552729715,
+    "radiusSolar": 1.0409343753583875,
+    "radiusKm": 724178.0449368302,
+    "radiusPc": 2.3468990053641068e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "87352": {
+    "temperatureK": 11920.497361578673,
+    "luminositySolar": 303.85194084487625,
+    "radiusSolar": 4.0869083656390295,
+    "radiusKm": 2843262.1499750726,
+    "radiusPc": 9.214376434662528e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "90273": {
+    "temperatureK": 5137.212854610877,
+    "luminositySolar": 0.7634072883409169,
+    "radiusSolar": 1.1030004118288843,
+    "radiusKm": 767357.3865093548,
+    "radiusPc": 2.4868335898179545e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "93775": {
+    "temperatureK": 7337.079254984824,
+    "luminositySolar": 10.39527487879352,
+    "radiusSolar": 1.9953735590271289,
+    "radiusKm": 1388181.3850151736,
+    "radiusPc": 4.498785256657797e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "93808": {
+    "temperatureK": 6425.395442723069,
+    "luminositySolar": 3.389164617337927,
+    "radiusSolar": 1.4855909834923207,
+    "radiusKm": 1033525.6472156075,
+    "radiusPc": 3.3494253663547426e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "104137": {
+    "temperatureK": 4565.15630336834,
+    "luminositySolar": 68.71572099365541,
+    "radiusSolar": 13.251632867419856,
+    "radiusKm": 9219160.985863993,
+    "radiusPc": 2.9877237924139393e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "107538": {
+    "temperatureK": 6059.083943683939,
+    "luminositySolar": 2.299448233921816,
+    "radiusSolar": 1.3761016788043399,
+    "radiusKm": 957353.9379441793,
+    "radiusPc": 3.1025699003876786e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "108256": {
+    "temperatureK": 8486.084510400658,
+    "luminositySolar": 65.45642996213908,
+    "radiusSolar": 3.7429506180920673,
+    "radiusKm": 2603970.745006651,
+    "radiusPc": 8.438886533747961e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "115103": {
+    "temperatureK": 4806.042931219196,
+    "luminositySolar": 527.5200877246342,
+    "radiusSolar": 33.12812483201137,
+    "radiusKm": 23047236.445630312,
+    "radiusPc": 7.469093639169824e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "121650": {
+    "temperatureK": 6229.996835452296,
+    "luminositySolar": 3.29373212396449,
+    "radiusSolar": 1.557833828997472,
+    "radiusKm": 1083784.9948335413,
+    "radiusPc": 3.512304666216791e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "122757": {
+    "temperatureK": 12650.440077321337,
+    "luminositySolar": 1995.9400453266187,
+    "radiusSolar": 9.300689012204447,
+    "radiusKm": 6470489.345790634,
+    "radiusPc": 2.0969408166992585e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "123119": {
+    "temperatureK": 4166.646445190709,
+    "luminositySolar": 190.85517923643977,
+    "radiusSolar": 26.51131797349558,
+    "radiusKm": 18443923.914160874,
+    "radiusPc": 5.977263049024255e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "125360": {
+    "temperatureK": 5050.64469616304,
+    "luminositySolar": 0.33704249480709075,
+    "radiusSolar": 0.758230656630275,
+    "radiusKm": 527501.0678176823,
+    "radiusPc": 1.7095129299284577e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "125364": {
+    "temperatureK": 5106.136867078238,
+    "luminositySolar": 0.3188039912659853,
+    "radiusSolar": 0.7214888378561851,
+    "radiusKm": 501939.784496548,
+    "radiusPc": 1.626674530143177e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "132421": {
+    "temperatureK": 4886.452318139357,
+    "luminositySolar": 135.9291309558438,
+    "radiusSolar": 16.267528804766066,
+    "radiusKm": 11317319.789475752,
+    "radiusPc": 3.6676901133650137e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "140225": {
+    "temperatureK": 4438.264539182866,
+    "luminositySolar": 272.4977593742668,
+    "radiusSolar": 27.91950690257063,
+    "radiusKm": 19423600.95211839,
+    "radiusPc": 6.294754456287383e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "142252": {
+    "temperatureK": 6443.818339152462,
+    "luminositySolar": 12.563387532231886,
+    "radiusSolar": 2.8439335585886707,
+    "radiusKm": 1978524.5767101382,
+    "radiusPc": 6.411955448848917e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "142805": {
+    "temperatureK": 10752.091303165967,
+    "luminositySolar": 80.80669788997672,
+    "radiusSolar": 2.590540805799553,
+    "radiusKm": 1802239.238594749,
+    "radiusPc": 5.840654112698397e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "143900": {
+    "temperatureK": 12488.51084629239,
+    "luminositySolar": 1493.7123985673034,
+    "radiusSolar": 8.255907663850433,
+    "radiusKm": 5743634.961740746,
+    "radiusPc": 1.8613835745406643e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "144249": {
+    "temperatureK": 8444.162842364198,
+    "luminositySolar": 22.064302659449513,
+    "radiusSolar": 2.194747424660464,
+    "radiusKm": 1526885.7833362848,
+    "radiusPc": 4.9482951758487857e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "153727": {
+    "temperatureK": 9835.404627425793,
+    "luminositySolar": 60.04537706615784,
+    "radiusSolar": 2.6687504779499114,
+    "radiusKm": 1856649.7075097533,
+    "radiusPc": 6.01698626785115e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "156068": {
+    "temperatureK": 4000.132098949701,
+    "luminositySolar": 4602.469910800346,
+    "radiusSolar": 141.25357775624093,
+    "radiusKm": 98270114.04501681,
+    "radiusPc": 0.000003184714512152672,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "160205": {
+    "temperatureK": 4407.175670342634,
+    "luminositySolar": 92.57110512428225,
+    "radiusSolar": 16.5032563338376,
+    "radiusKm": 11481315.43145082,
+    "radiusPc": 3.7208374314487737e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "191390": {
+    "temperatureK": 5830.070651083036,
+    "luminositySolar": 2383.161226425257,
+    "radiusSolar": 47.84997569842678,
+    "radiusKm": 33289228.093395513,
+    "radiusPc": 0.0000010788293962784215,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "196694": {
+    "temperatureK": 4948.653237147684,
+    "luminositySolar": 0.2632366887287819,
+    "radiusSolar": 0.6979941915030115,
+    "radiusKm": 485594.55902864505,
+    "radiusPc": 1.5737033117235135e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "197956": {
+    "temperatureK": 5756.588112693915,
+    "luminositySolar": 3.71125245560478,
+    "radiusSolar": 1.936790208040084,
+    "radiusKm": 1347424.9477334865,
+    "radiusPc": 4.366702762874214e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "205736": {
+    "temperatureK": 9095.86655637804,
+    "luminositySolar": 20.413955279031782,
+    "radiusSolar": 1.819399469719507,
+    "radiusKm": 1265756.211083861,
+    "radiusPc": 4.10203266116039e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "211183": {
+    "temperatureK": 4488.97682483963,
+    "luminositySolar": 58.66001417906384,
+    "radiusSolar": 12.662778206020525,
+    "radiusKm": 8809494.797928479,
+    "radiusPc": 2.854960147379515e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "213240": {
+    "temperatureK": 5804.124059950326,
+    "luminositySolar": 2.7022642703446342,
+    "radiusSolar": 1.6257103887012554,
+    "radiusKm": 1131006.7174194634,
+    "radiusPc": 3.665339703033114e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "213523": {
+    "temperatureK": 11572.817729534148,
+    "luminositySolar": 124.64799059456601,
+    "radiusSolar": 2.7772633276350973,
+    "radiusKm": 1932142.0970357372,
+    "radiusPc": 6.261640210524248e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "214743": {
+    "temperatureK": 4980.386823978706,
+    "luminositySolar": 45.31609219902425,
+    "radiusSolar": 9.041754682203472,
+    "radiusKm": 6290348.732408955,
+    "radiusPc": 2.0385612746340165e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "220725": {
+    "temperatureK": 4540.922656754363,
+    "luminositySolar": 62.54371547449289,
+    "radiusSolar": 12.777805520705385,
+    "radiusKm": 8889519.300754737,
+    "radiusPc": 2.880894298159257e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "224752": {
+    "temperatureK": 4901.847015874597,
+    "luminositySolar": 21.02892017672832,
+    "radiusSolar": 6.358308929482395,
+    "radiusKm": 4423475.522240902,
+    "radiusPc": 1.4335494393930732e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "233283": {
+    "temperatureK": 10162.813196598341,
+    "luminositySolar": 112.16025616948698,
+    "radiusSolar": 3.4162076069314944,
+    "radiusKm": 2376655.6321422406,
+    "radiusPc": 7.702209115790268e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "234642": {
+    "temperatureK": 4791.27622506509,
+    "luminositySolar": 42.01550915493305,
+    "radiusSolar": 9.407084420957792,
+    "radiusKm": 6544508.631660337,
+    "radiusPc": 2.1209288110329613e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "236923": {
+    "temperatureK": 4664.877902396948,
+    "luminositySolar": 56.9525725105955,
+    "radiusSolar": 11.553904020405371,
+    "radiusKm": 8038051.0269960165,
+    "radiusPc": 2.6049524826409826e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "237428": {
+    "temperatureK": 6200.084368063528,
+    "luminositySolar": 4.696335155809044,
+    "radiusSolar": 1.8781790323558363,
+    "radiusKm": 1306649.1528099554,
+    "radiusPc": 4.2345575353047794e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "241594": {
+    "temperatureK": 7923.34069156198,
+    "luminositySolar": 12.244201954492148,
+    "radiusSolar": 1.8569543448089585,
+    "radiusKm": 1291883.1376835925,
+    "radiusPc": 4.186704184246235e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "246055": {
+    "temperatureK": 5564.3560117586,
+    "luminositySolar": 0.6299563897408664,
+    "radiusSolar": 0.8540397212802714,
+    "radiusKm": 594155.4340946848,
+    "radiusPc": 1.9255248168012743e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "246919": {
+    "temperatureK": 4655.6229367768665,
+    "luminositySolar": 0.3013571561746149,
+    "radiusSolar": 0.8437966580636923,
+    "radiusKm": 587029.3350149108,
+    "radiusPc": 1.9024307241822325e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "250909": {
+    "temperatureK": 6476.334733465545,
+    "luminositySolar": 3598.397248281996,
+    "radiusSolar": 47.64843302704505,
+    "radiusKm": 33149014.856915243,
+    "radiusPc": 0.0000010742853990178704,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "260533": {
+    "temperatureK": 5047.903627474685,
+    "luminositySolar": 0.341462274582479,
+    "radiusSolar": 0.7640150250293193,
+    "radiusKm": 531525.2529128974,
+    "radiusPc": 1.722554413391527e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "267961": {
+    "temperatureK": 6034.913844498554,
+    "luminositySolar": 1.2861299235564927,
+    "radiusSolar": 1.0374159417430697,
+    "radiusKm": 721730.2706706536,
+    "radiusPc": 2.338966316668543e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "271928": {
+    "temperatureK": 4956.546436857988,
+    "luminositySolar": 3.3545761744674607,
+    "radiusSolar": 2.4837799398916887,
+    "radiusKm": 1727965.7041826479,
+    "radiusPc": 5.599950206724774e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "273165": {
+    "temperatureK": 9858.851179889065,
+    "luminositySolar": 3039.460744808995,
+    "radiusSolar": 18.89723623852419,
+    "radiusKm": 13146807.25114128,
+    "radiusPc": 4.260586064040163e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "273677": {
+    "temperatureK": 10570.16548926032,
+    "luminositySolar": 132.88908085267184,
+    "radiusSolar": 3.437428869096179,
+    "radiusKm": 2391419.2642302117,
+    "radiusPc": 7.7500547439546e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "273761": {
+    "temperatureK": 11657.592918830445,
+    "luminositySolar": 637.6730917408488,
+    "radiusSolar": 6.190616756760962,
+    "radiusKm": 4306812.077678601,
+    "radiusPc": 1.3957414274103987e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "274126": {
+    "temperatureK": 11743.77313439976,
+    "luminositySolar": 290.5354559909296,
+    "radiusSolar": 4.117531296233541,
+    "radiusKm": 2864566.522789675,
+    "radiusPc": 9.283419140000078e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "274844": {
+    "temperatureK": 10985.864244878425,
+    "luminositySolar": 574.3924259636597,
+    "radiusSolar": 6.615894041922394,
+    "radiusKm": 4602677.48496541,
+    "radiusPc": 1.49162478578308e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "274922": {
+    "temperatureK": 10597.705652891262,
+    "luminositySolar": 102.68334595107937,
+    "radiusSolar": 3.0059305671018737,
+    "radiusKm": 2091225.8955327736,
+    "radiusPc": 6.777195205697853e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "275407": {
+    "temperatureK": 10809.486984241597,
+    "luminositySolar": 509.2059332593405,
+    "radiusSolar": 6.434120743879828,
+    "radiusKm": 4476217.801517196,
+    "radiusPc": 1.4506420319729777e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "276732": {
+    "temperatureK": 11342.623636561362,
+    "luminositySolar": 1419.342614008089,
+    "radiusSolar": 9.755942280286023,
+    "radiusKm": 6787209.044394986,
+    "radiusPc": 2.199582584263285e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "278603": {
+    "temperatureK": 11091.76122843408,
+    "luminositySolar": 659.6545624202233,
+    "radiusSolar": 6.955204537058525,
+    "radiusKm": 4838735.796431616,
+    "radiusPc": 1.5681260026124708e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "278635": {
+    "temperatureK": 11278.722643126554,
+    "luminositySolar": 230.62427885798465,
+    "radiusSolar": 3.9772722824593747,
+    "radiusKm": 2766988.326906987,
+    "radiusPc": 8.967190040728944e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "305466": {
+    "temperatureK": 7294.4733525980155,
+    "luminositySolar": 26.794974000807752,
+    "radiusSolar": 3.2410925354470423,
+    "radiusKm": 2254828.0769105074,
+    "radiusPc": 7.307393268778175e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "309538": {
+    "temperatureK": 5221.100154359167,
+    "luminositySolar": 0.40469192023664025,
+    "radiusSolar": 0.7774829311347509,
+    "radiusKm": 540894.8751904462,
+    "radiusPc": 1.752919262695588e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "314752": {
+    "temperatureK": 4788.824417615377,
+    "luminositySolar": 84.17896810404315,
+    "radiusSolar": 13.32897077917319,
+    "radiusKm": 9272964.971070789,
+    "radiusPc": 3.0051604601297453e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "318515": {
+    "temperatureK": 4783.928742570756,
+    "luminositySolar": 86.05788136985487,
+    "radiusSolar": 13.50450175468569,
+    "radiusKm": 9395081.870734833,
+    "radiusPc": 3.044735814887247e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "325151": {
+    "temperatureK": 4709.374122196646,
+    "luminositySolar": 92.27801073928794,
+    "radiusSolar": 14.430300353513706,
+    "radiusKm": 10039159.955939485,
+    "radiusPc": 3.253467110749092e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "325205": {
+    "temperatureK": 8329.173536142674,
+    "luminositySolar": 70.57799801148116,
+    "radiusSolar": 4.034442138493386,
+    "radiusKm": 2806761.395749849,
+    "radiusPc": 9.096085657435652e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "328542": {
+    "temperatureK": 4723.612187790311,
+    "luminositySolar": 18.24574564304563,
+    "radiusSolar": 6.3780068887008685,
+    "radiusKm": 4437179.392469194,
+    "radiusPc": 1.437990557103459e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "333416": {
+    "temperatureK": 4848.409094920103,
+    "luminositySolar": 138.17897587333255,
+    "radiusSolar": 16.660004529617567,
+    "radiusKm": 11590365.15125494,
+    "radiusPc": 3.756178005598029e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "336467": {
+    "temperatureK": 4554.10735604515,
+    "luminositySolar": 44.84408530382655,
+    "radiusSolar": 10.757186580564296,
+    "radiusKm": 7483774.70409858,
+    "radiusPc": 2.425323928585835e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "350878": {
+    "temperatureK": 6462.35579104865,
+    "luminositySolar": 2.648087584857058,
+    "radiusSolar": 1.2981864977356157,
+    "radiusKm": 903148.3464746678,
+    "radiusPc": 2.926901707193467e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "351497": {
+    "temperatureK": 4838.369718850402,
+    "luminositySolar": 13.172060936976123,
+    "radiusSolar": 5.16513179466992,
+    "radiusKm": 3593382.1895518634,
+    "radiusPc": 1.1645347640010267e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "368017": {
+    "temperatureK": 6225.704592092701,
+    "luminositySolar": 49781.46874751144,
+    "radiusSolar": 191.7827220230186,
+    "radiusKm": 133423239.71141404,
+    "radiusPc": 0.000004323948658212756,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "368829": {
+    "temperatureK": 4401.012669271741,
+    "luminositySolar": 23970.96988405458,
+    "radiusSolar": 266.31167762130895,
+    "radiusKm": 185273034.12114462,
+    "radiusPc": 0.0000060042844786551555,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "375368": {
+    "temperatureK": 12448.752521266335,
+    "luminositySolar": 432.74153624410997,
+    "radiusSolar": 4.47213875165853,
+    "radiusKm": 3111266.9295288394,
+    "radiusPc": 1.0082919957854299e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "377630": {
+    "temperatureK": 8477.663471915403,
+    "luminositySolar": 45.75618502393726,
+    "radiusSolar": 3.1356328297238525,
+    "radiusKm": 2181459.759638884,
+    "radiusPc": 7.069622969010208e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "380548": {
+    "temperatureK": 4512.6294056515735,
+    "luminositySolar": 53.337719027319345,
+    "radiusSolar": 11.948421271705984,
+    "radiusKm": 8312516.678725853,
+    "radiusPc": 2.693900659067341e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "388910": {
+    "temperatureK": 10515.561781448858,
+    "luminositySolar": 64374.928531963225,
+    "radiusSolar": 76.44446862532762,
+    "radiusKm": 53182416.82264042,
+    "radiusPc": 0.0000017235231310388816,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "392532": {
+    "temperatureK": 5295.7915839616435,
+    "luminositySolar": 149.1981247130657,
+    "radiusSolar": 14.510171879822204,
+    "radiusKm": 10094726.576792307,
+    "radiusPc": 3.271475009237965e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "407012": {
+    "temperatureK": 14192.406078472375,
+    "luminositySolar": 2851.3215434780896,
+    "radiusSolar": 8.832094045475188,
+    "radiusKm": 6144487.827437088,
+    "radiusPc": 1.991291019039642e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "409060": {
+    "temperatureK": 12103.301413538873,
+    "luminositySolar": 549.6244789935168,
+    "radiusSolar": 5.3318507078408945,
+    "radiusKm": 3709368.5374449105,
+    "radiusPc": 1.2021233441035555e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "412544": {
+    "temperatureK": 5259.658008992496,
+    "luminositySolar": 162.6219463177989,
+    "radiusSolar": 15.357736395273497,
+    "radiusKm": 10684377.210191771,
+    "radiusPc": 3.462567585809826e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "420805": {
+    "temperatureK": 8078.841098789417,
+    "luminositySolar": 25038.52403593676,
+    "radiusSolar": 80.77163514256442,
+    "radiusKm": 56192826.56868207,
+    "radiusPc": 0.0000018210837749733417,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "427355": {
+    "temperatureK": 13211.014566512751,
+    "luminositySolar": 141653.16864655487,
+    "radiusSolar": 71.8444871305266,
+    "radiusKm": 49982209.69670736,
+    "radiusPc": 0.0000016198115787027904,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "428894": {
+    "temperatureK": 6030.905632789332,
+    "luminositySolar": 2.467729430960906,
+    "radiusSolar": 1.4389190065055573,
+    "radiusKm": 1001055.9528259162,
+    "radiusPc": 3.244198352086049e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "430018": {
+    "temperatureK": 12448.752521266335,
+    "luminositySolar": 1920.5631090362078,
+    "radiusSolar": 9.421396238211612,
+    "radiusKm": 6554465.362923819,
+    "radiusPc": 2.124155564848866e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "433710": {
+    "temperatureK": 11920.497361578673,
+    "luminositySolar": 963.5228417966742,
+    "radiusSolar": 7.2777125866126,
+    "radiusKm": 5063104.646506386,
+    "radiusPc": 1.6408389265621467e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "448767": {
+    "temperatureK": 12859.619949881899,
+    "luminositySolar": 10045.684639350045,
+    "radiusSolar": 20.19231662452142,
+    "radiusKm": 14047794.675679553,
+    "radiusPc": 4.5525759283115787e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "454990": {
+    "temperatureK": 4417.487704269367,
+    "luminositySolar": 59.64115799543155,
+    "radiusSolar": 13.184843514693002,
+    "radiusKm": 9172695.633171922,
+    "radiusPc": 2.972665411290768e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "473063": {
+    "temperatureK": 9256.197872384579,
+    "luminositySolar": 92.19217607304908,
+    "radiusSolar": 3.733656996583369,
+    "radiusKm": 2597505.1725230496,
+    "radiusPc": 8.417933060031151e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "473490": {
+    "temperatureK": 11294.622214306975,
+    "luminositySolar": 285.1642202755133,
+    "radiusSolar": 4.410184345710643,
+    "radiusKm": 3068165.2493108944,
+    "radiusPc": 9.943237056473547e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "491231": {
+    "temperatureK": 11489.411980913172,
+    "luminositySolar": 758.6853500267375,
+    "radiusSolar": 6.951649853080122,
+    "radiusKm": 4836262.80278784,
+    "radiusPc": 1.5673245607069304e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "505845": {
+    "temperatureK": 5229.944697155372,
+    "luminositySolar": 0.9486885406596859,
+    "radiusSolar": 1.1863703361362505,
+    "radiusKm": 825357.8428499895,
+    "radiusPc": 2.6748000909404426e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "521604": {
+    "temperatureK": 7193.213822764694,
+    "luminositySolar": 42.25932474729352,
+    "radiusSolar": 4.185698872768907,
+    "radiusKm": 2911990.705785329,
+    "radiusPc": 9.437110305702865e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "522429": {
+    "temperatureK": 12691.662939978085,
+    "luminositySolar": 1144.587673849382,
+    "radiusSolar": 6.9974550547400955,
+    "radiusKm": 4868129.481582684,
+    "radiusPc": 1.57765183827227e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "528279": {
+    "temperatureK": 14632.83516736014,
+    "luminositySolar": 8505.70636398217,
+    "radiusSolar": 14.349966155593089,
+    "radiusKm": 9983271.454446113,
+    "radiusPc": 3.235354897946848e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "531292": {
+    "temperatureK": 8452.510597362243,
+    "luminositySolar": 12347.315239611178,
+    "radiusSolar": 51.816427260645,
+    "radiusKm": 36048688.44523073,
+    "radiusPc": 0.0000011682573318578367,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "542874": {
+    "temperatureK": 5468.4090187676065,
+    "luminositySolar": 1.3734232635754822,
+    "radiusSolar": 1.3056683079213023,
+    "radiusKm": 908353.44182085,
+    "radiusPc": 2.9437702565456448e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "543927": {
+    "temperatureK": 5145.757945046592,
+    "luminositySolar": 0.6859235315968881,
+    "radiusSolar": 1.0420577536738973,
+    "radiusKm": 724959.5792309303,
+    "radiusPc": 2.3494317831392762e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "564533": {
+    "temperatureK": 10112.78057086534,
+    "luminositySolar": 190.18923711386847,
+    "radiusSolar": 4.492669230675339,
+    "radiusKm": 3125549.983780833,
+    "radiusPc": 1.0129208140783801e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "570519": {
+    "temperatureK": 5445.775584185253,
+    "luminositySolar": 4.460168862083071,
+    "radiusSolar": 2.372514168176084,
+    "radiusKm": 1650558.1068001017,
+    "radiusPc": 5.3490895039254096e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "584955": {
+    "temperatureK": 10014.343360926072,
+    "luminositySolar": 25.756499396291403,
+    "radiusSolar": 1.6859749106951338,
+    "radiusKm": 1172932.7453706046,
+    "radiusPc": 3.801212578474932e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "585396": {
+    "temperatureK": 6659.242998983987,
+    "luminositySolar": 11.937667383758685,
+    "radiusSolar": 2.595748766402394,
+    "radiusKm": 1805862.4167861454,
+    "radiusPc": 5.852396022513388e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "603861": {
+    "temperatureK": 5504.384307430858,
+    "luminositySolar": 0.9354020289897624,
+    "radiusSolar": 1.0634921842539453,
+    "radiusKm": 739871.5125854698,
+    "radiusPc": 2.3977580225254443e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "624992": {
+    "temperatureK": 13855.85692027517,
+    "luminositySolar": 7909.075681824021,
+    "radiusSolar": 15.432942227153989,
+    "radiusKm": 10736697.90743103,
+    "radiusPc": 3.479523553084626e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "630089": {
+    "temperatureK": 6079.385355699007,
+    "luminositySolar": 2.194786151064902,
+    "radiusSolar": 1.3354554488557386,
+    "radiusKm": 929076.3557689374,
+    "radiusPc": 3.010928583801002e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "640635": {
+    "temperatureK": 11778.646838463834,
+    "luminositySolar": 552.3114483001232,
+    "radiusSolar": 5.643569356276001,
+    "radiusKm": 3926231.2011612137,
+    "radiusPc": 1.2724036810089362e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "641742": {
+    "temperatureK": 4999.097967187286,
+    "luminositySolar": 2672.3113250007978,
+    "radiusSolar": 68.91485957498604,
+    "radiusKm": 47944067.806317784,
+    "radiusPc": 0.0000015537599604745209,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "655257": {
+    "temperatureK": 5702.764173000684,
+    "luminositySolar": 38229.11266785981,
+    "radiusSolar": 200.29906807235866,
+    "radiusKm": 139348061.6579399,
+    "radiusPc": 0.000004515958880429227,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "691766": {
+    "temperatureK": 7021.789425001276,
+    "luminositySolar": 10.421290793284442,
+    "radiusSolar": 2.1813120544687745,
+    "radiusKm": 1517538.7962939264,
+    "radiusPc": 4.918003682277235e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "703984": {
+    "temperatureK": 11294.622214306975,
+    "luminositySolar": 49464.660586705235,
+    "radiusSolar": 58.08403030714557,
+    "radiusKm": 40409059.88468117,
+    "radiusPc": 0.0000013095672136722868,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "713289": {
+    "temperatureK": 11522.612174029493,
+    "luminositySolar": 228.10791837814085,
+    "radiusSolar": 3.78984053062116,
+    "radiusKm": 2636592.057153141,
+    "radiusPc": 8.544604907241246e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "735275": {
+    "temperatureK": 9720.008041122586,
+    "luminositySolar": 52.76699145317243,
+    "radiusSolar": 2.561536585148347,
+    "radiusKm": 1782061.002287705,
+    "radiusPc": 5.775260963803453e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "748861": {
+    "temperatureK": 6811.764999302448,
+    "luminositySolar": 22.548371221246022,
+    "radiusSolar": 3.4095017639738017,
+    "radiusKm": 2371990.3771965737,
+    "radiusPc": 7.687090068384306e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "749263": {
+    "temperatureK": 6714.3008688410055,
+    "luminositySolar": 6.536357584562001,
+    "radiusSolar": 1.889378417646577,
+    "radiusKm": 1314440.5651567236,
+    "radiusPc": 4.2598077593551466e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "749430": {
+    "temperatureK": 4728.378414102225,
+    "luminositySolar": 0.29866381942293996,
+    "radiusSolar": 0.8143657499948549,
+    "radiusKm": 566554.2522714206,
+    "radiusPc": 1.836075562407566e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "767229": {
+    "temperatureK": 4764.451255939726,
+    "luminositySolar": 42.572447411162855,
+    "radiusSolar": 9.5761552304614,
+    "radiusKm": 6662131.193831995,
+    "radiusPc": 2.1590476515721167e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "774070": {
+    "temperatureK": 5452.221868211128,
+    "luminositySolar": 0.5448495507963603,
+    "radiusSolar": 0.827263575552897,
+    "radiusKm": 575527.2695121504,
+    "radiusPc": 1.8651551035295575e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "778244": {
+    "temperatureK": 4273.709406420579,
+    "luminositySolar": 8246.9454364876,
+    "radiusSolar": 165.64915622261546,
+    "radiusKm": 115242117.98407358,
+    "radiusPc": 0.000003734739184152809,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "827335": {
+    "temperatureK": 6585.720711955403,
+    "luminositySolar": 21.51206664752302,
+    "radiusSolar": 3.5627643163950493,
+    "radiusKm": 2478615.134916036,
+    "radiusPc": 8.03263705035726e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "839167": {
+    "temperatureK": 6251.554114480641,
+    "luminositySolar": 6.73599400531734,
+    "radiusSolar": 2.212470563126539,
+    "radiusKm": 1539215.7707671332,
+    "radiusPc": 4.988253906218932e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "854423": {
+    "temperatureK": 5771.12549898083,
+    "luminositySolar": 1.607174545571963,
+    "radiusSolar": 1.2681281127279709,
+    "radiusKm": 882236.7280248493,
+    "radiusPc": 2.859131830871528e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "859735": {
+    "temperatureK": 10639.317892599853,
+    "luminositySolar": 144.92605829363166,
+    "radiusSolar": 3.5432215956310102,
+    "radiusKm": 2465019.2640804937,
+    "radiusPc": 7.988575875119923e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "882500": {
+    "temperatureK": 5117.390962827506,
+    "luminositySolar": 140.40320220971816,
+    "radiusSolar": 15.074536082407121,
+    "radiusKm": 10487354.752530634,
+    "radiusPc": 3.398717015752894e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "901191": {
+    "temperatureK": 4277.570782744916,
+    "luminositySolar": 353.8295647840767,
+    "radiusSolar": 34.24958349966443,
+    "radiusKm": 23827435.240716547,
+    "radiusPc": 7.721938611338772e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "902283": {
+    "temperatureK": 4835.866735501824,
+    "luminositySolar": 3.9651111261417507,
+    "radiusSolar": 2.8368193328420706,
+    "radiusKm": 1973575.2098582285,
+    "radiusPc": 6.395915658326212e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "904816": {
+    "temperatureK": 8402.695283320794,
+    "luminositySolar": 81.34940686343178,
+    "radiusSolar": 4.255911723516543,
+    "radiusKm": 2960837.786050459,
+    "radiusPc": 9.595412763076001e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "910644": {
+    "temperatureK": 10002.18852270849,
+    "luminositySolar": 38.57171767274838,
+    "radiusSolar": 2.068221567263249,
+    "radiusKm": 1438861.7443450424,
+    "radiusPc": 4.663028961274857e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "913598": {
+    "temperatureK": 4551.904315057614,
+    "luminositySolar": 61.30794093717615,
+    "radiusSolar": 12.589971921503244,
+    "radiusKm": 8758843.465789806,
+    "radiusPc": 2.838545183980979e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "913633": {
+    "temperatureK": 9618.693380381961,
+    "luminositySolar": 94.09390421055903,
+    "radiusSolar": 3.493021251040634,
+    "radiusKm": 2430094.8843489694,
+    "radiusPc": 7.875393774905849e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "917915": {
+    "temperatureK": 5653.490772349312,
+    "luminositySolar": 59.86215352172144,
+    "radiusSolar": 8.064834094496737,
+    "radiusKm": 5610705.07954138,
+    "radiusPc": 1.8183039740890827e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "929640": {
+    "temperatureK": 5081.006126474407,
+    "luminositySolar": 0.6551022548739679,
+    "radiusSolar": 1.0444983418094291,
+    "radiusKm": 726657.4963968198,
+    "radiusPc": 2.354934352756896e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "932096": {
+    "temperatureK": 5867.57180466523,
+    "luminositySolar": 3.09230025679731,
+    "radiusSolar": 1.701675112013362,
+    "radiusKm": 1183855.375427696,
+    "radiusPc": 3.836610378499626e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "940655": {
+    "temperatureK": 8649.669831221829,
+    "luminositySolar": 46.50004779899981,
+    "radiusSolar": 3.0365489332977553,
+    "radiusKm": 2112527.0928952484,
+    "radiusPc": 6.846227620105581e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "941942": {
+    "temperatureK": 7989.171796857606,
+    "luminositySolar": 9.307794735813982,
+    "radiusSolar": 1.59247463302308,
+    "radiusKm": 1107884.6021941567,
+    "radiusPc": 3.590406101270967e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "949805": {
+    "temperatureK": 10038.752058872305,
+    "luminositySolar": 445.17996371301194,
+    "radiusSolar": 6.975269529778912,
+    "radiusKm": 4852695.011867189,
+    "radiusPc": 1.5726498719910664e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "960080": {
+    "temperatureK": 4815.94093466545,
+    "luminositySolar": 151.16502022306983,
+    "radiusSolar": 17.661028622579078,
+    "radiusKm": 12286777.612728264,
+    "radiusPc": 3.981869701802031e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "966940": {
+    "temperatureK": 9328.33423057308,
+    "luminositySolar": 224.58756689439372,
+    "radiusSolar": 5.7376929483352175,
+    "radiusKm": 3991712.9841568107,
+    "radiusPc": 1.2936248616918219e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "973979": {
+    "temperatureK": 8249.126265479448,
+    "luminositySolar": 5516.153778835949,
+    "radiusSolar": 36.36259969013975,
+    "radiusKm": 25297460.604430225,
+    "radiusPc": 8.198340939202852e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "982982": {
+    "temperatureK": 12311.807596688568,
+    "luminositySolar": 4909.026394812088,
+    "radiusSolar": 15.39950242796769,
+    "radiusKm": 10713433.839137122,
+    "radiusPc": 3.4719841890951446e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "994523": {
+    "temperatureK": 4759.60801139827,
+    "luminositySolar": 57.42631598060156,
+    "radiusSolar": 11.144632430423966,
+    "radiusKm": 7753320.781845953,
+    "radiusPc": 2.5126777811622805e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1006897": {
+    "temperatureK": 5094.93516225697,
+    "luminositySolar": 14.29833788127061,
+    "radiusSolar": 4.853087252613215,
+    "radiusKm": 3376292.801643014,
+    "radiusPc": 1.0941809508579034e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1013912": {
+    "temperatureK": 4098.3313934663465,
+    "luminositySolar": 319.8568298566393,
+    "radiusSolar": 35.474502499549914,
+    "radiusKm": 24679611.388936874,
+    "radiusPc": 7.998109833131025e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1024340": {
+    "temperatureK": 5256.670529463656,
+    "luminositySolar": 297.55659240716693,
+    "radiusSolar": 20.797729129307086,
+    "radiusKm": 14468980.15525894,
+    "radiusPc": 4.689072718018162e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1031659": {
+    "temperatureK": 5120.2127178157225,
+    "luminositySolar": 0.42554224084735587,
+    "radiusSolar": 0.8289874864778491,
+    "radiusKm": 576726.5943426397,
+    "radiusPc": 1.8690418469505477e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1034133": {
+    "temperatureK": 4948.653237147684,
+    "luminositySolar": 155.00525401475727,
+    "radiusSolar": 16.93759751410096,
+    "radiusKm": 11783486.59056004,
+    "radiusPc": 3.818764342892907e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1036347": {
+    "temperatureK": 4266.008517227074,
+    "luminositySolar": 67.00511431523094,
+    "radiusSolar": 14.985222119155784,
+    "radiusKm": 10425219.02829668,
+    "radiusPc": 3.3785802178450027e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1042164": {
+    "temperatureK": 5727.747329023016,
+    "luminositySolar": 2.9085182179760207,
+    "radiusSolar": 1.7318921195809152,
+    "radiusKm": 1204877.3475924428,
+    "radiusPc": 3.9047378865194796e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1063525": {
+    "temperatureK": 11358.725852468784,
+    "luminositySolar": 217.3161557404734,
+    "radiusSolar": 3.8066190458401334,
+    "radiusKm": 2648264.870190981,
+    "radiusPc": 8.582433882449542e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1077796": {
+    "temperatureK": 7417.664660543828,
+    "luminositySolar": 162.6887192690448,
+    "radiusSolar": 7.723194522771375,
+    "radiusKm": 5373026.429492045,
+    "radiusPc": 1.741277641780745e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1078526": {
+    "temperatureK": 9777.327488903338,
+    "luminositySolar": 187.3117597114328,
+    "radiusSolar": 4.7697415004703725,
+    "radiusKm": 3318309.161877238,
+    "radiusPc": 1.0753897506212875e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1083342": {
+    "temperatureK": 4455.034400111444,
+    "luminositySolar": 349.43441907307175,
+    "radiusSolar": 31.378585431688276,
+    "radiusKm": 21830081.884825535,
+    "radiusPc": 7.074641080424234e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1124195": {
+    "temperatureK": 4878.793247848482,
+    "luminositySolar": 0.42106612742613964,
+    "radiusSolar": 0.9082449038293201,
+    "radiusKm": 631865.979594058,
+    "radiusPc": 2.0477362568511267e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1138221": {
+    "temperatureK": 4648.70706545726,
+    "luminositySolar": 34.742418533953455,
+    "radiusSolar": 9.086953550809964,
+    "radiusKm": 6321793.585298492,
+    "radiusPc": 2.0487518478620012e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1144024": {
+    "temperatureK": 7937.866694928842,
+    "luminositySolar": 6.501356693195077,
+    "radiusSolar": 1.3481773896434395,
+    "radiusKm": 937927.0099749408,
+    "radiusPc": 3.0396115737067547e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1147773": {
+    "temperatureK": 5875.134233597396,
+    "luminositySolar": 1.549516333856089,
+    "radiusSolar": 1.2014761015949913,
+    "radiusKm": 835866.9238796354,
+    "radiusPc": 2.7088576711007442e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1148268": {
+    "temperatureK": 4560.729961655777,
+    "luminositySolar": 73.29494352357273,
+    "radiusSolar": 13.712635586770157,
+    "radiusKm": 9539880.577715999,
+    "radiusPc": 3.0916618358800194e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1151532": {
+    "temperatureK": 9731.412063097674,
+    "luminositySolar": 72.45592338903397,
+    "radiusSolar": 2.994593430683529,
+    "radiusKm": 2083338.649726531,
+    "radiusPc": 6.75163440684852e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1154608": {
+    "temperatureK": 4600.895299436185,
+    "luminositySolar": 340.5553256863591,
+    "radiusSolar": 29.044358073839664,
+    "radiusKm": 20206159.911970254,
+    "radiusPc": 6.548364305047065e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1156214": {
+    "temperatureK": 5117.390962827506,
+    "luminositySolar": 9.967288132954224,
+    "radiusSolar": 4.016464711678179,
+    "radiusKm": 2794254.499914509,
+    "radiusPc": 9.055553606510645e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1169812": {
+    "temperatureK": 8765.677098375048,
+    "luminositySolar": 24.31502266555487,
+    "radiusSolar": 2.1380558580445346,
+    "radiusKm": 1487445.4604415826,
+    "radiusPc": 4.820477914306578e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1170001": {
+    "temperatureK": 10162.813196598341,
+    "luminositySolar": 114.1402954913357,
+    "radiusSolar": 3.446229973692538,
+    "radiusKm": 2397542.1926978985,
+    "radiusPc": 7.769897785084054e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1175087": {
+    "temperatureK": 4835.866735501824,
+    "luminositySolar": 8.571471063802699,
+    "radiusSolar": 4.170918252056695,
+    "radiusKm": 2901707.8279558425,
+    "radiusPc": 9.403785799500239e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1175645": {
+    "temperatureK": 6006.976021238379,
+    "luminositySolar": 1.6322577709236934,
+    "radiusSolar": 1.1796012406097656,
+    "radiusKm": 820648.583092214,
+    "radiusPc": 2.6595384337847235e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1183948": {
+    "temperatureK": 5067.157621950685,
+    "luminositySolar": 0.6971984100313766,
+    "radiusSolar": 1.0834328790252696,
+    "radiusKm": 753744.25393788,
+    "radiusPc": 2.4427164731568566e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1198837": {
+    "temperatureK": 4718.856086025702,
+    "luminositySolar": 59.585488097745134,
+    "radiusSolar": 11.549134265030718,
+    "radiusKm": 8034732.70818187,
+    "radiusPc": 2.6038770897622767e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1199910": {
+    "temperatureK": 5404.26756361682,
+    "luminositySolar": 0.9554734378466581,
+    "radiusSolar": 1.1150344065638522,
+    "radiusKm": 775729.436646472,
+    "radiusPc": 2.51396553102638e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1212137": {
+    "temperatureK": 5530.867191714458,
+    "luminositySolar": 1.4061704376870927,
+    "radiusSolar": 1.2914725093320931,
+    "radiusKm": 898477.4247423372,
+    "radiusPc": 2.9117642949999002e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1213317": {
+    "temperatureK": 5177.34991191398,
+    "luminositySolar": 0.49345946214903713,
+    "radiusSolar": 0.8730987163496717,
+    "radiusKm": 607414.7769644667,
+    "radiusPc": 1.968495380201311e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1213827": {
+    "temperatureK": 4346.348736126518,
+    "luminositySolar": 187.8568045498514,
+    "radiusSolar": 24.172244075863937,
+    "radiusKm": 16816630.20357854,
+    "radiusPc": 5.44989356889398e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1218019": {
+    "temperatureK": 9125.458485299803,
+    "luminositySolar": 14.172714694910812,
+    "radiusSolar": 1.5061553880652374,
+    "radiusKm": 1047832.3034769857,
+    "radiusPc": 3.395790038115599e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1220290": {
+    "temperatureK": 6308.3635852182715,
+    "luminositySolar": 3.4848096119324308,
+    "radiusSolar": 1.5628192088822603,
+    "radiusKm": 1087253.3236193885,
+    "radiusPc": 3.5235447437566875e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1221255": {
+    "temperatureK": 4813.462398405728,
+    "luminositySolar": 12.090627021263568,
+    "radiusSolar": 4.999906577922676,
+    "radiusKm": 3478435.0062608058,
+    "radiusPc": 1.1272829538942013e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1223504": {
+    "temperatureK": 5423.341002223176,
+    "luminositySolar": 0.20499303982077174,
+    "radiusSolar": 0.5128476596461573,
+    "radiusKm": 356788.1168158316,
+    "radiusPc": 1.1562704535648405e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1224714": {
+    "temperatureK": 9607.580854466236,
+    "luminositySolar": 64.37173080785199,
+    "radiusSolar": 2.8958238590226175,
+    "radiusKm": 2014624.6587220351,
+    "radiusPc": 6.528947737084711e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1240949": {
+    "temperatureK": 4674.17173297854,
+    "luminositySolar": 60.193328059145145,
+    "radiusSolar": 11.830892096933788,
+    "radiusKm": 8230751.631836836,
+    "radiusPc": 2.667402436902359e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1245131": {
+    "temperatureK": 7252.403769475039,
+    "luminositySolar": 4.173746795588529,
+    "radiusSolar": 1.2940520474808987,
+    "radiusKm": 900272.0094324612,
+    "radiusPc": 2.9175801424337466e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1254346": {
+    "temperatureK": 13418.35551593777,
+    "luminositySolar": 2824.157892934152,
+    "radiusSolar": 9.833283112077893,
+    "radiusKm": 6841015.061072591,
+    "radiusPc": 2.217019910333325e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1254749": {
+    "temperatureK": 9256.197872384579,
+    "luminositySolar": 24.791001180755302,
+    "radiusSolar": 1.9361295692232472,
+    "radiusKm": 1346965.341308613,
+    "radiusPc": 4.365213281290319e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1255242": {
+    "temperatureK": 11691.894367252991,
+    "luminositySolar": 283.3661549350007,
+    "radiusSolar": 4.102578195161401,
+    "radiusKm": 2854163.6503737867,
+    "radiusPc": 9.249705758192284e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1260755": {
+    "temperatureK": 9812.081842374097,
+    "luminositySolar": 151.5585321471943,
+    "radiusSolar": 4.260107086208377,
+    "radiusKm": 2963756.499875168,
+    "radiusPc": 9.604871661505805e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1268606": {
+    "temperatureK": 6225.704592092701,
+    "luminositySolar": 1.9083925208019805,
+    "radiusSolar": 1.187433995615046,
+    "radiusKm": 826097.8307493875,
+    "radiusPc": 2.6771982261465853e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1269694": {
+    "temperatureK": 14718.871489895024,
+    "luminositySolar": 11214.834695832995,
+    "radiusSolar": 16.28546097285279,
+    "radiusKm": 11329795.198813686,
+    "radiusPc": 3.67173311438823e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1273781": {
+    "temperatureK": 10277.431856562813,
+    "luminositySolar": 47.649467638473304,
+    "radiusSolar": 2.1772708565296086,
+    "radiusKm": 1514727.3348876487,
+    "radiusPc": 4.9088923649373285e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1276618": {
+    "temperatureK": 5796.756141116504,
+    "luminositySolar": 1.2207915282502224,
+    "radiusSolar": 1.0954771838428914,
+    "radiusKm": 762123.4767994996,
+    "radiusPc": 2.4698716595604634e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1278740": {
+    "temperatureK": 6014.92985129542,
+    "luminositySolar": 1.1715355733617943,
+    "radiusSolar": 0.9967110004226186,
+    "radiusKm": 693411.8429940158,
+    "radiusPc": 2.247192628951217e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1279520": {
+    "temperatureK": 5015.2550582086915,
+    "luminositySolar": 184.55031661224658,
+    "radiusSolar": 17.99384573792944,
+    "radiusKm": 12518318.479877511,
+    "radiusPc": 4.056906916008257e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1296561": {
+    "temperatureK": 14576.103104218775,
+    "luminositySolar": 5276.387736921615,
+    "radiusSolar": 11.390377894294351,
+    "radiusKm": 7924285.90106058,
+    "radiusPc": 2.5680837508740196e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1304800": {
+    "temperatureK": 10408.221010936166,
+    "luminositySolar": 134.45247984727894,
+    "radiusSolar": 3.566022196430384,
+    "radiusKm": 2480881.6420566184,
+    "radiusPc": 8.039982292858152e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1306592": {
+    "temperatureK": 7442.850990645404,
+    "luminositySolar": 5.294643198882368,
+    "radiusSolar": 1.3838606029692861,
+    "radiusKm": 962751.8214857323,
+    "radiusPc": 3.120063233143779e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1307219": {
+    "temperatureK": 7234.535498341698,
+    "luminositySolar": 4.593817984974784,
+    "radiusSolar": 1.364326242431487,
+    "radiusKm": 949161.7668595855,
+    "radiusPc": 3.0760209069396896e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1307241": {
+    "temperatureK": 11831.395225428469,
+    "luminositySolar": 92.19076991245038,
+    "radiusSolar": 2.28520119004276,
+    "radiusKm": 1589814.4679127482,
+    "radiusPc": 5.152232961969126e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1315170": {
+    "temperatureK": 4907.0014099217815,
+    "luminositySolar": 84.71861148271046,
+    "radiusSolar": 12.735315072321596,
+    "radiusKm": 8859958.695814135,
+    "radiusPc": 2.8713143675305795e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1325157": {
+    "temperatureK": 6600.28425298352,
+    "luminositySolar": 4.57420975015631,
+    "radiusSolar": 1.6356312642005562,
+    "radiusKm": 1137908.670504327,
+    "radiusPc": 3.687707388636381e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1343569": {
+    "temperatureK": 9465.670578721032,
+    "luminositySolar": 70.44493413981651,
+    "radiusSolar": 3.1208633719092886,
+    "radiusKm": 2171184.647837292,
+    "radiusPc": 7.036323630766301e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1344484": {
+    "temperatureK": 9095.86655637804,
+    "luminositySolar": 15.188929244967959,
+    "radiusSolar": 1.569379819631564,
+    "radiusKm": 1091817.5405176792,
+    "radiusPc": 3.538336349458845e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1345269": {
+    "temperatureK": 14491.926375934887,
+    "luminositySolar": 5369.057444640586,
+    "radiusSolar": 11.623834882329813,
+    "radiusKm": 8086701.927636851,
+    "radiusPc": 2.620719150951674e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1345331": {
+    "temperatureK": 8410.95283905917,
+    "luminositySolar": 12.32002056681813,
+    "radiusSolar": 1.652981395440558,
+    "radiusKm": 1149979.1568079963,
+    "radiusPc": 3.726825133917949e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1355575": {
+    "temperatureK": 5955.821857620552,
+    "luminositySolar": 1.5706341118178566,
+    "radiusSolar": 1.177082109928424,
+    "radiusKm": 818896.0238772046,
+    "radiusPc": 2.6538587815123245e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1357852": {
+    "temperatureK": 5605.119138039353,
+    "luminositySolar": 4.418382758266306,
+    "radiusSolar": 2.229023342544159,
+    "radiusKm": 1550731.5394079713,
+    "radiusPc": 5.025573935675974e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1358768": {
+    "temperatureK": 8894.523831773184,
+    "luminositySolar": 18.89992062385254,
+    "radiusSolar": 1.8307845078922729,
+    "radiusKm": 1273676.7821406543,
+    "radiusPc": 4.1277014596900734e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1377079": {
+    "temperatureK": 11556.028141673281,
+    "luminositySolar": 247.41919834818626,
+    "radiusSolar": 3.92420928475806,
+    "radiusKm": 2730072.3994061826,
+    "radiusPc": 8.847553779812903e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1387284": {
+    "temperatureK": 6046.972924424451,
+    "luminositySolar": 8.88486906059273,
+    "radiusSolar": 2.7158270690734936,
+    "radiusKm": 1889400.8919544294,
+    "radiusPc": 6.123125528403314e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1400378": {
+    "temperatureK": 14381.376168940358,
+    "luminositySolar": 18281.865970202223,
+    "radiusSolar": 21.780207498029323,
+    "radiusKm": 15152490.356379,
+    "radiusPc": 4.910583080335873e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1401228": {
+    "temperatureK": 10780.703752584219,
+    "luminositySolar": 248.8642337236636,
+    "radiusSolar": 4.5220948081717465,
+    "radiusKm": 3146021.358045084,
+    "radiusPc": 1.0195551284207043e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1404493": {
+    "temperatureK": 4716.48182136663,
+    "luminositySolar": 57.88018675061273,
+    "radiusSolar": 11.394132800431075,
+    "radiusKm": 7926898.189259899,
+    "radiusPc": 2.5689303350282296e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1413399": {
+    "temperatureK": 4080.7408004791164,
+    "luminositySolar": 313.0918947324124,
+    "radiusSolar": 35.40059298141035,
+    "radiusKm": 24628192.53716718,
+    "radiusPc": 7.981446133793692e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1417320": {
+    "temperatureK": 4233.601329819582,
+    "luminositySolar": 222.4218833186507,
+    "radiusSolar": 27.721803695944086,
+    "radiusKm": 19286058.8312683,
+    "radiusPc": 6.250180132490132e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1417791": {
+    "temperatureK": 6339.41737988136,
+    "luminositySolar": 8.958425392647865,
+    "radiusSolar": 2.4812458235890316,
+    "radiusKm": 1726202.7194708893,
+    "radiusPc": 5.5942367677501646e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1418295": {
+    "temperatureK": 9155.264673431759,
+    "luminositySolar": 16.92863512505976,
+    "radiusSolar": 1.635391774330422,
+    "radiusKm": 1137742.0574016746,
+    "radiusPc": 3.687167432851158e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1422216": {
+    "temperatureK": 8765.677098375048,
+    "luminositySolar": 36.70072797321137,
+    "radiusSolar": 2.6267518526357825,
+    "radiusKm": 1827431.2638787138,
+    "radiusPc": 5.9222958298084506e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1434825": {
+    "temperatureK": 5625.741085430163,
+    "luminositySolar": 14.21289710041413,
+    "radiusSolar": 3.9685738777371133,
+    "radiusKm": 2760936.84674171,
+    "radiusPc": 8.947578547560703e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1440281": {
+    "temperatureK": 8233.319579563858,
+    "luminositySolar": 32.39896233442038,
+    "radiusSolar": 2.797488109173429,
+    "radiusKm": 1946212.4775519546,
+    "radiusPc": 6.307239165462857e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1451151": {
+    "temperatureK": 4996.415833275054,
+    "luminositySolar": 0.5142129125917341,
+    "radiusSolar": 0.956989079772075,
+    "radiusKm": 665777.3027974326,
+    "radiusPc": 2.1576352675336765e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1451193": {
+    "temperatureK": 5567.728737397792,
+    "luminositySolar": 1.5452621417087555,
+    "radiusSolar": 1.3359727228734477,
+    "radiusKm": 929436.2233030576,
+    "radiusPc": 3.012094833957016e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1458789": {
+    "temperatureK": 4825.882104517954,
+    "luminositySolar": 670.2811279033558,
+    "radiusSolar": 37.03631121588638,
+    "radiusKm": 25766161.712892152,
+    "radiusPc": 8.350236481045507e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1462331": {
+    "temperatureK": 5338.621150012281,
+    "luminositySolar": 0.570871492900149,
+    "radiusSolar": 0.8832092681758333,
+    "radiusKm": 614448.6878699273,
+    "radiusPc": 1.9912907115749446e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1464811": {
+    "temperatureK": 6471.667826414407,
+    "luminositySolar": 8.88483697515895,
+    "radiusSolar": 2.371073084496907,
+    "radiusKm": 1649555.544884498,
+    "radiusPc": 5.345840425084927e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1467018": {
+    "temperatureK": 8597.263255649295,
+    "luminositySolar": 33.72423734950126,
+    "radiusSolar": 2.6175998831493446,
+    "radiusKm": 1821064.238706999,
+    "radiusPc": 5.9016617258790375e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1470456": {
+    "temperatureK": 4651.009949199891,
+    "luminositySolar": 16.423546868050085,
+    "radiusSolar": 6.241537510193991,
+    "radiusKm": 4342237.64584196,
+    "radiusPc": 1.4072220613882345e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1475095": {
+    "temperatureK": 4779.043624297577,
+    "luminositySolar": 56.54270696163155,
+    "radiusSolar": 10.968795842994917,
+    "radiusKm": 7630991.267971563,
+    "radiusPc": 2.473033522896549e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1482225": {
+    "temperatureK": 4850.925823121109,
+    "luminositySolar": 229.63477943203995,
+    "radiusSolar": 21.45468832233859,
+    "radiusKm": 14926026.665850958,
+    "radiusPc": 4.837191265468341e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1504124": {
+    "temperatureK": 11107.076289168624,
+    "luminositySolar": 356.00946157596235,
+    "radiusSolar": 5.095465967577271,
+    "radiusKm": 3544915.673643507,
+    "radiusPc": 1.1488278506564352e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1507251": {
+    "temperatureK": 4917.344678847713,
+    "luminositySolar": 8.246934217016303,
+    "radiusSolar": 3.956740861572675,
+    "radiusKm": 2752704.6173961097,
+    "radiusPc": 8.920899734252018e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1509654": {
+    "temperatureK": 9454.94686014729,
+    "luminositySolar": 1286.6123819634597,
+    "radiusSolar": 13.36775026512153,
+    "radiusKm": 9299943.859445048,
+    "radiusPc": 3.0139037141864047e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1515210": {
+    "temperatureK": 7405.14119931661,
+    "luminositySolar": 20.180194359277532,
+    "radiusSolar": 2.7292833719447196,
+    "radiusKm": 1898762.4418619415,
+    "radiusPc": 6.153464216962316e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1515246": {
+    "temperatureK": 5967.543450190654,
+    "luminositySolar": 2.7377775256907992,
+    "radiusSolar": 1.5479628803293486,
+    "radiusKm": 1076917.7758451279,
+    "radiusPc": 3.4900495460481994e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1515856": {
+    "temperatureK": 4376.540476528758,
+    "luminositySolar": 67.70545859099705,
+    "radiusSolar": 14.312074494130107,
+    "radiusKm": 9956910.225566315,
+    "radiusPc": 3.226811813511919e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1520353": {
+    "temperatureK": 7343.210223211806,
+    "luminositySolar": 33.23824857522189,
+    "radiusSolar": 3.5620481652312694,
+    "radiusKm": 2478116.908551394,
+    "radiusPc": 8.031022410189969e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1531073": {
+    "temperatureK": 9742.845895645392,
+    "luminositySolar": 67.70020026466403,
+    "radiusSolar": 2.8878588005662684,
+    "radiusKm": 2009083.3675539528,
+    "radiusPc": 6.510989652299166e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1532313": {
+    "temperatureK": 4725.994033276685,
+    "luminositySolar": 78.51852539260675,
+    "radiusSolar": 13.217592983261921,
+    "radiusKm": 9195479.438455319,
+    "radiusPc": 2.980049132784656e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1532532": {
+    "temperatureK": 5020.665377025431,
+    "luminositySolar": 0.5545956210061413,
+    "radiusSolar": 0.9842792030243439,
+    "radiusKm": 684763.041544036,
+    "radiusPc": 2.2191637986622238e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1546069": {
+    "temperatureK": 4374.51400876153,
+    "luminositySolar": 68.18817897576753,
+    "radiusSolar": 14.376314593439064,
+    "radiusKm": 10001602.062655557,
+    "radiusPc": 3.2412954379114663e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1566583": {
+    "temperatureK": 13560.703668732238,
+    "luminositySolar": 1025.8010328342275,
+    "radiusSolar": 5.80256159550282,
+    "radiusKm": 4036842.101991312,
+    "radiusPc": 1.3082501989965436e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1571952": {
+    "temperatureK": 11866.856291253851,
+    "luminositySolar": 3916.579743411957,
+    "radiusSolar": 14.805898419656122,
+    "radiusKm": 10300463.530554764,
+    "radiusPc": 3.338149752490347e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1579861": {
+    "temperatureK": 11015.889120373988,
+    "luminositySolar": 1745.2149522231339,
+    "radiusSolar": 11.469328600279944,
+    "radiusKm": 7979211.907214757,
+    "radiusPc": 2.58588404047312e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1579874": {
+    "temperatureK": 10434.826364402541,
+    "luminositySolar": 172.53651519110858,
+    "radiusSolar": 4.019043458510633,
+    "radiusKm": 2796048.5340858474,
+    "radiusPc": 9.061367669836288e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1584015": {
+    "temperatureK": 4914.754539002156,
+    "luminositySolar": 155.06557258752554,
+    "radiusSolar": 17.175392618396497,
+    "radiusKm": 11948920.644618442,
+    "radiusPc": 3.8723778181477234e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1584024": {
+    "temperatureK": 4429.9292249343425,
+    "luminositySolar": 73.11127404404446,
+    "radiusSolar": 14.516143252077072,
+    "radiusKm": 10098880.86047002,
+    "radiusPc": 3.272821319623842e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1587231": {
+    "temperatureK": 4655.6229367768665,
+    "luminositySolar": 53.098409059439994,
+    "radiusSolar": 11.200510073646214,
+    "radiusKm": 7792194.858235671,
+    "radiusPc": 2.52527599949427e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1590330": {
+    "temperatureK": 9266.42722801387,
+    "luminositySolar": 433.51818379653815,
+    "radiusSolar": 8.078517409297483,
+    "radiusKm": 5620224.561648259,
+    "radiusPc": 1.82138902523699e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1600859": {
+    "temperatureK": 4825.882104517954,
+    "luminositySolar": 61.243075478789976,
+    "radiusSolar": 11.195093492570203,
+    "radiusKm": 7788426.54278109,
+    "radiusPc": 2.5240547727732883e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1604917": {
+    "temperatureK": 6561.602109895485,
+    "luminositySolar": 4.14292532505404,
+    "radiusSolar": 1.5750212380955173,
+    "radiusKm": 1095742.2753430514,
+    "radiusPc": 3.551055536849823e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1605930": {
+    "temperatureK": 7468.225018167987,
+    "luminositySolar": 2385.2637522932455,
+    "radiusSolar": 29.173333683119374,
+    "radiusKm": 20295888.243346147,
+    "radiusPc": 6.577443249531971e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1610738": {
+    "temperatureK": 4969.761180642741,
+    "luminositySolar": 65.40860932750049,
+    "radiusSolar": 10.909354734975103,
+    "radiusKm": 7589638.08912218,
+    "radiusPc": 2.4596318829284765e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1613233": {
+    "temperatureK": 10100.358060473627,
+    "luminositySolar": 86.48353190251053,
+    "radiusSolar": 3.0370071456117866,
+    "radiusKm": 2112845.87120212,
+    "radiusPc": 6.847260709269992e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1618520": {
+    "temperatureK": 4866.084384156673,
+    "luminositySolar": 9.492913167033485,
+    "radiusSolar": 4.335040180867514,
+    "radiusKm": 3015887.4538295297,
+    "radiusPc": 9.773816418723413e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1621525": {
+    "temperatureK": 4873.701288598329,
+    "luminositySolar": 173.60890172239795,
+    "radiusSolar": 18.480802445405388,
+    "radiusKm": 12857094.261268528,
+    "radiusPc": 4.166696566488117e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1621991": {
+    "temperatureK": 5924.804618432884,
+    "luminositySolar": 2.61765175979195,
+    "radiusSolar": 1.5355378045496197,
+    "radiusKm": 1068273.6506251704,
+    "radiusPc": 3.46203587037438e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1622717": {
+    "temperatureK": 9858.851179889065,
+    "luminositySolar": 79.725369139652,
+    "radiusSolar": 3.060541637702753,
+    "radiusKm": 2129218.8173498055,
+    "radiusPc": 6.900321764210196e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1626041": {
+    "temperatureK": 5670.983533865833,
+    "luminositySolar": 3.2130781615074793,
+    "radiusSolar": 1.8569342109502895,
+    "radiusKm": 1291869.1305581164,
+    "radiusPc": 4.186658790286727e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1631184": {
+    "temperatureK": 13731.13568888472,
+    "luminositySolar": 3144.3600424377096,
+    "radiusSolar": 9.908453181408218,
+    "radiusKm": 6893310.878305697,
+    "radiusPc": 2.2339678145548326e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1655045": {
+    "temperatureK": 4421.626717865321,
+    "luminositySolar": 66.34702982730968,
+    "radiusSolar": 13.880312245572727,
+    "radiusKm": 9656533.229244946,
+    "radiusPc": 3.1294663500820836e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1658655": {
+    "temperatureK": 13830.709095337626,
+    "luminositySolar": 2387.378393692357,
+    "radiusSolar": 8.509898512347515,
+    "radiusKm": 5920336.395040167,
+    "radiusPc": 1.9186485552945333e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1661061": {
+    "temperatureK": 4996.415833275054,
+    "luminositySolar": 12.210767951793331,
+    "radiusSolar": 4.663446320093103,
+    "radiusKm": 3244359.6048887717,
+    "radiusPc": 1.0514243538577764e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1680288": {
+    "temperatureK": 6108.054515691626,
+    "luminositySolar": 2.079591508488785,
+    "radiusSolar": 1.2877627349809686,
+    "radiusKm": 895896.5347262599,
+    "radiusPc": 2.9034002079441894e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1688572": {
+    "temperatureK": 11920.497361578673,
+    "luminositySolar": 1266.6657124626843,
+    "radiusSolar": 8.344395886512538,
+    "radiusKm": 5805196.218246773,
+    "radiusPc": 1.881334200311922e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1691452": {
+    "temperatureK": 9444.250091007687,
+    "luminositySolar": 69.2867697826127,
+    "radiusSolar": 3.109158370061863,
+    "radiusKm": 2163041.478052038,
+    "radiusPc": 7.009933439565198e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1699761": {
+    "temperatureK": 9225.6595386702,
+    "luminositySolar": 26.728996369537295,
+    "radiusSolar": 2.023713942958668,
+    "radiusKm": 1407897.7901163453,
+    "radiusPc": 4.562681713951434e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1700333": {
+    "temperatureK": 5120.2127178157225,
+    "luminositySolar": 0.6476534393601506,
+    "radiusSolar": 1.0226993382840015,
+    "radiusKm": 711491.9296441799,
+    "radiusPc": 2.3057861442791614e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1708744": {
+    "temperatureK": 5913.262359875936,
+    "luminositySolar": 5.467800651450447,
+    "radiusSolar": 2.227946124208558,
+    "radiusKm": 1549982.1186118936,
+    "radiusPc": 5.023145230562348e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1729878": {
+    "temperatureK": 4855.967573618857,
+    "luminositySolar": 1056.397439657079,
+    "radiusSolar": 45.92136181954742,
+    "radiusKm": 31947491.41785914,
+    "radiusPc": 0.0000010353467128238087,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1730564": {
+    "temperatureK": 13098.90292771303,
+    "luminositySolar": 4654.025879042496,
+    "radiusSolar": 13.246379536938607,
+    "radiusKm": 9215506.243848188,
+    "radiusPc": 2.9865393723032047e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1733502": {
+    "temperatureK": 9870.621192509538,
+    "luminositySolar": 54.420392732380456,
+    "radiusSolar": 2.5225774565269363,
+    "radiusKm": 1754957.1365057896,
+    "radiusPc": 5.687423399422931e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1739115": {
+    "temperatureK": 8528.468179819454,
+    "luminositySolar": 25.51175544633684,
+    "radiusSolar": 2.3135599071752493,
+    "radiusKm": 1609543.627421821,
+    "radiusPc": 5.216170753444911e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1744036": {
+    "temperatureK": 6848.452201524804,
+    "luminositySolar": 1163.3704613281725,
+    "radiusSolar": 24.228515378266334,
+    "radiusKm": 16855778.14865989,
+    "radiusPc": 5.462580541940986e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1753735": {
+    "temperatureK": 6704.2170297243065,
+    "luminositySolar": 5.887678051013129,
+    "radiusSolar": 1.7985749568697194,
+    "radiusKm": 1251268.5974942637,
+    "radiusPc": 4.055081547188837e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1753803": {
+    "temperatureK": 6255.884888072969,
+    "luminositySolar": 1.929418725502646,
+    "radiusSolar": 1.1824652637552813,
+    "radiusKm": 822641.0839945492,
+    "radiusPc": 2.6659956833776542e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1756859": {
+    "temperatureK": 4372.489508804793,
+    "luminositySolar": 76.06688642026067,
+    "radiusSolar": 15.198226502578247,
+    "radiusKm": 10573406.177843686,
+    "radiusPc": 3.426604357255353e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1757961": {
+    "temperatureK": 9918.01587814785,
+    "luminositySolar": 97.91887375055198,
+    "radiusSolar": 3.3514770606520408,
+    "radiusKm": 2331622.591095625,
+    "radiusPc": 7.55626710611495e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1758316": {
+    "temperatureK": 5622.292835657085,
+    "luminositySolar": 1.8800847530454934,
+    "radiusSolar": 1.4451550159423534,
+    "radiusKm": 1005394.3445910952,
+    "radiusPc": 3.2582581090612365e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1770449": {
+    "temperatureK": 4324.484216152522,
+    "luminositySolar": 133.91483794141666,
+    "radiusSolar": 20.61571312563155,
+    "radiusKm": 14342351.62150187,
+    "radiusPc": 4.648035243601065e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1779064": {
+    "temperatureK": 4354.35707228006,
+    "luminositySolar": 57.52104204488417,
+    "radiusSolar": 13.326556281188566,
+    "radiusKm": 9271285.204822885,
+    "radiusPc": 3.004616085474367e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1810796": {
+    "temperatureK": 4788.824417615377,
+    "luminositySolar": 70.3401998193304,
+    "radiusSolar": 12.18418868441225,
+    "radiusKm": 8476540.067745602,
+    "radiusPc": 2.747056969347429e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1854104": {
+    "temperatureK": 5557.623636400126,
+    "luminositySolar": 1.0035280924818624,
+    "radiusSolar": 1.0805357649164893,
+    "radiusKm": 751728.7316524016,
+    "radiusPc": 2.4361846164123027e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1860159": {
+    "temperatureK": 10529.153581692834,
+    "luminositySolar": 403.92781966407614,
+    "radiusSolar": 6.0397311423784785,
+    "radiusKm": 4201840.955752707,
+    "radiusPc": 1.3617226355729128e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1864772": {
+    "temperatureK": 4350.349039107418,
+    "luminositySolar": 146.1586182993485,
+    "radiusSolar": 21.282206534955307,
+    "radiusKm": 14806031.086368408,
+    "radiusPc": 4.798303383116115e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1869896": {
+    "temperatureK": 4683.504683722548,
+    "luminositySolar": 48.931212500227076,
+    "radiusSolar": 10.624382941646111,
+    "radiusKm": 7391383.212503199,
+    "radiusPc": 2.395381913463266e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1892152": {
+    "temperatureK": 10137.728070417896,
+    "luminositySolar": 57.71701749952473,
+    "radiusSolar": 2.4627669108878254,
+    "radiusKm": 1713346.9399046602,
+    "radiusPc": 5.5525740627177373e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1908815": {
+    "temperatureK": 4648.70706545726,
+    "luminositySolar": 83.41805276044835,
+    "radiusSolar": 14.08050749527318,
+    "radiusKm": 9795809.064461552,
+    "radiusPc": 3.17460253191284e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1939772": {
+    "temperatureK": 12178.199404655503,
+    "luminositySolar": 1115.6333317264991,
+    "radiusSolar": 7.50321210823125,
+    "radiusKm": 5219984.663696481,
+    "radiusPc": 1.6916802298685807e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1940925": {
+    "temperatureK": 5081.006126474407,
+    "luminositySolar": 10.604961453140131,
+    "radiusSolar": 4.2025003168347395,
+    "radiusKm": 2923679.4704219284,
+    "radiusPc": 9.474990976473495e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1942320": {
+    "temperatureK": 8477.663471915403,
+    "luminositySolar": 18.74346188836529,
+    "radiusSolar": 2.006897550159148,
+    "radiusKm": 1396198.6256457192,
+    "radiusPc": 4.524767339645736e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1942386": {
+    "temperatureK": 8132.178585158677,
+    "luminositySolar": 12.913597607643986,
+    "radiusSolar": 1.810349619110642,
+    "radiusKm": 1259460.2300152737,
+    "radiusPc": 4.081628795272757e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1949264": {
+    "temperatureK": 10780.703752584219,
+    "luminositySolar": 2326.8183769442458,
+    "radiusSolar": 13.827372523079449,
+    "radiusKm": 9619703.064306373,
+    "radiusPc": 3.1175305177179204e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1958706": {
+    "temperatureK": 9412.320417779747,
+    "luminositySolar": 58.70646115198226,
+    "radiusSolar": 2.8813909604433747,
+    "radiusKm": 2004583.6911804557,
+    "radiusPc": 6.496407207996617e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1965965": {
+    "temperatureK": 9953.895983102047,
+    "luminositySolar": 42.329312418550906,
+    "radiusSolar": 2.1876964175470115,
+    "radiusKm": 1521980.3976874559,
+    "radiusPc": 4.9323979185642625e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1976434": {
+    "temperatureK": 9629.83452503289,
+    "luminositySolar": 28.289960563421527,
+    "radiusSolar": 1.91087010886565,
+    "radiusKm": 1329392.3347378327,
+    "radiusPc": 4.308263099038082e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1977196": {
+    "temperatureK": 7005.134245240463,
+    "luminositySolar": 1370.5308408158571,
+    "radiusSolar": 25.1341455872227,
+    "radiusKm": 17485825.08503083,
+    "radiusPc": 5.666764656419443e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1984515": {
+    "temperatureK": 4766.876781934012,
+    "luminositySolar": 61.39558767399327,
+    "radiusSolar": 11.488236647250393,
+    "radiusKm": 7992366.235492098,
+    "radiusPc": 2.590147063933465e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1987904": {
+    "temperatureK": 12488.51084629239,
+    "luminositySolar": 3199.3885474824183,
+    "radiusSolar": 12.082723216512484,
+    "radiusKm": 8405950.541727735,
+    "radiusPc": 2.724180483439201e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "1992726": {
+    "temperatureK": 6178.907041144341,
+    "luminositySolar": 1.9084814495349827,
+    "radiusSolar": 1.2055168729134615,
+    "radiusKm": 838678.0884858952,
+    "radiusPc": 2.7179680265782034e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2006987": {
+    "temperatureK": 4690.530224203444,
+    "luminositySolar": 16.71150507413978,
+    "radiusSolar": 6.190369176398697,
+    "radiusKm": 4306639.836020573,
+    "radiusPc": 1.3956856077430206e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2011001": {
+    "temperatureK": 11326.5724601966,
+    "luminositySolar": 474.55455851624595,
+    "radiusSolar": 5.6571631563975195,
+    "radiusKm": 3935688.407905754,
+    "radiusPc": 1.2754685501053503e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2011588": {
+    "temperatureK": 5971.461669160834,
+    "luminositySolar": 2.1417756367842262,
+    "radiusSolar": 1.367345715221682,
+    "radiusKm": 951262.4140797241,
+    "radiusPc": 3.082828634550369e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2012471": {
+    "temperatureK": 7158.202448228721,
+    "luminositySolar": 27.120073832265046,
+    "radiusSolar": 3.386024722590386,
+    "radiusKm": 2355657.3995061317,
+    "radiusPc": 7.634158542270896e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2014135": {
+    "temperatureK": 11657.592918830445,
+    "luminositySolar": 108.5920648489538,
+    "radiusSolar": 2.5546647700531713,
+    "radiusKm": 1777280.2805259912,
+    "radiusPc": 5.759767714282933e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2032213": {
+    "temperatureK": 11489.411980913172,
+    "luminositySolar": 176.38501975219228,
+    "radiusSolar": 3.3518755769289044,
+    "radiusKm": 2331899.838869439,
+    "radiusPc": 7.557165604114374e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2035791": {
+    "temperatureK": 6217.139198296417,
+    "luminositySolar": 2.4089549594119095,
+    "radiusSolar": 1.3377833999915056,
+    "radiusKm": 930695.9113740905,
+    "radiusPc": 3.016177201134046e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2036555": {
+    "temperatureK": 5323.240465922714,
+    "luminositySolar": 0.4168547844240375,
+    "radiusSolar": 0.7590893008315326,
+    "radiusKm": 528098.4265884972,
+    "radiusPc": 1.7114488360428074e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2058478": {
+    "temperatureK": 5350.994008861553,
+    "luminositySolar": 276.36104056069007,
+    "radiusSolar": 19.342923980814177,
+    "radiusKm": 13456872.213452423,
+    "radiusPc": 4.361071180474445e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2072556": {
+    "temperatureK": 10150.253355623077,
+    "luminositySolar": 162.02024857020177,
+    "radiusSolar": 4.116077342451409,
+    "radiusKm": 2863555.0071434453,
+    "radiusPc": 9.280141044122078e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2089783": {
+    "temperatureK": 8003.964554293967,
+    "luminositySolar": 9.954556653003788,
+    "radiusSolar": 1.6407911041484393,
+    "radiusKm": 1141498.3711560692,
+    "radiusPc": 3.6993408052361125e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2099705": {
+    "temperatureK": 4688.185909534233,
+    "luminositySolar": 51.381359366844215,
+    "radiusSolar": 10.865401756262075,
+    "radiusKm": 7559060.001831526,
+    "radiusPc": 2.449722209036798e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2102729": {
+    "temperatureK": 5120.2127178157225,
+    "luminositySolar": 5.988839527211407,
+    "radiusSolar": 3.1099111035568603,
+    "radiusKm": 2163565.1547445077,
+    "radiusPc": 7.011630558550348e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2104188": {
+    "temperatureK": 5442.558533383086,
+    "luminositySolar": 7.988953723356391,
+    "radiusSolar": 3.179006241924749,
+    "radiusKm": 2211634.642507048,
+    "radiusPc": 7.167413012612606e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2111238": {
+    "temperatureK": 5501.092963336511,
+    "luminositySolar": 1307.7418553381315,
+    "radiusSolar": 39.81215520147555,
+    "radiusKm": 27697316.37366654,
+    "radiusPc": 8.976080496099984e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2158647": {
+    "temperatureK": 5086.56803607493,
+    "luminositySolar": 14.067497113597076,
+    "radiusSolar": 4.8296020426477595,
+    "radiusKm": 3359954.1410700465,
+    "radiusPc": 1.088885956551493e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2163643": {
+    "temperatureK": 5042.430940800905,
+    "luminositySolar": 41.9818671730948,
+    "radiusSolar": 8.489920078871384,
+    "radiusKm": 5906437.398870822,
+    "radiusPc": 1.9141442016326876e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2170351": {
+    "temperatureK": 10752.091303165967,
+    "luminositySolar": 94.9395917736709,
+    "radiusSolar": 2.8079569012763117,
+    "radiusKm": 1953495.61621793,
+    "radiusPc": 6.330842188242425e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2183027": {
+    "temperatureK": 11884.676402139527,
+    "luminositySolar": 719.1539924433577,
+    "radiusSolar": 6.3254127607454524,
+    "radiusKm": 4400589.657650611,
+    "radiusPc": 1.426132642761447e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2201580": {
+    "temperatureK": 11974.685458482398,
+    "luminositySolar": 446.73271848214654,
+    "radiusSolar": 4.910755326146002,
+    "radiusKm": 3416412.4803997735,
+    "radiusPc": 1.107182841046107e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2211936": {
+    "temperatureK": 6749.854896000522,
+    "luminositySolar": 25.57593996067531,
+    "radiusSolar": 3.698107855455484,
+    "radiusKm": 2572773.63504038,
+    "radiusPc": 8.337783680848764e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2216760": {
+    "temperatureK": 10896.877544532776,
+    "luminositySolar": 193.0993652018999,
+    "radiusSolar": 3.8988715458568772,
+    "radiusKm": 2712444.9344526296,
+    "radiusPc": 8.790427110127422e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2220894": {
+    "temperatureK": 9105.706876090442,
+    "luminositySolar": 49678.026434505075,
+    "radiusSolar": 89.55863805574675,
+    "radiusKm": 62305944.49538302,
+    "radiusPc": 0.00000201919624858609,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2232181": {
+    "temperatureK": 4692.877012131002,
+    "luminositySolar": 60.92922316099239,
+    "radiusSolar": 11.808292978942353,
+    "radiusKm": 8215029.425450195,
+    "radiusPc": 2.662307221604282e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2235603": {
+    "temperatureK": 10125.237191650855,
+    "luminositySolar": 173.0783553187171,
+    "radiusSolar": 4.275270649262729,
+    "radiusKm": 2974305.7906920803,
+    "radiusPc": 9.639059552589508e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2259173": {
+    "temperatureK": 4907.0014099217815,
+    "luminositySolar": 37.703253594658165,
+    "radiusSolar": 8.495905906800532,
+    "radiusKm": 5910601.73936113,
+    "radiusPc": 1.9154937712065006e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2280054": {
+    "temperatureK": 7571.6429562596195,
+    "luminositySolar": 40.527421967368184,
+    "radiusSolar": 3.6995327910196574,
+    "radiusKm": 2573764.9627123754,
+    "radiusPc": 8.340996352019428e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2299133": {
+    "temperatureK": 7746.564117880623,
+    "luminositySolar": 17.978001240321596,
+    "radiusSolar": 2.3539926806969227,
+    "radiusKm": 1637672.7079608492,
+    "radiusPc": 5.307330809456566e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2317987": {
+    "temperatureK": 13608.911532497095,
+    "luminositySolar": 4411.7532162791895,
+    "radiusSolar": 11.948447195158671,
+    "radiusKm": 8312534.713671887,
+    "radiusPc": 2.69390650378981e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2323395": {
+    "temperatureK": 5197.669368163536,
+    "luminositySolar": 1863.6601679822395,
+    "radiusSolar": 53.237629146681726,
+    "radiusKm": 37037418.59734648,
+    "radiusPc": 0.000001200299863757245,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2335058": {
+    "temperatureK": 8361.674123683038,
+    "luminositySolar": 31.156253731471438,
+    "radiusSolar": 2.659737551649388,
+    "radiusKm": 1850379.4146824793,
+    "radiusPc": 5.996665651805748e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2335811": {
+    "temperatureK": 6187.359245659021,
+    "luminositySolar": 2.5865107293432925,
+    "radiusSolar": 1.3995844935303918,
+    "radiusKm": 973690.9321490936,
+    "radiusPc": 3.15551444312578e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2339523": {
+    "temperatureK": 7337.079254984824,
+    "luminositySolar": 69.06149536154034,
+    "radiusSolar": 5.143091051923546,
+    "radiusKm": 3578048.444823211,
+    "radiusPc": 1.1595654404342896e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2343214": {
+    "temperatureK": 11902.556652711703,
+    "luminositySolar": 3690.9677072691156,
+    "radiusSolar": 14.287039750748589,
+    "radiusKm": 9939493.554595793,
+    "radiusPc": 3.2211674601566553e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2345610": {
+    "temperatureK": 4721.232873438375,
+    "luminositySolar": 11.938535868460544,
+    "radiusSolar": 5.164369817821056,
+    "radiusKm": 3592852.0822581085,
+    "radiusPc": 1.1643629680885231e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2352054": {
+    "temperatureK": 8321.091831351987,
+    "luminositySolar": 7.5450666872064085,
+    "radiusSolar": 1.3216715950212228,
+    "radiusKm": 919486.9286562647,
+    "radiusPc": 2.979851396208679e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2364036": {
+    "temperatureK": 11310.572070002196,
+    "luminositySolar": 253.56467134686338,
+    "radiusSolar": 4.146941167765916,
+    "radiusKm": 2885026.9704147475,
+    "radiusPc": 9.349726872630631e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2370128": {
+    "temperatureK": 6095.732179978773,
+    "luminositySolar": 1.6648681920791915,
+    "radiusSolar": 1.1568866709509646,
+    "radiusKm": 804846.0569805861,
+    "radiusPc": 2.60832598254719e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2381451": {
+    "temperatureK": 6994.078455052008,
+    "luminositySolar": 14.514594997792901,
+    "radiusSolar": 2.5947415520964636,
+    "radiusKm": 1805161.6977935098,
+    "radiusPc": 5.850125149047458e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2384866": {
+    "temperatureK": 4818.422168812224,
+    "luminositySolar": 3028.679899988076,
+    "radiusSolar": 78.97136339778366,
+    "radiusKm": 54940377.515838094,
+    "radiusPc": 0.0000017804947035848941,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2389094": {
+    "temperatureK": 11091.76122843408,
+    "luminositySolar": 237.74783484227325,
+    "radiusSolar": 4.175513634531501,
+    "radiusKm": 2904904.835543565,
+    "radiusPc": 9.41414658574642e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2392548": {
+    "temperatureK": 9165.248105857214,
+    "luminositySolar": 26.478158811467477,
+    "radiusSolar": 2.040835895492681,
+    "radiusKm": 1419809.5324942581,
+    "radiusPc": 4.601285005689332e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2403906": {
+    "temperatureK": 4793.730685094021,
+    "luminositySolar": 83.56325649061584,
+    "radiusSolar": 13.252965276531677,
+    "radiusKm": 9220087.942883087,
+    "radiusPc": 2.988024198442724e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2412000": {
+    "temperatureK": 10896.877544532776,
+    "luminositySolar": 50.093438804501254,
+    "radiusSolar": 1.985815640591397,
+    "radiusKm": 1381531.9411594348,
+    "radiusPc": 4.477235896965984e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2421096": {
+    "temperatureK": 5045.16571090936,
+    "luminositySolar": 11.50805048566339,
+    "radiusSolar": 4.440201234524297,
+    "radiusKm": 3089047.9988585534,
+    "radiusPc": 1.001091337514314e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2438208": {
+    "temperatureK": 4429.9292249343425,
+    "luminositySolar": 63.38468728429777,
+    "radiusSolar": 13.516095303428159,
+    "radiusKm": 9403147.50259497,
+    "radiusPc": 3.047349705700775e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2444039": {
+    "temperatureK": 11342.623636561362,
+    "luminositySolar": 217.81472798675568,
+    "radiusSolar": 3.8218111418344325,
+    "radiusKm": 2658834.0113742147,
+    "radiusPc": 8.616686104128879e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2446484": {
+    "temperatureK": 5128.697833958958,
+    "luminositySolar": 239.24633014035345,
+    "radiusSolar": 19.591201072603354,
+    "radiusKm": 13629598.586210154,
+    "radiusPc": 4.41704793305062e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2448266": {
+    "temperatureK": 9754.309661638303,
+    "luminositySolar": 58.332488102725854,
+    "radiusSolar": 2.674328903588089,
+    "radiusKm": 1860530.6182262334,
+    "radiusPc": 6.02956343111106e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2457353": {
+    "temperatureK": 4909.582909552189,
+    "luminositySolar": 50.22946174268324,
+    "radiusSolar": 9.795863165907342,
+    "radiusKm": 6814982.004521738,
+    "radiusPc": 2.208583179207195e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2464399": {
+    "temperatureK": 9370.118414522045,
+    "luminositySolar": 80.31533180985502,
+    "radiusSolar": 3.4006482710937767,
+    "radiusKm": 2365831.0021999404,
+    "radiusPc": 7.66712891220962e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2468720": {
+    "temperatureK": 5720.585402490921,
+    "luminositySolar": 1.348395289672676,
+    "radiusSolar": 1.1821710263703327,
+    "radiusKm": 822436.3830458404,
+    "radiusPc": 2.6653322934056984e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2469000": {
+    "temperatureK": 8614.654039609362,
+    "luminositySolar": 15.90349619667687,
+    "radiusSolar": 1.790289511628361,
+    "radiusKm": 1245504.4132398507,
+    "radiusPc": 4.036401115783881e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2478094": {
+    "temperatureK": 11831.395225428469,
+    "luminositySolar": 351.7932011520606,
+    "radiusSolar": 4.464002627478017,
+    "radiusKm": 3105606.6279364564,
+    "radiusPc": 1.0064576186912742e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2479353": {
+    "temperatureK": 10150.253355623077,
+    "luminositySolar": 170.28221631835905,
+    "radiusSolar": 4.219718954973499,
+    "radiusKm": 2935658.4769750633,
+    "radiusPc": 9.513812256352608e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2485372": {
+    "temperatureK": 4714.110075284991,
+    "luminositySolar": 0.36200898132110565,
+    "radiusSolar": 0.9020131713090394,
+    "radiusKm": 627530.5632796987,
+    "radiusPc": 2.0336861426462746e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2500738": {
+    "temperatureK": 8321.091831351987,
+    "luminositySolar": 26.403596220945403,
+    "radiusSolar": 2.472427448234982,
+    "radiusKm": 1720067.775737077,
+    "radiusPc": 5.57435478783167e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2506846": {
+    "temperatureK": 5901.768262850707,
+    "luminositySolar": 40.11622298701237,
+    "radiusSolar": 6.058266278865994,
+    "radiusKm": 4214735.850207072,
+    "radiusPc": 1.365901582336186e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2514312": {
+    "temperatureK": 4674.17173297854,
+    "luminositySolar": 57.27279210517839,
+    "radiusSolar": 11.540310485318189,
+    "radiusKm": 8028594.004635864,
+    "radiusPc": 2.601887673299423e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2514374": {
+    "temperatureK": 6330.511244265693,
+    "luminositySolar": 1.8287568492016464,
+    "radiusSolar": 1.1242245339007506,
+    "radiusKm": 782123.0082347522,
+    "radiusPc": 2.534685665951995e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2524646": {
+    "temperatureK": 4669.519943671124,
+    "luminositySolar": 12.06508786534313,
+    "radiusSolar": 5.307297346890151,
+    "radiusKm": 3692286.7642314783,
+    "radiusPc": 1.1965875236178688e-7,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2544948": {
+    "temperatureK": 5235.858777497887,
+    "luminositySolar": 0.7570552508483306,
+    "radiusSolar": 1.0574031126973984,
+    "radiusKm": 735635.34550358,
+    "radiusPc": 2.384029552875539e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  },
+  "2552046": {
+    "temperatureK": 5818.920291605021,
+    "luminositySolar": 3.801100994561445,
+    "radiusSolar": 1.9183265293112066,
+    "radiusKm": 1334579.7664418065,
+    "radiusPc": 4.325074404478186e-8,
+    "status": "estimated",
+    "source": "https://arxiv.org/abs/1008.3913"
+  }
+}

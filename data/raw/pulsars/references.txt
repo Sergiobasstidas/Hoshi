@@ -1,0 +1,85 @@
+cbv+09  cbv+09:  Chatterjee, S.,
+  Brisken, W. F., Vlemmings, W. H. T., Goss, W. M., Lazio, T. J. W.,
+  Cordes, J. M., Thorsett, S. E., Fomalont, E. B., Lyne, A. G.  &
+  Kramer, M., 2009. Precision Astrometry with the Very Long Baseline
+  Array: Parallaxes and Proper Motions for 14 Pulsars. apj,  698,
+  250-265.
+
+
+***dgb+19  dgb+19:  Deller, A. T.,
+  Goss, W. M., Brisken, W. F., Chatterjee, S., Cordes, J. M.,
+  Janssen, G. H., Kovalev, Y. Y., Lazio, T. J. W., Petrov, L.,
+  Stappers, B. W.  & Lyne, A., 2019. Microarcsecond VLBI Pulsar
+  Astrometry with PSRensuremathpi II. Parallax Distances for 57
+  Pulsars. apj,  875(2), 100.
+
+
+***dlrm03  dlrm03:  Dodson, R.,
+  Legge, D., Reynolds, J. E.  & McCulloch, P. M., 2003. The Vela
+  Pulsar's Proper Motion and Parallax Derived from VLBI Observations. apj,
+  596, 1137-1141.
+
+
+***dml02  dml02:  Dodson, R. G.,
+  McCulloch, P. M.  & Lewis, D. R., 2002. High Time Resolution
+  Observations of the January 2000 Glitch in the Vela Pulsar. apjl,  564,
+  L85-L88.
+
+
+***hlk+04  hlk+04:  Hobbs, G., Lyne,
+  A. G., Kramer, M., Martin, C. E.  & Jordan, C., 2004b. Long-term timing
+  observations of 374 pulsars. mnras,  353, 1311-1344.
+
+
+***jbv+19  jbv+19:  Jankowski, F.,
+  Bailes, M., van Straten, W., Keane, E. F., Flynn, C., Barr, E. D.,
+  Bateman, T., Bhandari, S., Caleb, M., Campbell-Wilson, D., Farah,
+  W., Green, A. J., Hunstead, R. W., Jameson, A., Oslowski, S.,
+  Parthasarathy, A., Rosado, P. A.  & Venkatraman Krishnan, V., 2019.
+  The UTMOST pulsar timing programme I: Overview and first results. mnras,
+  484, 3691-3712.
+
+
+***kjk+24  kjk+24:  Keith, M. J.,
+  Johnston, S., Karastergiou, A., Weltevrede, P., Lower, M. E., Basu,
+  A., Posselt, B. ., Oswald, L. S., Parthasarathy, A., Cameron, A. D.,
+  Serylak, M.  & Buchner, S., 2024. The Thousand-Pulsar-Array programme
+  on MeerKAT - XIII. Timing, flux density, rotation measure, and dispersion
+  measure time seri es of 597 pulsars. mnras,  530(2),
+  1581-1591.
+
+
+***lvk+23  lvk+23:  Lin, R., van
+  Kerkwijk, M. H., Kirsten, F., Pen, U.-L.  & Deller, A. T., 2023.
+  The Radio Parallax of the Crab Pulsar: A First VLBI Measurement Calibrated
+  with Giant Pulses. apj,  952(2), 161.
+
+
+***ljg+15  ljg+15:  Lyne, A. G.,
+  Jordan, C. A., Graham-Smith, F., Espinoza, C. M., Stappers, B. W.  &
+  Weltevrede, P., 2015. 45 years of rotation of the Crab pulsar.
+  mnras,  446, 857-864.
+
+
+***skz+19  skz+19:  Shternin, P.,
+  Kirichenko, A., Zyuzin, D., Yu, M., Danilenko, A., Voronkov, M.  &
+  Shibanov, Y., 2019. Tracking the Footprints of the Radio Pulsar
+  B1727─47: Proper Motion, Host Supernova Remnant, and the Glitches. apj,
+   877(2), 78.
+
+
+***tri68  tri68:  Trimble, V.,
+  1968. Motions and Structure of the Filamentary Envelope of the Crab
+  Nebula. aj,  73, 535-547.
+
+
+***vwc+12  vwc+12:  Verbiest, J.
+  P. W., Weisberg, J. M., Chael, A. A., Lee, K. J.  & Lorimer, D. R.,
+  2012. On Pulsar Distance Measurements and Their Uncertainties. apj,
+  755, 39.
+
+
+***ywml10  ywml10:  Yuan, J. P.,
+  Wang, N., Manchester, R. N.  & Liu, Z. Y., 2010. 29 glitches
+  detected at Urumqi Observatory. mnras,  404, 289-304.
+

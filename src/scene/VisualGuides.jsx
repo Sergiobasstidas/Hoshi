@@ -1,0 +1,191 @@
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+import { AU_TO_PC, KM_TO_PC, LIGHT_YEAR_PC, LIGHT_DAY_PC, lightDayRulerOpacity, smoothRange, oortLabelOpacity, starLabelOpacity } from './scale';
+import { SOLAR_BODIES } from './solarBodies';
+import { BINARY_STATE } from './binaryOrbit';
+import { heliosphereVisibility } from './heliosphereScale';
+import { selectStarLabels } from './starLabelSelection';
+import { kuiperOpacity } from './kuiper';
+
+const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
+const smallLightYears = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 4 });
+const vector = new THREE.Vector3();
+const right = new THREE.Vector3();
+const solarOrigin = new THREE.Vector3();
+const earth = new THREE.Vector3(...SOLAR_BODIES.find(body => body.name === 'Tierra').position);
+const RULERS = [
+  { selector: '[data-ruler]', length: LIGHT_YEAR_PC, gap: 69, day: false },
+  { selector: '[data-day-ruler]', length: LIGHT_DAY_PC, gap: 48, day: true },
+];
+
+export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget }) {
+  const elapsed = useRef(0);
+  const visibleStars = useRef(new Set());
+  const labelAlpha = useRef(new Map());
+  useFrame(({ camera, size }, delta) => {
+    elapsed.current += delta;
+    if (elapsed.current < 1 / 30 || !overlayRef.current) return;
+    const frameTime = elapsed.current;
+    elapsed.current = 0;
+    const root = overlayRef.current;
+    const pc = Math.hypot(camera.position.x + origin[0], camera.position.y + origin[1], camera.position.z + origin[2]);
+    const earthPc = Math.hypot(camera.position.x + origin[0] - earth.x, camera.position.y + origin[1] - earth.y, camera.position.z + origin[2] - earth.z);
+    const earthAu = earthPc / AU_TO_PC;
+    const au = pc / AU_TO_PC;
+    root.querySelector('[data-distance]').textContent = earthAu < 1000
+      ? `${earthAu < 0.01 ? earthAu.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(earthAu)} UA`
+      : `${(earthPc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(earthPc / LIGHT_YEAR_PC)} años luz`;
+    root.querySelector('[data-distance-detail]').textContent = `${pc < 0.01 ? pc.toFixed(6) : format.format(pc)} pc del Sol`;
+    const inspectingStar = origin.some(Boolean) || focusedBody?.kind === 'star' || aimTarget?.kind === 'star';
+    const nameOpacity = inspectingStar ? 0.9 : starLabelOpacity(pc);
+    root.querySelector('[data-context]').textContent = focusedBody?.kind === 'star' ? focusedBody.star.physics ? 'Radio y temperatura estimados · textura estelar ilustrativa'
+      : focusedBody.star.dataOrigin === 'curated' ? 'Posición curada de SIMBAD · distancia aproximada · radio no disponible'
+        : 'Posición de catálogo · radio no disponible'
+      : binary ? 'WR 140 · separación física · posiciones calculadas, no observación en directo' : !origin.some(Boolean) && au>35 && au<250 ? 'Kuiper: región principal 30–50 UA · distribución y tamaño de partículas ilustrativos' : au < 100
+      ? 'Radios a escala · planos orbitales J2000 · círculos y posiciones ilustrativos'
+      : heliosphereVisibility(pc) > 0.01 ? 'Heliosfera: burbuja ilustrativa de plasma y campo magnético solar · escala ≈120 UA'
+        : au < 6000 ? 'Sondas: posiciones ilustrativas del prototipo'
+        : pc < 3 ? 'Nube de Oort: envoltura ilustrativa de objetos pequeños'
+          : 'Posiciones de catálogo · marcadores de brillo · superficie a escala al inspeccionar';
+    if (focusedBody) {
+      const distancePc = camera.position.distanceTo(vector.set(...focusedBody.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
+      const altitude = root.querySelector('[data-body-altitude]');
+      if (altitude) altitude.textContent = focusedBody.kind === 'system' || !focusedBody.radiusKm
+        ? `Distancia de cámara al sistema: ${format.format(distancePc / AU_TO_PC)} UA`
+        : `Altitud de cámara: ${format.format(distancePc / KM_TO_PC - focusedBody.radiusKm)} km`;
+    }
+    if (aimTarget) {
+      const remaining = camera.position.distanceTo(vector.set(...aimTarget.position)
+        .sub({ x: origin[0], y: origin[1], z: origin[2] }));
+      const readout = root.querySelector('[data-aim-distance]');
+      if (readout) readout.textContent = aimTarget.star.physics && remaining < 0.01 * AU_TO_PC
+        ? `A ${format.format(remaining / KM_TO_PC)} km del centro`
+        : remaining < 0.1 * LIGHT_YEAR_PC
+        ? `A ${format.format(remaining / AU_TO_PC)} UA de la cámara`
+        : `A ${format.format(remaining / LIGHT_YEAR_PC)} años luz de la cámara`;
+    }
+
+    const project = (position, local = false) => {
+      vector.set(...position);
+      if (!local) vector.sub({ x: origin[0], y: origin[1], z: origin[2] });
+      vector.applyMatrix4(camera.matrixWorldInverse);
+      // Test view-space depth, not rounded NDC z at an enormous far/near ratio.
+      const inFront = -vector.z > camera.near && -vector.z < camera.far;
+      vector.applyMatrix4(camera.projectionMatrix);
+      return { x: (vector.x + 1) * size.width / 2, y: (1 - vector.y) * size.height / 2,
+        visible: inFront && Math.abs(vector.x) < 0.97 && Math.abs(vector.y) < 0.93 };
+    };
+    // Canvas and DOM commit separately when changing destination.
+    const guides = root.querySelector('[data-binary-guides]');
+    if (binary && guides) {
+      const points = [project(BINARY_STATE.wr, true), project(BINARY_STATE.o, true)];
+      const close = camera.position.length() < 800 * AU_TO_PC;
+      ['wr', 'o'].forEach((key, i) => {
+        const label = guides.querySelector(`[data-component="${key}"]`);
+        label.style.visibility = close && points[i].visible ? 'visible' : 'hidden';
+        label.style.transform = `translate(${Math.max(8, Math.min(size.width - 150, points[i].x + 12))}px, ${points[i].y - 25}px)`;
+      });
+      const [a, b] = points;
+      const length = Math.hypot(b.x - a.x, b.y - a.y);
+      const ruler = guides.querySelector('svg');
+      ruler.style.visibility = close && a.visible && b.visible && length > 95 ? 'visible' : 'hidden';
+      const dx = (b.x - a.x) / Math.max(length, 1e-9), dy = (b.y - a.y) / Math.max(length, 1e-9);
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      guides.querySelector('[data-binary-path]').setAttribute('d',
+        `M ${a.x} ${a.y + 16} L ${mx - dx * 36} ${my + 16 - dy * 36} M ${mx + dx * 36} ${my + 16 + dy * 36} L ${b.x} ${b.y + 16}`);
+      const text = guides.querySelector('[data-binary-distance]');
+      text.setAttribute('x', mx); text.setAttribute('y', my + 20);
+    }
+    const labelElements = root.querySelector('[data-labels]').children;
+    const candidates = [];
+    labels.forEach((label, i) => {
+      if (label.kind !== 'star' || (nameOpacity <= 0.015 && label !== aimTarget)) return;
+      const point = project(label.position);
+      if (!point.visible) return;
+      const width = label.width * 1.2;
+      candidates.push({ id: label.catalogueId, width,
+        x: Math.max(8, Math.min(point.x + 9, size.width - width - 12)), y: point.y - 8,
+        hovered: labelElements[i]?.matches(':hover'),
+        distance: camera.position.distanceTo(vector.set(...label.position)
+          .sub({ x: origin[0], y: origin[1], z: origin[2] })),
+      });
+    });
+    visibleStars.current = selectStarLabels(candidates, visibleStars.current, aimTarget?.catalogueId ?? focusedBody?.star?.i, size.width < 700 ? 6 : 12);
+    labels.forEach((label, i) => {
+      const el = labelElements[i];
+      if (!el) return; // Canvas and DOM may commit in different frames.
+      const point = project(label.position);
+      let alpha = 1;
+      if (label.kind === 'sun') {
+        alpha = 1 - smoothRange(pc / LIGHT_YEAR_PC, 650, 700);
+       } else if (label.kind === 'moon') {
+        const distance = camera.position.distanceTo(vector.set(...label.position).sub(new THREE.Vector3(...origin)));
+        alpha = 1 - smoothRange(distance / AU_TO_PC, 0.015, 0.06);
+      } else if (label.kind === 'planet') {
+        const radiusPixels = label.au * AU_TO_PC / pc * size.height
+          / (2 * Math.tan(camera.fov * Math.PI / 360));
+        alpha = smoothRange(radiusPixels, 20, 50);
+      } else if (label.kind === 'probe') {
+        alpha = smoothRange(au, 100, 250) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
+      } else if (label.kind === 'star') {
+        alpha = nameOpacity;
+        if (aimTarget === label) alpha = 0.9;
+        if (!visibleStars.current.has(label.catalogueId)) alpha = 0;
+        const previousAlpha = labelAlpha.current.get(label.catalogueId) || 0;
+        alpha = previousAlpha + (alpha - previousAlpha) * (1 - Math.exp(-10 * frameTime));
+        labelAlpha.current.set(label.catalogueId, alpha);
+        const button = el.querySelector('button');
+        if (button) {
+          button.disabled = false;
+          button.title = 'Doble clic: fijar rumbo sin desplazarse';
+        }
+      } else if (label.kind === 'oort') {
+        alpha = oortLabelOpacity(pc) * 3;
+      } else if (label.kind === 'kuiper') {
+        alpha = origin.some(Boolean) ? 0 : kuiperOpacity(pc)*2;
+      } else if (label.kind === 'heliosphere') {
+        alpha = binary ? 0 : heliosphereVisibility(pc) * 0.9;
+      }
+      // The close-up has a dedicated panel; avoid placing text across the body's disc.
+      if (label.kind !== 'star' && label.body && focusedBody?.name === label.body.name) alpha = 0;
+      // Stable anchors; nearest labels have a small budget and smooth replacement.
+      const width = label.width * 1.2;
+      const box = { x: Math.max(8, Math.min(point.x + 9, size.width - width - 12)), y: point.y - 8 };
+      const visible = point.visible && alpha > 0.015;
+      el.style.opacity = visible ? alpha : 0;
+      el.style.visibility = visible ? 'visible' : 'hidden';
+      if (visible) {
+        el.style.transform = `translate(${box.x}px, ${box.y}px)`;
+      }
+    });
+
+    // Camera-facing segments with true world lengths; only the label gap is in pixels.
+    solarOrigin.copy(earth).sub(new THREE.Vector3(...origin)).project(camera);
+    const sx = (solarOrigin.x + 1) * size.width / 2;
+    const sy = (1 - solarOrigin.y) * size.height / 2 - 48;
+    for (const definition of RULERS) {
+      right.set(1, 0, 0).applyQuaternion(camera.quaternion).multiplyScalar(definition.length);
+      const end = project(right.add(earth).toArray());
+      const width = end.x - sx;
+      const ruler = root.querySelector(definition.selector);
+      const alpha = definition.day
+        ? lightDayRulerOpacity(earthPc, width, size.width - sx - 12)
+        : pc > 0.05 ? smoothRange(width, 155, 210)
+          * (1 - smoothRange(width, size.width * 0.7, size.width)) * 0.72 : 0;
+      const visible = !binary && end.visible && alpha > 0 && (!definition.day
+        || (solarOrigin.z > -1 && solarOrigin.z < 1 && sx >= 12 && sy >= 12 && sy < size.height - 12));
+      ruler.style.opacity = visible ? alpha : 0;
+      ruler.style.visibility = visible ? 'visible' : 'hidden';
+      const middle = (sx + end.x) / 2;
+      ruler.querySelector('[data-ruler-path]').setAttribute('d',
+        `M ${sx} ${sy + 10} V ${sy} H ${middle - definition.gap} M ${middle + definition.gap} ${sy} H ${end.x} V ${sy + 10}`);
+      const text = ruler.querySelector('[data-ruler-text]');
+      text.setAttribute('x', middle);
+      text.setAttribute('y', sy + 4);
+    }
+    // Label Oort at a real point on its envelope; no opaque fog sphere.
+    root.querySelector('[data-oort-note]').style.opacity = !origin.some(Boolean) && oortLabelOpacity(pc) > 0.05 ? 0.45 : 0;
+  });
+  return null;
+}

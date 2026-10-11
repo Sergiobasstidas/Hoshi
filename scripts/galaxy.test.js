@@ -1,0 +1,44 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { Vector3, PerspectiveCamera } from 'three';
+import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, SUN_GALACTIC_DISTANCE_PC, galaxyView, galaxyFieldOfView, galaxyOpacity, buildGalaxyParticles } from '../src/scene/galaxy.js';
+import { MAX_VIEW_DISTANCE_PC, LIGHT_YEAR_PC } from '../src/scene/scale.js';
+import { beginJourney, advanceJourney } from '../src/scene/navigation.js';
+
+test('galactic axes preserve distances and point to the northern galactic pole',()=>{
+ const x=new Vector3(...GALACTIC_X),y=new Vector3(...GALACTIC_Y),z=new Vector3(...GALACTIC_Z);
+ assert.ok(Math.abs(x.dot(y))<1e-8); assert.ok(Math.abs(y.dot(z))<1e-8);
+ assert.ok(x.clone().cross(y).distanceTo(z)<1e-8);
+ assert.ok(Math.abs(Math.hypot(...GALAXY_CENTER)-SUN_GALACTIC_DISTANCE_PC)<1e-5);
+ const dec=Math.asin(z.z)*180/Math.PI;
+ const ra=(Math.atan2(z.y,z.x)*180/Math.PI+360)%360;
+ assert.ok(Math.abs(dec-27.12825)<.001); assert.ok(Math.abs(ra-192.85948)<.001);
+});
+test('galaxy excursions fit within exploration limit and retain start after rebasing',()=>{
+ for(const edge of [true,false]){
+  const view=galaxyView(edge),origin=[1000,-400,600];
+  const camera=new PerspectiveCamera(); camera.position.set(1,2,3);
+  const start=camera.position.toArray().map((v,i)=>v+origin[i]);
+  view.journey={start,rotation:camera.quaternion.toArray()};
+  const motion=beginJourney(camera,view,origin);
+  assert.ok(camera.position.distanceTo(new Vector3(1,2,3))<1e-10);
+  while(!advanceJourney(camera,motion,view,galaxyFieldOfView(1),.05)){ /* Advance to arrival. */ }
+  const world=camera.position.clone().add(new Vector3(...origin));
+  assert.ok(world.length()<MAX_VIEW_DISTANCE_PC);
+  assert.ok(Math.abs(world.distanceTo(new Vector3(...GALAXY_CENTER))-view.distance)<1e-7);
+ }
+});
+test('galaxy reveal is continuous and absent at solar scales',()=>{
+ assert.equal(galaxyOpacity(100*LIGHT_YEAR_PC),0);
+ assert.equal(galaxyOpacity(7000*LIGHT_YEAR_PC),1);
+ let previous=0;
+ for(let ly=0;ly<10000;ly+=10){const next=galaxyOpacity(ly*LIGHT_YEAR_PC);assert.ok(next>=previous);assert.ok(next-previous<.004);previous=next;}
+});
+test('synthetic galactic samples are reproducible, finite, thick and handle empty images',()=>{
+ const pixels=new Uint8ClampedArray(16*16*4).fill(180);
+ const a=buildGalaxyParticles(pixels,16,16,2000),b=buildGalaxyParticles(pixels,16,16,2000);
+ assert.deepEqual(a,b);assert.equal(a.sizes.length,2000);
+ assert.ok(a.position.every(Number.isFinite));
+ assert.ok(a.position.some((v,i)=>i%3===2&&Math.abs(v)>100));
+ assert.equal(buildGalaxyParticles(new Uint8ClampedArray(4),1,1,10).sizes.length,0);
+});
