@@ -26,7 +26,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
   const labelAlpha = useRef(new Map());
   useFrame(({ camera, size }, delta) => {
     elapsed.current += delta;
-    if (elapsed.current < 1 / 30 || !overlayRef.current) return;
+    if (!overlayRef.current) return;
     const frameTime = elapsed.current;
     elapsed.current = 0;
     const root = overlayRef.current;
@@ -34,16 +34,20 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const pc = Math.hypot(camera.position.x + origin[0], camera.position.y + origin[1], camera.position.z + origin[2]);
     const earthPc = Math.hypot(camera.position.x + origin[0] - earth.x, camera.position.y + origin[1] - earth.y, camera.position.z + origin[2] - earth.z);
     const barra = root.querySelector('[data-barra-distancia]');
-    if (barra && barra.dataset.editando !== 'si') {
-      barra.value = barraDesdeDistancia(earthPc);
-      barra.setAttribute('aria-valuetext', textoDistancia(earthPc));
+    if (barra) {
+      const valor=barraDesdeDistancia(earthPc);
+      barra.dataset.valor=valor;
+      barra.style.setProperty('--posicion', `${100-valor}%`);
+      if (barra.dataset.vista === '') {
+        barra.setAttribute('aria-valuenow', valor.toFixed(1));
+        barra.setAttribute('aria-valuetext', textoDistancia(earthPc));
+      }
     }
-    const earthAu = earthPc / AU_TO_PC;
     const au = pc / AU_TO_PC;
-    root.querySelector('[data-distance]').textContent = earthAu < 1000
-      ? `${earthAu < 0.01 ? earthAu.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(earthAu)} UA`
-      : `${(earthPc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(earthPc / LIGHT_YEAR_PC)} años luz`;
-    root.querySelector('[data-distance-detail]').textContent = `${pc < 0.01 ? pc.toFixed(6) : format.format(pc)} pc del Sol`;
+    root.querySelector('[data-distance]').textContent = au < 1000
+      ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)} UA`
+      : `${(pc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(pc / LIGHT_YEAR_PC)} años luz`;
+    root.querySelector('[data-distance-detail]').textContent = `${pc < 0.01 ? pc.toLocaleString('es-CL', {maximumSignificantDigits:3}) : format.format(pc)} pc`;
     const inspectingStar = origin.some(Boolean) || focusedBody?.kind === 'star' || aimTarget?.kind === 'star';
     const nameOpacity = inspectingStar ? 0.9 : starLabelOpacity(pc);
     root.querySelector('[data-context]').textContent = focusedBody?.kind === 'star' ? focusedBody.star.physics ? 'Radio y temperatura estimados · textura estelar ilustrativa'
@@ -195,6 +199,6 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     }
     // Situar la etiqueta de Oort en su envoltura; sin esfera de niebla opaca.
     root.querySelector('[data-oort-note]').style.opacity = !origin.some(Boolean) && oortLabelOpacity(pc) > 0.05 ? 0.45 : 0;
-  });
+  }, 0);
   return null;
 }

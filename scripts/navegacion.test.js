@@ -55,3 +55,34 @@ test('Una estrella claramente más cercana reemplaza a otra y la selección siem
   }
   assert.deepEqual([...selectStarLabels(candidatos,visibles,1,1)],[1]);
 });
+
+test('Las etiquetas que se cruzan no desaparecen ni alteran su orden por una tercera candidata', () => {
+  let visibles=new Set([1,2]);
+  for(let cuadro=0;cuadro<90;cuadro++){
+    const candidatos=[{id:1,x:40,y:0,width:90,distance:20},
+      {id:2,x:40+Math.sin(cuadro)*20,y:0,width:90,distance:19},
+      {id:3,x:40,y:0,width:90,distance:18}];
+    visibles=selectStarLabels(candidatos,visibles,null,2);
+    assert.deepEqual([...visibles],[1,2]);
+  }
+});
+
+test('El viaje corto de escala conserva la partida y llega en dos segundos sin cambiar el viaje normal', async () => {
+  const {PerspectiveCamera}=await import('three');
+  const {beginJourney,advanceJourney}=await import('../src/scene/navigation.js');
+  const {JOURNEY_SECONDS}=await import('../src/scene/starJourney.js');
+  const camera=new PerspectiveCamera(50,1,1e-14,400000);
+  camera.position.fromArray(TIERRA.position).add(new Vector3(0,0,DISTANCIA_MINIMA));
+  const partida=camera.position.clone();
+  const destino=destinoDesdeBarra(100,partida.toArray(),[0,0,0]);
+  const vista={...destino,journey:{start:partida.toArray(),rotation:camera.quaternion.toArray(),duration:2}};
+  const transicion=beginJourney(camera,vista,[0,0,0]);
+  assert.equal(transicion.duration,2);
+  assert.ok(camera.position.distanceTo(partida)<1e-15);
+  for(let i=0;i<119;i++)assert.equal(advanceJourney(camera,transicion,vista,50,1/60),false);
+  advanceJourney(camera,transicion,vista,50,1/60);
+  assert.ok(Math.abs(camera.position.distanceTo(new Vector3(...destino.target))-destino.distance)<1e-8);
+  const normal=beginJourney(camera,{...vista,journey:{...vista.journey,duration:undefined}},[0,0,0]);
+  assert.equal(normal.duration,JOURNEY_SECONDS);
+  assert.ok(normal.duration>transicion.duration);
+});

@@ -16,5 +16,5 @@ export function advanceFlight(camera, keys, speed, delta) {
 }
 
 export function isFlightTypingTarget(target) {
-  return Boolean(target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"]'));
+  return Boolean(target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"], [role="slider"]'));
 }

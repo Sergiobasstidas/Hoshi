@@ -7,7 +7,7 @@ import { advanceFlight, FLIGHT_KEYS, isFlightTypingTarget } from './flightMotion
 import { approachSpeed, stopBeforeTarget, STAR_STOP_PC } from './starHeading';
 import { stellarStopDistance } from './stellarPhysics';
 
-export default function FreeFlight({ onSpeedChange, initialBody, origin, onManualLook, aimTarget, inspectedTarget }) {
+export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initialBody, origin, onManualLook, aimTarget, inspectedTarget }) {
   const { camera, gl } = useThree();
   const motion = useRef({ keys: new Set(), speed: 0 });
   useLayoutEffect(() => {
@@ -123,6 +123,13 @@ export default function FreeFlight({ onSpeedChange, initialBody, origin, onManua
       else canvas.setAttribute('tabindex', oldTabIndex);
     };
   }, [camera, gl, onSpeedChange, initialBody, origin, onManualLook]);
+  // El dial y la rueda alimentan la misma velocidad, sin mover la cámara.
+  useEffect(() => {
+    if (!velocidadSolicitada) return;
+    motion.current.advance?.();
+    motion.current.speed = velocidadSolicitada.valor;
+    onSpeedChange(velocidadSolicitada.valor);
+  }, [velocidadSolicitada, onSpeedChange]);
   useFrame(() => {
     motion.current.advance?.();
   }, -2);

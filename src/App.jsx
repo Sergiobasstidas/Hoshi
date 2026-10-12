@@ -23,6 +23,7 @@ import { BINARY_EPOCH, BINARY_STATE, WR140_ORBIT } from './scene/binaryOrbit';
 import './App.css';
 import StarSearch from './StarSearch';
 import BarraDistancia from './BarraDistancia';
+import DialVelocidad from './DialVelocidad';
 import { destinoDesdeBarra } from './scene/escalaNavegacion.js';
 import MilkyWay from './scene/MilkyWay';
 import { galaxyView } from './scene/galaxy.js';
@@ -63,6 +64,7 @@ export default function App() {
   const [freeFlight, setFreeFlight] = useState(false);
   const [traveling, setTraveling] = useState(false);
   const [speed, setSpeed] = useState(0);
+  const [velocidadSolicitada, setVelocidadSolicitada] = useState(null);
   const [showBodyPanel, setShowBodyPanel] = useState(false);
   const [showPulsars, setShowPulsars] = useState(false);
   const [galaxyStatus, setGalaxyStatus] = useState('idle');
@@ -90,6 +92,7 @@ export default function App() {
     releaseAim();
     setFreeFlight(false);
     setTraveling(true);
+    setVelocidadSolicitada(null);
     setDepartureBody(view.body || departureBody);
     setView({ ...destination, target: destination.target || SOLAR_ORIGIN,
       journey: { start, rotation, ...options } });
@@ -114,7 +117,7 @@ export default function App() {
   const viajarDesdeBarra = valor => {
     if (!cameraRef.current) return;
     setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null);
-    navigate(destinoDesdeBarra(valor, cameraRef.current.position.toArray(), origin), {arriveFree:freeFlight});
+    navigate(destinoDesdeBarra(valor, cameraRef.current.position.toArray(), origin), {arriveFree:freeFlight, duration:2});
   };
   const toggleFlight = () => {
     if (freeFlight) { aimAtSun(); return; }
@@ -180,7 +183,7 @@ export default function App() {
       dpr={[1, 1.5]} gl={{ antialias: true, logarithmicDepthBuffer: true }}>
       <SceneReady />
       <color attach="background" args={['#020305']} />
-      {freeFlight ? <FreeFlight onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
+      {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}
         enablePan={false} enableDamping dampingFactor={0.12} rotateSpeed={0.55} zoomSpeed={1.35}
         onStart={() => { transitionRef.current = null; }} />}
@@ -201,13 +204,13 @@ export default function App() {
     <div ref={overlayRef} className="scene-overlay">
       <StarSearch onSelect={visitSearchResult} />
       <BarraDistancia onViajar={viajarDesdeBarra} />
+      <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight}
+        onCambiar={valor=>{setSpeed(valor);setVelocidadSolicitada({valor});}} />
       <header className="distance-panel">
-        <span className="eyebrow">HOSHI <span>/</span> DISTANCIA A LA TIERRA</span>
+        <span className="eyebrow marca-hoshi">H O S H I</span>
+        <span className="distancia-titulo">DISTANCIA AL SOL</span>
         <div className="distance-value" data-distance>—</div>
         <div className="distance-detail" data-distance-detail />
-        {freeFlight && <div className="flight-speed">Velocidad{aimTarget ? ' máxima' : ''}: {(speed / (speed < 0.01 ? AU_TO_PC : LIGHT_YEAR_PC))
-          .toLocaleString('es-CL', { maximumSignificantDigits: 3 })} {speed < 0.01 ? 'UA/s' : 'años luz/s'}</div>}
-      <a className="enlace-velocidad" href="/propuestas/velocidad.html" target="_blank" rel="noreferrer">Ver opciones de velocidad ↗</a>
       </header>
       <nav className="scale-navigation" aria-label="Explorar escalas">
         {SCALE_VIEWS.map(option => <button key={option.id} onClick={() => { setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null); navigate(option); }}>
