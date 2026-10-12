@@ -108,14 +108,15 @@
 @media (min-width: 901px) and (max-width: 1200px) { .star-search { top: 182px; } .body-panel, .aim-panel { top: 240px; } }
 
 /* Escala lateral: posición actual y onda de previsualización independientes. */
-.barra-distancia {position:absolute;left:26px;top:180px;bottom:105px;width:84px;pointer-events:auto;z-index:22;color:#7f9aa9;font-size:10px;}
+.barra-distancia {position:absolute;right:26px;--superior:180px;--inferior:105px;top:calc(var(--superior) + (100% - var(--superior) - var(--inferior)) * .1);height:calc((100% - var(--superior) - var(--inferior)) * .8);width:56px;pointer-events:auto;z-index:22;color:#7f9aa9;font-size:10px;}
 .barra-recorrido {position:absolute;inset:24px 0;cursor:pointer;outline:none;touch-action:none;}
-.escala-linea,.escala-posicion {position:absolute;left:0;height:2px;border-radius:1px;background:linear-gradient(90deg,#405e75,#a8e1e1);pointer-events:none;transform:translateY(-50%);}
-.escala-linea {transition:width .16s ease-out,opacity .16s ease-out;}
+.escala-linea,.escala-posicion {position:absolute;right:0;height:2px;border-radius:1px;background:linear-gradient(90deg,#405e75,#a8e1e1);pointer-events:none;transform:translateY(-50%);}
+.escala-linea {width:16px;opacity:.3;transform-origin:right center;}
 .escala-posicion {top:var(--posicion,100%);width:21px;height:3px;box-shadow:0 0 7px #83bdcc44;}
-.escala-extremo {position:absolute;left:0;border:0;background:none;padding:0;color:#b2c6cf;font:inherit;white-space:nowrap;cursor:pointer;}
+.escala-extremo {position:absolute;right:0;border:0;background:none;padding:0;color:#b2c6cf;font:inherit;white-space:nowrap;cursor:pointer;}
 .escala-galaxia{top:0}.escala-tierra{bottom:0}
-.escala-vista {position:absolute;left:90px;transform:translateY(-50%);white-space:nowrap;pointer-events:none;display:grid;gap:5px;font-size:11px;text-shadow:0 1px 6px #000;}
+.escala-vista {position:absolute;right:66px;text-align:right;transform:translateY(-50%);white-space:nowrap;pointer-events:none;display:grid;gap:5px;font-size:11px;text-shadow:0 1px 6px #000;}
+.escala-vista[hidden],.escala-vista strong[hidden] {display:none;}
 .escala-vista strong {font-weight:400;color:#cde1e6}.escala-vista span{color:#91a7b4}
 .barra-recorrido:focus-visible {outline:1px solid #5b869566;outline-offset:7px;border-radius:4px;}
 .marca-hoshi {display:block;font-size:14px;color:#b7c9d5;letter-spacing:.3em;}
@@ -139,6 +140,6 @@
 .dial-velocidad:has(input:focus-visible) .dial-fondo{stroke:#94c7d5;}
 .scene-footer{padding-right:0}.navigation-hint{max-width:34vw;text-align:right;line-height:1.6;}
 .body-panel{left:130px}.galaxy-legend{left:130px;max-width:340px;font-size:10px;bottom:70px}.galaxy-legend strong{font-size:15px;}
-@media(max-width:700px){.barra-distancia{left:18px;top:300px;bottom:115px;width:72px;}.escala-vista{left:82px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.distancia-titulo{margin-top:10px}.distance-value{font-size:21px}.body-panel{left:100px;max-width:calc(100% - 118px)}.galaxy-legend{left:100px;bottom:210px;max-width:calc(100% - 120px)}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
-@media(max-height:650px){.barra-distancia{top:155px;bottom:70px}.dial-velocidad{transform:translateX(-50%) scale(.75);transform-origin:bottom center;bottom:6px}}
+@media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.distancia-titulo{margin-top:10px}.distance-value{font-size:21px}.body-panel{left:100px;max-width:calc(100% - 118px)}.galaxy-legend{left:100px;bottom:210px;max-width:calc(100% - 120px)}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
+@media(max-height:650px){.barra-distancia{--superior:155px;--inferior:70px}.dial-velocidad{transform:translateX(-50%) scale(.75);transform-origin:bottom center;bottom:6px}}
 @media(prefers-reduced-motion:reduce){.scene-label.star .label-text,.escala-linea{transition:none}}
