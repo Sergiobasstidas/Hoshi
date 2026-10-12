@@ -3,7 +3,6 @@ import fs from 'node:fs';
 const INPUT = './data/processed/stars_15pc.json';
 const OUTPUT = './data/processed/milkyway_desi.json';
 
-// Convertir parsecs a Mpc (1 Mpc = 1,000,000 pc... pero 1 Mpc = 3.086e22 m, 1 pc = 3.086e16 m → 1 pc = 1e-6 Mpc... wait)
 // 1 Mpc = 1,000,000 pc → 1 pc = 0.000001 Mpc
 const PC_TO_MPC = 1e-6;
 

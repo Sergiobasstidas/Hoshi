@@ -1,11 +1,11 @@
 import { AU_TO_PC, KM_TO_PC, PLANETS, SUN_RADIUS_KM, orbitalPosition } from './scale.js';
 import { STAR_STOP_PC } from './starHeading.js';
 
-// Mean volumetric radii, retrieved 2026-09-13. See docs/SOLAR_RADII.md.
-// A sphere with this radius preserves the body's volume, not its oblateness.
+// Radios volumétricos medios, consultados el 13/09/2026. Véase docs/SOLAR_RADII.md.
+// Una esfera de este radio conserva el volumen del cuerpo, no su achatamiento.
 export const PLANET_RADII_SOURCE = 'https://ssd.jpl.nasa.gov/planets/phys_par.html';
 export const SUN_RADIUS_SOURCE = 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html';
-// Mean centre-to-centre separation; phase and node are illustrative, not today's ephemeris.
+// Separación media entre centros; fase y nodo ilustrativos, no efemérides actuales.
 export const MOON_DISTANCE_KM = 384400;
 const earth = PLANETS.find(planet => planet.name === 'Tierra');
 const earthPosition = orbitalPosition(earth, earth.angle);

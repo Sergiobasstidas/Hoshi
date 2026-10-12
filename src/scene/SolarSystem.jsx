@@ -9,7 +9,7 @@ import { probeVisibility } from './heliosphereScale';
 import { MOON } from './solarBodies';
 import { SOLAR_TEMPERATURE_K } from './stellarPhysics';
 
-// Only the legacy probe layer still uses enlarged location markers.
+// Solo la capa heredada de sondas usa marcadores de ubicación ampliados.
 function ProbeMarker({ position, color, opacityRef, pixels = 3 }) {
   const ref = useRef();
   const worldPosition = useMemo(() => new THREE.Vector3(), []);
@@ -36,12 +36,12 @@ function PlanetSurface({ url }) {
     texture.needsUpdate = true;
   }, [gl]);
   const map = useTexture(url, configure);
-  // White avoids multiplying the original imagery by the old marker's tint.
+  // El blanco evita multiplicar la imagen original por el tinte del marcador anterior.
   return <meshLambertMaterial map={map} color="white" toneMapped={false} />;
 }
 
 function PhysicalBody({ position, radiusPc, color, texture }) {
-  // Map north points toward scene +Z. Longitudes/rotation remain illustrative.
+  // El norte del mapa apunta a +Z de escena. Longitudes y rotación siguen siendo ilustrativas.
   return <mesh position={position} scale={radiusPc} rotation={texture ? [Math.PI / 2, 0, 0] : undefined}>
     <sphereGeometry args={texture ? [1, 96, 64] : [1, 64, 48]} />
     {texture ? <Suspense fallback={<meshLambertMaterial color={color} toneMapped={false} />}>
@@ -96,7 +96,7 @@ function Probe({ probe, origin }) {
 
 export default function SolarSystem({ origin }) {
   return <>
-    {/* Readable shading; intensity is illustrative, radii and solar light direction are geometric. */}
+    {/* Sombreado legible; intensidad ilustrativa, radios y dirección solar geométricos. */}
     <ambientLight intensity={0.35} />
     <pointLight position={[0, 0, 0]} intensity={2} decay={0} />
     <StellarSurface position={[0, 0, 0]} radiusPc={SUN_RADIUS_PC} temperatureK={SOLAR_TEMPERATURE_K} />

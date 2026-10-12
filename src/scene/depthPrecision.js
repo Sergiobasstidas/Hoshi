@@ -1,8 +1,8 @@
 import { ShaderChunk } from 'three';
 import { SCENE_FAR_PC } from './scale.js';
 
-// Three's default log2(1 + depth) rounds to zero at planetary distances in
-// parsecs. Scale only the depth encoding, never positions, radii or projection.
+// El log2(1 + profundidad) de Three redondea a cero a distancias planetarias en
+// parsecs. Escalar solo la codificación de profundidad, no posiciones, radios ni proyección.
 const DEPTH_SCALE = 1e12;
 const DEPTH_DENOMINATOR = Math.log2(1 + SCENE_FAR_PC * DEPTH_SCALE);
 
@@ -11,9 +11,9 @@ export function encodedDepth(distancePc) {
 }
 
 export function installParsecDepthPrecision() {
-  // All standard and custom materials include these shared chunks, so the
-  // planet surfaces, orbits and distant star points compare the same depths.
-  // The denominator is tied to the scene camera's shared SCENE_FAR_PC constant.
+  // Todos los materiales incluyen estos fragmentos compartidos para comparar
+  // las mismas profundidades en superficies planetarias, órbitas y estrellas lejanas.
+  // El denominador usa la constante SCENE_FAR_PC compartida con la cámara de escena.
   ShaderChunk.logdepthbuf_vertex = `
     #ifdef USE_LOGARITHMIC_DEPTH_BUFFER
       vFragDepth = 1.0 + gl_Position.w * ${DEPTH_SCALE.toExponential()};

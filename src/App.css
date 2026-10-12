@@ -31,7 +31,9 @@
 .scene-label:hover .label-text { transform: scale(1.2); background: transparent; color: #edf4ff; }
 .distance-panel, .scale-navigation { z-index: 20; }
 .scene-label.sun { color: #f4e7c8; }
-.scene-label.star { color: #b5becd; font-size: 12px; }
+.scene-label.star { color: #b5becd; font-size: 9px; text-shadow: 0 1px 3px #000, 0 0 5px #b4d8ed38; }
+.scene-label.star .label-text { transition: transform .28s ease, color .28s ease; }
+.scene-label.star:hover .label-text, .scene-label.star:focus-within .label-text { transform: scale(1.92); color: #edf4ff; }
 .scene-label.is-target { z-index: 11; }
 .scene-label.is-target .label-text { color: #b8e6ed; background: transparent; }
 .label-text:disabled { cursor: default; }
@@ -104,3 +106,15 @@
 @media (max-width: 1200px) { .scale-navigation { top: 130px; left: 22px; right: 22px; flex-wrap: wrap; } }
 @media (max-width: 700px) { .galaxy-legend { left: 18px; bottom: 100px; font-size: 10px; } .galaxy-legend strong { font-size: 14px; } }
 @media (min-width: 901px) and (max-width: 1200px) { .star-search { top: 182px; } .body-panel, .aim-panel { top: 240px; } }
+
+.barra-distancia {position:absolute;right:20px;top:30%;height:min(48vh,370px);width:112px;pointer-events:auto;z-index:22;color:#91a8ba;font-size:10px;}
+.barra-titulo {display:block;text-align:right;letter-spacing:.2em;margin-bottom:20px;}
+.barra-recorrido {position:relative;height:calc(100% - 64px);}
+.barra-recorrido input {position:absolute;right:0;top:0;width:20px;height:100%;writing-mode:vertical-lr;direction:ltr;accent-color:#a6dae1;cursor:ns-resize;}
+.barra-recorrido button {position:absolute;right:30px;transform:translateY(-50%);border:0;background:#02030580;color:inherit;font:inherit;cursor:pointer;padding:5px 3px;white-space:nowrap;}
+.barra-recorrido button:hover,.barra-recorrido button:focus-visible {color:#e0f7fa;text-shadow:0 0 8px #99dce577;}
+.barra-distancia output {display:block;margin-top:20px;text-align:right;font-size:9px;font-variant-numeric:tabular-nums;}
+.enlace-velocidad {display:inline-block;color:#819cae;font-size:10px;text-decoration:none;pointer-events:auto;margin-top:8px;}
+.enlace-velocidad:hover {color:#d6edf5;}
+@media(max-width:700px){.barra-distancia {top:39%;height:35vh;right:8px;width:95px;}.barra-titulo{font-size:9px}.barra-recorrido button{font-size:9px}.enlace-velocidad{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.scene-label.star .label-text{transition:none}}

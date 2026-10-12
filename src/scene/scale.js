@@ -1,11 +1,11 @@
-// World distances are parsecs. Solar bodies use physical radii; star/probe markers are visual aids.
+// Distancias globales en parsecs. Cuerpos solares con radios físicos; marcadores estelares/sondas como ayudas visuales.
 export const AU_TO_PC = 1 / 206265;
-// IAU 2012 AU, as published by JPL: https://ssd.jpl.nasa.gov/astro_par.html
+// UA de IAU 2012, publicada por JPL: https://ssd.jpl.nasa.gov/astro_par.html
 export const AU_KM = 149597870.7;
 export const KM_TO_PC = AU_TO_PC / AU_KM;
 export const LIGHT_YEAR_PC = 1 / 3.26156;
-// c × one day, in the same world units as the solar-system distances.
-// Constants: https://ssd.jpl.nasa.gov/astro_par.html
+// c × un día, en las mismas unidades globales que las distancias del sistema solar.
+// Constantes: https://ssd.jpl.nasa.gov/astro_par.html
 export const LIGHT_DAY_PC = 299792.458 * 86400 * KM_TO_PC;
 export const LIGHT_DAY_RULER_LIMIT_PC = 0.02 * LIGHT_YEAR_PC;
 export const MAX_VIEW_DISTANCE_PC = 200000 * LIGHT_YEAR_PC;
@@ -18,7 +18,7 @@ export const SUN_RADIUS_PC = SUN_RADIUS_KM * KM_TO_PC;
 export const BODY_CAMERA_NEAR_PC = 1e-14;
 export const SCENE_FAR_PC = 400000;
 
-// Camera coordinates are local to the selected destination, never necessarily solar.
+// Coordenadas de cámara locales al destino seleccionado, no necesariamente solares.
 export function solarDistance(position, origin) {
   return Math.hypot(position.x + origin[0], position.y + origin[1], position.z + origin[2]);
 }
@@ -35,22 +35,22 @@ export function lightDayRulerOpacity(distancePc, widthPx, availablePx) {
     * (1 - smoothRange(distancePc, 0.019 * LIGHT_YEAR_PC, LIGHT_DAY_RULER_LIMIT_PC));
 }
 
-// One monotonic exposure curve, shared by named and background stars.
-// It never reaches zero: zooming through Oort cannot turn off the catalogue.
+// Curva monótona de exposición compartida por estrellas con nombre y de fondo.
+// Nunca llega a cero: atravesar Oort no apaga el catálogo.
 export function starExposure(distancePc) {
   const logDistance = Math.log10(Math.max(distancePc, 1e-8));
-  // Delay the early reveal and cap the distant view to avoid a blown-out centre.
+  // Retrasar la aparición inicial y limitar el brillo lejano para no saturar el centro.
   return 0.13 + 0.40 * smoothRange(logDistance, -2.5, 0)
     + 0.15 * smoothRange(logDistance, 0, 2.5);
 }
 
-// Keep the near view intact; reveal the unnamed background as Oort fades out.
+// Conservar la vista cercana; mostrar el fondo sin nombre conforme Oort se desvanece.
 export function backgroundGain(distancePc) {
   return 1 + 1.1 * smoothRange(distancePc, 4, 12);
 }
 
-// A compressed visual mapping of catalogue absolute magnitude, not a radius
-// or a photometric simulation. Lower magnitudes receive more light.
+// Representación visual comprimida de magnitud absoluta, no de radio
+// ni una simulación fotométrica. Las magnitudes menores reciben más luz.
 export function stellarVisualWeight(magnitude) {
   const mag = Number.isFinite(magnitude) ? magnitude : 1.3;
   return Math.max(0.45, Math.min(1.5, 2 ** ((1.3 - mag) * 0.15)));
@@ -60,7 +60,7 @@ export function flightSpeed(distancePc) {
   return Math.min(MAX_FLIGHT_SPEED_PC, Math.max(AU_TO_PC * 0.1, distancePc) * 0.4);
 }
 
-// Same wheel response as DESI; speeds here are parsecs per second.
+// Respuesta de rueda como en DESI; velocidades en parsecs por segundo.
 export function wheelSpeed(speed, { deltaY, deltaMode = 0, shiftKey = false }, pageHeight) {
   const delta = deltaY * (deltaMode === 1 ? 16 : deltaMode === 2 ? pageHeight : 1);
   const factor = Math.exp(-Math.max(-100, Math.min(100, delta)) * (shiftKey ? 0.0069 : 0.0005));
@@ -68,21 +68,21 @@ export function wheelSpeed(speed, { deltaY, deltaMode = 0, shiftKey = false }, p
 }
 
 export function oortOpacity(distancePc) {
-  // Begin at 0.1 light years; retain the established ceiling and distant fade.
+  // Comenzar a 0,1 años luz; conservar el brillo máximo y la atenuación lejana.
   return 0.30 * smoothRange(distancePc, OORT_REVEAL_PC, 0.07)
     * (1 - smoothRange(distancePc, 8.5 * LIGHT_YEAR_PC, 16 * LIGHT_YEAR_PC));
 }
 
-// Preserve label timing while the dust gains brightness sooner.
+// Conservar el momento de las etiquetas mientras el polvo gana brillo antes.
 export function oortLabelOpacity(distancePc) {
   return 0.30 * smoothRange(distancePc, 0.025, 0.18)
     * (1 - smoothRange(distancePc, 8.5 * LIGHT_YEAR_PC, 16 * LIGHT_YEAR_PC));
 }
 
-// Compensate projected particle separation. At 2 ly target 80% of the
-// surface brightness at 11 ly, then return to the original distant rendering.
+// Compensar la separación proyectada de partículas. A 2 años luz buscar el 80%
+// del brillo superficial a 11 años luz; luego recuperar la representación lejana original.
 export function oortPointScale(distancePc) {
-  // Keep individual points compact during the crossing; no enlarged fuzzy quads.
+  // Mantener puntos compactos al atravesar la nube; sin cuadrados difusos ampliados.
   return 1 + 0.35 * (1 - smoothRange(distancePc / LIGHT_YEAR_PC, 2, 11));
 }
 
@@ -91,11 +91,11 @@ export function starLabelOpacity(distancePc) {
     * (1 - smoothRange(distancePc / LIGHT_YEAR_PC, 650, 700));
 }
 
-// NASA Planetary Fact Sheet: mean distance in millions of km / 149.6.
-// Circular paths still use mean distances; phases are composed, not ephemerides.
-// Individual planes: JPL Table 1, J2000 ecliptic inclination and ascending node.
+// Ficha planetaria NASA: distancia media en millones de km / 149,6.
+// Trayectorias circulares con distancias medias; fases compuestas, no efemérides.
+// Planos individuales: tabla 1 JPL, inclinación eclíptica y nodo ascendente J2000.
 // https://ssd.jpl.nasa.gov/planets/approx_pos.html
-// Earth defines the ecliptic reference (0°), rather than using the table's EM barycentre fit.
+// Tierra define la referencia eclíptica (0°), sin usar el ajuste baricéntrico Tierra-Luna.
 export const PLANETS = [
   { name: 'Mercurio', au: 57.9 / 149.6, radiusKm: 2439.4, color: '#b9b6b0', angle: 2.3, inclinationDeg: 7.00497902, ascendingNodeDeg: 48.33076593 },
   { name: 'Venus', au: 108.2 / 149.6, radiusKm: 6051.8, color: '#e1c9a0', angle: 0.7, inclinationDeg: 3.39467605, ascendingNodeDeg: 76.67984255 },
@@ -107,8 +107,8 @@ export const PLANETS = [
   { name: 'Neptuno', au: 4515 / 149.6, radiusKm: 24622, color: '#799cdd', angle: -2.6, inclinationDeg: 1.77004347, ascendingNodeDeg: 131.78422574 },
 ];
 
-// Rotate each orbital plane into the J2000 ecliptic, then into the catalogue's
-// equatorial frame. All paths, bodies, labels and focus targets use this transform.
+// Rotar cada plano orbital a la eclíptica J2000 y después al marco ecuatorial
+// del catálogo. Trayectorias, cuerpos, nombres y destinos comparten la transformación.
 const OBLIQUITY = 23.43928 * Math.PI / 180;
 export function orbitalPosition(planet, angle) {
   const radius = planet.au * AU_TO_PC;
@@ -130,7 +130,7 @@ export const VIEWS = [
   { id: 'stars', label: 'Vecindario', distance: 65 },
 ];
 
-// Retained legacy illustrative positions, not current tracking data.
+// Posiciones ilustrativas heredadas; no son datos de seguimiento actual.
 export const PROBES = [
   { name: 'Voyager 1', au: 172, direction: [1, 0.35, -0.2], color: '#81b6bf' },
   { name: 'Voyager 2', au: 143, direction: [-0.7, -0.45, 0.55], color: '#b895b2' },

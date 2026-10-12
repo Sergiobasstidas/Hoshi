@@ -1,7 +1,7 @@
 import { SUN_RADIUS_KM, KM_TO_PC } from './scale.js';
 
-// Ribas et al. (2017), A&A 603 A58, Table 11. Preserve the published
-// uncertainties; this is independent of the B–V approximation (invalid for M dwarfs).
+// Ribas et al. (2017), A&A 603 A58, tabla 11. Conservar las incertidumbres
+// publicadas; independiente de la aproximación B–V (no válida para enanas M).
 export const PROXIMA_CATALOGUE_ID = 1436975;
 export const PROXIMA_PHYSICS = {
   radiusSolar: 0.146, radiusUncertaintySolar: 0.007,

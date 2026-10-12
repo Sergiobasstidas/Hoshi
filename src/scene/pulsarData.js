@@ -1,4 +1,4 @@
-// ATNF 2.8.1; provenance and limitations in docs/PULSAR_MAP.md.
+// ATNF 2.8.1; procedencia y limitaciones en docs/PULSAR_MAP.md.
 export const PULSARS = [
   {
     "id": "J1731-4744",

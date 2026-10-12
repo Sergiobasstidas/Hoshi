@@ -3,8 +3,8 @@ import { SUN_RADIUS_KM, KM_TO_PC } from './scale.js';
 export const SOLAR_TEMPERATURE_K = 5772;
 export const STELLAR_TEXTURE = '/textures/solar-system-scope/2k_sun.jpg';
 
-// Flower (1996), corrected coefficients: Torres (2010), Table 1.
-// Not suitable for M dwarfs, WR stars, carbon stars or unresolved composites.
+// Flower (1996), coeficientes corregidos: Torres (2010), tabla 1.
+// No válido para enanas M, estrellas WR, de carbono o sistemas sin resolver.
 export function bolometricCorrection(temperature) {
   const x = Math.log10(temperature);
   const coefficients = x < 3.7
@@ -21,7 +21,7 @@ export function radiusFromLuminosity(luminositySolar, temperatureK) {
   return Math.sqrt(luminositySolar) * (SOLAR_TEMPERATURE_K / temperatureK) ** 2;
 }
 
-// Approximate blackbody sRGB, shared with the catalogue's temperature palette.
+// sRGB aproximado de cuerpo negro, compartido con la paleta de temperatura del catálogo.
 export function temperatureColor(temperature) {
   const t = Math.max(1000, Math.min(40000, temperature)) / 100;
   const rgb = t <= 66
@@ -38,11 +38,11 @@ export function estimateStellarPhysics(record) {
       || !/^[BAFGK]/.test(spectrum) || spectrum.includes('+') || /sd|pec/i.test(spectrum)) return null;
   const temperatureK = 4600 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62));
   if (temperatureK < 4000 || temperatureK > 30000) return null;
-  // Differential solar calibration keeps the Flower zero point consistent.
+  // La calibración solar diferencial mantiene coherente el punto cero de Flower.
   const solarBolometric = 4.81 + bolometricCorrection(SOLAR_TEMPERATURE_K);
   const luminositySolar = 10 ** (0.4 * (solarBolometric - mv - bolometricCorrection(temperatureK)));
   const radiusSolar = radiusFromLuminosity(luminositySolar, temperatureK);
-  // Reject implausible estimates; never silently clamp them to a fake size.
+  // Rechazar estimaciones inverosímiles; no ajustarlas silenciosamente a tamaños inventados.
   if (!(radiusSolar >= 0.01 && radiusSolar <= 2000)) return null;
   return { temperatureK, luminositySolar, radiusSolar,
     radiusKm: radiusSolar * SUN_RADIUS_KM, radiusPc: radiusSolar * SUN_RADIUS_KM * KM_TO_PC,

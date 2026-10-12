@@ -27,7 +27,7 @@ const fragmentShader = `
   varying vec3 eyeDirection;
   #include <logdepthbuf_pars_fragment>
   void main() {
-    // Use solar structure only, not the map's orange display palette.
+    // Usar solo la estructura solar, no la paleta naranja del mapa.
     vec3 texel = texture2D(surfaceMap, surfaceUv).rgb;
     float structure = dot(texel, vec3(0.2126, 0.7152, 0.0722));
     float mu = max(0.0, dot(normalize(eyeNormal), normalize(eyeDirection)));
@@ -56,7 +56,7 @@ function SurfaceMaterial({ temperatureK }) {
   return <shaderMaterial uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader} toneMapped={false} />;
 }
 
-// Unit mesh translated in CPU double precision; radius is never pixel-enlarged.
+// Malla unitaria trasladada con doble precisión en CPU; radio nunca ampliado por píxeles.
 export default function StellarSurface({ position, radiusPc, temperatureK }) {
   return <mesh position={position} scale={radiusPc} rotation={[Math.PI / 2, 0, 0]}>
     <sphereGeometry args={[1, 128, 96]} />

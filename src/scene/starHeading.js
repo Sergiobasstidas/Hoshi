@@ -1,8 +1,8 @@
 import { Quaternion, Vector3 } from 'three';
 import { AU_TO_PC } from './scale.js';
 
-// Numerical guard around an unresolved point, not a claimed stellar radius.
-// Stars with physical data use their surface radius instead.
+// Margen numérico alrededor de un punto sin resolver; no equivale a un radio estelar.
+// Las estrellas con datos físicos utilizan el radio de su superficie.
 export const STAR_STOP_PC = 0.001 * AU_TO_PC;
 export const STAR_AIM_SECONDS = 1.25;
 
@@ -11,7 +11,7 @@ export function canAimStar(position, origin) {
   return Number.isFinite(distance);
 }
 
-// An inspection limit for a luminous marker, not a measured stellar surface.
+// Límite de inspección de un marcador luminoso, no una superficie estelar medida.
 export function approachSpeed(speed, distance, stopDistance = STAR_STOP_PC) {
   return Math.min(speed, Math.max(distance - stopDistance, stopDistance * 0.1) * 1.5);
 }
@@ -37,10 +37,10 @@ export function createStarAim(camera, position, origin) {
   };
 }
 
-// Changes only orientation. The heading remains fixed through keyboard travel.
+// Solo cambia la orientación. El rumbo permanece fijo al desplazarse con el teclado.
 export function advanceStarAim(camera, aim, delta) {
   aim.offset.copy(aim.target).sub(camera.position);
-  // Release after crossing the destination instead of flipping 180° each frame.
+  // Liberar el rumbo al cruzar el destino para evitar giros de 180° en cada cuadro.
   if (aim.offset.lengthSq() < 1e-24 || aim.offset.dot(aim.previousOffset) <= 0) return false;
   aim.previousOffset.copy(aim.offset);
   aim.offset.normalize();

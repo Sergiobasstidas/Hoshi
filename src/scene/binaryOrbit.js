@@ -1,6 +1,6 @@
 import { AU_TO_PC } from './scale.js';
 
-// Thomas et al. 2021, Table 4, orbital-distance solution. See docs/WR140.md.
+// Thomas et al. 2021, tabla 4, solución de distancia orbital. Véase docs/WR140.md.
 export const WR140_ORBIT = {
   periodDays: 2895, periastronMjd: 60636.23, eccentricity: 0.8993,
   semiMajorAu: 13.55, inclinationDeg: 119.07, nodeDeg: 353.87,
@@ -22,8 +22,8 @@ export function eccentricAnomaly(mean, e) {
   return E;
 }
 
-// Relative O - WR orbit. Position angle is measured north through east;
-// positive line-of-sight points away from the Sun. omega_WR needs +180°.
+// Órbita relativa O - WR. Ángulo de posición medido desde el norte hacia el este;
+// la línea de visión positiva se aleja del Sol. omega_WR requiere +180°.
 export function relativeOrbitAu(E, elements = WR140_ORBIT) {
   const o = elements;
   const x = o.semiMajorAu * (Math.cos(E) - o.eccentricity);

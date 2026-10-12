@@ -4,7 +4,7 @@ import { AdditiveBlending } from 'three';
 import { BINARY_STATE, binaryOrbitPoints } from './binaryOrbit';
 import { AU_TO_PC, smoothRange } from './scale';
 
-// Location markers only: their pixel diameter is not a stellar radius.
+// Solo marcadores de ubicación: su diámetro en píxeles no representa un radio estelar.
 export default function BinarySystem({ position = [0, 0, 0] }) {
   const group = useRef();
   const material = useRef();

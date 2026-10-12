@@ -20,7 +20,7 @@ const fragment = `
     vec3 c=texture2D(map,vUv).rgb;
     float edge=1.0-smoothstep(.42,.50,length(vUv-.5));
     edge*=smoothstep(.045,.075,length((vUv-vec2(.5,.945))*vec2(1.3,1.0)));
-    // Preserve dust lanes; soften the photographic plane near edge-on.
+    // Conservar las bandas de polvo; suavizar el plano fotográfico al verlo de canto.
     gl_FragColor=vec4(c*.82,opacity*face*edge*.78);
     #include <logdepthbuf_fragment>
   }`;
@@ -88,8 +88,8 @@ export default function MilkyWay({ origin, onStatus, muted = false }) {
       disc.current.uniforms.opacity.value=alpha;
       const face=galaxyFacing(camera.position,origin);
       disc.current.uniforms.face.value=face;
-      // At grazing angles the same samples stack into fewer pixels. Compress
-      // their exposure instead of turning the disc into a white line.
+      // A ángulos rasantes las muestras se acumulan en menos píxeles. Comprimir
+      // su exposición para evitar convertir el disco en una línea blanca.
       points.current.uniforms.opacity.value=alpha*(.22+.78*face);
       points.current.uniforms.viewportHeight.value=size.height*gl.getPixelRatio();
     }

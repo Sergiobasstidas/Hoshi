@@ -1,8 +1,8 @@
 import { AU_TO_PC } from './scale.js';
 import { BINARY_VIEW_DIRECTION } from './binaryOrbit.js';
 
-// Cross-match: AT-HYG 2169831 = HIP 100287 = HD 193793 = WR 140.
-// Keep the existing catalogue coordinates and photometry. See docs/WR140.md.
+// Correspondencia: AT-HYG 2169831 = HIP 100287 = HD 193793 = WR 140.
+// Conservar coordenadas y fotometría del catálogo existente. Véase docs/WR140.md.
 export const WR140_ID = 2169831;
 export const WR140_NAME = 'Wolf-Rayet 140';
 

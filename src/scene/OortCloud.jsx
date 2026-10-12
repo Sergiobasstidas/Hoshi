@@ -4,15 +4,15 @@ import * as THREE from 'three';
 import { OORT_INNER_PC, OORT_OUTER_PC, oortOpacity, oortPointScale, solarDistance } from './scale';
 
 function buildOortPositions() {
-    // Seeded illustrative distribution, stable across reloads and StrictMode.
+    // Distribución ilustrativa con semilla, estable entre recargas y StrictMode.
     let seed = 1873;
     const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
     const array = new Float32Array(140000 * 3);
     for (let i = 0; i < array.length / 3; i++) {
       const z = 2 * random() - 1;
       const angle = random() * Math.PI * 2;
-      // Visual shell, not a measured physical density model. A few inner
-      // particles remain visible during passage, but fade outside the cloud.
+      // Envoltura visual, no un modelo de densidad física medida. Algunas partículas
+      // interiores se ven al atravesarla, pero se desvanecen fuera de la nube.
       const shell = random() > 0.1;
       const radius = shell
         ? OORT_OUTER_PC * (0.82 + 0.16 * (random() + random() + random()) / 3)

@@ -5,7 +5,7 @@ import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, SUN_GALACTIC_DISTANC
 import { MAX_VIEW_DISTANCE_PC, LIGHT_YEAR_PC } from '../src/scene/scale.js';
 import { beginJourney, advanceJourney } from '../src/scene/navigation.js';
 
-test('galactic axes preserve distances and point to the northern galactic pole',()=>{
+test('Los ejes galácticos conservan distancias y apuntan al polo norte galáctico',()=>{
  const x=new Vector3(...GALACTIC_X),y=new Vector3(...GALACTIC_Y),z=new Vector3(...GALACTIC_Z);
  assert.ok(Math.abs(x.dot(y))<1e-8); assert.ok(Math.abs(y.dot(z))<1e-8);
  assert.ok(x.clone().cross(y).distanceTo(z)<1e-8);
@@ -14,7 +14,7 @@ test('galactic axes preserve distances and point to the northern galactic pole',
  const ra=(Math.atan2(z.y,z.x)*180/Math.PI+360)%360;
  assert.ok(Math.abs(dec-27.12825)<.001); assert.ok(Math.abs(ra-192.85948)<.001);
 });
-test('galaxy excursions fit within exploration limit and retain start after rebasing',()=>{
+test('Los viajes galácticos respetan el límite y conservan la partida al cambiar el origen',()=>{
  for(const edge of [true,false]){
   const view=galaxyView(edge),origin=[1000,-400,600];
   const camera=new PerspectiveCamera(); camera.position.set(1,2,3);
@@ -22,19 +22,19 @@ test('galaxy excursions fit within exploration limit and retain start after reba
   view.journey={start,rotation:camera.quaternion.toArray()};
   const motion=beginJourney(camera,view,origin);
   assert.ok(camera.position.distanceTo(new Vector3(1,2,3))<1e-10);
-  while(!advanceJourney(camera,motion,view,galaxyFieldOfView(1),.05)){ /* Advance to arrival. */ }
+  while(!advanceJourney(camera,motion,view,galaxyFieldOfView(1),.05)){ /* Avanzar hasta la llegada. */ }
   const world=camera.position.clone().add(new Vector3(...origin));
   assert.ok(world.length()<MAX_VIEW_DISTANCE_PC);
   assert.ok(Math.abs(world.distanceTo(new Vector3(...GALAXY_CENTER))-view.distance)<1e-7);
  }
 });
-test('galaxy reveal is continuous and absent at solar scales',()=>{
+test('La aparición galáctica es continua y está ausente a escala solar',()=>{
  assert.equal(galaxyOpacity(100*LIGHT_YEAR_PC),0);
  assert.equal(galaxyOpacity(7000*LIGHT_YEAR_PC),1);
  let previous=0;
  for(let ly=0;ly<10000;ly+=10){const next=galaxyOpacity(ly*LIGHT_YEAR_PC);assert.ok(next>=previous);assert.ok(next-previous<.004);previous=next;}
 });
-test('synthetic galactic samples are reproducible, finite, thick and handle empty images',()=>{
+test('Las muestras galácticas sintéticas son reproducibles, finitas, volumétricas y admiten imágenes vacías',()=>{
  const pixels=new Uint8ClampedArray(16*16*4).fill(180);
  const a=buildGalaxyParticles(pixels,16,16,2000),b=buildGalaxyParticles(pixels,16,16,2000);
  assert.deepEqual(a,b);assert.equal(a.sizes.length,2000);
@@ -43,7 +43,7 @@ test('synthetic galactic samples are reproducible, finite, thick and handle empt
  assert.equal(buildGalaxyParticles(new Uint8ClampedArray(4),1,1,10).sizes.length,0);
 });
 
-test('disc exposure is invariant under looking around and rebasing, but dims edge-on',()=>{
+test('La exposición del disco no depende de la mirada ni del origen local, pero disminuye de canto',()=>{
  const camera=new PerspectiveCamera();
  camera.position.fromArray(GALAXY_CENTER).addScaledVector(new Vector3(...GALACTIC_Z),30000);
  const expected=galaxyFacing(camera.position,[0,0,0]);

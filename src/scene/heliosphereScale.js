@@ -1,7 +1,7 @@
 import { AU_TO_PC, LIGHT_YEAR_PC, smoothRange } from './scale.js';
 
-// Approximate Voyager crossing scale; the sphere is an illustrative envelope,
-// not a measured spherical boundary. Source and limitations: docs/HELIOSPHERE.md.
+// Escala aproximada del cruce de Voyager; la esfera es una envoltura ilustrativa,
+// no un límite esférico medido. Fuente y limitaciones: docs/HELIOSPHERE.md.
 export const HELIOSPHERE_RADIUS_AU = 120;
 export const HELIOSPHERE_RADIUS_PC = HELIOSPHERE_RADIUS_AU * AU_TO_PC;
 export const HELIOSPHERE_VIEW_DISTANCE_PC = 320 * AU_TO_PC;

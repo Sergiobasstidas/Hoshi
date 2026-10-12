@@ -32,8 +32,8 @@ const vertexShader = `
     float nearSize = 1.0 / sqrt(distanceToEye + 0.5);
     float backgroundSize = clamp(2.8 + 2.5 * nearSize, 2.8, 5.5);
     float namedSize = clamp(25.0 + 15.0 * nearSize, 25.0, 40.0);
-    // Resolve progressively smaller distant sources instead of stacking
-    // hundreds of fixed-size named halos into a white disc.
+    // Resolver fuentes lejanas progresivamente menores para evitar acumular
+    // cientos de halos de tamaño fijo en un disco blanco.
     float farView = smoothstep(300.0, 3000.0, distanceToEye) * farCompression;
     float sizeReduction = mix(mix(1.0, 0.65, farView), mix(1.0, 0.5, farView), named);
     float individualSize = mix(1.0, markerSize, individualMix);
@@ -42,11 +42,11 @@ const vertexShader = `
     vColor = mix(starColor, vividColor, individualMix);
     vAlpha = exposure * mix(luminosity, individualLuminosity, individualMix)
       * mix(0.36, mix(1.0, 0.65, farView), named);
-    // Dense, unresolved background points also need an energy reduction:
-    // shrinking below a pixel alone leaves their central sample too bright.
+    // Los puntos de fondo densos y sin resolver también requieren reducir energía:
+    // reducirlos a menos de un píxel deja su muestra central demasiado brillante.
     vAlpha *= mix(mix(1.0, 0.25, farView), 1.0, named);
-    // Fade the location marker as the true stellar disc resolves. Never draw
-    // a large point on top of a textured photosphere.
+    // Atenuar el marcador al resolverse el disco estelar real. No dibujar
+    // un punto grande sobre una fotosfera con textura.
     if (physicalRadius > 0.0) {
       vAlpha *= smoothstep(20.0, 100.0, length(mvPosition.xyz) / physicalRadius);
     }
@@ -65,7 +65,7 @@ const fragmentShader = `
   void main() {
     vec2 p = gl_PointCoord * 2.0 - 1.0;
     float r2 = dot(p, p);
-    // Continuous Gaussians: no solid disc, rings or diffraction crosses.
+    // Gaussianas continuas: sin disco sólido, anillos ni cruces de difracción.
     float core = exp(-r2 * mix(6.0, 65.0, named));
     float halo = exp(-r2 * 12.0) * 0.35 * named * vHalo;
     float edge = 1.0 - smoothstep(0.65, 1.0, r2);
@@ -82,7 +82,7 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
     const position = new Float32Array(stars.length * 3);
     const color = new Float32Array(stars.length * 3);
     stars.forEach((star, i) => {
-      // Subtract in CPU double precision before uploading to Float32 GPU buffers.
+      // Restar en doble precisión en CPU antes de transferir a Float32 en GPU.
       position.set(anchor ? [0, 0, 0] : [star.x - origin[0], star.y - origin[1], star.z - origin[2]], i * 3);
       color.set(catalogueColor(star.rgb), i * 3);
     });
@@ -132,8 +132,8 @@ export default function StarField({ stars, origin, focusedStar, departureStar, g
   const departing = useMemo(() => retained ? [retained] : [], [retained]);
   const departureAnchor = useMemo(() => retained
     ? [retained.x-origin[0], retained.y-origin[1], retained.z-origin[2]] : null, [retained,origin]);
-  // Object translation is subtracted from the camera in CPU double precision.
-  // A zero-centred point avoids losing an AU-scale arrival in catalogue Float32 coordinates.
+  // Restar la traslación del objeto de la cámara con doble precisión en CPU.
+  // Un punto centrado en cero conserva precisión de UA al llegar desde coordenadas Float32.
   const anchor = useMemo(() => focusedStar
     ? [focusedStar.x - origin[0], focusedStar.y - origin[1], focusedStar.z - origin[2]] : null, [focusedStar, origin]);
   return <><StarGroup gain={gain} stars={visibleBackground} named={false} origin={origin} />

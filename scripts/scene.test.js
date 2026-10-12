@@ -17,7 +17,7 @@ import { PULSARS } from '../src/scene/pulsarData.js';
 import { PROXIMA_CATALOGUE_ID, PROXIMA_PHYSICS } from '../src/scene/publishedStellarPhysics.js';
 import { HELIOSPHERE_BRIGHTNESS, probeVisibility } from '../src/scene/heliosphereScale.js';
 
-test('Proxima has published physical dimensions and allows sub-AU arrival and approach', () => {
+test('Próxima tiene dimensiones físicas publicadas y permite acercarse a menos de una UA', () => {
   const star = JSON.parse(readFileSync(new URL('../data/processed/stars_15pc.json',import.meta.url),'utf8')).find(s=>s.i===PROXIMA_CATALOGUE_ID);
   assert.equal(star.n, 'Proxima Centauri');
   assert.equal(PROXIMA_PHYSICS.radiusSolar, .146);
@@ -30,7 +30,7 @@ test('Proxima has published physical dimensions and allows sub-AU arrival and ap
   assert.ok(STAR_STOP_PC < AU_TO_PC);
 });
 
-test('Kuiper dims by 20 percent through heliosphere reveal while Voyager keeps its old fade', () => {
+test('Kuiper se atenúa un 20 por ciento al aparecer la heliosfera; Voyager conserva su transición', () => {
   assert.equal(kuiperOpacity(80*AU_TO_PC),.45);
   assert.equal(kuiperOpacity(155*AU_TO_PC),.45*.8);
   assert.ok(kuiperOpacity(120*AU_TO_PC)<.45);
@@ -39,7 +39,7 @@ test('Kuiper dims by 20 percent through heliosphere reveal while Voyager keeps i
   assert.equal(heliosphereVisibility(.02*LIGHT_YEAR_PC),1);
 });
 
-test('journey rebase preserves world pose, arrives at the star, and can be interrupted to aim at Sun', () => {
+test('Cambiar el origen conserva la pose global, permite llegar a la estrella e interrumpir para enfocar el Sol', () => {
   const camera = new PerspectiveCamera(50, 16 / 9);
   camera.position.set(1, 2, 3);
   const origin = [2000, -300, 1500];
@@ -53,7 +53,7 @@ test('journey rebase preserves world pose, arrives at the star, and can be inter
   const sunView = { target: [0,0,0], journey: {start:interruptedPosition.toArray(),rotation:camera.quaternion.toArray(),headingOnly:true} };
   motion = beginJourney(camera, sunView, [0,0,0]);
   for (let i = 0; i < 100; i++) advanceJourney(camera, motion, sunView, 50, 0.02);
-  assert.ok(camera.position.distanceTo(interruptedPosition) < 1e-10, 'aim must never change position');
+  assert.ok(camera.position.distanceTo(interruptedPosition) < 1e-10, 'el enfoque nunca debe cambiar la posición');
   assert.ok(camera.getWorldDirection(new Vector3()).dot(interruptedPosition.clone().normalize().negate()) > .999999);
   const resume = {...view,journey:{...view.journey,start:camera.position.toArray(),rotation:camera.quaternion.toArray()}};
   motion = beginJourney(camera, resume, origin);
@@ -61,7 +61,7 @@ test('journey rebase preserves world pose, arrives at the star, and can be inter
   assert.ok(Math.abs(camera.position.length()-view.distance) < 1e-12);
 });
 
-test('solar scenery keeps its apparent position and visibility when rebasing for a search journey', () => {
+test('El escenario solar conserva posición aparente y visibilidad al cambiar el origen durante una búsqueda', () => {
   const camera = new PerspectiveCamera(50,16/9);
   const earth = new Vector3(...SOLAR_BODIES.find(b=>b.name==='Tierra').position);
   camera.position.copy(earth).add(new Vector3(0,0,0.000001));
@@ -77,7 +77,7 @@ test('solar scenery keeps its apparent position and visibility when rebasing for
   assert.ok(Math.abs(kuiperOpacity(distance)-kuiperOpacity(solarDistance(camera.position,origin)))<1e-8);
 });
 
-test('selector and search use identical extended motion, differing only in arrival controls', () => {
+test('Selector y buscador comparten movimiento prolongado; solo difieren los controles de llegada', () => {
   const origin=[-0.474,-0.363,-1.157];
   const body={kind:'star',position:origin,radiusKm:PROXIMA_PHYSICS.radiusKm};
   const cameras=[new PerspectiveCamera(),new PerspectiveCamera()];
@@ -91,7 +91,7 @@ test('selector and search use identical extended motion, differing only in arriv
   }
 });
 
-test('pulsar map preserves its 25000 light-year framing within the expanded flight boundary', () => {
+test('El mapa de púlsares conserva el encuadre de 25.000 años luz dentro del límite ampliado', () => {
   assert.equal(PULSAR_VIEW.distance, PULSAR_VIEW_DISTANCE_PC);
   assert.ok(PULSAR_VIEW.distance < MAX_VIEW_DISTANCE_PC);
   for (const aspect of [16/9, 4/3, 1, .6]) {
@@ -103,14 +103,14 @@ test('pulsar map preserves its 25000 light-year framing within the expanded flig
       const world = new Vector3(...pulsar.position);
       const depth = -world.clone().applyMatrix4(camera.matrixWorldInverse).z;
       const p = world.project(camera);
-      // Logarithmic depth is applied by the shader; ordinary projected Z rounds
-      // to 1 at this enormous near/far ratio. Test view-space clipping instead.
+      // El sombreador aplica profundidad logarítmica; la Z proyectada ordinaria redondea
+      // a 1 con esta relación entre planos. Comprobar recorte en espacio de cámara.
       assert.ok(Math.abs(p.x)<=.861 && Math.abs(p.y)<=.651 && depth>camera.near && depth<camera.far,pulsar.id);
     }
   }
 });
 
-test('free-flight boundary works in world coordinates after rebasing and never teleports an old distant camera', () => {
+test('El límite de vuelo usa coordenadas globales y no teletransporta una cámara lejana anterior', () => {
   for (const origin of [[0,0,0],[2000,-300,1500]]) {
     const offset = new Vector3(...origin);
     const previous = new Vector3(MAX_VIEW_DISTANCE_PC-1,0,0).sub(offset);
@@ -125,7 +125,7 @@ test('free-flight boundary works in world coordinates after rebasing and never t
   }
 });
 
-test('map transition follows a continuous arc even from the opposite direction', () => {
+test('La transición al mapa sigue un arco continuo incluso desde la dirección contraria', () => {
   const camera = new PerspectiveCamera();
   camera.position.fromArray(PULSAR_VIEW.direction).multiplyScalar(-PULSAR_VIEW.distance);
   const view = {...PULSAR_VIEW,journey:{start:camera.position.toArray(),rotation:camera.quaternion.toArray(),duration:4}};
@@ -140,7 +140,7 @@ test('map transition follows a continuous arc even from the opposite direction',
 });
 import { ETA_CARINAE, ETA_CARINAE_ID, CURATED_SEARCH_ROWS, addCuratedSearchRows } from '../src/scene/curatedStars.js';
 
-test('search joins common, Bayer, Flamsteed and catalogue aliases to the same existing star', () => {
+test('La búsqueda une nombres comunes, Bayer, Flamsteed y alias a una misma estrella existente', () => {
   const rows=JSON.parse(readFileSync(new URL('../public/data/star-search.json',import.meta.url),'utf8'));
   const index=buildSearchIndex(rows);
   for(const query of ['Alnilam','HD37128','HIP 26311','HR 1903','ε Ori','Epsilon Orionis','46 Ori']) {
@@ -156,7 +156,7 @@ test('search joins common, Bayer, Flamsteed and catalogue aliases to the same ex
   assert.ok(rows.every(([id])=>ids.has(id)));
 });
 
-test('curated Eta Carinae record keeps SIMBAD coordinates and technical aliases', () => {
+test('El registro curado de Eta Carinae conserva coordenadas SIMBAD y alias técnicos', () => {
   const rows=JSON.parse(readFileSync(new URL('../public/data/star-search.json',import.meta.url),'utf8'));
   const index=buildSearchIndex(addCuratedSearchRows(rows));
   for(const query of ['Eta Carinae','Eta Car','η Car','HD 93308','HR 4210','Gaia DR3 5350358584482202880']) {
@@ -168,7 +168,7 @@ test('curated Eta Carinae record keeps SIMBAD coordinates and technical aliases'
   assert.ok(ETA_CARINAE.x<0 && ETA_CARINAE.y>0 && ETA_CARINAE.z<0);
 });
 
-test('Kuiper is a repeatable disc at 30–50 AU in the orbital reference frame', () => {
+test('Kuiper es un disco reproducible de 30 a 50 UA en el marco orbital', () => {
   const points=buildKuiperPositions(1000);
   assert.deepEqual(points,buildKuiperPositions(1000));
   for(let i=0;i<points.length;i+=3) {
@@ -182,7 +182,7 @@ test('Kuiper is a repeatable disc at 30–50 AU in the orbital reference frame',
   assert.equal(kuiperOpacity(800*AU_TO_PC),0);
 });
 
-test('stellar journeys start and finish continuously without overshooting', () => {
+test('Los viajes estelares parten y terminan sin discontinuidades ni sobrepasar el destino', () => {
   for(const [start,end] of [[2000,SUN_RADIUS_PC*6],[.0001,.01]]) {
     assert.ok(Math.abs(journeyDistance(start,end,0)/start-1)<1e-12);
     assert.ok(Math.abs(journeyDistance(start,end,1)/end-1)<1e-12);
@@ -201,7 +201,7 @@ test('stellar journeys start and finish continuously without overshooting', () =
 });
 import { radiusFromLuminosity, estimateStellarPhysics, temperatureColor, stellarStopDistance } from '../src/scene/stellarPhysics.js';
 
-test('stellar radii obey Stefan–Boltzmann scaling and reject missing data', () => {
+test('Los radios siguen Stefan–Boltzmann y rechazan datos ausentes', () => {
   assert.equal(radiusFromLuminosity(1, 5772), 1);
   assert.equal(radiusFromLuminosity(4, 5772), 2);
   assert.equal(radiusFromLuminosity(1, 11544), 0.25);
@@ -217,7 +217,7 @@ test('stellar radii obey Stefan–Boltzmann scaling and reject missing data', ()
   assert.ok(hot[2] > hot[0]);
 });
 
-test('stellar arrival stops above physical photosphere and permits retreat', () => {
+test('La llegada estelar se detiene sobre la fotosfera física y permite retroceder', () => {
   for (const radiusSolar of [0.1, 1, 1000]) {
     const radiusPc = radiusSolar * SUN_RADIUS_PC;
     const stop = stellarStopDistance({ radiusPc });
@@ -245,7 +245,7 @@ import { HELIOSPHERE_RADIUS_PC, HELIOSPHERE_VIEW_DISTANCE_PC, heliosphereVisibil
 import { LIGHT_DAY_PC, LIGHT_DAY_RULER_LIMIT_PC, lightDayRulerOpacity } from '../src/scene/scale.js';
 import { AU_TO_PC, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, PLANETS, orbitalPosition, starExposure, oortOpacity, oortLabelOpacity, oortPointScale, starLabelOpacity, backgroundGain, flightSpeed, wheelSpeed, stellarVisualWeight } from '../src/scene/scale.js';
 
-test('WR 140 visits the existing catalogue point without duplication or changing coordinates', () => {
+test('La visita a WR 140 usa el punto de catálogo sin duplicarlo ni cambiar coordenadas', () => {
   const catalogue = JSON.parse(readFileSync(new URL('../data/processed/stars_15pc.json', import.meta.url), 'utf8'));
   const original = catalogue.find(star => star.i === WR140_ID);
   const identified = identifyStellarTargets(catalogue);
@@ -264,7 +264,7 @@ test('WR 140 visits the existing catalogue point without duplication or changing
   assert.deepEqual(stellarTargets([]), []);
 });
 
-test('WR 140 Keplerian orbit preserves mass balance, period and physical separation extrema', () => {
+test('La órbita kepleriana de WR 140 conserva masas, período y extremos de separación', () => {
   const o = WR140_ORBIT;
   for (const phase of [0, 0.001, 0.1, 0.25, 0.5, 0.8, 0.99]) {
     const state = binaryState(o.periastronMjd + phase * o.periodDays);
@@ -280,8 +280,8 @@ test('WR 140 Keplerian orbit preserves mass balance, period and physical separat
   assert.equal(dateMjd('1970-01-01'), 40587);
 });
 
-test('WR 140 orientation agrees with CHARA 2019-07-01 observed position angle and separation', () => {
-  // Thomas et al. Table 3: HJD-2450000.5 = 8665.351; PA 152.458°, separation 13.017 mas.
+test('La orientación de WR 140 concuerda con el ángulo y separación observados por CHARA el 01/07/2019', () => {
+  // Thomas et al. tabla 3: HJD-2450000.5 = 8665.351; AP 152,458°, separación 13,017 mas.
   const s = binaryState(58665.351), o = WR140_ORBIT;
   const v = s.o.map((x, i) => (x - s.wr[i]) / AU_TO_PC);
   const ra = o.raHours * Math.PI / 12, dec = o.decDeg * Math.PI / 180;
@@ -292,13 +292,13 @@ test('WR 140 orientation agrees with CHARA 2019-07-01 observed position angle an
   assert.ok(Math.abs(Math.hypot(east, north) / 1.518 - 13.017) < 0.15);
 });
 
-test('local Float32 binary positions retain sub-AU separation accuracy far from the Sun', () => {
+test('Las posiciones binarias locales Float32 conservan precisión inferior a una UA lejos del Sol', () => {
   const a = new Float32Array(BINARY_STATE.wr), b = new Float32Array(BINARY_STATE.o);
   const separation = Math.hypot(...a.map((x, i) => x - b[i])) / AU_TO_PC;
   assert.ok(Math.abs(separation - BINARY_STATE.separationAu) < 0.00001);
 });
 
-test('flight translates in camera axes; speed alone cannot move or rotate camera', () => {
+test('El vuelo se desplaza en ejes de cámara; variar la velocidad no mueve ni gira la cámara', () => {
   const camera = new PerspectiveCamera();
   const speed = 5 * AU_TO_PC;
   for (let i = 0; i < 60; i++) advanceFlight(camera, new Set(['KeyW']), speed, 1 / 60);
@@ -314,14 +314,14 @@ test('flight translates in camera axes; speed alone cannot move or rotate camera
   assert.ok(camera.quaternion.angleTo(rotation) < 1e-7);
 });
 
-test('any visible named star can be aimed at regardless of distance to the Sun', () => {
+test('Cualquier estrella con nombre visible puede enfocarse sin límite de distancia al Sol', () => {
   assert.ok(canAimStar(new Vector3(5 * LIGHT_YEAR_PC, 0, 0), [0, 0, 0]));
   assert.ok(canAimStar(new Vector3(5.001 * LIGHT_YEAR_PC, 0, 0), [0, 0, 0]));
   assert.ok(canAimStar(new Vector3(), [2000, 0, 0]));
   assert.ok(canAimStar(new Vector3(-2000, 0, 0), [2000, 0, 0]));
 });
 
-test('approach brakes and stops before the target, even at maximum speed, then allows retreat', () => {
+test('La aproximación frena antes del destino incluso a máxima velocidad y permite retroceder', () => {
   for (const fps of [20, 60, 144]) {
     const camera = new PerspectiveCamera(), target = new Vector3(1800, -2000, 1200);
     camera.position.copy(target).add(new Vector3(0, 0, 0.01));
@@ -340,7 +340,7 @@ test('approach brakes and stops before the target, even at maximum speed, then a
   }
 });
 
-test('nearest labels have a small non-overlapping budget and preserve a selected or stable neighbour', () => {
+test('Las etiquetas cercanas tienen un cupo pequeño sin superposición y conservan selección o vecinos estables', () => {
   const candidates = Array.from({ length: 30 }, (_, id) => ({ id, distance: id + 1, x: id * 180, y: 0, width: 100 }));
   const initial = selectStarLabels(candidates, new Set(), null);
   assert.deepEqual([...initial], Array.from({ length: 12 }, (_, i) => i));
@@ -353,7 +353,7 @@ test('nearest labels have a small non-overlapping budget and preserve a selected
   assert.deepEqual([...selectStarLabels(close, new Set([1]), null)], [1]);
 });
 
-test('star aiming eases the view without translating and ends on the same heading at different frame rates', () => {
+test('El enfoque estelar gira suavemente sin trasladarse y converge al mismo rumbo a distintas frecuencias', () => {
   const target = [4, 2, -3];
   for (const fps of [30, 60, 144]) {
     const camera = new PerspectiveCamera();
@@ -377,7 +377,7 @@ test('star aiming eases the view without translating and ends on the same headin
   assert.ok(steps[0] < steps[9] / 20 && steps[19] < steps[9] / 20);
 });
 
-test('a locked heading follows keyboard translation and releases on crossing without a flip', () => {
+test('El rumbo fijo sigue la traslación con teclado y se libera al cruzar sin girar bruscamente', () => {
   const camera = new PerspectiveCamera();
   const target = [1, 0.5, -2], aim = createStarAim(camera, target, [0, 0, 0]);
   advanceStarAim(camera, aim, STAR_AIM_SECONDS);
@@ -399,7 +399,7 @@ test('a locked heading follows keyboard translation and releases on crossing wit
   assert.ok(opposite.getWorldDirection(new Vector3()).z > 0.999999);
 });
 
-test('stellar palette retains warm/cool identities and leaves unknown/neutral colors neutral', () => {
+test('La paleta conserva identidades cálidas y frías y deja neutros los colores desconocidos', () => {
   const warm = vividStellarColor([255, 189, 134]);
   const cool = vividStellarColor([202, 218, 255]);
   assert.ok(warm[0] > warm[1] && warm[1] > warm[2]);
@@ -411,7 +411,7 @@ test('stellar palette retains warm/cool identities and leaves unknown/neutral co
   assert.deepEqual(vividStellarColor([0, 0, 0]), [0, 0, 0]);
 });
 
-test('marker diameter varies continuously with absolute magnitude without confusing it with radius', () => {
+test('El diámetro del marcador varía con magnitud absoluta sin confundirse con radio físico', () => {
   let previous = Infinity;
   for (let m = -12; m <= 20; m += 0.05) {
     const size = stellarMarkerSize(m);
@@ -423,7 +423,7 @@ test('marker diameter varies continuously with absolute magnitude without confus
   assert.ok(Number.isFinite(stellarMarkerSize(NaN)));
 });
 
-test('catalogue appearance preserves nominal area and light budgets through the reveal', () => {
+test('La apariencia del catálogo conserva el presupuesto nominal de área y luz durante su aparición', () => {
   const catalogue = JSON.parse(readFileSync(new URL('../data/processed/stars_15pc.json', import.meta.url), 'utf8'));
   for (const named of [true, false]) {
     const stars = catalogue.filter(star => Boolean(star.n) === named && star.n !== 'Sol' && star.n !== 'Sun');
@@ -449,7 +449,7 @@ test('catalogue appearance preserves nominal area and light budgets through the 
   assert.equal(buildStellarAppearance([]).markerSize.length, 0);
 });
 
-test('stellar visibility remains positive and monotonic over the full navigation range', () => {
+test('La visibilidad estelar permanece positiva y monótona en todo el recorrido', () => {
   let previous = 0;
   for (let i = 0; i <= 2000; i++) {
     const pc = 10 ** (-8 + i / 2000 * 12);
@@ -460,7 +460,7 @@ test('stellar visibility remains positive and monotonic over the full navigation
   }
 });
 
-test('no discontinuity at the former 120,000 AU blackout', () => {
+test('No hay discontinuidad en el antiguo apagón de 120.000 UA', () => {
   for (const au of [110000, 120000, 122000, 200000]) {
     const before = starExposure((au - 1) * AU_TO_PC);
     const after = starExposure((au + 1) * AU_TO_PC);
@@ -469,14 +469,14 @@ test('no discontinuity at the former 120,000 AU blackout', () => {
   }
 });
 
-test('early reveal is delayed but stars still brighten by one light year', () => {
+test('La aparición inicial se retrasa pero las estrellas aumentan su brillo hacia un año luz', () => {
   assert.equal(starExposure(0.01 * LIGHT_YEAR_PC), 0.13);
   assert.ok(starExposure(LIGHT_YEAR_PC) >= 0.4 && starExposure(LIGHT_YEAR_PC) < 0.55);
   assert.ok(starExposure(0.1) < starExposure(LIGHT_YEAR_PC));
   assert.equal(starExposure(5 * AU_TO_PC), 0.13);
 });
 
-test('all eight schematic orbits preserve their stated distances in parsecs', () => {
+test('Las ocho órbitas esquemáticas conservan las distancias declaradas en parsecs', () => {
   assert.equal(PLANETS.length, 8);
   assert.equal(PLANETS.find(p => p.name === 'Tierra').au, 1);
   for (const planet of PLANETS) {
@@ -487,7 +487,7 @@ test('all eight schematic orbits preserve their stated distances in parsecs', ()
   }
 });
 
-test('orbital planes have their published inclination and ascending node in the equatorial frame', () => {
+test('Los planos orbitales conservan inclinación y nodo publicados en el marco ecuatorial', () => {
   const earth = PLANETS.find(p => p.name === 'Tierra');
   const ex = new Vector3(...orbitalPosition(earth, 0)).normalize();
   const ey = new Vector3(...orbitalPosition(earth, Math.PI / 2)).normalize();
@@ -511,7 +511,7 @@ test('orbital planes have their published inclination and ascending node in the 
   }
 });
 
-test('Oort stays subtle and fades without affecting stellar visibility', () => {
+test('Oort permanece tenue y desaparece sin afectar la visibilidad estelar', () => {
   for (const pc of [0, 0.01, 0.05, 0.194, 0.582, 1.05, 2, 5, 65]) {
     assert.ok(Number.isFinite(oortOpacity(pc)));
     assert.ok(oortOpacity(pc) >= 0 && oortOpacity(pc) <= 0.30);
@@ -524,14 +524,14 @@ test('Oort stays subtle and fades without affecting stellar visibility', () => {
   assert.ok(starExposure(65) > starExposure(LIGHT_YEAR_PC));
 });
 
-test('distant views from 800 to 10,000 light years retain a restrained brightness cap', () => {
+test('Las vistas de 800 a 10.000 años luz conservan un límite moderado de brillo', () => {
   for (const ly of [800, 880, 1000, 10000]) {
     assert.ok(starExposure(ly * LIGHT_YEAR_PC) < 0.681);
     assert.ok(starExposure(ly * LIGHT_YEAR_PC) > 0.6);
   }
 });
 
-test('Oort fades from 8.5 to 16 light years and zoom reaches two hundred thousand', () => {
+test('Oort desaparece entre 8,5 y 16 años luz y el alejamiento llega a doscientos mil', () => {
   assert.equal(oortOpacity(8.5 * LIGHT_YEAR_PC), 0.3);
   assert.ok(oortOpacity(11 * LIGHT_YEAR_PC) > 0);
   assert.ok(oortOpacity(11 * LIGHT_YEAR_PC) < oortOpacity(8.5 * LIGHT_YEAR_PC));
@@ -539,21 +539,21 @@ test('Oort fades from 8.5 to 16 light years and zoom reaches two hundred thousan
   assert.ok(Math.abs(MAX_VIEW_DISTANCE_PC / LIGHT_YEAR_PC - 200000) < 1e-8);
 });
 
-test('background enhancement leaves the near view unchanged and follows the Oort fade', () => {
+test('El realce del fondo conserva la vista cercana y sigue la desaparición de Oort', () => {
   for (const pc of [0, 5 * AU_TO_PC, LIGHT_YEAR_PC, 1.05, 4]) assert.equal(backgroundGain(pc), 1);
   assert.ok(backgroundGain(8) > 1 && backgroundGain(8) < backgroundGain(12));
   assert.equal(backgroundGain(12), 2.1);
   assert.equal(backgroundGain(MAX_VIEW_DISTANCE_PC), 2.1);
 });
 
-test('flight speed remains usable near the origin and scales across stellar distances', () => {
+test('La velocidad de vuelo es utilizable cerca del origen y abarca distancias estelares', () => {
   assert.ok(flightSpeed(0) > 0);
   assert.ok(flightSpeed(5 * AU_TO_PC) < AU_TO_PC * 3);
   assert.ok(flightSpeed(65) > flightSpeed(1));
   assert.ok(Number.isFinite(flightSpeed(MAX_VIEW_DISTANCE_PC)));
 });
 
-test('Oort is already bright when its note appears, retaining the distant ceiling and fade', () => {
+test('Oort ya brilla al aparecer su nombre y conserva el límite de brillo y la atenuación lejana', () => {
   assert.ok(oortLabelOpacity(0.066) > 0.05);
   assert.ok(oortOpacity(0.066) > 0.28);
   assert.equal(oortOpacity(0.025), 0);
@@ -562,7 +562,7 @@ test('Oort is already bright when its note appears, retaining the distant ceilin
   }
 });
 
-test('Oort points remain compact through the shell crossing', () => {
+test('Los puntos de Oort permanecen compactos al atravesar la envoltura', () => {
   const near = oortPointScale(2 * LIGHT_YEAR_PC);
   assert.ok(near >= 1 && near <= 1.35);
   assert.equal(oortPointScale(0.1 * LIGHT_YEAR_PC), near);
@@ -571,7 +571,7 @@ test('Oort points remain compact through the shell crossing', () => {
   assert.ok(Number.isFinite(oortPointScale(0)));
 });
 
-test('stellar names fade by 700 light years without removing the stars', () => {
+test('Los nombres estelares desaparecen a 700 años luz sin ocultar las estrellas', () => {
   assert.ok(starLabelOpacity(600 * LIGHT_YEAR_PC) > 0.8);
   assert.ok(starLabelOpacity(675 * LIGHT_YEAR_PC) > 0);
   assert.equal(starLabelOpacity(700 * LIGHT_YEAR_PC), 0);
@@ -579,7 +579,7 @@ test('stellar names fade by 700 light years without removing the stars', () => {
   assert.ok(starExposure(700 * LIGHT_YEAR_PC) > 0);
 });
 
-test('individual brightness distinguishes magnitudes without unbounded outliers', () => {
+test('El brillo individual distingue magnitudes sin valores extremos ilimitados', () => {
   assert.ok(stellarVisualWeight(-2) > stellarVisualWeight(1));
   assert.ok(stellarVisualWeight(1) > stellarVisualWeight(5));
   assert.ok(stellarVisualWeight(5) > stellarVisualWeight(12));
@@ -588,7 +588,7 @@ test('individual brightness distinguishes magnitudes without unbounded outliers'
   }
 });
 
-test('DESI wheel response accelerates upward, slows downward and normalizes input devices', () => {
+test('La rueda tipo DESI acelera al subir, frena al bajar y normaliza los dispositivos', () => {
   const speed = 10;
   const faster = wheelSpeed(speed, { deltaY: -100 }, 800);
   assert.ok(faster > speed);
@@ -604,18 +604,18 @@ test('DESI wheel response accelerates upward, slows downward and normalizes inpu
   assert.equal(wheelSpeed(1e-14, { deltaY: 100 }, 800), 1e-14);
 });
 
-test('physical radii share the orbital distance scale and reproduce the solar angular diameter', () => {
+test('Los radios físicos comparten escala orbital y reproducen el diámetro angular solar', () => {
   assert.equal(AU_KM, 149597870.7);
   assert.ok(Math.abs(AU_KM * KM_TO_PC / AU_TO_PC - 1) < 1e-12);
   const diameterArcsec = 2 * Math.asin(SUN_RADIUS_PC / AU_TO_PC) * 180 / Math.PI * 3600;
-  // NASA solar fact sheet: apparent diameter approximately 1919 arcseconds at 1 AU.
+  // Ficha solar NASA: diámetro aparente aproximado de 1919 segundos de arco a 1 UA.
   assert.ok(Math.abs(diameterArcsec - 1919) < 2);
   const earth = SOLAR_BODIES.find(body => body.name === 'Tierra');
   assert.ok(SUN_RADIUS_PC / (earth.radiusKm * KM_TO_PC) > 109);
   assert.ok(SUN_RADIUS_PC / (earth.radiusKm * KM_TO_PC) < 110);
 });
 
-test('all physical bodies can be inspected without clipping their surface', () => {
+test('Los cuerpos físicos pueden inspeccionarse sin recortar sus superficies', () => {
   assert.equal(SOLAR_BODIES.length, 10);
   for (const body of SOLAR_BODIES) {
     const view = bodyView(body);
@@ -629,7 +629,7 @@ test('all physical bodies can be inspected without clipping their surface', () =
   }
 });
 
-test('depth buffer separates planetary surfaces from their orbits and distant stars', () => {
+test('El búfer de profundidad separa superficies planetarias, órbitas y estrellas lejanas', () => {
   for (const body of SOLAR_BODIES) {
     const radius = body.radiusKm * KM_TO_PC;
     const surface = encodedDepth(5 * radius);
@@ -641,7 +641,7 @@ test('depth buffer separates planetary surfaces from their orbits and distant st
   assert.ok(Math.abs(encodedDepth(SCENE_FAR_PC) - 1) < 1e-8);
 });
 
-test('light-day ruler has its physical length and fades out at 0.02 light years', () => {
+test('La regla de día luz tiene longitud física correcta y desaparece a 0,02 años luz', () => {
   assert.ok(Math.abs(LIGHT_DAY_PC / AU_TO_PC - 173.14463267424) < 1e-8);
   assert.ok(Math.abs(LIGHT_DAY_PC / LIGHT_YEAR_PC * 365.25 - 1) < 1e-5);
   assert.ok(lightDayRulerOpacity(0.01 * LIGHT_YEAR_PC, 210, 620) > 0.7);
@@ -652,7 +652,7 @@ test('light-day ruler has its physical length and fades out at 0.02 light years'
   assert.equal(lightDayRulerOpacity(0.01 * LIGHT_YEAR_PC, 80, 620), 0);
 });
 
-test('heliosphere uses the approximate 120 AU scale and reveals only near the crossing', () => {
+test('La heliosfera usa la escala aproximada de 120 UA y aparece cerca del cruce', () => {
   assert.equal(HELIOSPHERE_RADIUS_PC / AU_TO_PC, 120);
   assert.ok(Math.abs(HELIOSPHERE_RADIUS_PC / LIGHT_YEAR_PC - 0.0019) < 0.00001);
   for (const au of [0, 1, 5, 30, 80, 100, 100000]) {
@@ -674,12 +674,12 @@ test('heliosphere uses the approximate 120 AU scale and reveals only near the cr
 });
 
 
-test('Moon keeps its measured mean radius and mean Earth-centre distance', () => {
+test('La Luna conserva radio medio medido y distancia media entre centros Tierra-Luna', () => {
   const earth=SOLAR_BODIES.find(body=>body.name==='Tierra');
   assert.equal(MOON.radiusKm,1737.4);
   assert.ok(Math.abs(new Vector3(...MOON.position).distanceTo(new Vector3(...earth.position))/KM_TO_PC-MOON_DISTANCE_KM)<1e-6);
 });
-test('aiming at Sun after a distant local-origin rebase preserves world position', () => {
+test('Enfocar el Sol tras trasladar el origen a una estrella conserva la posición global', () => {
   const origin=[606,-112,31];
   const camera=new PerspectiveCamera();
   camera.position.set(.00002,.00003,-.00001);
@@ -692,7 +692,7 @@ test('aiming at Sun after a distant local-origin rebase preserves world position
 });
 
 
-test('Voyager map has the 14 identified pulsars at catalogue distances', async () => {
+test('El mapa Voyager contiene los 14 púlsares identificados a distancias de catálogo', async () => {
   const {PULSARS}=await import('../src/scene/pulsarData.js');
   const expected='B1727-47 B1451-68 B1240-64 B0833-45 B0950+08 B0823+26 B0531+21 B0525+21 B0329+54 B2217+47 B2016+28 B1933+16 B1929+10 B1642-03'.split(' ');
   assert.deepEqual(PULSARS.map(p=>p.bname),expected);
@@ -702,10 +702,10 @@ test('Voyager map has the 14 identified pulsars at catalogue distances', async (
     assert.ok(Math.abs(Math.hypot(...p.position)-p.distancePc)<1e-9);
     assert.ok(p.periodSeconds>0 && Number.isFinite(p.positionEpochMjd));
   }
-  // Vela's southern declination must remain below the equatorial plane.
+  // La declinación austral de Vela debe permanecer debajo del plano ecuatorial.
   assert.ok(PULSARS.find(p=>p.bname==='B0833-45').position[2]<0);
 });
-test('pulsar rays join the actual Sun to every endpoint after rebasing', async () => {
+test('Los rayos de púlsares unen el Sol real con cada extremo tras cambiar el origen', async () => {
   const {pulsarGeometry}=await import('../src/scene/pulsarGeometry.js');
   const {PULSARS}=await import('../src/scene/pulsarData.js');
   const origin=[606,-112,31],g=pulsarGeometry(origin);
@@ -718,7 +718,7 @@ test('pulsar rays join the actual Sun to every endpoint after rebasing', async (
 });
 
 
-test('journeys sustain travel and ease continuously into a longer braking phase', () => {
+test('Los viajes mantienen avance sostenido y entran suavemente en una fase de frenado prolongada', () => {
   const a=JOURNEY_ACCELERATION, d=JOURNEY_DECELERATION, h=1e-5;
   const velocity=t=>(journeyProgress(t+h)-journeyProgress(t-h))/(2*h);
   assert.ok(d>a);
@@ -726,10 +726,10 @@ test('journeys sustain travel and ease continuously into a longer braking phase'
   assert.equal(journeyProgress(2),1);
   assert.ok(velocity(0)<1e-6 && velocity(1)<1e-6);
   assert.ok(velocity(a/2)<velocity(.4));
-  assert.ok(Math.abs(velocity(.3)-velocity(.5))<1e-8, 'sustained middle section');
+  assert.ok(Math.abs(velocity(.3)-velocity(.5))<1e-8, 'tramo central sostenido');
   assert.ok(velocity(.7)>velocity(.85) && velocity(.85)>velocity(.97));
   for(const join of [a,1-d]){
-    assert.ok(Math.abs(velocity(join-h)-velocity(join+h))<1e-6, 'no speed step at phase boundary');
+    assert.ok(Math.abs(velocity(join-h)-velocity(join+h))<1e-6, 'sin salto de velocidad entre fases');
   }
   for(const t of [.01,.1,.5,.9,.99]){
     const inward=journeyDistance(1e4,1e-8,t);

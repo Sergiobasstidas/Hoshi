@@ -22,6 +22,8 @@ import BinarySystem from './scene/BinarySystem';
 import { BINARY_EPOCH, BINARY_STATE, WR140_ORBIT } from './scene/binaryOrbit';
 import './App.css';
 import StarSearch from './StarSearch';
+import BarraDistancia from './BarraDistancia';
+import { destinoDesdeBarra } from './scene/escalaNavegacion.js';
 import MilkyWay from './scene/MilkyWay';
 import { galaxyView } from './scene/galaxy.js';
 import PulsarMap from './scene/PulsarMap';
@@ -109,6 +111,11 @@ export default function App() {
     setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null);
     navigate(galaxyView(edgeOn), { duration: 8 * JOURNEY_TIME_SCALE });
   };
+  const viajarDesdeBarra = valor => {
+    if (!cameraRef.current) return;
+    setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null);
+    navigate(destinoDesdeBarra(valor, cameraRef.current.position.toArray(), origin), {arriveFree:freeFlight});
+  };
   const toggleFlight = () => {
     if (freeFlight) { aimAtSun(); return; }
     transitionRef.current = null;
@@ -185,7 +192,7 @@ export default function App() {
         focusedStar={inspectedTarget?.star || stellarBody?.star} departureStar={departureBody?.star} />
       {binaryBody && <BinarySystem />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
-      {/* Keep the departure scenery in place when the camera rebases to a star. */}
+      {/* Conservar el escenario de partida al cambiar el origen local a una estrella. */}
       <group position={origin.map(v=>-v)}>
         <OortCloud origin={origin} /><SolarSystem origin={origin} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} />
       </group>
@@ -193,12 +200,14 @@ export default function App() {
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
       <StarSearch onSelect={visitSearchResult} />
+      <BarraDistancia onViajar={viajarDesdeBarra} />
       <header className="distance-panel">
         <span className="eyebrow">HOSHI <span>/</span> DISTANCIA A LA TIERRA</span>
         <div className="distance-value" data-distance>—</div>
         <div className="distance-detail" data-distance-detail />
         {freeFlight && <div className="flight-speed">Velocidad{aimTarget ? ' máxima' : ''}: {(speed / (speed < 0.01 ? AU_TO_PC : LIGHT_YEAR_PC))
           .toLocaleString('es-CL', { maximumSignificantDigits: 3 })} {speed < 0.01 ? 'UA/s' : 'años luz/s'}</div>}
+      <a className="enlace-velocidad" href="/propuestas/velocidad.html" target="_blank" rel="noreferrer">Ver opciones de velocidad ↗</a>
       </header>
       <nav className="scale-navigation" aria-label="Explorar escalas">
         {SCALE_VIEWS.map(option => <button key={option.id} onClick={() => { setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null); navigate(option); }}>
@@ -316,7 +325,7 @@ export default function App() {
       </svg>
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <footer className="scene-footer">
-        <span data-context />
+        <span><span data-context /><br/>© 2026 Sergio Bastidas Acosta · Hoshi</span>
         <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
           {freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
             : 'Arrastra / flechas: mirar · WASD: mover · R/F: subir/bajar · Q/E: inclinar · Rueda: velocidad · Shift + rueda: ajuste rápido'

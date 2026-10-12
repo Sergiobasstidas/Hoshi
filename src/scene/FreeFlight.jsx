@@ -61,7 +61,7 @@ export default function FreeFlight({ onSpeedChange, initialBody, origin, onManua
       if (event.code.startsWith('Arrow') || event.code === 'KeyQ' || event.code === 'KeyE') onManualLook();
       state.keys.add(event.code);
     };
-    // Account for short key presses that begin and end between rendered frames.
+    // Considerar pulsaciones breves que empiezan y terminan entre cuadros renderizados.
     const keyup = event => { state.advance(); state.keys.delete(event.code); };
     const down = event => {
       if (event.button !== 0) return;
@@ -102,7 +102,7 @@ export default function FreeFlight({ onSpeedChange, initialBody, origin, onManua
     canvas.focus({ preventScroll: true });
     onSpeedChange(state.speed);
     return () => {
-      // Never apply an old key movement after navigation has rebased the camera.
+      // No aplicar movimientos de teclas anteriores tras cambiar el origen local de cámara.
       state.keys.clear();
       if (pointer && canvas.hasPointerCapture(pointer.id)) canvas.releasePointerCapture(pointer.id);
       pointer = null;

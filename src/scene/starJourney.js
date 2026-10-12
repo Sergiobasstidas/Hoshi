@@ -1,12 +1,12 @@
-// Ordinary trips: 8 seconds. Other destinations retain their relative duration.
-// Timing is perceptual (log distance), not constant physical velocity.
+// Viajes ordinarios: 8 segundos. Los demás destinos conservan su duración relativa.
+// El ritmo es perceptual (distancia logarítmica), no una velocidad física constante.
 export const JOURNEY_TIME_SCALE=1.6;
 export const JOURNEY_SECONDS=5*JOURNEY_TIME_SCALE;
 export const JOURNEY_ACCELERATION=0.22;
 export const JOURNEY_DECELERATION=0.38;
 
-// Integrate a smooth velocity envelope: shorter departure, sustained travel,
-// then a longer arrival. Velocity and acceleration match at both joins.
+// Integrar una curva suave de velocidad: salida corta, avance sostenido
+// y llegada prolongada. Velocidad y aceleración coinciden en ambas uniones.
 export function journeyProgress(progress) {
   const t=Math.max(0,Math.min(1,progress));
   const a=JOURNEY_ACCELERATION, d=JOURNEY_DECELERATION;

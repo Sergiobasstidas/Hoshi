@@ -44,8 +44,8 @@ export const PULSAR_VIEW_DIRECTION = new Vector3(-0.839, -0.3995, 0.3695).normal
 export const PULSAR_VIEW_DISTANCE_PC = 25000 * LIGHT_YEAR_PC;
 export const PULSAR_VIEW = { id: 'pulsars', distance: PULSAR_VIEW_DISTANCE_PC, target: [0, 0, 0], direction: PULSAR_VIEW_DIRECTION };
 
-// Fit the real 3D endpoints by changing the lens, never their coordinates or
-// the shared travel limit. Leave room for controls and labels at screen edges.
+// Encuadrar los extremos 3D reales cambiando la lente, nunca sus coordenadas ni
+// el límite compartido. Dejar margen para controles y nombres en los bordes.
 export function pulsarFieldOfView(aspect) {
   const camera = new PerspectiveCamera();
   camera.up.set(0, -Math.sin(23.43928 * Math.PI / 180), Math.cos(23.43928 * Math.PI / 180));
@@ -60,8 +60,8 @@ export function pulsarFieldOfView(aspect) {
   return 2 * Math.atan(tangent) * 180 / Math.PI;
 }
 
-// Work in solar world coordinates even after rebasing to a distant star.
-// A pre-existing position outside the boundary may move inward without a jump.
+// Usar coordenadas solares globales incluso tras trasladar el origen a otra estrella.
+// Una posición anterior fuera del límite puede regresar sin saltos.
 export function constrainFlight(position, previous, origin) {
   const offset = new Vector3(...origin);
   const world = position.clone().add(offset);

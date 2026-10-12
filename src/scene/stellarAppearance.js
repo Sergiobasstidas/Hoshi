@@ -2,8 +2,8 @@ import { stellarVisualWeight } from './scale.js';
 
 const magnitude = value => Number.isFinite(value) ? value : 1.3;
 
-// Compressed absolute-magnitude encoding for a location marker, NOT a radius.
-// A smooth curve avoids giving every luminous star the same clamped diameter.
+// Magnitud absoluta comprimida para un marcador de ubicación, NO para un radio.
+// Una curva suave evita asignar el mismo diámetro límite a todas las estrellas luminosas.
 export function stellarMarkerSize(value) {
   return 0.45 + 1.8 / (1 + Math.exp((magnitude(value) - 1) * 0.5));
 }
@@ -13,8 +13,8 @@ export function catalogueColor(rgb) {
   return rgb.map(channel => Math.max(0, Math.min(1, channel / 255)));
 }
 
-// Preserve the RGB channel order and neutral/unknown white, while making the
-// catalogue's warm/cool differences readable. This is an illustrative palette.
+// Conservar el orden RGB y el blanco neutro/desconocido, haciendo visibles
+// las diferencias cálidas/frías del catálogo. Es una paleta ilustrativa.
 export function vividStellarColor(rgb) {
   return catalogueColor(rgb).map(channel => channel ** 2.1);
 }
@@ -33,14 +33,14 @@ export function buildStellarAppearance(stars) {
     area += markerSize[i] ** 2;
     oldEnergy += luminosity[i];
   });
-  // Keep the total nominal sprite area (and fragment workload) unchanged.
+  // Mantener el área nominal total de los marcadores y la carga de fragmentos.
   const areaScale = area ? Math.sqrt(stars.length / area) : 1;
   let newEnergy = 0;
   for (let i = 0; i < stars.length; i++) {
     markerSize[i] *= areaScale;
     newEnergy += individualLuminosity[i] * markerSize[i] ** 2;
   }
-  // Account for the larger area of larger stars: avoid re-burning the centre.
+  // Compensar el área de las estrellas mayores para evitar saturar el centro.
   const energyScale = newEnergy ? oldEnergy / newEnergy : 1;
   for (let i = 0; i < stars.length; i++) individualLuminosity[i] *= energyScale;
   return { luminosity, individualLuminosity, markerSize, vividColor };

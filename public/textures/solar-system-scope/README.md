@@ -1,22 +1,25 @@
-# Planet textures
+# Texturas planetarias y solares
 
-Added 2026-09-20: `2k_sun.jpg`, 2048 × 1024, downloaded from https://www.solarsystemscope.com/textures/download/2k_sun.jpg under the same CC BY 4.0 license. Original JPEG unmodified. Hoshi adapts its appearance at runtime: luminance-only structure, temperature tint and illustrative limb darkening, shared with estimated stellar surfaces. It is not an observation of those stars.
+Autor: Solar System Scope / INOVE.
+Fuente: https://www.solarsystemscope.com/textures/
+Licencia: Creative Commons Atribución 4.0 Internacional (CC BY 4.0).
+Condiciones: https://creativecommons.org/licenses/by/4.0/
 
-Author: Solar System Scope / INOVE.
-Source: https://www.solarsystemscope.com/textures/
-License: Creative Commons Attribution 4.0 International (CC BY 4.0).
-License terms: https://creativecommons.org/licenses/by/4.0/
-Downloaded 2026-09-19. Original JPEG files, unmodified.
+Archivos JPEG originales sin modificar. Descargados el 19/09/2026, salvo el Sol (20/09/2026) y la Luna (27/09/2026).
 
-| File | Dimensions | Original download |
+| Archivo | Dimensiones | Descarga original |
 | --- | --- | --- |
 | 2k_mercury.jpg | 2048 × 1024 | https://www.solarsystemscope.com/textures/download/2k_mercury.jpg |
 | 4k_venus_atmosphere.jpg | 4096 × 2048 | https://www.solarsystemscope.com/textures/download/4k_venus_atmosphere.jpg |
 | 2k_earth_daymap.jpg | 2048 × 1024 | https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg |
+| 2k_sun.jpg | 2048 × 1024 | https://www.solarsystemscope.com/textures/download/2k_sun.jpg |
+| 2k_moon.jpg | 2048 × 1024 | https://www.solarsystemscope.com/textures/download/2k_moon.jpg |
 
-Runtime mapping and illumination are supplied by Hoshi. Planet sizes are not enlarged by the texture mapping. Venus uses the visible cloud-cover map, not the radar surface map. Earth currently uses the day map only.
+Hoshi aplica las texturas y la iluminación sin ampliar los tamaños físicos. Venus usa el mapa de nubes visibles, no la superficie de radar; Tierra utiliza el mapa diurno.
 
-Solar System Scope describes these as maps based on NASA data, with adjusted colors and some fictional fill in unmapped regions. They are not exact present-day observations. Attribution and the license link are also displayed in each textured planet's information panel.
+El Sol aporta la estructura de luminancia para superficies estelares: tinte por temperatura y oscurecimiento del borde ilustrativo. No representa observaciones de esas estrellas.
+
+Solar System Scope describe mapas basados en datos NASA, con colores ajustados y relleno ficticio en algunas regiones sin cartografiar. No son observaciones exactas actuales. Los paneles de los cuerpos incluyen atribución y enlace de licencia.
 
 SHA-256:
 

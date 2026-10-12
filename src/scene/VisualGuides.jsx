@@ -7,6 +7,7 @@ import { BINARY_STATE } from './binaryOrbit';
 import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
 import { kuiperOpacity } from './kuiper';
+import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
 const smallLightYears = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 4 });
@@ -29,8 +30,14 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const frameTime = elapsed.current;
     elapsed.current = 0;
     const root = overlayRef.current;
+    camera.updateMatrixWorld();
     const pc = Math.hypot(camera.position.x + origin[0], camera.position.y + origin[1], camera.position.z + origin[2]);
     const earthPc = Math.hypot(camera.position.x + origin[0] - earth.x, camera.position.y + origin[1] - earth.y, camera.position.z + origin[2] - earth.z);
+    const barra = root.querySelector('[data-barra-distancia]');
+    if (barra && barra.dataset.editando !== 'si') {
+      barra.value = barraDesdeDistancia(earthPc);
+      barra.setAttribute('aria-valuetext', textoDistancia(earthPc));
+    }
     const earthAu = earthPc / AU_TO_PC;
     const au = pc / AU_TO_PC;
     root.querySelector('[data-distance]').textContent = earthAu < 1000
@@ -66,17 +73,17 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         : `A ${format.format(remaining / LIGHT_YEAR_PC)} años luz de la cámara`;
     }
 
-    const project = (position, local = false) => {
+    const project = (position, local = false, retained = false) => {
       vector.set(...position);
       if (!local) vector.sub({ x: origin[0], y: origin[1], z: origin[2] });
       vector.applyMatrix4(camera.matrixWorldInverse);
-      // Test view-space depth, not rounded NDC z at an enormous far/near ratio.
+      // Comprobar profundidad en espacio de cámara; NDC z pierde precisión a estas escalas.
       const inFront = -vector.z > camera.near && -vector.z < camera.far;
       vector.applyMatrix4(camera.projectionMatrix);
       return { x: (vector.x + 1) * size.width / 2, y: (1 - vector.y) * size.height / 2,
-        visible: inFront && Math.abs(vector.x) < 0.97 && Math.abs(vector.y) < 0.93 };
+        visible: inFront && Math.abs(vector.x) < (retained ? 1.02 : 0.97) && Math.abs(vector.y) < (retained ? 0.98 : 0.93) };
     };
-    // Canvas and DOM commit separately when changing destination.
+    // El lienzo y el DOM se actualizan por separado al cambiar de destino.
     const guides = root.querySelector('[data-binary-guides]');
     if (binary && guides) {
       const points = [project(BINARY_STATE.wr, true), project(BINARY_STATE.o, true)];
@@ -101,9 +108,9 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const candidates = [];
     labels.forEach((label, i) => {
       if (label.kind !== 'star' || (nameOpacity <= 0.015 && label !== aimTarget)) return;
-      const point = project(label.position);
+      const point = project(label.position, false, visibleStars.current.has(label.catalogueId));
       if (!point.visible) return;
-      const width = label.width * 1.2;
+      const width = label.width * 0.75;
       candidates.push({ id: label.catalogueId, width,
         x: Math.max(8, Math.min(point.x + 9, size.width - width - 12)), y: point.y - 8,
         hovered: labelElements[i]?.matches(':hover'),
@@ -114,8 +121,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     visibleStars.current = selectStarLabels(candidates, visibleStars.current, aimTarget?.catalogueId ?? focusedBody?.star?.i, size.width < 700 ? 6 : 12);
     labels.forEach((label, i) => {
       const el = labelElements[i];
-      if (!el) return; // Canvas and DOM may commit in different frames.
-      const point = project(label.position);
+      if (!el) return; // El lienzo y el DOM pueden actualizarse en cuadros distintos.
+      const point = project(label.position, false, visibleStars.current.has(label.catalogueId));
       let alpha = 1;
       if (label.kind === 'sun') {
         alpha = 1 - smoothRange(pc / LIGHT_YEAR_PC, 650, 700);
@@ -147,11 +154,13 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       } else if (label.kind === 'heliosphere') {
         alpha = binary ? 0 : heliosphereVisibility(pc) * 0.9;
       }
-      // The close-up has a dedicated panel; avoid placing text across the body's disc.
-      if (label.kind !== 'star' && label.body && focusedBody?.name === label.body.name) alpha = 0;
-      // Stable anchors; nearest labels have a small budget and smooth replacement.
-      const width = label.width * 1.2;
-      const box = { x: Math.max(8, Math.min(point.x + 9, size.width - width - 12)), y: point.y - 8 };
+      // Colocar el nombre junto al borde físico del cuerpo, sin ocultarlo al elegirlo.
+      const bodyDistance = label.body?.radiusKm ? camera.position.distanceTo(vector.set(...label.position)
+        .sub({x:origin[0],y:origin[1],z:origin[2]})) : Infinity;
+      const bodyPixels = (label.body?.radiusKm || 0) * KM_TO_PC / Math.max(bodyDistance, camera.near)
+        * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
+      const width = label.width * (label.kind === 'star' ? 0.75 : 1.2);
+      const box = { x: Math.max(8, Math.min(point.x + Math.min(bodyPixels, size.width/3) + 9, size.width - width - 12)), y: point.y - 8 };
       const visible = point.visible && alpha > 0.015;
       el.style.opacity = visible ? alpha : 0;
       el.style.visibility = visible ? 'visible' : 'hidden';
@@ -160,7 +169,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       }
     });
 
-    // Camera-facing segments with true world lengths; only the label gap is in pixels.
+    // Segmentos orientados a cámara con longitudes reales; solo el hueco del texto usa píxeles.
     solarOrigin.copy(earth).sub(new THREE.Vector3(...origin)).project(camera);
     const sx = (solarOrigin.x + 1) * size.width / 2;
     const sy = (1 - solarOrigin.y) * size.height / 2 - 48;
@@ -184,7 +193,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       text.setAttribute('x', middle);
       text.setAttribute('y', sy + 4);
     }
-    // Label Oort at a real point on its envelope; no opaque fog sphere.
+    // Situar la etiqueta de Oort en su envoltura; sin esfera de niebla opaca.
     root.querySelector('[data-oort-note]').style.opacity = !origin.some(Boolean) && oortLabelOpacity(pc) > 0.05 ? 0.45 : 0;
   });
   return null;

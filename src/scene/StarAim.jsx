@@ -12,7 +12,7 @@ export default function StarAim({ target, origin, onRelease, cameraRef }) {
   useLayoutEffect(() => {
     aim.current = target ? createStarAim(camera, target.position, origin) : null;
   }, [camera, target, origin]);
-  // Explicit priorities keep translation before steering, even after remounts.
+  // Las prioridades explícitas aplican la traslación antes del giro, incluso al remontar.
   useFrame((_, delta) => {
     if (aim.current && !advanceStarAim(camera, aim.current, delta)) {
       aim.current = null;

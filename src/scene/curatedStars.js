@@ -4,9 +4,9 @@ const ETA_CARINAE_DEC_RAD = -(59 + 41 / 60 + 3.95124 / 3600) * Math.PI / 180;
 
 export const ETA_CARINAE_ID = -93308;
 
-// Eta Carinae is absent from the local AT-HYG export. Keep this curated record
-// separate so its origin and approximate distance cannot be confused with that
-// catalogue. Coordinates: SIMBAD J2000. Distance: NASA educational reference.
+// Eta Carinae no figura en la exportación local de AT-HYG. Conservar este registro
+// curado por separado para distinguir su origen y distancia aproximada del
+// catálogo. Coordenadas: SIMBAD J2000. Distancia: referencia educativa de NASA.
 export const ETA_CARINAE = {
   i: ETA_CARINAE_ID,
   n: 'Eta Carinae',
@@ -14,8 +14,8 @@ export const ETA_CARINAE = {
   y: ETA_CARINAE_DISTANCE_PC * Math.cos(ETA_CARINAE_DEC_RAD) * Math.sin(ETA_CARINAE_RA_RAD),
   z: ETA_CARINAE_DISTANCE_PC * Math.sin(ETA_CARINAE_DEC_RAD),
   d: ETA_CARINAE_DISTANCE_PC,
-  // Derived from SIMBAD V=6.48 and the adopted distance, without an extinction
-  // correction. It only controls the location marker, never a physical radius.
+  // Derivado de SIMBAD V=6,48 y la distancia adoptada, sin corrección de extinción.
+  // Solo controla el marcador de ubicación, nunca un radio físico.
   m: 6.48 - 5 * Math.log10(ETA_CARINAE_DISTANCE_PC / 10),
   c: null,
   sp: 'LBV + O',

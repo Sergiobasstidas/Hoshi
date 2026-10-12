@@ -5,8 +5,8 @@ import { HELIOSPHERE_RADIUS_PC, HELIOSPHERE_BRIGHTNESS, heliosphereVisibility } 
 import simplex3d from './shaders/simplex3d.glsl?raw';
 import { solarDistance } from './scale';
 
-// A static translucent membrane, with procedural texture fixed in space.
-// No time uniform, rotation, tail, animated flow or opaque background sphere.
+// Membrana translúcida estática, con textura procedural fija en el espacio.
+// Sin tiempo, rotación, cola, flujo animado ni esfera opaca de fondo.
 export default function Heliosphere({ origin }) {
   const surface = useRef();
   const material = useRef();
@@ -30,8 +30,8 @@ export default function Heliosphere({ origin }) {
         ${simplex3d}
         void main() {
           spherePosition = position;
-          // Small static ripples break the perfect outline; 120 AU remains
-          // the nominal reference, not a claimed measured boundary.
+          // Pequeñas ondulaciones estáticas rompen el contorno perfecto; 120 UA sigue
+          // siendo la referencia nominal, no un límite medido.
           float ripple = 0.008 * snoise(position * 3.0) + 0.003 * snoise(position * 7.0);
           vec4 viewPosition = modelViewMatrix * vec4(position * (1.0 + ripple), 1.0);
           viewNormal = normalize(normalMatrix * normal);
@@ -47,8 +47,8 @@ export default function Heliosphere({ origin }) {
         #include <logdepthbuf_pars_fragment>
         ${simplex3d}
         float cloudTexture(vec3 p) {
-          // Simplex gradients replace the visible cubic value-noise cells.
-          // A smooth, static displacement bends the clouds into irregular wisps.
+          // Gradientes simplex sustituyen las celdas cúbicas visibles del ruido de valores.
+          // Un desplazamiento suave y estático curva las nubes en filamentos irregulares.
           vec3 warp = vec3(snoise(p * 0.43), snoise(p * 0.43 + 13.7), snoise(p * 0.43 + 31.9));
           p += warp * 1.15;
           mat3 turn = mat3(2.0, 2.0, -1.0, -1.0, 2.0, 2.0, 2.0, -1.0, 2.0) / 3.0;
@@ -56,9 +56,9 @@ export default function Heliosphere({ origin }) {
           float cloud = 0.0;
           float weight = 0.5;
           for (int layer = 0; layer < 4; layer++) {
-            // Average subpixel detail instead of letting it shimmer at distance.
+            // Promediar el detalle inferior al píxel para evitar destellos a distancia.
             float resolved = 1.0 - smoothstep(0.35, 1.0, footprint);
-            // Broad cloud patches with filtered small detail, without ridge webs.
+            // Manchas amplias de nube con detalle fino filtrado, sin redes de crestas.
             float ridge = 0.5 + 0.5 * snoise(p);
             cloud += weight * mix(0.5, ridge, resolved);
             p = turn * p * 2.13 + vec3(17.3, 11.8, 8.7);

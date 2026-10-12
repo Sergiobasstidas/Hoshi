@@ -1,5 +1,5 @@
-// Preserve missing B-V values: the legacy compact catalogue converted them to 0.
-// Small sidecar, original catalogue positions and identifiers remain untouched.
+// Conservar valores B-V ausentes: el catálogo compacto anterior los convertía en 0.
+// Archivo auxiliar pequeño; conserva las posiciones e identificadores originales.
 import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { estimateStellarPhysics } from '../src/scene/stellarPhysics.js';

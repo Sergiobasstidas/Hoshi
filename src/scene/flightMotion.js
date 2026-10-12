@@ -4,7 +4,7 @@ export const FLIGHT_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'Key
   'KeyQ', 'KeyE', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 const motion = new Vector3();
 
-// Frame-rate independent motion; the wheel never adds translation or rotation.
+// Movimiento independiente de la frecuencia de cuadros; la rueda no traslada ni gira.
 export function advanceFlight(camera, keys, speed, delta) {
   const axis = (positive, negative) => Number(keys.has(positive)) - Number(keys.has(negative));
   const dt = Math.min(delta, 0.05);

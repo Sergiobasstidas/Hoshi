@@ -5,7 +5,7 @@ export function pulsarGeometry(origin) {
     const p=pulsar.position;
     lines.push(...origin.map(v=>-v),...p.map((v,i)=>v-origin[i]));
     points.push(...p.map((v,i)=>v-origin[i]));
-    // Decorative broken highlights, not a fabricated binary period encoding.
+    // Destellos discontinuos decorativos, no una codificación binaria inventada del período.
     for(let j=0;j<24;j++) {
       const t=0.56+j*0.016;
       dashes.push(...p.map((v,i)=>v*t-origin[i]),...p.map((v,i)=>v*(t+0.006)-origin[i]));

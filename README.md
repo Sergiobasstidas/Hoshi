@@ -1,5 +1,7 @@
 # Hoshi
 
+© 2026 Sergio Bastidas Acosta. [Autoría y derechos](AUTORIA.md).
+
 Exploración 3D del sistema solar, el vecindario estelar y nuestro lugar en la Vía Láctea. Su propósito es hacer comprensibles las distancias y escalas astronómicas.
 
 ## Ejecutar

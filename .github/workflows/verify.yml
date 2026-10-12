@@ -1,4 +1,4 @@
-name: Verify Hoshi
+name: Verificar Hoshi
 on: [push, pull_request]
 permissions:
   contents: read

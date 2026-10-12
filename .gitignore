@@ -1,4 +1,4 @@
-# Logs
+# Registros
 logs
 *.log
 npm-debug.log*
@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# Directorios y archivos del editor
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -23,10 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Credentials and local deployment state
+# Credenciales y estado local de despliegue
 .env
 .env.*
 !.env.example
 .wrangler/
-# Unused reference panorama (not part of the application)
+# Panorama de referencia sin uso (no forma parte de la aplicación)
 data/reference/*.exr
