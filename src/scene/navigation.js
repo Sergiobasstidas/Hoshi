@@ -18,6 +18,8 @@ export function beginJourney(camera, view, origin) {
     rotation: camera.quaternion.clone(),
     duration: view.journey.headingOnly ? 1.25 : (view.journey.duration ?? JOURNEY_SECONDS),
     headingOnly: view.journey.headingOnly, startFov: camera.fov,
+    // Sin vertical declarada en la vista se conserva la que trae la cámara.
+    startUp: camera.up.clone(), endUp: view.up && !view.journey.headingOnly ? new Vector3(...view.up).normalize() : null,
   };
 }
 
@@ -30,6 +32,7 @@ export function advanceJourney(camera, transition, view, endFov, delta) {
     const arc = new Quaternion().slerp(transition.arc, ease);
     camera.position.copy(transition.startDirection).applyQuaternion(arc).multiplyScalar(distance).add(transition.target);
   }
+  if (transition.endUp) camera.up.copy(transition.startUp).lerp(transition.endUp, ease).normalize();
   camera.lookAt(transition.target);
   const endRotation = camera.quaternion.clone();
   camera.quaternion.slerpQuaternions(transition.rotation, endRotation,

@@ -110,6 +110,8 @@ export const PLANETS = [
 // Rotar cada plano orbital a la eclíptica J2000 y después al marco ecuatorial
 // del catálogo. Trayectorias, cuerpos, nombres y destinos comparten la transformación.
 const OBLIQUITY = 23.43928 * Math.PI / 180;
+// Normal eclíptica en el marco ecuatorial del catálogo: vertical de cámara por defecto.
+export const ECLIPTIC_UP = [0, -Math.sin(OBLIQUITY), Math.cos(OBLIQUITY)];
 export function orbitalPosition(planet, angle) {
   const radius = planet.au * AU_TO_PC;
   const inclination = planet.inclinationDeg * Math.PI / 180;

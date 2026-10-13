@@ -17,7 +17,9 @@ export const GALAXY_CENTER = galacticVector(Math.sqrt(8122**2-20.8**2), 0, -20.8
 export const GALAXY_IMAGE_WIDTH_PC = 8122 / 0.20;
 export const GALAXY_VIEW_DISTANCE_PC = 48000;
 export function galaxyView(edgeOn = false) {
-  return { id: 'galaxy', target: GALAXY_CENTER, distance: GALAXY_VIEW_DISTANCE_PC,
+  // La vertical de cámara pasa al polo norte galáctico para que el plano del disco
+  // quede horizontal en pantalla. Es presentación: las coordenadas no se rotan.
+  return { id: 'galaxy', target: GALAXY_CENTER, distance: GALAXY_VIEW_DISTANCE_PC, up: GALACTIC_Z,
     direction: new Vector3(...galacticVector(0.25, -0.35, edgeOn ? 0.035 : 1)).normalize().toArray() };
 }
 export function galaxyFieldOfView(aspect) {
