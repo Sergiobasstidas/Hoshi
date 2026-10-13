@@ -28,6 +28,30 @@ test('Los viajes galácticos respetan el límite y conservan la partida al cambi
   assert.ok(Math.abs(world.distanceTo(new Vector3(...GALAXY_CENTER))-view.distance)<1e-7);
  }
 });
+test('La vista galáctica deja el plano del disco horizontal sin girar el catálogo',()=>{
+ const norte=new Vector3(...GALACTIC_Z);
+ for(const edge of [true,false]){
+  const view=galaxyView(edge);
+  const camera=new PerspectiveCamera(); camera.up.set(0,-Math.sin(23.43928*Math.PI/180),Math.cos(23.43928*Math.PI/180));
+  camera.position.set(1,2,3);
+  view.journey={start:camera.position.toArray(),rotation:camera.quaternion.toArray()};
+  const motion=beginJourney(camera,view,[0,0,0]);
+  while(!advanceJourney(camera,motion,view,galaxyFieldOfView(1),.05)){ /* Avanzar hasta la llegada. */ }
+  camera.updateMatrixWorld();
+  assert.ok(camera.up.distanceTo(norte)<1e-9);
+  // El eje horizontal de pantalla queda dentro del plano galáctico.
+  const derecha=new Vector3().setFromMatrixColumn(camera.matrixWorld,0);
+  assert.ok(Math.abs(derecha.dot(norte))<1e-9);
+  // El norte galáctico apunta hacia arriba en pantalla.
+  assert.ok(new Vector3().setFromMatrixColumn(camera.matrixWorld,1).dot(norte)>0);
+ }
+ // Una vista sin vertical propia no altera la de la cámara.
+ const camera=new PerspectiveCamera(); camera.position.set(1,2,3);
+ const view={target:[0,0,0],distance:5,journey:{start:[1,2,3],rotation:camera.quaternion.toArray()}};
+ const motion=beginJourney(camera,view,[0,0,0]);
+ while(!advanceJourney(camera,motion,view,50,.05)){ /* Avanzar hasta la llegada. */ }
+ assert.deepEqual(camera.up.toArray(),[0,1,0]);
+});
 test('La aparición galáctica es continua y está ausente a escala solar',()=>{
  assert.equal(galaxyOpacity(100*LIGHT_YEAR_PC),0);
  assert.equal(galaxyOpacity(7000*LIGHT_YEAR_PC),1);

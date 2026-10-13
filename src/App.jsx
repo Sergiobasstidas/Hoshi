@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import catalogue from '../data/processed/stars_15pc.json';
 import stellarPhysics from '../data/processed/stellar_physics.json';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
@@ -14,7 +13,7 @@ import VisualGuides from './scene/VisualGuides';
 import FreeFlight from './scene/FreeFlight';
 import StarAim from './scene/StarAim.jsx';
 import { canAimStar } from './scene/starHeading';
-import { AU_TO_PC, BODY_CAMERA_NEAR_PC, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, PROBES, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
+import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, PROBES, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
 import { PLANET_TEXTURES, PLANET_TEXTURE_SOURCE, PLANET_TEXTURE_LICENSE } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
@@ -37,16 +36,20 @@ import { PULSAR_VIEW } from './scene/navigation';
 import { CURATED_STARS } from './scene/curatedStars';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 
-const stars = identifyStellarTargets([...catalogue, ...CURATED_STARS])
-  .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || stellarPhysics[star.i] || null }));
-const starsById = new Map(stars.map(star => [star.i, star]));
-const STELLAR_TARGETS = stellarTargets(stars);
-const NAVIGATION_TARGETS = [...SOLAR_BODIES, ...STELLAR_TARGETS];
+// El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
+// el sistema solar y la interfaz aparezcan antes. Hasta entonces solo hay curados.
+function buildCatalogue(catalogue) {
+  const stars = identifyStellarTargets([...catalogue, ...CURATED_STARS])
+    .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || stellarPhysics[star.i] || null }));
+  const STELLAR_TARGETS = stellarTargets(stars);
+  return { stars, starsById: new Map(stars.map(star => [star.i, star])), STELLAR_TARGETS,
+    NAVIGATION_TARGETS: [...SOLAR_BODIES, ...STELLAR_TARGETS],
+    BINARY_BACKGROUND: stars.filter(star => star.i !== WR140_ID) };
+}
+const EMPTY_CATALOGUE = [];
 const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, { id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC }, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
-const BINARY_BACKGROUND = stars.filter(star => star.i !== WR140_ID);
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
-const ECLIPTIC_UP = [0, -Math.sin(23.43928 * Math.PI / 180), Math.cos(23.43928 * Math.PI / 180)];
 const START_DIRECTION = new THREE.Vector3(...orbitalPosition({au:1,inclinationDeg:0,ascendingNodeDeg:0},-Math.PI/2)).normalize().multiplyScalar(0.85).addScaledVector(new THREE.Vector3(...ECLIPTIC_UP),0.52).normalize();
 const INITIAL_VIEW = bodyView(EARTH);
 const START_POSITION = START_DIRECTION.clone().multiplyScalar(INITIAL_VIEW.distance).add(new THREE.Vector3(...EARTH.position)).toArray();
@@ -61,6 +64,16 @@ function SceneReady() {
 
 
 export default function App() {
+  const [catalogue, setCatalogue] = useState(EMPTY_CATALOGUE);
+  const [catalogueStatus, setCatalogueStatus] = useState('loading');
+  useEffect(() => {
+    let active = true;
+    import('../data/processed/stars_15pc.json')
+      .then(module => { if (active) { setCatalogue(module.default); setCatalogueStatus('ready'); } })
+      .catch(() => { if (active) setCatalogueStatus('error'); });
+    return () => { active = false; };
+  }, []);
+  const { stars, starsById, STELLAR_TARGETS, NAVIGATION_TARGETS, BINARY_BACKGROUND } = useMemo(() => buildCatalogue(catalogue), [catalogue]);
   const [view, setView] = useState(INITIAL_VIEW);
   const [freeFlight, setFreeFlight] = useState(false);
   const [traveling, setTraveling] = useState(false);
@@ -95,7 +108,8 @@ export default function App() {
     setTraveling(true);
     setVelocidadSolicitada(null);
     setDepartureBody(view.body || departureBody);
-    setView({ ...destination, target: destination.target || SOLAR_ORIGIN,
+    // Toda vista sin vertical propia devuelve la cámara a la normal eclíptica.
+    setView({ ...destination, target: destination.target || SOLAR_ORIGIN, up: destination.up || ECLIPTIC_UP,
       journey: { start, rotation, ...options } });
     document.activeElement?.blur();
   };
@@ -177,7 +191,7 @@ export default function App() {
     ...stars.filter(s => s.n && s.n !== 'Sol' && s.n !== 'Sun').sort((a,b) => a.d - b.d)
       .map(s => ({ kind: 'star', star: s, catalogueId: s.i, text: s.n, position: [s.x, s.y, s.z], width: s.n.length * 6 + 10,
         body: STELLAR_TARGETS.find(target => target.catalogueId === s.i) })),
-  ], []);
+  ], [stars, STELLAR_TARGETS]);
   const orbitTarget = (view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
   return <main className="hoshi">
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
@@ -231,6 +245,8 @@ export default function App() {
         <button aria-pressed={freeFlight} onClick={toggleFlight}>Vuelo libre</button>
         <button onClick={aimAtSun}>Volver al Sol</button>
       </nav>
+      {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
+      {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
       {showPulsars && <aside className="pulsar-legend">

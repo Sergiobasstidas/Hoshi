@@ -37,7 +37,8 @@ export function destinoDesdeBarra(valor, posicion, origen) {
   if (direccion.lengthSq() < 1e-24) direccion.set(0, 0, 1);
   // El extremo exterior siempre encuadra la galaxia; las escalas intermedias
   // conservan el lado de aproximación que escogió el usuario.
-  if (valor >= 99.9) direccion.fromArray(galaxyView().direction);
-  return {id:'escala', target:TIERRA.position, distance:distanciaDesdeBarra(valor),
+  const galaxia = valor >= 99.9 ? galaxyView() : null;
+  if (galaxia) direccion.fromArray(galaxia.direction);
+  return {id:'escala', target:TIERRA.position, distance:distanciaDesdeBarra(valor), up:galaxia?.up,
     minDistance:TIERRA.radiusKm*KM_TO_PC*1.02, direction:direccion.normalize().toArray()};
 }
