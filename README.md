@@ -16,28 +16,28 @@ Validación: `npm test`, `npm run lint`, `npm run build`. Vista de producción: 
 - Sol, ocho planetas y Luna con radios físicos; órbitas circulares con inclinaciones individuales. Texturas de Sol, Mercurio, Venus, Tierra y Luna.
 - Kuiper, heliosfera y Oort ilustrativos; Voyager con trayectorias todavía esquemáticas.
 - Búsqueda por nombres y varios identificadores, navegación con origen local, vuelo libre y visitas suaves. WR 140 como binario y Eta Carinae como registro curado.
-- Mapa activable de 14 púlsares y capa galáctica ESA/Gaia: imagen más partículas con espesor, centro galáctico y marcador solar. Exploración hasta 200.000 años luz.
+- Mapa activable de 14 púlsares y capa galáctica ESA/Gaia: imagen más partículas con espesor, centro galáctico y marcador solar. Escalas de navegación hasta 200.000 años luz; excepciones de límites documentadas en el estado actual.
 
 Las partículas galácticas y los halos son ayudas visuales, no estrellas medidas ni radios físicos. La galaxia es una reconstrucción ilustrativa. Los 362 radios fotométricos son estimaciones; no equivalen a mediciones publicadas. Próxima tiene un valor publicado incorporado.
 
 ## Controles
 
-En vuelo libre: W/S avanzar/retroceder, A/D lateral, R/F vertical, Q/E giro y flechas para mirar. Arrastrar con el ratón orienta; la rueda cambia **velocidad**, no distancia. Doble clic en una etiqueta fija rumbo sin viajar. Buscador y selector viajan al destino. «Volver al Sol» orienta sin trasladar.
+En vuelo libre: W/S avanzar/retroceder, A/D lateral, R/F vertical, Q/E giro y flechas para mirar. Arrastrar con el ratón orienta; la rueda y el dial cambian **velocidad**. La escala derecha previsualiza y viaja por clic/teclado en 2 s. Doble clic en una etiqueta fija rumbo sin viajar. Buscador y selector viajan al destino. «Volver al Sol» orienta sin trasladar.
 
-## Documentación
+## Documentación y relevo entre agentes
 
-- [Estado y decisiones vigentes](HOSHI_CONTEXT.md)
-- [Handoff actual](HOSHI_HANDOFF.md)
-- [Trabajo pendiente, ordenado](PENDIENTES.md)
-- [Índice de documentación y fuentes](docs/README.md)
-- [Despliegue en Cloudflare](docs/DEPLOYMENT.md)
-- [Vía Láctea](docs/MILKY_WAY_PLAN.md)
+La carpeta local de Hoshi es la fuente de verdad, incluidos cambios sin commit. Codex y Claude se usan por turnos sobre esa misma carpeta; al cambiar de agente leer el relevo y registrar avances, sin depender del historial del chat.
+
+- [Reglas comunes](AGENTS.md) y [entrada para Claude](CLAUDE.md).
+- [Estado local actual](docs/PROJECT_STATE.md), [arquitectura](docs/ARCHITECTURE.md) y [decisiones](docs/DECISIONS.md).
+- [Relevo actual](HOSHI_HANDOFF.md), [registro de trabajo](docs/WORK_LOG.md) y [pendientes](PENDIENTES.md).
+- [Auditoría del 12/10/2026](docs/AUDIT_2026-10-12.md), [índice y fuentes](docs/README.md), [despliegue](docs/DEPLOYMENT.md).
 
 ## Historial y publicación
 
-Repositorio: https://github.com/Sergiobasstidas/Hoshi . El historial Git comienza con una instantánea del desarrollo existente; no se han fabricado commits de fechas pasadas. Los siguientes cambios se registran por tandas verificables. `docs/milestones.json` conserva hitos retrospectivos estructurados para convertirlos en registros de GitHub cuando haya acceso autenticado; no representan commits históricos.
+Remoto configurado: [Sergiobasstidas/Hoshi](https://github.com/Sergiobasstidas/Hoshi). Git registra historial; GitHub puede ir por detrás de la carpeta local. No hacer commit, push o deployment sin autorización aplicable de Sergio. La integración Cloudflare comunicada por el usuario puede publicar al subir; su estado remoto no se comprobó en esta auditoría.
 
-Cloudflare Pages publica el sitio; GitHub almacena el código y ejecuta las comprobaciones. Configuración: rama `main`, `npm run build`, carpeta `dist`, Node 22. No necesita secretos para funcionar en el navegador.
+El historial Git comienza con una instantánea del desarrollo existente. `docs/milestones.json` conserva hitos retrospectivos, no commits históricos inventados. Build local: `npm run build`, salida `dist`. Ver configuración/evidencia en `docs/DEPLOYMENT.md`.
 
 ## Créditos
 
