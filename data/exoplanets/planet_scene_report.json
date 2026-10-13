@@ -1,5 +1,5 @@
 {
-  "generado": "2026-10-13T14:05:39.129Z",
+  "generado": "2026-10-13T23:38:28.918Z",
   "sistemas": 4533,
   "planetas": 6125,
   "anfitrionaAusente": 307,
@@ -12,6 +12,8 @@
     "HD 133131 B / HD 133131 A"
   ],
   "circumbinarios": 34,
+  "circumbinariosConOrbitaDeLaBinaria": 26,
+  "circumbinariosSinDatosDeLaBinaria": [],
   "anfitrionaEnSistemaMultiple": 416,
   "marcas": {
     "c": 3142,

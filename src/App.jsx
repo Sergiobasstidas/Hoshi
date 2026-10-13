@@ -38,7 +38,7 @@ import CompanionStars from './scene/CompanionStars';
 import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 import PlanetarySystems from './scene/PlanetarySystem';
-import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
+import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describeBinary, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
 // el sistema solar y la interfaz aparezcan antes. Hasta entonces solo hay curados.
@@ -57,6 +57,8 @@ function buildCatalogue({ catalogue, systems, planets }) {
   // Sistemas planetarios, después de recolocar compañeras: usan la posición final de su estrella.
   const PLANETARY_SYSTEMS = buildPlanetarySystems(planets, starsById);
   for (const system of PLANETARY_SYSTEMS) (system.star.planetary ||= []).push(system);
+  // Las dos estrellas de una binaria anfitriona comparten los planetas del par.
+  for (const system of PLANETARY_SYSTEMS) for (const component of system.binary?.components || []) component.star.planetary = system.star.planetary;
   return { stars, starsById, STELLAR_TARGETS, BINARY_SYSTEMS, PLANETARY_SYSTEMS,
     NAVIGATION_TARGETS: [...SOLAR_BODIES, ...STELLAR_TARGETS],
     BINARY_BACKGROUND: stars.filter(star => star.i !== WR140_ID) };
@@ -126,6 +128,8 @@ export default function App() {
   const exoplanetBody = view.body?.kind === 'exoplanet' ? view.body : null;
   const hostStar = stellarBody?.star || exoplanetBody?.star;
   const localPlanets = (hostStar?.planetary || []).flatMap(system => system.planets.filter(planet => planet.body).map(planet => planet.body));
+  // Estrellas de una binaria anfitriona a las que se puede viajar por separado.
+  const localStars = (hostStar?.planetary || []).flatMap(system => (system.binary?.components || []).filter(component => component.body).map(component => component.body));
   const hostName = exoplanetBody && (hostStar.n || exoplanetBody.system.name);
   const origin = binaryBody?.position || stellarBody?.position || exoplanetBody?.position || SOLAR_ORIGIN;
   const navigate = (destination, options = {}) => {
@@ -307,12 +311,15 @@ export default function App() {
       <label className="body-selector">Acercarse a
         <select aria-label="Acercarse a un cuerpo" value={focusedBody?.name || ''} onChange={event => {
           const name = event.target.value;
-          const body = localPlanets.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
+          const body = localPlanets.find(b => b.name === name) || localStars.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
           if (body) focusBody(body);
         }}>
           <option value="" disabled>Elegir cuerpo</option>
           {stellarBody && <option value={stellarBody.name}>{stellarBody.name}</option>}
           {exoplanetBody && <option value={hostName}>{hostName}</option>}
+          {localStars.length > 0 && <optgroup label="Estrellas de este sistema">
+            {localStars.filter(body => body.name !== stellarBody?.name).map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
+          </optgroup>}
           {localPlanets.length > 0 && <optgroup label="Planetas de este sistema">
             {localPlanets.map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
           </optgroup>}
@@ -341,7 +348,8 @@ export default function App() {
         {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar}{stellarBody.star.physics.radiusUncertaintySolar ? ` ± ${stellarBody.star.physics.radiusUncertaintySolar}` : ''} R☉{stellarBody.star.physics.temperatureUncertaintyK ? ` · temperatura: ±${stellarBody.star.physics.temperatureUncertaintyK} K` : ''}</div>}
         {stellarBody?.star.ds && <div>Distancia: {stellarBody.star.ds}{stellarBody.star.dataOrigin === 'exoplanet-host' ? ' · estrella añadida por albergar planetas (no figura en AT-HYG)' : ' (sustituye a la de AT-HYG)'}</div>}
         {stellarBody?.star.planetary?.map(system => <div key={system.id}>Planetas de {system.name} al {EXOPLANET_EPOCH} · {system.planets.slice(0, 8).map(planet => describePlanet(planet, system)).join(' · ')}{system.planets.length > 8 ? ' · …' : ''}
-          <br />Supuestos · giro del plano en el cielo (Ω) convencional en todos{describeAssumptions(system).map(text => ` · ${text}`).join('')}{system.circumbinary ? ' · planetas circumbinarios: centrados en el punto del catálogo' : system.stars > 1 ? ' · anfitriona en un sistema múltiple: órbitas centradas en su punto del catálogo' : ''}
+          <br />Supuestos · giro del plano en el cielo (Ω) convencional en todos{describeAssumptions(system).map(text => ` · ${text}`).join('')}{!system.circumbinary && system.stars > 1 ? ' · anfitriona en un sistema múltiple: órbitas centradas en su punto del catálogo' : ''}
+          {system.circumbinary && <><br />{describeBinary(system).join(' · ')}{system.binary && <> · <a href={system.binary.url} target="_blank" rel="noreferrer">{system.binary.ref}</a></>}</>}
           <br />Datos: <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank" rel="noreferrer">NASA Exoplanet Archive</a> (parámetros compuestos) · órbitas y radios a escala · color ilustrativo</div>)}
         {stellarBody?.star.system && <div>Sistema múltiple · WDS {stellarBody.star.system.wds} · {stellarBody.star.system.components.slice(0, 4).map(describeComponent).join(' · ')}{stellarBody.star.system.components.length > 4 ? ' · …' : ''}</div>}
         {stellarBody?.star.system?.hidden.length > 0 && <div>Sin dibujar, por no tener orientación medida: {stellarBody.star.system.hidden.slice(0, 4).map(item => `${item.n}${item.p ? ` (${period(item.p)})` : ''}`).join(', ')}{stellarBody.star.system.hidden.length > 4 ? '…' : ''}</div>}

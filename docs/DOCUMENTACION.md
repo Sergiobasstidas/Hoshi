@@ -292,6 +292,21 @@ Resumen por nivel de fidelidad de la órbita:
 
 **Ningún planeta tiene su órbita completa en 3D.** Ω, el giro del plano orbital alrededor de la línea de visión, no figura en la tabla. Son reales el tamaño de la órbita, su forma y, cuando se conoce, la inclinación respecto al cielo. El color, las nubes, los anillos y las lunas no se conocen en ningún caso: los planetas son esferas grises con un leve matiz por temperatura de equilibrio.
 
+### Sistemas circumbinarios
+
+En 34 de los sistemas dibujados los planetas giran alrededor de dos estrellas (marca `cb_flag` del archivo). La tabla de la NASA solo describe a la primaria y no trae la órbita de la binaria, así que esos datos proceden de una tabla curada con el artículo de cada sistema: `scripts/exoplanets/circumbinary_hosts.js`, con la referencia de cada fila.
+
+| Grupo | Sistemas | Qué se dibuja |
+| --- | ---: | --- |
+| Binarias eclipsantes con órbita medida (Kepler-16, 34, 35, 38, 47, 413, 453, 1647, 1660 y 1661, PH1, TOI-1338, TIC 172900988, BEBOP-3 y BEBOP-4) | 15 | Las dos estrellas en su órbita y en su fase, con radios y temperaturas publicados |
+| Binarias compactas de enana blanca o subenana y enana roja (NN Ser, HU Aqr, UZ For, DP Leo, RR Cae, DE CVn, NY Vir, NSVS 14256825 y Kepler-451) | 9 | Órbita circular de pocas horas; la posición de las estrellas en ella es ilustrativa |
+| Binarias de planetas fotografiados con órbita (VHS 1256-1257 y Ross 458) | 2 | Órbita del par; en Ross 458 la orientación de la elipse es supuesta |
+| Sin órbita publicada o incorporada (HD 143811, HD 284149, b Cen, HIP 79098, ROXs 42 B, WISPIT 1, 2MASS J0103-5515 y 2MASS J0249-0557) | 8 | Un solo punto; la ficha lo declara |
+
+El punto del catálogo es el par sin resolver y se toma como su centro de masas. Con `r` la posición de B respecto de A y `q = m_B / (m_A + m_B)`, las estrellas quedan en `r_A = −q·r` y `r_B = (1 − q)·r`, y los planetas siguen centrados en ese punto. La órbita relativa usa la misma geometría que la de un planeta, con el argumento del periastro en la convención de eclipses: B pasa por delante de A en la anomalía verdadera `90° − ω`. La fase se fija con el tiempo del eclipse primario o del periastro. Como en los planetas, el giro del plano en el cielo (Ω) es convencional salvo en VHS 1256-1257, cuya órbita visual lo mide; por eso la inclinación mutua entre la binaria y sus planetas solo es fiel en la componente que mide la inclinación respecto al cielo.
+
+Cada estrella con radio y temperatura publicados se dibuja como esfera a escala y es un destino de viaje; si falta alguno de los dos, queda como marcador y la ficha dice cuál falta (la secundaria de 9 sistemas: BEBOP-3, BEBOP-4, NN Ser, RR Cae, HU Aqr, UZ For, DP Leo, Ross 458 y VHS 1256-1257). Lo supuesto se declara igual que en los planetas: semieje calculado con la 3.ª ley de Kepler (9 sistemas), órbita circular adoptada (9), posición ilustrativa (10), inclinación aproximada (BEBOP-4), orientación de la elipse (Ross 458) y masas iguales (VHS 1256-1257, donde solo se publica la masa total).
+
 ### Geometría
 
 Posición en el plano de la órbita, con `E` la anomalía excéntrica:

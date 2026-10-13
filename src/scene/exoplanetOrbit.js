@@ -1,5 +1,6 @@
 import { AU_TO_PC, ECLIPTIC_UP, KM_TO_PC, SUN_RADIUS_KM } from './scale.js';
 import { BINARY_EPOCH, dateMjd, eccentricAnomaly } from './binaryOrbit.js';
+import { temperatureColor } from './stellarPhysics.js';
 
 // Órbitas de exoplanetas a partir de la tabla compuesta de la NASA. Marco: pc,
 // ecuatorial J2000, Sol en el origen. Qué es medido y qué supuesto se declara por
@@ -100,7 +101,7 @@ export function skyDirection([x, y, z]) {
 export function planetOffsetAu(E, planet, sky) {
   const x = planet.a * (Math.cos(E) - planet.e);
   const y = planet.a * Math.sqrt(1 - planet.e ** 2) * Math.sin(E);
-  return orbitalPlaneToEquatorial(x, y, { omegaDeg: planet.w + 180, nodeDeg: CONVENTIONAL_NODE_DEG,
+  return orbitalPlaneToEquatorial(x, y, { omegaDeg: planet.w + 180, nodeDeg: planet.node ?? CONVENTIONAL_NODE_DEG,
     inclinationDeg: planet.inc, raDeg: sky.raDeg, decDeg: sky.decDeg });
 }
 
@@ -218,6 +219,54 @@ export function hostPhysics(st) {
   };
 }
 
+// Lo que no es una medida publicada en la binaria anfitriona de un sistema circumbinario.
+// La clave es la letra guardada en `bin.s` (scripts/exoplanets/circumbinary_hosts.js).
+export const BINARY_ASSUMPTIONS = {
+  a: 'semieje calculado con la 3.ª ley de Kepler y la masa total',
+  c: 'órbita circular adoptada (binaria compacta)',
+  i: 'inclinación aproximada: solo se publica un intervalo',
+  w: 'orientación de la elipse supuesta (ω = 0°)',
+  f: 'posición de las estrellas en su órbita ilustrativa',
+  q: 'masas iguales supuestas: solo se publica la masa total',
+};
+
+const componentPhysics = (radius, temperature, bin) => !(radius > 0) || !(temperature > 0) ? null : {
+  radiusSolar: radius, radiusUncertaintySolar: null, radiusKm: radius * SUN_RADIUS_KM, radiusPc: radius * SUN_RADIUS_KM * KM_TO_PC,
+  temperatureK: temperature, temperatureUncertaintyK: null, status: 'published', source: bin.url, sourceLabel: bin.ref,
+};
+
+// Las dos estrellas de una binaria anfitriona en la fecha `jd`. El punto del catálogo es
+// el par sin resolver y se toma como su centro de masas: A y B se colocan a cada lado en
+// proporción inversa a sus masas, y los planetas siguen centrados en ese punto. `bin`
+// lleva los elementos de la órbita de B respecto de A con la convención de `planetOffsetAu`.
+// Cada componente es un registro estelar propio (posición, radio y temperatura) que
+// comparte identificador con el del catálogo. Devuelve null si no hay órbita incorporada.
+export function buildHostBinary(bin, star, sky, jd = EXOPLANET_EPOCH_JD) {
+  if (!bin?.P) return null;
+  const relative = planetStateAu(bin, sky, jd), curve = planetOrbitPc(bin, sky);
+  const massRatio = bin.m[1] / (bin.m[0] + bin.m[1]);
+  // Sin radio y temperatura propios, A hereda los de la anfitriona en el archivo.
+  const physics = [componentPhysics(bin.r[0], bin.teff[0], bin) || (bin.r[0] === null && bin.teff[0] === null ? star.physics || null : null),
+    componentPhysics(bin.r[1], bin.teff[1], bin)];
+  // Reparto de la magnitud del par por luminosidad (R²·T⁴); solo ajusta el marcador.
+  const light = physics.map(p => p ? p.radiusSolar ** 2 * p.temperatureK ** 4 : null);
+  const components = [-massRatio, 1 - massRatio].map((factor, k) => {
+    const offsetPc = relative.map(v => v * factor * AU_TO_PC);
+    const position = [star.x + offsetPc[0], star.y + offsetPc[1], star.z + offsetPc[2]];
+    const record = { ...star, n: bin.names[k], x: position[0], y: position[1], z: position[2], physics: physics[k],
+      m: light[0] && light[1] ? star.m + 2.5 * Math.log10((light[0] + light[1]) / light[k]) : star.m,
+      rgb: physics[k] && physics[k] !== star.physics ? temperatureColor(physics[k].temperatureK).map(v => Math.round(v * 255)) : star.rgb };
+    return { name: bin.names[k], letter: k ? 'B' : 'A', massSolar: bin.m[k], physics: physics[k], offsetPc, star: record,
+      orbit: curve.map(v => v * factor), color: catalogueTint(record.rgb),
+      // Destino de navegación solo con radio: sin él no hay esfera a la que acercarse.
+      body: physics[k] ? { kind: 'star', name: bin.names[k], star: record, position, radiusKm: physics[k].radiusKm, source: physics[k].source } : null };
+  });
+  const records = components.map(component => component.star);
+  for (const record of [star, ...records]) record.components = records;
+  return { ...bin, components, massRatio, separationAu: Math.hypot(...relative), apoapsisPc: bin.a * (1 + bin.e) * AU_TO_PC };
+}
+const catalogueTint = rgb => Array.isArray(rgb) ? rgb.map(v => v / 255) : [1, 1, 1];
+
 // Une los sistemas de public/data/exoplanets.json con sus estrellas y calcula posiciones
 // para la fecha de la escena. Varias anfitrionas pueden compartir un punto del catálogo.
 export function buildPlanetarySystems(data, starsById, jd = EXOPLANET_EPOCH_JD) {
@@ -239,6 +288,8 @@ export function buildPlanetarySystems(data, starsById, jd = EXOPLANET_EPOCH_JD) 
     const reference = framed.length ? framed.reduce((a, b) => b.apoapsisPc > a.apoapsisPc ? b : a) : planets[0];
     const result = { id: `${system.i}:${system.h}`, star, name: system.h, position, sky, planets, st: system.st,
       circumbinary: Boolean(system.cb), stars: system.ns,
+      // Binaria anfitriona: con órbita, las dos estrellas en torno al centro de masas.
+      binary: system.bin ? buildHostBinary(system.bin, star, sky, jd) || system.bin : null,
       viewDirection: systemViewDirection(reference, sky), viewUp: orbitNormal(reference, sky),
       rangePc: Math.max(...planets.map(p => p.apoapsisPc)),
       framePc: framed.length ? Math.max(...framed.map(p => p.apoapsisPc)) : 0 };
@@ -269,4 +320,19 @@ export function describeAssumptions(system) {
   const groups = new Map();
   for (const planet of system.planets) for (const key of planet.s) groups.set(key, [...(groups.get(key) || []), letter(planet, system)]);
   return [...groups].map(([key, letters]) => `${letters.length === system.planets.length && letters.length > 1 ? 'todos' : letters.join(', ')}: ${ASSUMPTIONS[key]}`);
+}
+
+// Ficha de la binaria anfitriona de un sistema circumbinario: lo publicado, lo supuesto
+// y lo que falta. Sin datos del par devuelve solo el aviso.
+const masses = m => m[0] === null ? 'masas sin publicar' : m[1] === null ? `${figure(m[0])} M☉ la primaria; masa de la secundaria sin publicar` : `${figure(m[0])} y ${figure(m[1])} M☉`;
+const binaryPeriod = days => days < 1 ? `${figure(days * 24)} horas` : days < 365.25 ? `${figure(days)} días` : `${figure(days / 365.25)} años`;
+export function describeBinary(system) {
+  const binary = system.binary;
+  if (!binary) return ['Planetas circumbinarios · sin datos de las dos estrellas: se muestran como un solo punto, con las órbitas centradas en él'];
+  const pair = `${binary.names[0]} y ${binary.names[1]}`;
+  if (!binary.components) return [`Binaria anfitriona · ${pair} · ${masses(binary.m)} · ${binary.note}: las dos estrellas se muestran como un solo punto y las órbitas de los planetas se centran en él`];
+  const missing = binary.components.filter(component => !component.physics).map(component =>
+    `${component.letter}: ${binary.r[component.letter === 'A' ? 0 : 1] === null ? 'radio' : 'temperatura'} sin publicar, se dibuja como marcador`);
+  return [`Binaria anfitriona · ${pair} · ${masses(binary.m)} · se orbitan cada ${binaryPeriod(binary.P)} a ${figure(binary.a)} UA (excentricidad ${figure(binary.e)}) · separadas ${figure(binary.separationAu)} UA en la fecha · estrellas y planetas giran en torno al centro de masas del par, situado en el punto del catálogo`,
+    ...[...binary.s].map(key => BINARY_ASSUMPTIONS[key]), ...missing];
 }

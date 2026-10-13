@@ -5,7 +5,7 @@ import { WR140_ORBIT, eccentricAnomaly, relativeOrbitAu } from '../src/scene/bin
 import { PerspectiveCamera, Vector3 } from 'three';
 import { bodyView } from '../src/scene/solarBodies.js';
 import { advanceJourney, beginJourney } from '../src/scene/navigation.js';
-import { ARRIVAL_TILT_DEG, PLANET_VIEW_ELEVATION_DEG, PLANET_VIEW_RADII, ASSUMED_INCLINATION_DEG, EXOPLANET_EPOCH_JD, orbitNormal, buildPlanetarySystems, keplerPeriodDays, keplerSemiMajorAu,
+import { ARRIVAL_TILT_DEG, PLANET_VIEW_ELEVATION_DEG, PLANET_VIEW_RADII, ASSUMED_INCLINATION_DEG, BINARY_ASSUMPTIONS, EXOPLANET_EPOCH_JD, orbitNormal, buildHostBinary, buildPlanetarySystems, describeBinary, keplerPeriodDays, keplerSemiMajorAu,
   meanAnomalyAt, orbitalPlaneToEquatorial, planetOffsetAu, planetStateAu, resolvePlanet, skyDirection,
   transitEccentricAnomaly } from '../src/scene/exoplanetOrbit.js';
 import { applyDistance, applyPatches } from './catalog/catalog_patches.js';
@@ -234,4 +234,70 @@ test('La llegada a un sistema mira el plano orbital abierto y cada planeta con r
   assert.ok(seen);
   // Los cuerpos sin dirección declarada conservan la llegada de siempre.
   assert.equal('direction' in bodyView({ kind: 'star', position: [1, 2, 3] }), false);
+});
+
+test('Las dos estrellas de una binaria anfitriona giran en torno al centro de masas', () => {
+  // Kepler-34 (Welsh et al. 2012): masas casi iguales y órbita muy excéntrica.
+  const bin = { names: ['A', 'B'], m: [1.0479, 1.0208], r: [1.1618, 1.0927], teff: [5913, 5867],
+    P: 27.7958103, a: 0.22882, e: 0.52087, inc: 89.8584, w: 71.44, t: ['t0', 2454979.72308], s: '' };
+  const sky = skyAt(293.9, 44.64, 1900), au = 4.84813681109536e-6;
+  const star = { i: 1, x: sky.x, y: sky.y, z: sky.z, m: 4, rgb: [255, 240, 230], physics: null };
+  for (const jd of [2454979.72308, 2454990, EXOPLANET_EPOCH_JD]) {
+    const pair = buildHostBinary(bin, { ...star }, sky, jd), [a, b] = pair.components;
+    // m_A·r_A + m_B·r_B = 0: el punto del catálogo es el centro de masas.
+    a.offsetPc.forEach((v, i) => close(bin.m[0] * v + bin.m[1] * b.offsetPc[i], 0, 1e-15, 'centro de masas'));
+    const separation = Math.hypot(...a.offsetPc.map((v, i) => v - b.offsetPc[i])) / au;
+    close(separation, pair.separationAu, 1e-6, 'separación');
+    assert.ok(separation >= bin.a * (1 - bin.e) - 1e-6 && separation <= bin.a * (1 + bin.e) + 1e-6, `separación ${separation}`);
+    // Cada estrella es un registro propio, colocado a su lado del centro de masas.
+    close(a.star.x - sky.x, a.offsetPc[0], 1e-9); close(b.star.z - sky.z, b.offsetPc[2], 1e-9);
+    assert.equal(a.star.components.length, 2);
+    assert.equal(a.physics.radiusSolar, 1.1618);
+    assert.equal(b.body.radiusKm, b.physics.radiusKm);
+  }
+  // En el eclipse primario B queda delante de A visto desde el Sol.
+  const [a, b] = buildHostBinary(bin, { ...star }, sky, 2454979.72308).components;
+  const relative = b.offsetPc.map((v, i) => v - a.offsetPc[i]);
+  const sunward = dot(relative, towardSun(sky));
+  assert.ok(sunward > 0, 'B del lado del Sol');
+  assert.ok(Math.sqrt(dot(relative, relative) - sunward ** 2) / au < (1.1618 + 1.0927) * 0.00465047, 'los discos se solapan en el eclipse');
+  // Las curvas dibujadas conservan la proporción de masas.
+  close(Math.hypot(a.orbit[0], a.orbit[1], a.orbit[2]) / Math.hypot(b.orbit[0], b.orbit[1], b.orbit[2]), bin.m[1] / bin.m[0], 1e-6);
+});
+
+test('Sin radio o temperatura publicados la estrella queda como marcador y la ficha lo declara', () => {
+  const sky = skyAt(10, 20, 50), star = { i: 2, x: sky.x, y: sky.y, z: sky.z, m: 9, rgb: [255, 255, 255], physics: { radiusSolar: 1.4, temperatureK: 6000, radiusKm: 1, radiusPc: 1 } };
+  const bin = { names: ['X A', 'X B'], m: [1.083, 0.2615], r: [null, 0.2811], teff: [null, null], P: 13.2, a: 0.12, e: 0, inc: 80, w: 0, t: null, s: 'cf', ref: 'R', url: 'u' };
+  const binary = buildHostBinary(bin, star, sky);
+  assert.equal(binary.components[0].physics, star.physics, 'A hereda la física del archivo');
+  assert.equal(binary.components[1].physics, null);
+  assert.equal(binary.components[1].body, null);
+  const text = describeBinary({ binary }).join(' · ');
+  assert.match(text, /B: temperatura sin publicar, se dibuja como marcador/);
+  assert.match(text, new RegExp(BINARY_ASSUMPTIONS.f));
+  // Sin órbita no se separan las estrellas.
+  assert.equal(buildHostBinary({ names: ['A', 'B'], m: [1, null], note: 'n' }, star, sky), null);
+  assert.match(describeBinary({ binary: { names: ['A', 'B'], m: [1, null], note: 'sin órbita' } })[0], /un solo punto/);
+});
+
+test('Todos los sistemas circumbinarios del JSON llevan su binaria, con órbita completa o declarada ausente', () => {
+  const data = json('../public/data/exoplanets.json'), stars = json('../data/processed/stars_15pc.json');
+  const circumbinary = data.systems.filter(system => system.cb);
+  assert.ok(circumbinary.length >= 34);
+  for (const system of circumbinary) {
+    assert.ok(system.bin, `${system.h} sin binaria`);
+    assert.equal(system.bin.names.length, 2);
+    if (!system.bin.P) { assert.ok(system.bin.note, `${system.h} sin motivo`); continue; }
+    for (const key of ['a', 'e', 'inc', 'w']) assert.ok(Number.isFinite(system.bin[key]), `${system.h}: ${key}`);
+    assert.ok(system.bin.m.every(m => m > 0) && system.bin.a > 0 && system.bin.e < 1);
+    for (const key of system.bin.s) assert.ok(BINARY_ASSUMPTIONS[key], `${system.h}: marca ${key}`);
+    // La binaria queda dentro de la órbita del planeta más interior.
+    assert.ok(system.bin.a * (1 + system.bin.e) < Math.min(...system.p.map(p => p.a * (1 - p.e))), `${system.h}: binaria fuera de la órbita interior`);
+  }
+  const systems = buildPlanetarySystems(data, new Map(stars.map(star => [star.i, { ...star }])));
+  const kepler16 = systems.find(system => system.name === 'Kepler-16');
+  assert.equal(kepler16.binary.components.length, 2);
+  close(kepler16.binary.massRatio, 0.20255 / (0.6897 + 0.20255), 1e-12);
+  assert.deepEqual(kepler16.star.components.map(star => star.n), ['Kepler-16 A', 'Kepler-16 B']);
+  for (const name of ['TOI-1338 A', 'Kepler-47']) assert.ok(systems.find(system => system.name === name).binary.components, name);
 });

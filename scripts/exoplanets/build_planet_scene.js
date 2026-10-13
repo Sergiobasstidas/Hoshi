@@ -6,7 +6,8 @@
 // Requiere exoplanet_systems.json, exoplanet_host_identity.json y added_hosts.json.
 
 import fs from 'node:fs';
-import { resolvePlanet } from '../../src/scene/exoplanetOrbit.js';
+import { keplerSemiMajorAu, resolvePlanet } from '../../src/scene/exoplanetOrbit.js';
+import { CIRCUMBINARY_HOSTS } from './circumbinary_hosts.js';
 
 const SYSTEMS_JSON = './data/exoplanets/exoplanet_systems.json';
 const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
@@ -20,7 +21,21 @@ const starIds = new Set(JSON.parse(fs.readFileSync(STARS_JSON, 'utf8')).map(s =>
 const hostId = new Map(JSON.parse(fs.readFileSync(HOSTS_JSON, 'utf8')).hosts.filter(h => h.i !== null).map(h => [h.h, h.i]));
 for (const star of JSON.parse(fs.readFileSync(ADDED_JSON, 'utf8')).stars) for (const host of star.hosts) hostId.set(host, star.i);
 
-const out = [], undrawn = [], absent = [];
+// Binaria anfitriona de un sistema circumbinario, de la tabla curada. Sin semieje
+// publicado se calcula con la 3.ª ley de Kepler y la masa total, y se marca con 'a'.
+function hostBinary(host) {
+  const entry = CIRCUMBINARY_HOSTS[host];
+  if (!entry) return null;
+  const { names, m, ref, url } = entry;
+  if (!entry.P) return { names, m, note: entry.note, ref, url };
+  const computed = entry.a === null;
+  return { names, m, r: entry.r, teff: entry.teff, P: entry.P,
+    a: computed ? Number(keplerSemiMajorAu(entry.P, m[0] + m[1]).toPrecision(4)) : entry.a,
+    e: entry.e, inc: entry.inc, w: entry.w, ...(entry.node === undefined ? {} : { node: entry.node }),
+    t: entry.t, s: entry.s + (computed ? 'a' : ''), ref, url };
+}
+
+const out = [], undrawn = [], absent = [], withoutBinary = [];
 const marks = {};
 for (const system of systems) {
   const id = hostId.get(system.h);
@@ -39,12 +54,14 @@ for (const system of systems) {
     planets.push(resolved);
   }
   if (!planets.length) continue;
+  if (system.p.some(p => p.f.cb) && !CIRCUMBINARY_HOSTS[system.h]) withoutBinary.push(system.h);
   out.push({
     i: id, h: system.h,
     // Radio (R☉), temperatura (K) y sus incertidumbres publicadas; masa (M☉).
     st: { r: system.st.r, rE: system.st.rE, teff: system.st.teff, teffE: system.st.teffE, m: system.st.m },
     ns: system.ns,
     ...(system.p.some(p => p.f.cb) ? { cb: 1 } : {}),
+    ...(system.p.some(p => p.f.cb) && hostBinary(system.h) ? { bin: hostBinary(system.h) } : {}),
     p: planets,
   });
 }
@@ -54,6 +71,7 @@ fs.writeFileSync(OUTPUT_PATH, JSON.stringify({
   meta: {
     fuente: 'NASA Exoplanet Archive, tabla pscomppars (parámetros compuestos)',
     unidades: { a: 'UA', P: 'días', inc: '°', w: '° (argumento del periastro de la estrella)', t: 'JD de tránsito (t0) o periastro (tp)', r: 'R⊕', teq: 'K', m: 'M⊕' },
+    binarias: 'bin: binaria anfitriona de los sistemas circumbinarios (scripts/exoplanets/circumbinary_hosts.js); m en M☉, r en R☉, teff en K de [A, B], P en días, a en UA; s: letras de BINARY_ASSUMPTIONS',
     supuestos: 's: letras de ASSUMPTIONS en src/scene/exoplanetOrbit.js; Ω no está en la tabla y es convencional en todos',
   },
   systems: out,
@@ -66,6 +84,8 @@ const report = {
   planetasSinOrbitaDibujable: undrawn,
   puntosCompartidos: [...new Set(ids.filter((id, k) => ids.indexOf(id) !== k))].map(id => out.filter(s => s.i === id).map(s => s.h).join(' / ')),
   circumbinarios: out.filter(s => s.cb).length,
+  circumbinariosConOrbitaDeLaBinaria: out.filter(s => s.bin?.P).length,
+  circumbinariosSinDatosDeLaBinaria: withoutBinary,
   anfitrionaEnSistemaMultiple: out.filter(s => s.ns > 1).length,
   marcas: marks,
   conFaseMedida: total - (marks.f || 0),

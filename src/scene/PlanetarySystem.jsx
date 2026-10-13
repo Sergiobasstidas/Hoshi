@@ -16,6 +16,9 @@ const ACTIVATION_RANGE = 500;
 const ORBIT_PIXELS = [8, 35], MARKER_PIXELS = [10, 30], LABEL_PIXELS = [22, 60];
 // El marcador se retira cuando la esfera física ya ocupa estos píxeles de radio.
 const SPHERE_PIXELS = [1.5, 4];
+// Binaria anfitriona: tamaño aparente de su órbita entre los que aparecen las curvas de
+// las dos estrellas y sus nombres.
+const STAR_ORBIT_PIXELS = [3, 14], STAR_LABEL_PIXELS = [25, 70];
 
 const sphereVertex = `
   varying vec3 worldNormal;
@@ -52,7 +55,11 @@ function PlanetSphere({ planet }) {
 
 function ActiveSystem({ system, origin, onSelect }) {
   const lines = useRef(), material = useRef(), points = useRef(), labels = useRef([]);
+  const starLines = useRef(), starLabels = useRef([]);
   const position = useMemo(() => system.position.map((v, i) => v - origin[i]), [system, origin]);
+  // Las dos estrellas de un sistema circumbinario, cada una en su órbita en torno al
+  // centro de masas (el punto del catálogo). Las esferas las dibuja StarField.
+  const pair = system.binary?.components || null;
   const orbits = useMemo(() => system.planets.map(planet => planetOrbitPc(planet, system.sky)), [system]);
   const attributes = useMemo(() => ({
     position: new Float32Array(system.planets.flatMap(planet => planet.offsetPc)),
@@ -78,6 +85,19 @@ function ActiveSystem({ system, origin, onSelect }) {
         label.style.pointerEvents = planet.body && label.style.opacity > 0.5 ? 'auto' : 'none';
       }
     });
+    if (pair) {
+      const pixels = system.binary.apoapsisPc / hostDistance * focal;
+      const opacity = 0.5 * smoothRange(pixels, ...STAR_ORBIT_PIXELS);
+      starLines.current.children.forEach(line => { line.material.opacity = opacity; line.visible = opacity > 0.004; });
+      starLabels.current.forEach((label, i) => {
+        if (!label) return;
+        // El nombre se retira cuando la esfera de la estrella ya llena la vista.
+        const offset = pair[i].offsetPc, radius = pair[i].physics?.radiusPc || 0;
+        const distance = Math.hypot(camera.position.x - position[0] - offset[0], camera.position.y - position[1] - offset[1], camera.position.z - position[2] - offset[2]);
+        label.style.opacity = smoothRange(pixels, ...STAR_LABEL_PIXELS) * (1 - smoothRange(radius / distance * focal, 40, 90));
+        label.style.pointerEvents = pair[i].body && label.style.opacity > 0.5 ? 'auto' : 'none';
+      });
+    }
     points.current.geometry.attributes.alpha.needsUpdate = true;
     material.current.uniforms.pixelRatio.value = gl.getPixelRatio();
   });
@@ -88,6 +108,17 @@ function ActiveSystem({ system, origin, onSelect }) {
         <lineBasicMaterial color="#a5afbd" transparent opacity={0} depthWrite={false} />
       </line>)}
     </group>
+    {pair && <group ref={starLines}>
+      {pair.map(component => <line key={component.name} frustumCulled={false}>
+        <bufferGeometry><bufferAttribute attach="attributes-position" args={[component.orbit, 3]} /></bufferGeometry>
+        <lineBasicMaterial color={`rgb(${component.color.map(v => Math.round(v * 255)).join(',')})`} transparent opacity={0} depthWrite={false} />
+      </line>)}
+    </group>}
+    {pair?.map((component, i) => <Html key={component.name} position={component.offsetPc} zIndexRange={[18, 10]} style={{ pointerEvents: 'none' }}>
+      <span ref={element => { starLabels.current[i] = element; }} className="companion-label" style={{ opacity: 0, cursor: component.body ? 'pointer' : 'default' }}
+        onClick={() => component.body && onSelect?.(component.body)}
+        title={component.body ? `Acercarse a ${component.name}` : 'Sin radio y temperatura publicados: marcador'}>{component.name}</span>
+    </Html>)}
     {system.planets.map(planet => planet.radiusPc !== null && <PlanetSphere key={planet.n} planet={planet} />)}
     <points ref={points} frustumCulled={false}>
       <bufferGeometry>
