@@ -3,12 +3,16 @@
 // a partir de ORB6 (órbitas) y WDS (pares físicos sin órbita), cruzados con el
 // catálogo de Hoshi. Véase docs/BINARIAS.md.
 import fs from 'node:fs';
+import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { besselianYearToMjd } from '../src/scene/visualBinary.js';
 import { parseComponents } from './multiplicity.js';
 
 const ORBITS_PATH = 'data/raw/multiplicity/orb6orbits.txt';
 const WDS_PATH = 'data/raw/multiplicity/wdsweb_summ2.txt';
+const MSC_DIR = 'data/raw/multiplicity/msc';
+// Grado mínimo del MSC: 3 o más son jerarquías aceptadas; 1 y 2, refutadas o dudosas.
+const MSC_MIN_GRADE = 3;
 const OUTPUT_PATH = 'data/processed/star_systems.json';
 // Grados ORB6: 1 definitiva, 2 buena, 3 fiable. Los grados 4, 5, 8 y 9 se descartan.
 const MAX_GRADE = 3;
@@ -73,11 +77,12 @@ function nearest(ra, dec, limit, magnitude, exclude) {
 
 // ---------- ORB6 ----------
 const counts = { orbits: 0, incomplete: 0, grade: 0, unmatched: 0, mass: 0, components: 0,
-  wide: 0, widePhysical: 0, wideMatched: 0, wideKept: 0 };
+  wide: 0, widePhysical: 0, wideMatched: 0, wideKept: 0,
+  mscSystems: 0, mscRooted: 0, mscMasses: 0, mscWide: 0, mscHidden: 0, mscCompanions: 0 };
 const systems = new Map(); // id del catálogo → { wds, pairs: Map(clave → par) }
 const rootByWds = new Map();
 const system = (id, wds) => {
-  if (!systems.has(id)) systems.set(id, { wds, pairs: new Map() });
+  if (!systems.has(id)) systems.set(id, { wds, pairs: new Map(), hidden: [] });
   if (wds && !rootByWds.has(wds)) rootByWds.set(wds, id);
   return systems.get(id);
 };
@@ -158,6 +163,64 @@ for (const line of fs.readFileSync(WDS_PATH, 'utf8').split('\n')) {
   counts.wideKept++;
 }
 
+// ---------- MSC: masas, jerarquía y subsistemas sin orientación ----------
+const readMsc = name => zlib.gunzipSync(fs.readFileSync(`${MSC_DIR}/${name}`)).toString('latin1').split('\n');
+const mscComponents = new Map(); // WDS → { etiqueta → { hip, hd, ra, dec, v } }
+const mscGrade = new Map();
+for (const line of readMsc('catalog.dat.gz')) {
+  const cols = line.split('|');
+  if (cols.length < 20) continue;
+  const wds = cols[0].trim(), [ra, dec] = cols[1].trim().split(/\s+/).map(Number), label = cols[7].trim();
+  if (!mscComponents.has(wds)) mscComponents.set(wds, {});
+  mscComponents.get(wds)[label] = { ra, dec, hip: Number(cols[10]) || null, hd: Number(cols[11]) || null, v: Number(cols[13]) || null };
+  if (Number(cols[19]) > 0) mscGrade.set(wds, Number(cols[19]));
+}
+const catalogueId = component => byHip.get(component?.hip) ?? byHd.get(component?.hd);
+const DAYS = { d: 1, y: 365.25, k: 365250, M: 365250000 }, ARCSEC = { '"': 1, "'": 60, m: 0.001 };
+for (const line of readMsc('systems.dat.gz')) {
+  const cols = line.split('|');
+  if (cols.length < 18) continue;
+  const wds = cols[0].trim(), primary = cols[1].trim(), secondary = cols[2].trim(), type = cols[4].trim();
+  if (!primary || !secondary || type.includes('X') || !((mscGrade.get(wds) || 0) >= MSC_MIN_GRADE)) continue;
+  counts.mscSystems++;
+  const components = mscComponents.get(wds) || {};
+  let id = rootByWds.get(wds);
+  if (id === undefined) {
+    const main = components.A || Object.values(components)[0];
+    id = catalogueId(main) ?? (main ? nearest(main.ra, main.dec, MATCH_ARCSEC, main.v, null)?.i : undefined);
+  }
+  const star = byId.get(id);
+  if (!star) continue;
+  counts.mscRooted++;
+  const entry = system(id, wds), key = `${anchor(primary)}>${secondary}`;
+  const period = Number(cols[5]) * (DAYS[cols[6].trim()] || 0), sep = Number(cols[7]) * (ARCSEC[cols[8].trim()] || 0), pa = Number(cols[9]);
+  const m1 = Number(cols[14]) || null, m2 = Number(cols[16]) || null;
+  const v2 = Number(cols[12]) || null, sp2 = cols[13].trim();
+  // El MSC a veces nombra distinto el mismo par (Capella: «A,B» frente a «Aa,Ab»): se
+  // reconoce por compartir ancla y período, o ancla y separación.
+  const same = pair => pair.of === anchor(primary) && (pair.k === 'o'
+    ? period > 0 && Math.abs(pair.p - period) / period < 0.05
+    : sep > 0 && Math.abs(pair.rho - sep * star.d) / (sep * star.d) < 0.1);
+  const known = entry.pairs.get(key) || [...entry.pairs.values()].find(same);
+  if (known) {
+    // Par ya dibujado: añadir masas estimadas y completar el tipo espectral.
+    if (m1 && m2) { known.m1 = m1; known.m2 = m2; known.mc = cols[15].trim() + cols[17].trim(); counts.mscMasses++; }
+    if (!known.sp && sp2) known.sp = sp2;
+    continue;
+  }
+  const rhoAu = sep * star.d;
+  if (pa > 0 && pa <= 360 && sep >= WIDE_RHO_ARCSEC[0] && rhoAu <= WIDE_MAX_AU && /[Ccv]/.test(type)) {
+    // Compañera resuelta con ángulo de posición: par ancho.
+    entry.pairs.set(key, { n: secondary, of: anchor(primary), k: 'w', pair: 'MSC', rho: +rhoAu.toPrecision(5), theta: pa,
+      v1: Number(cols[10]) || null, v: v2, ...(sp2 ? { sp: sp2 } : {}), ...(m1 && m2 ? { m1, m2 } : {}) });
+    counts.mscWide++;
+  } else {
+    // Sin orientación medida no se puede situar en 3D: se informa en la ficha, no se dibuja.
+    entry.hidden.push({ n: secondary, of: anchor(primary), type, ...(period ? { p: +period.toPrecision(6) } : {}), ...(m2 ? { m2 } : {}) });
+    counts.mscHidden++;
+  }
+}
+
 // ---------- Jerarquía y compañeras ya presentes en el catálogo ----------
 const output = {};
 for (const [id, entry] of [...systems].sort((a, b) => a[0] - b[0])) {
@@ -177,16 +240,23 @@ for (const [id, entry] of [...systems].sort((a, b) => a[0] - b[0])) {
     const reach = Math.max(5, 1.5 * (pair.k === 'o' ? pair.a * (1 + pair.e) : pair.rho) / root.d) + 0.001 / root.d * ARCSEC_PER_RAD;
     const match = pair.of === 'A' && pair.v !== null ? nearest(root.ra, root.dec, Math.min(reach, 1200), pair.v, id) : null;
     if (match && Math.abs(match.d - root.d) / root.d < 0.25) pair.cid = match.i;
+    // El MSC identifica cada componente: si tiene HIP o HD propio y está en el catálogo, es ese registro.
+    const listed = catalogueId(mscComponents.get(entry.wds)?.[pair.n]);
+    if (listed !== undefined && listed !== id) { if (pair.cid !== listed) counts.mscCompanions++; pair.cid = listed; }
     if (pair.v === null) delete pair.v;
     if (pair.v1 === null) delete pair.v1;
   }
-  if (comps.length) { output[id] = { wds: entry.wds, comps }; counts.components += comps.length; }
+  // Subsistemas no dibujables: solo los que cuelgan de una componente colocada y no repiten una dibujada.
+  const hidden = entry.hidden.filter(item => placed.has(item.of) && !placed.has(item.n));
+  if (comps.length) { output[id] = { wds: entry.wds, comps, ...(hidden.length ? { hidden } : {}) }; counts.components += comps.length; }
 }
 fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output));
 const all = Object.values(output).flatMap(entry => entry.comps);
 console.log(`ORB6: ${counts.orbits} órbitas; ${counts.incomplete} incompletas o sin componentes legibles, ${counts.grade} de grado > ${MAX_GRADE}, `
   + `${counts.unmatched} sin cruce HIP/HD, ${counts.mass} con masa dinámica fuera de rango.`);
 console.log(`WDS: ${counts.wide} pares; ${counts.widePhysical} físicos sin órbita aceptada, ${counts.wideMatched} cruzados, ${counts.wideKept} dentro de ${WIDE_MAX_AU} UA.`);
+console.log(`MSC: ${counts.mscSystems} pares de grado ≥ ${MSC_MIN_GRADE}; ${counts.mscRooted} con primaria en el catálogo; ${counts.mscMasses} aportan masas a pares ya dibujados, `
+  + `${counts.mscWide} son compañeras nuevas con ángulo de posición, ${counts.mscHidden} quedan sin dibujar por falta de orientación; ${counts.mscCompanions} compañeras identificadas por HIP/HD.`);
 console.log(`✓ ${Object.keys(output).length} sistemas, ${all.length} componentes (${all.filter(c => c.k === 'o').length} con órbita, `
   + `${all.filter(c => c.k === 'w').length} pares anchos); ${all.filter(c => c.cid).length} ya presentes en el catálogo; `
   + `${all.filter(c => c.sp).length} con tipo espectral. ${OUTPUT_PATH}`);

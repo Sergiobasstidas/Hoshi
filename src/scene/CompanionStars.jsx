@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { AdditiveBlending } from 'three';
 import { smoothRange } from './scale';
-import { companionOrbitPc } from './visualBinary';
+import { barycentricOrbitsPc, companionOrbitPc } from './visualBinary';
 
 // Componentes de sistemas múltiples (ORB6 y WDS). Al acercarse, cada compañera deja de
 // coincidir con el punto del catálogo. Los puntos son marcadores: su tamaño indica
@@ -17,9 +17,15 @@ function CompanionSystem({ system, origin }) {
   const position = useMemo(() => system.position.map((v, i) => v - origin[i]), [system, origin]);
   // Las compañeras que ya son un registro del catálogo se dibujan con el campo estelar.
   const drawn = useMemo(() => system.components.filter(component => !component.companion), [system]);
-  const paths = useMemo(() => system.components.map(component => new Float32Array(component.pair.k === 'o'
-    ? companionOrbitPc(component.pair, system.position).flatMap(p => p.map((v, i) => v + component.parentOffsetPc[i]))
-    : [...component.parentOffsetPc, ...component.offsetPc])), [system]);
+  // Una curva por par ancho u órbita relativa; con masas, las dos órbitas en torno al
+  // centro de masas del par.
+  const paths = useMemo(() => system.components.flatMap(component => {
+    const shifted = points => new Float32Array(points.flatMap(p => p.map((v, i) => v + component.parentOffsetPc[i])));
+    if (component.pair.k !== 'o') return [{ component, points: new Float32Array([...component.parentOffsetPc, ...component.offsetPc]) }];
+    if (component.massRatio === null) return [{ component, points: shifted(companionOrbitPc(component.pair, system.position)) }];
+    const orbits = barycentricOrbitsPc(component.pair, system.position, component.massRatio);
+    return [{ component, points: shifted(orbits.companion) }, { component, points: shifted(orbits.primary) }];
+  }), [system]);
   const attributes = useMemo(() => ({
     position: new Float32Array(drawn.flatMap(component => component.offsetPc)),
     color: new Float32Array(drawn.flatMap(component => component.color.map(v => v / 255))),
@@ -30,7 +36,7 @@ function CompanionSystem({ system, origin }) {
   useFrame(({ camera, gl }) => {
     const range = component => Math.hypot(camera.position.x - position[0] - component.offsetPc[0],
       camera.position.y - position[1] - component.offsetPc[1], camera.position.z - position[2] - component.offsetPc[2]) / component.scalePc;
-    system.components.forEach((component, i) => {
+    paths.forEach(({ component }, i) => {
       const line = lines.current.children[i];
       line.material.opacity = (component.pair.k === 'o' ? 0.3 : 0.14) * (1 - smoothRange(range(component), ...LINE_RANGE));
       line.visible = line.material.opacity > 0.003;
@@ -47,7 +53,7 @@ function CompanionSystem({ system, origin }) {
   return <group position={position}>
     <group ref={lines}>
       {paths.map((path, i) => <line key={i} frustumCulled={false}>
-        <bufferGeometry><bufferAttribute attach="attributes-position" args={[path, 3]} /></bufferGeometry>
+        <bufferGeometry><bufferAttribute attach="attributes-position" args={[path.points, 3]} /></bufferGeometry>
         <lineBasicMaterial color="#8fa3c4" transparent opacity={0} depthWrite={false} />
       </line>)}
     </group>

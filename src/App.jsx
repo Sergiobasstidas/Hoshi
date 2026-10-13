@@ -55,9 +55,12 @@ function buildCatalogue({ catalogue, systems }) {
 }
 const EMPTY_CATALOGUE = { catalogue: [], systems: {} };
 // Resumen de una componente para la ficha.
-const describeComponent = component => component.pair.k === 'o'
-  ? `${component.name}: órbita de ${(component.pair.p / 365.25).toLocaleString('es-CL', { maximumSignificantDigits: 3 })} años, a ${component.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA`
-  : `${component.name}: par ancho, ${component.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA proyectadas`;
+const significant = value => value.toLocaleString('es-CL', { maximumSignificantDigits: 3 });
+const period = days => days < 365.25 ? `${significant(days)} días` : `${significant(days / 365.25)} años`;
+const describeComponent = component => `${component.name}: ${component.pair.k === 'o'
+  ? `órbita de ${period(component.pair.p)}, a ${significant(component.separationAu)} UA`
+  : `par ancho, ${significant(component.separationAu)} UA proyectadas`}${component.pair.m1 && component.pair.m2
+  ? `, masas ≈ ${significant(component.pair.m1)} y ${significant(component.pair.m2)} M☉` : ''}`;
 const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, { id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC }, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
@@ -313,7 +316,8 @@ export default function App() {
         {stellarBody?.star.physics && <div>Radio y temperatura {stellarBody.star.physics.status === 'published' ? 'publicados' : 'estimados'} · {Math.round(stellarBody.star.physics.temperatureK).toLocaleString('es-CL')} K · textura ilustrativa</div>}
         {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar} ± {stellarBody.star.physics.radiusUncertaintySolar} R☉ · temperatura: ±{stellarBody.star.physics.temperatureUncertaintyK} K</div>}
         {stellarBody?.star.system && <div>Sistema múltiple · WDS {stellarBody.star.system.wds} · {stellarBody.star.system.components.slice(0, 4).map(describeComponent).join(' · ')}{stellarBody.star.system.components.length > 4 ? ' · …' : ''}</div>}
-        {stellarBody?.star.system && <div>Datos: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6</a> y <a href="https://www.astro.gsu.edu/wds/" target="_blank" rel="noreferrer">WDS</a> (USNO) · órbitas al {BINARY_MODEL_DATE} · las compañeras son marcadores, no radios</div>}
+        {stellarBody?.star.system?.hidden.length > 0 && <div>Sin dibujar, por no tener orientación medida: {stellarBody.star.system.hidden.slice(0, 4).map(item => `${item.n}${item.p ? ` (${period(item.p)})` : ''}`).join(', ')}{stellarBody.star.system.hidden.length > 4 ? '…' : ''}</div>}
+        {stellarBody?.star.system && <div>Datos: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6</a> y <a href="https://www.astro.gsu.edu/wds/" target="_blank" rel="noreferrer">WDS</a> (USNO), <a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/235/6" target="_blank" rel="noreferrer">MSC</a> (Tokovinin) · órbitas al {BINARY_MODEL_DATE} · masas estimadas · las compañeras son marcadores, no radios</div>}
         {curatedStellarBody && <div>Registro curado independiente de AT-HYG · distancia adoptada: {(stellarBody.star.d / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>}
         {stellarBody?.identifiers && <div className="star-identifiers">{stellarBody.identifiers}</div>}
         {(stellarBody?.star.physics || panelBody.name === 'Sol') && <div>Textura adaptada: <a href={PLANET_TEXTURE_SOURCE} target="_blank" rel="noreferrer">Solar System Scope</a> · <a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}

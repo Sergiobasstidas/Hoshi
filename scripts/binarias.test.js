@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { AU_TO_PC } from '../src/scene/scale.js';
-import { apparentPosition, apastronAu, besselianYearToMjd, buildStarSystems, companionColor, companionOffsetPc, companionOrbitPc,
+import { apparentPosition, apastronAu, barycentricOrbitsPc, besselianYearToMjd, buildStarSystems, companionColor, companionOffsetPc, companionOrbitPc,
   companionSizePx, NEUTRAL_COMPANION_COLOR } from '../src/scene/visualBinary.js';
 import { parseComponents } from './multiplicity.js';
 
@@ -54,6 +54,16 @@ test('El índice de sistemas solo contiene pares fiables, completos y cruzados c
   assert.equal(orbitOf(SIRIUS).sp, 'DA2');
   // Castor: par interior Aa-Ab, par AB, par interior de B y la compañera ancha C.
   assert.deepEqual(systems[CASTOR].comps.map(c => `${c.of}>${c.n}:${c.k}`).sort(), ['A>Ab:o', 'A>B:o', 'A>C:w', 'B>Bb:o']);
+  // El MSC aporta masas estimadas a los pares ya dibujados y lista lo que no se puede situar.
+  const castorB = systems[CASTOR].comps.find(c => c.n === 'B');
+  assert.ok(castorB.m1 > castorB.m2 && castorB.m2 > 1);
+  assert.ok(systems[CASTOR].hidden.every(item => item.of === 'C'));
+  for (const entry of Object.values(systems)) {
+    const names = new Set(['A', ...entry.comps.map(c => c.n)]);
+    for (const item of entry.hidden || []) assert.ok(names.has(item.of) && !names.has(item.n));
+  }
+  // Próxima es la componente C de Alfa Centauri y ya es un registro del catálogo.
+  assert.equal(byId.get(systems[RIGIL_KENTAURUS].comps.find(c => c.n === 'C').cid).n, 'Proxima Centauri');
   assert.equal(byId.get(systems[MIZAR].comps.find(c => c.n === 'C').cid).n, 'Alcor');
 });
 
@@ -84,7 +94,24 @@ test('Las jerarquías se encadenan y las compañeras del catálogo quedan sobre 
   // Sin relación con el catálogo no se toca ninguna otra estrella.
   let moved = 0;
   for (const star of stars) { const c = copy.get(star.i); if (c.x !== star.x || c.y !== star.y || c.z !== star.z) moved++; }
-  assert.ok(moved > 0 && moved < 60, String(moved));
+  assert.ok(moved > 0 && moved < 80, String(moved));
+});
+
+test('Con masas, las dos órbitas rodean el centro de masas sin mover a ninguna estrella', () => {
+  const star = byId.get(CASTOR), pair = orbitOf(CASTOR), position = [star.x, star.y, star.z];
+  const q = pair.m2 / (pair.m1 + pair.m2), now = companionOffsetPc(pair, position);
+  const { centre, primary, companion } = barycentricOrbitsPc(pair, position, q, undefined, 720);
+  const nearest = (points, target) => Math.min(...points.map(p => Math.hypot(...p.map((v, i) => v - target[i])))) / AU_TO_PC;
+  // La primaria (en el origen) y la compañera (en su posición relativa) quedan sobre sus curvas.
+  assert.ok(nearest(primary, [0, 0, 0]) < pair.a * 0.01);
+  assert.ok(nearest(companion, now) < pair.a * 0.01);
+  // El centro de masas divide la separación según las masas.
+  assert.ok(Math.abs(Math.hypot(...centre) / Math.hypot(...now) - q) < 1e-12);
+  // Las curvas guardan la proporción de masas en cada punto.
+  for (const i of [0, 100, 400]) {
+    const a = Math.hypot(...primary[i].map((v, k) => v - centre[k])), b = Math.hypot(...companion[i].map((v, k) => v - centre[k]));
+    assert.ok(Math.abs(a / b - pair.m2 / pair.m1) < 1e-9);
+  }
 });
 
 test('El color y el tamaño del marcador salen del tipo espectral y la magnitud, sin inventar', () => {
