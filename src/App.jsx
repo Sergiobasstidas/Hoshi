@@ -261,8 +261,8 @@ export default function App() {
           <span>W / S: acercarse / alejarse · Rueda: velocidad</span>
           <span>Frenado automático · {aimTarget.star.physics ? 'límite sobre la superficie' : 'radio desconocido: marcador'}</span>
           {aimTarget.star.physics && <>
-            <span>Radio estimado: {aimTarget.star.physics.radiusSolar.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} R☉</span>
-            <span>Temperatura estimada: {Math.round(aimTarget.star.physics.temperatureK).toLocaleString('es-CL')} K</span>
+            <span>Radio {aimTarget.star.physics.status === 'published' ? 'publicado' : 'estimado'}: {aimTarget.star.physics.radiusSolar.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} R☉</span>
+            <span>Temperatura {aimTarget.star.physics.status === 'published' ? 'publicada' : 'estimada'}: {Math.round(aimTarget.star.physics.temperatureK).toLocaleString('es-CL')} K</span>
             <button onClick={inspectSurface}>Ver superficie</button>
           </>}
           <button onClick={releaseAim}>Soltar objetivo · Esc</button>
@@ -282,11 +282,11 @@ export default function App() {
           <div>Separación entre estrellas: <strong>{BINARY_STATE.separationAu.toLocaleString('es-CL', { maximumFractionDigits: 2 })} UA</strong></div>
           <div>Rango orbital: {(WR140_ORBIT.semiMajorAu * (1 - WR140_ORBIT.eccentricity)).toFixed(2)}–{(WR140_ORBIT.semiMajorAu * (1 + WR140_ORBIT.eccentricity)).toFixed(2)} UA</div>
           <div>Distancia al Sol (catálogo): {(panelBody.distancePc / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>
-        </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? 'estimado' : 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
+        </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
         <div data-body-altitude />
         {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000)</div>}
         <p>{panelBody.kind === 'system' ? 'Separación y órbitas a escala. Puntos de identificación; diámetros y brillo ilustrativos.'
-          : stellarBody ? stellarBody.star.physics ? 'Esfera a escala del radio estimado · superficie compartida, no fotografía de esta estrella'
+          : stellarBody ? stellarBody.star.physics ? `Esfera a escala del radio ${stellarBody.star.physics.status === 'published' ? 'publicado' : 'estimado'} · superficie compartida, no fotografía de esta estrella`
             : curatedStellarBody ? 'Posición curada de SIMBAD · distancia aproximada de NASA · tamaño del marcador ilustrativo'
               : 'Posición de catálogo · tamaño del marcador ilustrativo'
           : panelBody.name === 'Sol' ? 'Radio solar a escala · 5.772 K · textura y orientación ilustrativas'
