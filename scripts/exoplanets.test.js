@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { WR140_ORBIT, eccentricAnomaly, relativeOrbitAu } from '../src/scene/binaryOrbit.js';
+import { PerspectiveCamera, Vector3 } from 'three';
 import { bodyView } from '../src/scene/solarBodies.js';
-import { ARRIVAL_TILT_DEG, ASSUMED_INCLINATION_DEG, EXOPLANET_EPOCH_JD, orbitNormal, buildPlanetarySystems, keplerPeriodDays, keplerSemiMajorAu,
+import { advanceJourney, beginJourney } from '../src/scene/navigation.js';
+import { ARRIVAL_TILT_DEG, PLANET_VIEW_ELEVATION_DEG, PLANET_VIEW_RADII, ASSUMED_INCLINATION_DEG, EXOPLANET_EPOCH_JD, orbitNormal, buildPlanetarySystems, keplerPeriodDays, keplerSemiMajorAu,
   meanAnomalyAt, orbitalPlaneToEquatorial, planetOffsetAu, planetStateAu, resolvePlanet, skyDirection,
   transitEccentricAnomaly } from '../src/scene/exoplanetOrbit.js';
 import { applyDistance, applyPatches } from './catalog/catalog_patches.js';
@@ -206,11 +208,30 @@ test('La llegada a un sistema mira el plano orbital abierto y cada planeta con r
       const body = planet.body, planetView = bodyView(body);
       assert.equal(body.kind, 'exoplanet');
       body.position.forEach((value, i) => close(value, system.position[i] + planet.offsetPc[i], 1e-15));
-      close(planetView.distance, planet.radiusPc * 6, 1e-20);
-      // Se llega por el lado iluminado: la cámara queda del lado de la estrella.
-      assert.ok(dot(planetView.direction, planet.offsetPc) < 0, planet.n);
+      close(planetView.distance, planet.radiusPc * PLANET_VIEW_RADII, 1e-20);
+      // La cámara queda del lado opuesto a la estrella y por encima del plano orbital,
+      // con la normal como vertical: la estrella se ve detrás, fuera del disco del planeta.
+      const away = planet.offsetPc.map(v => v / Math.hypot(...planet.offsetPc));
+      close(Math.hypot(...planetView.direction), 1, 1e-12);
+      assert.ok(dot(planetView.direction, away) > 0.9, planet.n);
+      close(Math.asin(dot(planetView.direction, planetView.up)) * 180 / Math.PI, PLANET_VIEW_ELEVATION_DEG, 1e-6, planet.n);
+      const separation = Math.acos(dot(planetView.direction, away)) * 180 / Math.PI;
+      assert.ok(separation > 12 && separation < 30, `${planet.n}: ${separation}`);
     }
   }
+  // El giro termina antes que el acercamiento: a 30 veces la distancia final la cámara
+  // ya está en la dirección de llegada.
+  const system = systems[0], view = { ...bodyView({ kind: 'star', position: system.position, radiusKm: 1e5,
+    companionViewDistance: system.framePc * 3.2, viewDirection: system.viewDirection }), journey: { start: [0, 0, 0], rotation: [0, 0, 0, 1] } };
+  const camera = new PerspectiveCamera(), motion = beginJourney(camera, view, system.position);
+  let seen = false;
+  while (!advanceJourney(camera, motion, view, 50, 0.05)) {
+    const offset = camera.position.clone().sub(motion.target);
+    if (offset.length() > view.distance * 30) continue;
+    seen = true;
+    close(offset.normalize().dot(new Vector3(...system.viewDirection)), 1, 1e-9);
+  }
+  assert.ok(seen);
   // Los cuerpos sin dirección declarada conservan la llegada de siempre.
   assert.equal('direction' in bodyView({ kind: 'star', position: [1, 2, 3] }), false);
 });

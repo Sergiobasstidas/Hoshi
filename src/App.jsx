@@ -38,7 +38,7 @@ import CompanionStars from './scene/CompanionStars';
 import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 import PlanetarySystems from './scene/PlanetarySystem';
-import { EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
+import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
 // el sistema solar y la interfaz aparezcan antes. Hasta entonces solo hay curados.
@@ -157,8 +157,8 @@ export default function App() {
   const starBody = (star, name, identifiers) => ({
     kind:'star',name,star,position:[star.x,star.y,star.z],
     radiusKm:star.physics?.radiusKm,source:star.physics?.source || star.source,distanceSource:star.distanceSource,
-    companionViewDistance:Math.max(star.system?.framePc || 0, ...(star.planetary || []).map(system => system.framePc)) * 3.2,
-    viewDirection:star.planetary?.[0].viewDirection,
+    companionViewDistance:Math.max((star.system?.framePc || 0) * 3.2, ...(star.planetary || []).map(system => system.framePc * ARRIVAL_FRAME_FACTOR)),
+    viewDirection:star.planetary?.[0].viewDirection, viewUp:star.planetary?.[0].viewUp,
     identifiers,
   });
   const framePulsars = () => {

@@ -160,8 +160,16 @@ const normalize = v => { const length = Math.hypot(...v); return v.map(x => x / 
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 // Ángulo entre la mirada de llegada y la normal del plano orbital: las órbitas se ven
-// como elipses abiertas y no de canto. Es solo la posición de la cámara.
-export const ARRIVAL_TILT_DEG = 35;
+// en perspectiva, abiertas y con profundidad (eje menor/mayor ≈ cos 64° = 0,44), como en
+// la captura de referencia de Sergio del 13/10/2026. Es solo la posición de la cámara.
+export const ARRIVAL_TILT_DEG = 64;
+// Distancia de llegada en múltiplos de la órbita mayor encuadrada: llena el ancho.
+export const ARRIVAL_FRAME_FACTOR = 1.8;
+// Vista de un planeta: altura de la cámara sobre el plano orbital y giro hacia un
+// costado, medidos desde la prolongación de la línea estrella-planeta. La estrella
+// queda detrás, arriba y a la derecha, fuera del disco del planeta (≈ 6° de radio a
+// PLANET_VIEW_RADII radios), y el planeta muestra un filo iluminado.
+export const PLANET_VIEW_ELEVATION_DEG = 13, PLANET_VIEW_AZIMUTH_DEG = 22, PLANET_VIEW_RADII = 10;
 
 // Normal del plano orbital, del lado de la normal eclíptica (la vertical de la cámara).
 export function orbitNormal(planet, sky) {
@@ -179,6 +187,15 @@ export function systemViewDirection(planet, sky) {
   inPlane = normalize(inPlane);
   const tilt = radians(ARRIVAL_TILT_DEG);
   return normal.map((v, i) => v * Math.cos(tilt) + inPlane[i] * Math.sin(tilt));
+}
+
+// Dirección desde el planeta hacia la cámara: del lado opuesto a la estrella, algo por
+// encima del plano orbital. Con la normal como vertical, la estrella se ve arriba y a
+// la derecha del planeta, y las órbitas abiertas detrás.
+export function planetViewDirection(offset, normal) {
+  const away = normalize(offset), side = cross(normal, away);
+  const elevation = radians(PLANET_VIEW_ELEVATION_DEG), azimuth = radians(PLANET_VIEW_AZIMUTH_DEG);
+  return away.map((v, i) => Math.cos(elevation) * (Math.cos(azimuth) * v + Math.sin(azimuth) * side[i]) + Math.sin(elevation) * normal[i]);
 }
 
 // Color neutro: gris con un leve matiz frío o cálido según la temperatura de equilibrio.
@@ -222,17 +239,17 @@ export function buildPlanetarySystems(data, starsById, jd = EXOPLANET_EPOCH_JD) 
     const reference = framed.length ? framed.reduce((a, b) => b.apoapsisPc > a.apoapsisPc ? b : a) : planets[0];
     const result = { id: `${system.i}:${system.h}`, star, name: system.h, position, sky, planets, st: system.st,
       circumbinary: Boolean(system.cb), stars: system.ns,
-      viewDirection: systemViewDirection(reference, sky),
+      viewDirection: systemViewDirection(reference, sky), viewUp: orbitNormal(reference, sky),
       rangePc: Math.max(...planets.map(p => p.apoapsisPc)),
       framePc: framed.length ? Math.max(...framed.map(p => p.apoapsisPc)) : 0 };
-    // Destino de navegación de cada planeta con radio: se llega por el lado iluminado,
-    // algo por encima de su plano orbital.
+    // Destino de navegación de cada planeta con radio: el planeta en primer plano y su
+    // estrella detrás. La vertical de la vista es la normal del plano orbital.
     for (const planet of planets) {
       if (planet.radiusPc === null) continue;
-      const towardStar = normalize(planet.offsetPc.map(v => -v)), normal = orbitNormal(planet, sky);
+      const normal = orbitNormal(planet, sky);
       planet.body = { kind: 'exoplanet', name: planet.n, position: planet.offsetPc.map((v, i) => v + position[i]),
-        radiusKm: planet.r * EARTH_RADIUS_KM, star, system: result, planet,
-        viewDirection: normalize(towardStar.map((v, i) => 0.8 * v + 0.45 * normal[i])),
+        radiusKm: planet.r * EARTH_RADIUS_KM, star, system: result, planet, companionViewDistance: planet.radiusPc * PLANET_VIEW_RADII,
+        viewDirection: planetViewDirection(planet.offsetPc, normal), viewUp: normal,
         source: 'https://exoplanetarchive.ipac.caltech.edu/' };
     }
     return [result];

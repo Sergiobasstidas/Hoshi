@@ -50,3 +50,4 @@ Desarrollo anterior al historial Git, reunido en la primera instantánea del rep
 - **Gaia DR3:** el 99,5 % del catálogo queda enlazado (antes el 84 %), sumando un cruce por posición validado con paralaje y magnitud.
 - **Distancias:** 31 estrellas corregidas con la paralaje de Gaia bajo un criterio estricto.
 - **Estrellas nuevas:** 3.624 anfitrionas de exoplanetas que el catálogo base no incluía, entre ellas TRAPPIST-1 y la estrella de Teegarden. El catálogo pasa a 122.284 estrellas y los sistemas múltiples a 5.786.
+- **Cámara en los sistemas planetarios:** la llegada muestra el plano orbital en perspectiva, horizontal y con la estrella al centro; al elegir un planeta queda en primer plano con su estrella detrás. Visores de velocidad y distancia un 15 % más grandes.

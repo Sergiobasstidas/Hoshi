@@ -27,12 +27,15 @@ export function advanceJourney(camera, transition, view, endFov, delta) {
   transition.elapsed = Math.min(transition.duration, transition.elapsed + Math.min(delta, 0.05));
   const t = transition.elapsed / transition.duration;
   const ease = transition.headingOnly ? t * t * t * (t * (6 * t - 15) + 10) : journeyProgress(t);
+  // Con `turnBy`, el giro alrededor del destino termina cuando el avance llega a esa
+  // fracción: el destino aparece ya con su encuadre final en vez de abrirse al llegar.
+  const turn = view.turnBy ? MathUtils.smoothstep(ease / view.turnBy, 0, 1) : ease;
   if (!transition.headingOnly) {
     const distance = journeyDistance(transition.startDistance, view.distance, t);
-    const arc = new Quaternion().slerp(transition.arc, ease);
+    const arc = new Quaternion().slerp(transition.arc, turn);
     camera.position.copy(transition.startDirection).applyQuaternion(arc).multiplyScalar(distance).add(transition.target);
   }
-  if (transition.endUp) camera.up.copy(transition.startUp).lerp(transition.endUp, ease).normalize();
+  if (transition.endUp) camera.up.copy(transition.startUp).lerp(transition.endUp, turn).normalize();
   camera.lookAt(transition.target);
   const endRotation = camera.quaternion.clone();
   camera.quaternion.slerpQuaternions(transition.rotation, endRotation,
