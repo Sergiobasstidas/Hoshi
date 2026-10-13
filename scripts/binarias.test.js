@@ -62,6 +62,12 @@ test('El índice de sistemas solo contiene pares fiables, completos y cruzados c
     const names = new Set(['A', ...entry.comps.map(c => c.n)]);
     for (const item of entry.hidden || []) assert.ok(names.has(item.of) && !names.has(item.n));
   }
+  // Binarias simples: masas dinámicas publicadas (Sirio, Procyon) o razón de masas de SB9.
+  assert.deepEqual([orbitOf(SIRIUS).m1, orbitOf(SIRIUS).m2, orbitOf(SIRIUS).mc], [2.063, 1.018, 'pub']);
+  assert.deepEqual([orbitOf(PROCYON).m1, orbitOf(PROCYON).m2], [1.478, 0.592]);
+  const sb9 = Object.values(systems).flatMap(entry => entry.comps).filter(c => c.mc === 'sb9');
+  assert.ok(sb9.length > 40);
+  for (const pair of sb9) assert.ok(Math.abs(pair.m1 + pair.m2 - pair.mass) / pair.mass < 0.02 && pair.ms);
   // Próxima es la componente C de Alfa Centauri y ya es un registro del catálogo.
   assert.equal(byId.get(systems[RIGIL_KENTAURUS].comps.find(c => c.n === 'C').cid).n, 'Proxima Centauri');
   assert.equal(byId.get(systems[MIZAR].comps.find(c => c.n === 'C').cid).n, 'Alcor');

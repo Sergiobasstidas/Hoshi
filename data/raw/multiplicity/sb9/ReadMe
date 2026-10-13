@@ -1,0 +1,169 @@
+B/sb9   SB9: 9th Catalogue of Spectroscopic Binary Orbits  (Pourbaix+ 2004-2014)
+================================================================================
+The Ninth Catalogue of Spectroscopic Binary Orbits (Version 2013-10-27)
+     Pourbaix D., Tokovinin A.A, Batten A.H., Fekel F.C., Hartkopf W.I.,
+     Levato H., Morell N.I., Torres G., Udry S.
+    <Astron. Astrophys. 424, 727 (2004)>
+    =2004A&A...424..727P
+================================================================================
+ADC_Keywords: Binaries, orbits ; Binaries, spectroscopic
+Keywords: stars: binaries: spectroscopic -
+          astronomical data bases: miscellaneous  - catalogs
+
+Abstract:
+    The Ninth Catalogue of Spectroscopic Binary Orbits continues the
+    series of compilations of spectroscopic orbits carried out over the
+    past 35 years by Batten and collaborators (see e.g. Cat. V/64).
+
+    The catalogue is continuously updated, see http://sb9.astro.ulb.ac.be/
+
+    This version is dated 02-May-2011. Previous versions may be found in
+    subdirectories "v00" (April 2005), "v01" (September 2005), etc...
+
+File Summary:
+--------------------------------------------------------------------------------
+ FileName   Lrecl  Records   Explanations
+--------------------------------------------------------------------------------
+ReadMe         80        .   This file (Version 2014-02-26)
+main.dat      132     4077   Position, magnitudes and spectral types
+alias.dat      39    20797   List of other designations
+orbits.dat    295     5099   Orbital parameters
+notes.txt     630    42158   Individual remarks on stars and orbits.
+--------------------------------------------------------------------------------
+
+See also:
+    http://sb9.astro.ulb.ac.be : the SB9 home page
+    V/64 : Eighth Orbital Elements of Spectroscopic Binaries (Batten+ 1989)
+
+Byte-by-byte Description of file: main.dat
+--------------------------------------------------------------------------------
+   Bytes Format Units   Label   Explanations
+--------------------------------------------------------------------------------
+   1-  4  I4    ---     Seq     System Number
+                                (SB8 number when Seq<=1469)
+   6- 15  A10   ---     B1900   Name based on B1900 position
+                                (for backward compatibility with SB8=Cat. V/64)
+  17- 18  I2    h       RAh     Right Ascension J2000 (hours)
+  19- 20  I2    min     RAm     Right Ascension J2000 (minutes)
+  21- 25  F5.2  s       RAs     Right Ascension J2000 (seconds)
+      26  A1    ---     DE-     Declination J2000 (sign)
+  27- 28  I2    deg     DEd     Declination J2000 (degrees)
+  29- 30  I2    arcmin  DEm     Declination J2000 (minutes)
+  31- 34  F4.1  arcsec  DEs     Declination J2000 (seconds)
+  36- 42  A7    ---     Comp    ? Component
+  44- 49  F6.3  mag     mag1    ? Magnitude of component 1
+      50  A1    ---   n_mag1    [GJPBVRyrIK] Filter in which mag1 is given
+  52- 57  F6.3  mag     mag2    ? Magnitude of component 2
+      58  A1    ---   n_mag2    [PBVRyrIK] Filter in which mag2 is given
+  60- 91  A32   ---     Sp1     MK Spectral type component 1
+  93-102  A10   ---     Sp2     MK Spectral type component 2
+ 104-132  A29   ---     Name    Name of the source (HIP when existing)
+--------------------------------------------------------------------------------
+
+Byte-by-byte Description of file: alias.dat
+--------------------------------------------------------------------------------
+   Bytes Format Units   Label     Explanations
+--------------------------------------------------------------------------------
+   1-  4  I4    ---     Seq       System Number, as in "main.dat"
+   6- 39  A34   ---     Name      Other designation
+--------------------------------------------------------------------------------
+
+Byte-by-byte Description of file: orbits.dat
+--------------------------------------------------------------------------------
+   Bytes Format Units   Label   Explanations
+--------------------------------------------------------------------------------
+   1-  4  I4    ---     Seq     System Number, as in "main.dat"
+       6  I1    ---     o       Orbit number
+   8- 23  F16.9 d       Per     [0.05,116675] Period
+      25  A1    ---   f_Per     [a] a=assumed (fixed)
+  26- 40  F15.9 d     e_Per     ? Mean error on Per
+  42- 57  F16.8 d       T0      ? Periastron time (JD)
+      59  A1    ---   n_T0      [a] a=assumed (fixed)
+  60- 72  F13.8 d     e_T0      ? Mean error on T0
+  74- 77  F4.1  ---   f_T0      ? Flag on T0 (2)
+  79- 89  F11.9 ---     e       Orbital eccentricity
+      91  A1    ---   f_e       [>a] a=assumed (fixed) (1)
+  92-102  F11.9 ---   e_e       ? Mean error on eccentricity
+ 104-112  F9.4  deg     omega   [-359,360]? Argument of periastron {omega}
+     114  A1    ---   f_omega   [a] a=assumed (fixed)
+ 115-122  F8.4  deg   e_omega   ? Mean error on omega
+ 124-133  F10.5 km/s    K1      ? Velocity amplitude of primary
+     134  A1    ---   u_K1      Uncertainty flag (:) on K1
+     136  A1    ---   f_K1      [>a] a=assumed (fixed) (1)
+ 137-146  F10.5 km/s  e_K1      ?   Mean error on K1
+ 148-157  E10.5 km/s    K2      ? Velocity amplitude of secondary
+     158  A1    ---   u_K2      Uncertainty flag (:) on K2
+     160  A1    ---   f_K2      [a] a=assumed (fixed)
+ 161-170  E10.5 km/s  e_K2      ?  Mean error on K2
+ 172-181  E10.5 km/s    V0      ? Systemtic velocity
+     182  A1    ---   u_V0      Uncertainty flag (:) on V0
+     184  A1    ---   f_V0      [a] a=assumed (fixed)
+ 185-194  F10.5 km/s  e_V0      ?  Mean error on V0
+ 196-204  F9.6  km/s    rms1    ? rms residuals of Radial Velocity primary
+ 206-214  F9.6  km/s    rms2    ? rms residuals of Radial Velocity secondary
+ 216-219  I4    ---   o_K1      ? Number of observations of RV1
+ 221-224  I4    ---   o_K2      ? Number of observations of RV2
+ 226-228  F3.1  ---     Grade   ? Grade of orbit (0=poor, 5=definitive)
+ 230-280  A51   ---     Ref     Reference (bibcode) of orbit publication
+ 282-291  A10   ---     Contr   Contributor
+ 293-295  A3    ---     ---     [PUB] Access code (public)
+--------------------------------------------------------------------------------
+Note (1): the symbol '>' indicates that the error is large
+     (larger than the value); the symbol 'a' indicates that the
+     value was not computed, but assumed.
+Note (2): a non-zero value indicates that T0 does not correspond to the
+     periastron epoch, but to some other phenomena (e.g. eclipse)
+--------------------------------------------------------------------------------
+
+Acknowledgements:
+    This version was prepared with the help of Dimitri Pourbaix.
+
+History:
+  * 14-Apr-2005: Version 2418 binaries, 2815 orbits
+  * 30-Sep-2005: Version 2472 binaries, 2898 orbits
+  * 17-Mar-2007: Version 2746 binaries, 3281 orbits
+  * 23-Dec-2008: Version 2856 binaries, 3441 orbits
+  * 15-Feb-2009: Version 2861 binaries, 3448 orbits
+  * 15-Mar-2009: Version 2861 binaries, 3451 orbits
+  * 23-Aug-2009: Version 2945 binaries, 3608 orbits
+  * 30-Aug-2009: Version 2958 binaries, 3632 orbits
+  * 08-Mar-2011: Version 3004 binaries, 3632 orbits
+  * 01-May-2011: Version 3027 binaries, 3724 orbits
+  * 29-May-2011: Version 3027 binaries, 3729 orbits
+  * 17-Jul-2011: Version 3039 binaries, 3764 orbits
+  * 25-Sep-2011: Correction in the file "alias.dat"
+  * 01-Aug-2012: Version 3099 binaries, 3851 orbits
+  * 26-Aug-2012: Version 3112 binaries, 3866 orbits
+  * 17-Feb-2013: Version 3197 binaries, 3956 orbits
+  * 05-May-2013: Version 3201 binaries, 3960 orbits
+  * 25-Aug-2013: Version 3206 binaries, 3965 orbits
+  * 27-Oct-2013: Version 3206 binaries, 3969 orbits
+  * 10-Nov-2013: Version 3206 binaries, 3971 orbits
+  * 22-Dec-2013: Version 3206 binaries, 3973 orbits
+  * 26-Feb-2014: Version 3207 binaries, 3977 orbits
+  * 25-Mar-2014: Version 3208 binaries, 3979 orbits
+  * 01-Nov-2014: new binariesi version, 4028 orbits
+  * 13-Apr-2015: new version (G.Landais)
+  * 20-Apr-2015: new version (G.Landais)
+  * 27-Jul-2015: new version (G.Landais)
+  * 12-Aug-2015: new version (G.Landais)
+  * 14-Sep-2015: new version (G.Landais)
+  * 07-Dec-2015: 4310 orbits, new version (G.Landais)
+  * 04-Apr-2016: 4350 orbits, new version (G.Landais)
+  * 13-Jun-2016: 4371 orbits, new version (G.Landais)
+  * 16-Aug-2016: 4386 orbits, new version (G.Landais)
+  * 29-Aug-2016: 4400 orbits, new version (G.Landais)
+  * 11-Dec-2017: 4429 orbits, new version (G.Landais)
+  * 08-Jan-2018: 4443 orbits, new version (G.Landais)
+  * 16-Apr-2018: 4544 orbits, new version (G.Landais)
+  * 17-Dec-2018: 4618 orbits, new version (G.Landais)
+  * 11-Mar-2019: new version (G.Landais)
+  * 23-Jul-2019: new version (G.Landais)
+  * 02-Aug-2019: 4870 orbits, new version (G.Landais)
+  * 20-Oct-2019: 4930 orbits, new version (G.Landais)
+  * 08-Mar-2021: new version(G.Landais)
+  * 04-Sep-2023: 5042 orbits, new version (G.Landais)
+  * 02-Oct-2023: 5099 orbits, new version (G.Landais)
+  * 22-Apr-2024: new version (G.Landais)
+================================================================================
+(End)                                   Francois Ochsenbein [CDS]    30-Aug-2009

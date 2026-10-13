@@ -60,7 +60,7 @@ const period = days => days < 365.25 ? `${significant(days)} días` : `${signifi
 const describeComponent = component => `${component.name}: ${component.pair.k === 'o'
   ? `órbita de ${period(component.pair.p)}, a ${significant(component.separationAu)} UA`
   : `par ancho, ${significant(component.separationAu)} UA proyectadas`}${component.pair.m1 && component.pair.m2
-  ? `, masas ≈ ${significant(component.pair.m1)} y ${significant(component.pair.m2)} M☉` : ''}`;
+  ? `, masas ${component.pair.mc === 'pub' ? '' : '≈ '}${component.pair.m1.toLocaleString('es-CL')} y ${component.pair.m2.toLocaleString('es-CL')} M☉${component.pair.mc === 'pub' ? ` (${component.pair.ms})` : ''}` : ''}`;
 const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, { id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC }, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
