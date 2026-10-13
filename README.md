@@ -4,7 +4,7 @@
 
 Exploración 3D del sistema solar, el vecindario estelar y nuestro lugar en la Vía Láctea. Su propósito es hacer comprensibles las distancias y escalas astronómicas recorriéndolas de forma continua, desde la Tierra hasta 200.000 años luz.
 
-Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula todo: [documentación técnica](docs/DOCUMENTACION.md).
+Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula todo: [documentación técnica](docs/DOCUMENTACION.md). Avance del proyecto: [historial](docs/HISTORIAL.md).
 
 ## Qué incluye
 
@@ -49,6 +49,7 @@ Comprobaciones: `npm test`, `npm run lint`, `npm run build`. Vista del build: `n
 | `scripts/` | Generadores de datos y pruebas |
 | `public/` | Texturas, índice de búsqueda y licencias |
 | `docs/DOCUMENTACION.md` | Unidades, coordenadas, fórmulas, fuentes y límites |
+| `docs/HISTORIAL.md` | Avance del proyecto por fechas |
 
 ## Créditos
 

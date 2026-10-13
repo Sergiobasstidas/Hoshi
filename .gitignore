@@ -48,6 +48,7 @@ data/raw/simbad/*
 /PENDIENTES.md
 /docs/*
 !/docs/DOCUMENTACION.md
+!/docs/HISTORIAL.md
 /.claude/
 # Material de referencia local
 /data/reference/
