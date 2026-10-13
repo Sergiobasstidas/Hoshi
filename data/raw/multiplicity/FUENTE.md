@@ -18,3 +18,11 @@ Descargado el 13/10/2026 desde el mismo espejo:
 - `wdsweb_format.txt` — https://www.astro.gsu.edu/wds/Webtextfiles/wdsweb_format.txt (formato y códigos de notas)
 
 Mantenido por el U.S. Naval Observatory (Mason, Wycoff, Hartkopf, Douglass y Worley). Archivos sin modificar. Se usan los pares marcados como físicos (códigos T, V o Z, sin S, U, Y ni X) y el tipo espectral de la compañera.
+
+# Multiple Star Catalog (MSC)
+
+Descargado el 13/10/2026 del CDS, catálogo J/ApJS/235/6 (versión actualizada a diciembre de 2023), en `msc/`:
+
+- `ReadMe`, `catalog.dat.gz`, `systems.dat.gz`, `orbits.dat` — https://cdsarc.cds.unistra.fr/ftp/J/ApJS/235/6/
+
+Autor: A. Tokovinin (2018, ApJS 235, 6; doi:10.26093/cds/vizier.22350006). Archivos sin modificar. Se usan las masas estimadas de cada par, la jerarquía, los tipos espectrales y las posiciones e identificadores de componentes. `orbits.dat` se conserva pero no se procesa.

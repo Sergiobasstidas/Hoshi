@@ -52,6 +52,16 @@ export function companionOffsetPc(elements, position, mjd = dateToMjd(BINARY_MOD
   return equatorialVector(skyOffset(elements, anomalyAt(elements, mjd)), position).map(v => v * AU_TO_PC);
 }
 
+// Órbitas de las dos estrellas de un par en torno a su centro de masas, expresadas
+// respecto de la posición actual de la primaria. q = m2 / (m1 + m2). La primaria
+// queda donde estaba: solo cambia la curva dibujada.
+export function barycentricOrbitsPc(elements, position, massRatio, mjd = dateToMjd(BINARY_MODEL_DATE), samples = 256) {
+  const now = companionOffsetPc(elements, position, mjd), relative = companionOrbitPc(elements, position, samples);
+  const centre = now.map(v => v * massRatio);
+  return { centre, primary: relative.map(p => p.map((v, i) => centre[i] - massRatio * v)),
+    companion: relative.map(p => p.map((v, i) => centre[i] + (1 - massRatio) * v)) };
+}
+
 export function companionOrbitPc(elements, position, samples = 256) {
   return Array.from({ length: samples + 1 }, (_, i) =>
     equatorialVector(skyOffset(elements, i / samples * Math.PI * 2), position).map(v => v * AU_TO_PC));
@@ -103,7 +113,9 @@ export function buildStarSystems(data, starsById) {
       if (companion && pair.k === 'o') [companion.x, companion.y, companion.z] = offsetPc.map((v, i) => v + position[i]);
       offsets[pair.n] = offsetPc;
       const separationAu = Math.hypot(...relative) / AU_TO_PC;
-      return [{ name: pair.n, pair, companion, parentOffsetPc: parent, offsetPc, separationAu,
+      // Con masas estimadas (MSC) las dos estrellas giran en torno a su centro de masas.
+      const massRatio = pair.k === 'o' && pair.m1 > 0 && pair.m2 > 0 ? pair.m2 / (pair.m1 + pair.m2) : null;
+      return [{ name: pair.n, pair, companion, parentOffsetPc: parent, offsetPc, separationAu, massRatio,
         scalePc: (pair.k === 'o' ? apastronAu(pair) : separationAu) * AU_TO_PC,
         color: companion?.rgb || companionColor(pair.sp), sizePx: companionSizePx(pair.v, star.d),
         label: `${star.n || entry.wds} ${pair.n}` }];
@@ -111,7 +123,7 @@ export function buildStarSystems(data, starsById) {
     if (!components.length) return [];
     // Encuadre de llegada: lo más ancho del sistema que siga siendo un conjunto compacto.
     const framed = components.filter(c => Math.hypot(...c.offsetPc) + c.scalePc < FRAME_LIMIT_AU * AU_TO_PC);
-    return [{ id: star.i, star, position, wds: entry.wds, components,
+    return [{ id: star.i, star, position, wds: entry.wds, components, hidden: entry.hidden || [],
       rangePc: Math.max(...components.map(c => c.scalePc)),
       framePc: framed.length ? Math.max(...framed.map(c => Math.hypot(...c.parentOffsetPc) + c.scalePc)) : 0 }];
   });

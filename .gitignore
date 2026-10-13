@@ -30,3 +30,13 @@ dist-ssr
 .wrangler/
 # Panorama de referencia sin uso (no forma parte de la aplicación)
 data/reference/*.exr
+# Datos crudos de exoplanetas (137 MB): se descargan con las URL de FUENTES.md
+data/raw/exoplanets/*
+!data/raw/exoplanets/FUENTES.md
+# Datos crudos de Gaia (21 MB) y tabla de identidad regenerable (31 MB)
+data/raw/gaia/*
+!data/raw/gaia/FUENTES.md
+data/catalog/star_identity.json
+# Datos crudos de SIMBAD (4,9 MB)
+data/raw/simbad/*
+!data/raw/simbad/FUENTES.md
