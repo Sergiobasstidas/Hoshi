@@ -45,20 +45,13 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     }
     const au = pc / AU_TO_PC;
     root.querySelector('[data-distance]').textContent = au < 1000
-      ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)} UA`
-      : `${(pc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(pc / LIGHT_YEAR_PC)} años luz`;
+      ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)}`
+      : `${(pc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(pc / LIGHT_YEAR_PC)}`;
+    root.querySelector('[data-distance-unit]').textContent = au < 1000 ? 'UA' : 'años luz';
+    root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${barraDesdeDistancia(pc) * .75} 100`);
     root.querySelector('[data-distance-detail]').textContent = `${pc < 0.01 ? pc.toLocaleString('es-CL', {maximumSignificantDigits:3}) : format.format(pc)} pc`;
     const inspectingStar = origin.some(Boolean) || focusedBody?.kind === 'star' || aimTarget?.kind === 'star';
     const nameOpacity = inspectingStar ? 0.9 : starLabelOpacity(pc);
-    root.querySelector('[data-context]').textContent = focusedBody?.kind === 'star' ? focusedBody.star.physics ? 'Radio y temperatura estimados · textura estelar ilustrativa'
-      : focusedBody.star.dataOrigin === 'curated' ? 'Posición curada de SIMBAD · distancia aproximada · radio no disponible'
-        : 'Posición de catálogo · radio no disponible'
-      : binary ? 'WR 140 · separación física · posiciones calculadas, no observación en directo' : !origin.some(Boolean) && au>35 && au<250 ? 'Kuiper: región principal 30–50 UA · distribución y tamaño de partículas ilustrativos' : au < 100
-      ? 'Radios a escala · planos orbitales J2000 · círculos y posiciones ilustrativos'
-      : heliosphereVisibility(pc) > 0.01 ? 'Heliosfera: burbuja ilustrativa de plasma y campo magnético solar · escala ≈120 UA'
-        : au < 6000 ? 'Sondas: posiciones ilustrativas del prototipo'
-        : pc < 3 ? 'Nube de Oort: envoltura ilustrativa de objetos pequeños'
-          : 'Posiciones de catálogo · marcadores de brillo · superficie a escala al inspeccionar';
     if (focusedBody) {
       const distancePc = camera.position.distanceTo(vector.set(...focusedBody.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const altitude = root.querySelector('[data-body-altitude]');

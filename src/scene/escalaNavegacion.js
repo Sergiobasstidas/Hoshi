@@ -7,12 +7,26 @@ export const TIERRA = SOLAR_BODIES.find(cuerpo => cuerpo.name === 'Tierra');
 export const DISTANCIA_MINIMA = TIERRA.radiusKm * KM_TO_PC * 6;
 // Deja margen para que el límite heliocéntrico también se respete al centrar Tierra.
 export const DISTANCIA_MAXIMA = MAX_VIEW_DISTANCE_PC - Math.hypot(...TIERRA.position);
+// Escala de exploración por tramos: el entorno solar ocupa el tercio inferior.
+// Cada tramo conserva distancias continuas, pero no una proporción física uniforme.
+export const MARCAS_ESCALA = [
+  ['Tierra', 0, DISTANCIA_MINIMA],
+  ['Cinturón de Kuiper', 12, 40 * AU_TO_PC],
+  ['Heliosfera', 21, 120 * AU_TO_PC],
+  ['Nube de Oort', 32, LIGHT_YEAR_PC],
+  ['Vía Láctea', 100, DISTANCIA_MAXIMA],
+];
 export function distanciaDesdeBarra(valor) {
-  return DISTANCIA_MINIMA * (DISTANCIA_MAXIMA / DISTANCIA_MINIMA) ** (Math.max(0, Math.min(100, valor)) / 100);
+  const v = Math.max(0, Math.min(100, valor));
+  const i = Math.max(1, MARCAS_ESCALA.findIndex(marca => marca[1] >= v));
+  const [, inicio, cerca] = MARCAS_ESCALA[i - 1], [, fin, lejos] = MARCAS_ESCALA[i];
+  return cerca * (lejos / cerca) ** ((v - inicio) / (fin - inicio));
 }
 export function barraDesdeDistancia(distancia) {
-  return Math.max(0, Math.min(100, 100 * Math.log(Math.max(distancia, DISTANCIA_MINIMA) / DISTANCIA_MINIMA)
-    / Math.log(DISTANCIA_MAXIMA / DISTANCIA_MINIMA)));
+  const d = Math.max(DISTANCIA_MINIMA, Math.min(DISTANCIA_MAXIMA, distancia));
+  const i = Math.max(1, MARCAS_ESCALA.findIndex(marca => marca[2] >= d));
+  const [, inicio, cerca] = MARCAS_ESCALA[i - 1], [, fin, lejos] = MARCAS_ESCALA[i];
+  return inicio + (fin - inicio) * Math.log(d / cerca) / Math.log(lejos / cerca);
 }
 export function textoDistancia(distancia) {
   const esUA = distancia < 1000 * AU_TO_PC;

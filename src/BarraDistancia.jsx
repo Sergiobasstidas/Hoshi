@@ -1,11 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { AU_TO_PC, LIGHT_YEAR_PC } from './scene/scale.js';
-import { barraDesdeDistancia, distanciaDesdeBarra, textoDistancia } from './scene/escalaNavegacion.js';
+import { MARCAS_ESCALA, distanciaDesdeBarra, textoDistancia } from './scene/escalaNavegacion.js';
 import { CANTIDAD_LINEAS_ESCALA, intensidadLinea } from './scene/ondaEscala.js';
 
-const MARCAS = [['Tierra',0],['Sistema solar',barraDesdeDistancia(50*AU_TO_PC)],
-  ['Heliosfera',barraDesdeDistancia(120*AU_TO_PC)],['Nube de Oort',barraDesdeDistancia(LIGHT_YEAR_PC)],
-  ['Vecindario',barraDesdeDistancia(100*LIGHT_YEAR_PC)],['Vía Láctea',100]];
+const MARCAS = MARCAS_ESCALA;
 const LINEAS = Array.from({length:CANTIDAD_LINEAS_ESCALA},(_,i)=>i);
 export default function BarraDistancia({ onViajar }) {
   const recorrido=useRef(null);

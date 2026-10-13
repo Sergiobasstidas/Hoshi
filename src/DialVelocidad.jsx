@@ -28,6 +28,6 @@ export default function DialVelocidad({ velocidad, activo, viajando, onCambiar, 
     <input className="dial-teclado" type="range" min="0" max="100" step="0.1" value={valor} disabled={!activo}
       aria-label="Ajustar velocidad de vuelo" aria-valuetext={`${formato.numero} ${formato.unidad}; ${formato.km} kilómetros por segundo`}
       onChange={evento=>onCambiar(velocidadDesdeDial(Number(evento.target.value)))}/>
-    <span className="dial-instruccion">{activo?'ARRASTRA EL ARCO · RUEDA PARA AFINAR':<button disabled={viajando} onClick={onActivar}>{viajando?'En tránsito':'Activar vuelo libre'}</button>}</span>
+    {!activo&&<span className="dial-instruccion"><button disabled={viajando} onClick={onActivar}>{viajando?'En tránsito':'Activar vuelo libre'}</button></span>}
   </section>;
 }

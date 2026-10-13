@@ -143,3 +143,19 @@
 @media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.distancia-titulo{margin-top:10px}.distance-value{font-size:21px}.body-panel{left:100px;max-width:calc(100% - 118px)}.galaxy-legend{left:100px;bottom:210px;max-width:calc(100% - 120px)}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
 @media(max-height:650px){.barra-distancia{--superior:155px;--inferior:70px}.dial-velocidad{transform:translateX(-50%) scale(.75);transform-origin:bottom center;bottom:6px}}
 @media(prefers-reduced-motion:reduce){.scene-label.star .label-text,.escala-linea{transition:none}}
+
+/* Visores gemelos: ampliación uniforme de arcos, cifras y textos. */
+.visores-vuelo{position:absolute;bottom:30px;left:50%;display:flex;gap:12px;width:412px;height:184px;transform:translateX(-50%) scale(1.15);transform-origin:bottom center;z-index:23;color:#8ca5b4;text-align:center;}
+.visores-vuelo .dial-velocidad,.dial-distancia{position:relative;left:auto;bottom:auto;transform:none;width:200px;height:184px;flex:none;}
+.dial-distancia{pointer-events:none;}
+.dial-arco,.dial-arco-distancia{stroke-width:2.7;}
+.dial-arco-distancia{stroke:url(#degradado-distancia);}
+.marca-hoshi{font-size:16.8px;}
+.creditos-hoshi{pointer-events:auto;}
+.creditos-hoshi summary{cursor:pointer;list-style:none;}
+.creditos-hoshi summary::-webkit-details-marker{display:none;}
+.creditos-contenido{max-width:300px;padding:12px;background:#0a1019ed;border:1px solid #405e7544;color:#9fb7c5;font-size:11px;line-height:1.6;pointer-events:auto;}
+.creditos-contenido a{color:#9fcbd5;}
+@media(max-width:700px){.visores-vuelo{transform:translateX(-50%) scale(.92);bottom:36px;}.marca-hoshi{font-size:14.4px;}}
+@media(max-width:420px){.visores-vuelo{transform:translateX(-50%) scale(.8);}}
+@media(max-height:650px){.visores-vuelo{transform:translateX(-50%) scale(.8625);bottom:20px;}}

@@ -24,6 +24,7 @@ import './App.css';
 import StarSearch from './StarSearch';
 import BarraDistancia from './BarraDistancia';
 import DialVelocidad from './DialVelocidad';
+import DialDistancia from './DialDistancia';
 import { destinoDesdeBarra } from './scene/escalaNavegacion.js';
 import MilkyWay from './scene/MilkyWay';
 import { galaxyView } from './scene/galaxy.js';
@@ -204,14 +205,20 @@ export default function App() {
     <div ref={overlayRef} className="scene-overlay">
       <StarSearch onSelect={visitSearchResult} />
       <BarraDistancia onViajar={viajarDesdeBarra} />
+      <div className="visores-vuelo"><DialDistancia />
       <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight}
         onCambiar={valor=>{setSpeed(valor);setVelocidadSolicitada({valor});}} />
-      <header className="distance-panel">
-        <span className="eyebrow marca-hoshi">H O S H I</span>
-        <span className="distancia-titulo">DISTANCIA AL SOL</span>
-        <div className="distance-value" data-distance>—</div>
-        <div className="distance-detail" data-distance-detail />
-      </header>
+      </div>
+      <details className="distance-panel creditos-hoshi">
+        <summary className="eyebrow marca-hoshi" aria-label="Hoshi: ver créditos">H O S H I</summary>
+        <div className="creditos-contenido">
+          <p>© 2026 Sergio Bastidas</p>
+          <p>Vía Láctea: ESA/Gaia/DPAC · Stefan Payne-Wardenaar.</p>
+          <p>Adaptación con volumen de una representación galáctica.</p>
+          <a href="https://www.cosmos.esa.int/web/gaia/milky-way" target="_blank" rel="noreferrer">Fuente original</a>
+          {' · '}<a href="https://creativecommons.org/licenses/by-sa/3.0/igo/" target="_blank" rel="noreferrer">CC BY-SA 3.0 IGO</a>
+        </div>
+      </details>
       <nav className="scale-navigation" aria-label="Explorar escalas">
         {SCALE_VIEWS.map(option => <button key={option.id} onClick={() => { setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null); navigate(option); }}>
           {option.label}
@@ -226,14 +233,6 @@ export default function App() {
       </nav>
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
-      {galaxyStatus === 'visible' && !showPulsars && <aside className="galaxy-legend">
-        <strong>Nuestro lugar en la Vía Láctea</strong>
-        <span>Sol a ≈26.500 años luz del centro · disco estelar de ≈100.000 años luz</span>
-        <span>Representación galáctica · las estrellas del catálogo conservan sus posiciones</span>
-        <div><button onClick={() => frameGalaxy()}>Vista general</button><button onClick={() => frameGalaxy(true)}>De perfil</button></div>
-        <a href="https://www.cosmos.esa.int/web/gaia/milky-way" target="_blank" rel="noreferrer">ESA/Gaia/DPAC · Stefan Payne-Wardenaar</a>
-        <small>Adaptación con volumen · <a href="https://creativecommons.org/licenses/by-sa/3.0/igo/" target="_blank" rel="noreferrer">CC BY-SA 3.0 IGO</a></small>
-      </aside>}
       {showPulsars && <aside className="pulsar-legend">
         <strong>Los 14 púlsares del mapa de Voyager</strong>
         <span>Conexiones desde el Sol · distancias estimadas · posiciones de catálogo</span>
@@ -328,7 +327,7 @@ export default function App() {
       </svg>
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <footer className="scene-footer">
-        <span><span data-context /><br/>© 2026 Sergio Bastidas Acosta · Hoshi</span>
+        <span>© 2026 Sergio Bastidas</span>
         <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
           {freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
             : 'Arrastra / flechas: mirar · WASD: mover · R/F: subir/bajar · Q/E: inclinar · Rueda: velocidad · Shift + rueda: ajuste rápido'
