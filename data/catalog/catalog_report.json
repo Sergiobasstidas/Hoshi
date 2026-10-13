@@ -1,22 +1,73 @@
 {
-  "generado": "2026-10-13T05:51:43.873Z",
+  "generado": "2026-10-13T13:50:09.847Z",
   "estrellasHoshi": 118660,
+  "conGaia": 118047,
   "conGaiaPorHip": 99274,
-  "sinGaia": 19386,
+  "conGaiaPorPosicion": 18773,
+  "validacionPorPosicion": {
+    "plx+mag": 17552,
+    "mag": 532,
+    "plx+pm": 689
+  },
+  "sinGaia": 613,
   "enlaceHipGaiaDudoso": 705,
   "distanciaDiscrepante": {
     "umbral": 0.1,
-    "total": 81,
+    "total": 208,
     "porFuente": {
-      "HIP": 53,
-      "G_R3": 28
+      "HIP": 175,
+      "G_R3": 30,
+      "G_R2": 1,
+      "GJ": 2
     },
     "muestra": [
+      {
+        "i": 1471111,
+        "n": "Gl 568A",
+        "dHoshi": 10.1626,
+        "dGaia": 11.428,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1938761,
+        "n": "Gl 734A",
+        "dHoshi": 16.1031,
+        "dGaia": 18.719,
+        "fuente": "GJ"
+      },
+      {
+        "i": 944469,
+        "n": "Gl 332A",
+        "dHoshi": 16.0694,
+        "dGaia": 18.74,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1297114,
+        "n": "GJ 3749",
+        "dHoshi": 38.75968992248062,
+        "dGaia": 33.824,
+        "fuente": "GJ"
+      },
       {
         "i": 168435,
         "n": "HIP 10370",
         "dHoshi": 28.9855,
         "dGaia": 36.684,
+        "fuente": "HIP"
+      },
+      {
+        "i": 320560,
+        "n": "HIP 20598",
+        "dHoshi": 50.9684,
+        "dGaia": 43.607,
+        "fuente": "HIP"
+      },
+      {
+        "i": 2371128,
+        "n": "HIP 108431",
+        "dHoshi": 57.6701,
+        "dGaia": 47.121,
         "fuente": "HIP"
       },
       {
@@ -27,10 +78,38 @@
         "fuente": "G_R3"
       },
       {
+        "i": 101258,
+        "n": "HIP 6234",
+        "dHoshi": 46.2107,
+        "dGaia": 51.962,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1164182,
+        "n": "HIP 54577",
+        "dHoshi": 59.8802,
+        "dGaia": 54.233,
+        "fuente": "HIP"
+      },
+      {
+        "i": 832254,
+        "n": "HIP 39948",
+        "dHoshi": 71.3906,
+        "dGaia": 54.445,
+        "fuente": "G_R3"
+      },
+      {
         "i": 157986,
         "n": "HIP 9753",
         "dHoshi": 39.604,
         "dGaia": 54.96,
+        "fuente": "HIP"
+      },
+      {
+        "i": 2042968,
+        "n": "HIP 96287",
+        "dHoshi": 67.4764,
+        "dGaia": 58.63,
         "fuente": "HIP"
       },
       {
@@ -41,10 +120,73 @@
         "fuente": "HIP"
       },
       {
+        "i": 120856,
+        "n": "HIP 7463",
+        "dHoshi": 69.3481,
+        "dGaia": 59.2,
+        "fuente": "HIP"
+      },
+      {
+        "i": 217726,
+        "n": "HIP 13490",
+        "dHoshi": 70.6714,
+        "dGaia": 60.226,
+        "fuente": "HIP"
+      },
+      {
+        "i": 2200799,
+        "n": "HIP 101390",
+        "dHoshi": 72.7802,
+        "dGaia": 61.599,
+        "fuente": "HIP"
+      },
+      {
+        "i": 177742,
+        "n": "HIP 10952",
+        "dHoshi": 55.6174,
+        "dGaia": 64.863,
+        "fuente": "HIP"
+      },
+      {
+        "i": 304588,
+        "n": "HIP 19532",
+        "dHoshi": 55.2486,
+        "dGaia": 66.432,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1086419,
+        "n": "HIP 50747",
+        "dHoshi": 59.952,
+        "dGaia": 66.64,
+        "fuente": "HIP"
+      },
+      {
+        "i": 576121,
+        "n": "HIP 32075",
+        "dHoshi": 61.6523,
+        "dGaia": 70.205,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1648550,
+        "n": "HIP 82095",
+        "dHoshi": 80.0641,
+        "dGaia": 70.822,
+        "fuente": "HIP"
+      },
+      {
         "i": 1115016,
         "n": "HIP 52097",
         "dHoshi": 65.4022,
         "dGaia": 73.142,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1058679,
+        "n": "HIP 49442",
+        "dHoshi": 64.0615,
+        "dGaia": 74.151,
         "fuente": "HIP"
       },
       {
@@ -62,10 +204,31 @@
         "fuente": "G_R3"
       },
       {
+        "i": 1417784,
+        "n": "HIP 69700",
+        "dHoshi": 68.7285,
+        "dGaia": 81.215,
+        "fuente": "HIP"
+      },
+      {
+        "i": 2480592,
+        "n": "HIP 114039",
+        "dHoshi": 105.7082,
+        "dGaia": 81.473,
+        "fuente": "HIP"
+      },
+      {
         "i": 126669,
         "n": "HIP 7841",
         "dHoshi": 89.8473,
         "dGaia": 81.493,
+        "fuente": "HIP"
+      },
+      {
+        "i": 334962,
+        "n": "HIP 21488",
+        "dHoshi": 70.7714,
+        "dGaia": 81.546,
         "fuente": "HIP"
       },
       {
@@ -76,241 +239,108 @@
         "fuente": "HIP"
       },
       {
+        "i": 369303,
+        "n": "HIP 23480",
+        "dHoshi": 103.4126,
+        "dGaia": 84.459,
+        "fuente": "HIP"
+      },
+      {
+        "i": 89991,
+        "n": "HIP 5512",
+        "dHoshi": 104.6025,
+        "dGaia": 84.588,
+        "fuente": "HIP"
+      },
+      {
+        "i": 2247705,
+        "n": "HIP 103071",
+        "dHoshi": 107.7586,
+        "dGaia": 84.94,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1923297,
+        "n": "HIP 92332",
+        "dHoshi": 74.9064,
+        "dGaia": 89.413,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1447224,
+        "n": "HIP 71467",
+        "dHoshi": 106.0445,
+        "dGaia": 92.081,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1531256,
+        "n": "HIP 76276",
+        "dHoshi": 69.9301,
+        "dGaia": 92.541,
+        "fuente": "HIP"
+      },
+      {
+        "i": 1419227,
+        "n": "HIP 69790",
+        "dHoshi": 78.3699,
+        "dGaia": 93.379,
+        "fuente": "HIP"
+      },
+      {
+        "i": 778877,
+        "n": "HIP 38195",
+        "dHoshi": 134.9528,
+        "dGaia": 96.209,
+        "fuente": "HIP"
+      },
+      {
         "i": 177935,
         "n": "HIP 10959",
         "dHoshi": 166.6667,
         "dGaia": 96.871,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1653200,
-        "n": "HIP 82307",
-        "dHoshi": 146.4429,
-        "dGaia": 111.39,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 156260,
-        "n": "HIP 9651",
-        "dHoshi": 258.8917,
-        "dGaia": 114.86,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 1242481,
-        "n": "HIP 59050",
-        "dHoshi": 151.5489,
-        "dGaia": 116.18,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 747881,
-        "n": "HIP 37229",
-        "dHoshi": 106.2699,
-        "dGaia": 120.4,
-        "fuente": "HIP"
-      },
-      {
-        "i": 810049,
-        "n": "HIP 39197",
-        "dHoshi": 104.9318,
-        "dGaia": 134.24,
-        "fuente": "HIP"
-      },
-      {
-        "i": 2550541,
-        "n": "HIP 118221",
-        "dHoshi": 105.8201,
-        "dGaia": 134.72,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1466596,
-        "n": "HIP 72590",
-        "dHoshi": 157.17,
-        "dGaia": 138.09,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 2540797,
-        "n": "HIP 117646",
-        "dHoshi": 223.2143,
-        "dGaia": 138.97,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1415138,
-        "n": "HIP 69541",
-        "dHoshi": 132.626,
-        "dGaia": 158.67,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1821126,
-        "n": "HIP 88975",
-        "dHoshi": 141.0437,
-        "dGaia": 161.72,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1680754,
-        "n": "HIP 83568",
-        "dHoshi": 96.1039,
-        "dGaia": 163.58,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 313498,
-        "n": "HIP 20111",
-        "dHoshi": 220.7506,
-        "dGaia": 169.65,
-        "fuente": "HIP"
-      },
-      {
-        "i": 21445,
-        "n": "HIP 1281",
-        "dHoshi": 219.7802,
-        "dGaia": 175.1,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1843331,
-        "n": "HIP 89655",
-        "dHoshi": 129.0323,
-        "dGaia": 175.34,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1039870,
-        "n": "HIP 48610",
-        "dHoshi": 125.1564,
-        "dGaia": 181.02,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1582507,
-        "n": "HIP 78957",
-        "dHoshi": 144.7178,
-        "dGaia": 181.49,
-        "fuente": "HIP"
-      },
-      {
-        "i": 262268,
-        "n": "HIP 16664",
-        "dHoshi": 131.5789,
-        "dGaia": 181.84,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1775368,
-        "n": "HIP 87427",
-        "dHoshi": 234.192,
-        "dGaia": 182.93,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1863002,
-        "n": "HIP 90284",
-        "dHoshi": 144.7178,
-        "dGaia": 185.9,
-        "fuente": "HIP"
-      },
-      {
-        "i": 37896,
-        "n": "HIP 2252",
-        "dHoshi": 240.9639,
-        "dGaia": 193.72,
-        "fuente": "HIP"
-      },
-      {
-        "i": 216786,
-        "n": "HIP 13424",
-        "dHoshi": 259.5815,
-        "dGaia": 196.27,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 1238614,
-        "n": "HIP 58791",
-        "dHoshi": 246.9136,
-        "dGaia": 207.39,
-        "fuente": "HIP"
-      },
-      {
-        "i": 330532,
-        "n": "HIP 21216",
-        "dHoshi": 268.8172,
-        "dGaia": 209.56,
-        "fuente": "HIP"
-      },
-      {
-        "i": 2187595,
-        "n": "HIP 100901",
-        "dHoshi": 154.321,
-        "dGaia": 209.98,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1122547,
-        "n": "HIP 52452",
-        "dHoshi": 169.4915,
-        "dGaia": 213.8,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1275583,
-        "n": "HIP 61101",
-        "dHoshi": 176.6784,
-        "dGaia": 220.61,
-        "fuente": "HIP"
-      },
-      {
-        "i": 2021213,
-        "n": "HIP 95593",
-        "dHoshi": 409.3508,
-        "dGaia": 226.1,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 1421233,
-        "n": "HIP 69907",
-        "dHoshi": 167.7852,
-        "dGaia": 228.25,
-        "fuente": "HIP"
-      },
-      {
-        "i": 1162825,
-        "n": "HIP 54514",
-        "dHoshi": 252.4845,
-        "dGaia": 228.29,
-        "fuente": "G_R3"
-      },
-      {
-        "i": 1235070,
-        "n": "HIP 58600",
-        "dHoshi": 167.5042,
-        "dGaia": 237.15,
         "fuente": "HIP"
       }
     ]
   },
   "candidatasBinariaGaia": {
     "criterio": "RUWE > 1.4 o non_single_star > 0",
-    "total": 10253
+    "total": 27773
   },
   "anfitriones": {
     "total": 4842,
-    "enHoshi": 907,
+    "enHoshi": 911,
     "porVia": {
-      "gaia": 837,
-      "ninguna": 3935,
-      "cruce": 39,
-      "simbad-hip": 30,
+      "gaia": 896,
+      "ninguna": 3931,
+      "cruce": 6,
+      "simbad-hip": 8,
       "simbad-hd": 1
     },
     "conSimbad": 4538,
     "conGaia": 4516,
-    "nuevosFrenteAlCruce": [],
+    "nuevosFrenteAlCruce": [
+      {
+        "host": "LHS 475",
+        "i": 2004361,
+        "method": "gaia"
+      },
+      {
+        "host": "TOI-6324",
+        "i": 2380586,
+        "method": "gaia"
+      },
+      {
+        "host": "RR Cae",
+        "i": 316189,
+        "method": "gaia"
+      },
+      {
+        "host": "TOI-244",
+        "i": 54927,
+        "method": "gaia"
+      }
+    ],
     "conflictos": []
   }
 }

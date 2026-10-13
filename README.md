@@ -9,8 +9,9 @@ Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula tod
 ## Qué incluye
 
 - **Sistema solar:** Sol, ocho planetas y Luna con radios a escala real, órbitas con su inclinación, cinturón de Kuiper, heliosfera, sondas Voyager y nube de Oort.
-- **Estrellas:** 118.660 estrellas del catálogo AT-HYG en sus posiciones medidas, con color por temperatura. Radio y temperatura estimados para 362 de ellas.
-- **Sistemas múltiples:** 5.615 sistemas que se separan en sus componentes al acercarse, con órbitas publicadas y, cuando hay masas, las dos estrellas girando en torno a su centro común.
+- **Estrellas:** 122.284 estrellas en sus posiciones medidas, con color por temperatura: 118.660 del catálogo AT-HYG, el 99,5 % enlazadas con Gaia DR3, y 3.624 anfitrionas de exoplanetas añadidas.
+- **Sistemas planetarios:** 6.125 exoplanetas de 4.533 sistemas, con órbitas y radios a escala. La ficha indica qué valores son medidos y cuáles supuestos. Se puede viajar a cada planeta.
+- **Sistemas múltiples:** 5.786 sistemas que se separan en sus componentes al acercarse, con órbitas publicadas y, cuando hay masas, las dos estrellas girando en torno a su centro común.
 - **Vía Láctea:** reconstrucción con volumen a partir de la imagen de ESA/Gaia, centro galáctico y posición del Sol.
 - **Mapa de púlsares:** los 14 púlsares de las placas Pioneer y Voyager.
 - **Navegación:** buscador por nombre e identificadores, escala lateral, viajes suaves entre escalas y vuelo libre.

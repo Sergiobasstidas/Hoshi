@@ -1,0 +1,255 @@
+import { AU_TO_PC, ECLIPTIC_UP, KM_TO_PC, SUN_RADIUS_KM } from './scale.js';
+import { BINARY_EPOCH, dateMjd, eccentricAnomaly } from './binaryOrbit.js';
+
+// Órbitas de exoplanetas a partir de la tabla compuesta de la NASA. Marco: pc,
+// ecuatorial J2000, Sol en el origen. Qué es medido y qué supuesto se declara por
+// planeta en `s` (ver ASSUMPTIONS). Véase docs/exoplanets/SISTEMAS_PLANETARIOS.md.
+
+// Radio ecuatorial terrestre nominal (IAU 2015), la unidad de pl_rade.
+export const EARTH_RADIUS_KM = 6378.1;
+// Mediana de la inclinación para orientaciones al azar (cos i uniforme).
+export const ASSUMED_INCLINATION_DEG = 60;
+// La tabla no trae la longitud del nodo ascendente: valor convencional para todos.
+export const CONVENTIONAL_NODE_DEG = 0;
+export const EXOPLANET_EPOCH = BINARY_EPOCH;
+export const EXOPLANET_EPOCH_JD = dateMjd(EXOPLANET_EPOCH) + 2400000.5;
+// Encuadre de llegada: no alejarse por una compañera fotografiada a miles de UA.
+export const PLANET_FRAME_LIMIT_AU = 2500;
+
+// Marcas de lo que no es una medida de la tabla. La clave es la letra guardada en `s`.
+export const ASSUMPTIONS = {
+  a: 'semieje calculado con la 3.ª ley de Kepler',
+  P: 'período calculado con la 3.ª ley de Kepler',
+  e: 'excentricidad sin publicar: órbita circular supuesta',
+  c: 'excentricidad 0 en la tabla (suele ser un valor fijado)',
+  i: `inclinación desconocida: ${ASSUMED_INCLINATION_DEG}° supuestos`,
+  t: 'inclinación sin publicar: 90° por ser un tránsito',
+  k: 'inclinación desconocida: se supone el plano de los planetas medidos del sistema',
+  w: 'orientación de la elipse supuesta (ω = 0°)',
+  f: 'posición en la órbita ilustrativa (sin fase medida)',
+  r: 'radio estimado con una relación masa-radio',
+  R: 'radio desconocido: marcador',
+};
+
+const radians = degrees => degrees * Math.PI / 180;
+
+// 3.ª ley de Kepler con la masa de la estrella (M☉): a en UA, P en días.
+export const keplerSemiMajorAu = (periodDays, starMass) => Math.cbrt(starMass * (periodDays / 365.25) ** 2);
+export const keplerPeriodDays = (semiMajorAu, starMass) => 365.25 * Math.sqrt(semiMajorAu ** 3 / starMass);
+
+// Completa los elementos de un planeta de exoplanet_systems.json y anota lo supuesto.
+// Devuelve null si no hay con qué fijar el tamaño de la órbita.
+// `systemInclination`: mediana de las inclinaciones medidas en el sistema, si las hay; los
+// sistemas con varios planetas conocidos son casi coplanares.
+export function resolvePlanet(planet, starMass = null, sharedPeriastron = false, systemInclination = null) {
+  const s = [];
+  let a = planet.a, P = planet.P;
+  if (a === null && P !== null && starMass > 0) { a = keplerSemiMajorAu(P, starMass); s.push('a'); }
+  if (a === null || !(a > 0)) return null;
+  if (P === null && starMass > 0) { P = keplerPeriodDays(a, starMass); s.push('P'); }
+  let e = planet.e;
+  if (e === null) { e = 0; s.push('e'); } else if (e === 0) s.push('c');
+  let inc = planet.inc;
+  if (inc === null) {
+    if (planet.f?.tr) { inc = 90; s.push('t'); }
+    else if (systemInclination !== null) { inc = systemInclination; s.push('k'); }
+    else { inc = ASSUMED_INCLINATION_DEG; s.push('i'); }
+  }
+  let w = planet.w;
+  if (w === null) { w = 0; if (e > 0) s.push('w'); }
+  // Fase: el tránsito central es la referencia más directa. Un «tiempo de periastro»
+  // idéntico en varios planetas es la época de un ajuste dinámico, no un periastro.
+  let t = null;
+  if (P !== null && !s.includes('P')) {
+    if (planet.t0 !== null && (planet.f?.tr || planet.tp === null || sharedPeriastron)) t = ['t0', planet.t0];
+    else if (planet.tp !== null && !sharedPeriastron) t = ['tp', planet.tp];
+    else if (planet.t0 !== null) t = ['t0', planet.t0];
+  }
+  if (!t) s.push('f');
+  if (planet.r === null) s.push('R'); else if (planet.calc?.includes('pl_rade')) s.push('r');
+  return { n: planet.n, a: Number(a.toPrecision(5)), P: P === null ? null : Number(P.toPrecision(8)), e, inc, w, t,
+    r: planet.r, teq: planet.teq, m: planet.m, mp: planet.mp, s: s.join('') };
+}
+
+// Del plano de la órbita (x hacia el periastro) al marco ecuatorial. Misma transformación
+// que relativeOrbitAu de binaryOrbit.js: ángulo de posición desde el norte hacia el este y
+// línea de visión positiva alejándose del Sol. `omegaDeg` es el argumento del periastro
+// del cuerpo cuya posición se dibuja.
+export function orbitalPlaneToEquatorial(x, y, { omegaDeg, nodeDeg, inclinationDeg, raDeg, decDeg }) {
+  const w = radians(omegaDeg), node = radians(nodeDeg), inc = radians(inclinationDeg);
+  const u = x * Math.cos(w) - y * Math.sin(w), v = x * Math.sin(w) + y * Math.cos(w);
+  const north = u * Math.cos(node) - v * Math.sin(node) * Math.cos(inc);
+  const east = u * Math.sin(node) + v * Math.cos(node) * Math.cos(inc);
+  const away = v * Math.sin(inc);
+  const ra = radians(raDeg), dec = radians(decDeg);
+  return [
+    -east * Math.sin(ra) - north * Math.sin(dec) * Math.cos(ra) + away * Math.cos(dec) * Math.cos(ra),
+    east * Math.cos(ra) - north * Math.sin(dec) * Math.sin(ra) + away * Math.cos(dec) * Math.sin(ra),
+    north * Math.cos(dec) + away * Math.sin(dec),
+  ];
+}
+
+// Dirección del sistema desde su posición en pc.
+export function skyDirection([x, y, z]) {
+  return { raDeg: (Math.atan2(y, x) * 180 / Math.PI + 360) % 360, decDeg: Math.atan2(z, Math.hypot(x, y)) * 180 / Math.PI };
+}
+
+// Posición del planeta respecto de su estrella (UA) en la anomalía excéntrica E. La
+// tabla da el argumento del periastro de la órbita de la estrella (convención de
+// velocidad radial); el del planeta difiere en 180°.
+export function planetOffsetAu(E, planet, sky) {
+  const x = planet.a * (Math.cos(E) - planet.e);
+  const y = planet.a * Math.sqrt(1 - planet.e ** 2) * Math.sin(E);
+  return orbitalPlaneToEquatorial(x, y, { omegaDeg: planet.w + 180, nodeDeg: CONVENTIONAL_NODE_DEG,
+    inclinationDeg: planet.inc, raDeg: sky.raDeg, decDeg: sky.decDeg });
+}
+
+// Anomalía excéntrica del tránsito: el punto de la órbita cuya dirección queda más cerca
+// de la del Sol. Se busca numéricamente sobre la geometría dibujada para no depender de
+// la convención de ω. En una órbita vista de frente no hay tránsito: se usa la conjunción.
+export function transitEccentricAnomaly(planet, sky) {
+  const length = Math.hypot(sky.x, sky.y, sky.z);
+  const towardSun = [-sky.x / length, -sky.y / length, -sky.z / length];
+  const alignment = E => {
+    const p = planetOffsetAu(E, planet, sky);
+    return (p[0] * towardSun[0] + p[1] * towardSun[1] + p[2] * towardSun[2]) / Math.hypot(...p);
+  };
+  if (Math.abs(Math.sin(radians(planet.inc))) < 1e-6) {
+    const nu = radians(90 - planet.w);
+    return 2 * Math.atan2(Math.sqrt(1 - planet.e) * Math.sin(nu / 2), Math.sqrt(1 + planet.e) * Math.cos(nu / 2));
+  }
+  const samples = 720;
+  let best = 0, bestValue = -Infinity;
+  for (let i = 0; i < samples; i++) {
+    const value = alignment(i / samples * 2 * Math.PI);
+    if (value > bestValue) { bestValue = value; best = i; }
+  }
+  // Sección áurea alrededor de la mejor muestra.
+  let low = (best - 1) / samples * 2 * Math.PI, high = (best + 1) / samples * 2 * Math.PI;
+  const ratio = (Math.sqrt(5) - 1) / 2;
+  for (let i = 0; i < 60; i++) {
+    const c = high - ratio * (high - low), d = low + ratio * (high - low);
+    if (alignment(c) > alignment(d)) high = d; else low = c;
+  }
+  return (low + high) / 2;
+}
+
+// Anomalía media en la fecha juliana `jd`, o null si el planeta no tiene fase medida.
+export function meanAnomalyAt(planet, sky, jd = EXOPLANET_EPOCH_JD) {
+  if (!planet.t || planet.P === null) return null;
+  const [kind, epoch] = planet.t;
+  const advance = 2 * Math.PI * (jd - epoch) / planet.P;
+  if (kind === 'tp') return advance;
+  const E = transitEccentricAnomaly(planet, sky);
+  return E - planet.e * Math.sin(E) + advance;
+}
+
+// Posición en la fecha (UA). Sin fase medida, el periastro: ilustrativa y marcada con 'f'.
+export function planetStateAu(planet, sky, jd = EXOPLANET_EPOCH_JD) {
+  const mean = meanAnomalyAt(planet, sky, jd);
+  return planetOffsetAu(mean === null ? 0 : eccentricAnomaly(mean, planet.e), planet, sky);
+}
+
+export function planetOrbitPc(planet, sky, samples = 256) {
+  const points = new Float32Array((samples + 1) * 3);
+  for (let i = 0; i <= samples; i++) points.set(planetOffsetAu(i / samples * 2 * Math.PI, planet, sky).map(v => v * AU_TO_PC), i * 3);
+  return points;
+}
+
+const normalize = v => { const length = Math.hypot(...v); return v.map(x => x / length); };
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+// Ángulo entre la mirada de llegada y la normal del plano orbital: las órbitas se ven
+// como elipses abiertas y no de canto. Es solo la posición de la cámara.
+export const ARRIVAL_TILT_DEG = 35;
+
+// Normal del plano orbital, del lado de la normal eclíptica (la vertical de la cámara).
+export function orbitNormal(planet, sky) {
+  const normal = normalize(cross(planetOffsetAu(0, planet, sky), planetOffsetAu(Math.PI / 2, planet, sky)));
+  return dot3(normal, ECLIPTIC_UP) < 0 ? normal.map(v => -v) : normal;
+}
+
+// Dirección desde la estrella hacia la cámara al llegar: inclinada ARRIVAL_TILT_DEG
+// respecto de la normal, hacia el lado del Sol para acortar el giro del viaje.
+export function systemViewDirection(planet, sky) {
+  const normal = orbitNormal(planet, sky);
+  const sunward = normalize([-sky.x, -sky.y, -sky.z]);
+  let inPlane = sunward.map((v, i) => v - dot3(sunward, normal) * normal[i]);
+  if (Math.hypot(...inPlane) < 1e-6) inPlane = planetOffsetAu(0, planet, sky);
+  inPlane = normalize(inPlane);
+  const tilt = radians(ARRIVAL_TILT_DEG);
+  return normal.map((v, i) => v * Math.cos(tilt) + inPlane[i] * Math.sin(tilt));
+}
+
+// Color neutro: gris con un leve matiz frío o cálido según la temperatura de equilibrio.
+// Es ilustrativo; no hay color, albedo ni atmósfera medidos.
+export function equilibriumColor(teq) {
+  if (!(teq > 0)) return [0.66, 0.66, 0.66];
+  const t = Math.min(1, Math.max(0, (Math.log10(teq) - 2) / (Math.log10(2000) - 2)));
+  return [0.60 + 0.20 * t, 0.65 + 0.02 * t, 0.72 - 0.14 * t];
+}
+
+// Radio y temperatura de la anfitriona publicados en el archivo, con la forma de `physics`.
+export function hostPhysics(st) {
+  if (!st || !(st.r > 0) || !(st.teff > 0)) return null;
+  return {
+    radiusSolar: st.r, radiusUncertaintySolar: st.rE ?? null,
+    radiusKm: st.r * SUN_RADIUS_KM, radiusPc: st.r * SUN_RADIUS_KM * KM_TO_PC,
+    temperatureK: st.teff, temperatureUncertaintyK: st.teffE ?? null,
+    status: 'published', source: 'https://exoplanetarchive.ipac.caltech.edu/',
+    sourceLabel: 'NASA Exoplanet Archive · parámetros compuestos',
+  };
+}
+
+// Une los sistemas de public/data/exoplanets.json con sus estrellas y calcula posiciones
+// para la fecha de la escena. Varias anfitrionas pueden compartir un punto del catálogo.
+export function buildPlanetarySystems(data, starsById, jd = EXOPLANET_EPOCH_JD) {
+  if (!data) return [];
+  return data.systems.flatMap(system => {
+    const star = starsById.get(system.i);
+    if (!star) return [];
+    const position = [star.x, star.y, star.z];
+    const sky = { ...skyDirection(position), x: star.x, y: star.y, z: star.z };
+    const planets = system.p.map(planet => {
+      const offsetAu = planetStateAu(planet, sky, jd);
+      return { ...planet, offsetPc: offsetAu.map(v => v * AU_TO_PC), separationAu: Math.hypot(...offsetAu),
+        apoapsisPc: planet.a * (1 + planet.e) * AU_TO_PC,
+        radiusPc: planet.r === null ? null : planet.r * EARTH_RADIUS_KM * KM_TO_PC,
+        color: equilibriumColor(planet.teq), assumptions: [...planet.s].map(key => ASSUMPTIONS[key]) };
+    });
+    const framed = planets.filter(p => p.apoapsisPc < PLANET_FRAME_LIMIT_AU * AU_TO_PC);
+    // La llegada mira el plano del planeta más externo que cabe en el encuadre.
+    const reference = framed.length ? framed.reduce((a, b) => b.apoapsisPc > a.apoapsisPc ? b : a) : planets[0];
+    const result = { id: `${system.i}:${system.h}`, star, name: system.h, position, sky, planets, st: system.st,
+      circumbinary: Boolean(system.cb), stars: system.ns,
+      viewDirection: systemViewDirection(reference, sky),
+      rangePc: Math.max(...planets.map(p => p.apoapsisPc)),
+      framePc: framed.length ? Math.max(...framed.map(p => p.apoapsisPc)) : 0 };
+    // Destino de navegación de cada planeta con radio: se llega por el lado iluminado,
+    // algo por encima de su plano orbital.
+    for (const planet of planets) {
+      if (planet.radiusPc === null) continue;
+      const towardStar = normalize(planet.offsetPc.map(v => -v)), normal = orbitNormal(planet, sky);
+      planet.body = { kind: 'exoplanet', name: planet.n, position: planet.offsetPc.map((v, i) => v + position[i]),
+        radiusKm: planet.r * EARTH_RADIUS_KM, star, system: result, planet,
+        viewDirection: normalize(towardStar.map((v, i) => 0.8 * v + 0.45 * normal[i])),
+        source: 'https://exoplanetarchive.ipac.caltech.edu/' };
+    }
+    return [result];
+  });
+}
+
+// Textos de la ficha. `letter` abrevia «TRAPPIST-1 b» a «b» dentro de su sistema.
+const letter = (planet, system) => planet.n.startsWith(`${system.name} `) ? planet.n.slice(system.name.length + 1) : planet.n;
+const figure = value => value.toLocaleString('es-CL', { maximumSignificantDigits: 3 });
+export function describePlanet(planet, system) {
+  const period = planet.P === null ? '' : planet.P < 365.25 ? `, ${figure(planet.P)} días` : `, ${figure(planet.P / 365.25)} años`;
+  const radius = planet.r === null ? 'radio desconocido' : `${planet.s.includes('r') ? '≈ ' : ''}${figure(planet.r)} R⊕`;
+  return `${letter(planet, system)}: ${figure(planet.a)} UA${period}, ${radius}`;
+}
+// Agrupa lo supuesto: «b, c: radio estimado con una relación masa-radio».
+export function describeAssumptions(system) {
+  const groups = new Map();
+  for (const planet of system.planets) for (const key of planet.s) groups.set(key, [...(groups.get(key) || []), letter(planet, system)]);
+  return [...groups].map(([key, letters]) => `${letters.length === system.planets.length && letters.length > 1 ? 'todos' : letters.join(', ')}: ${ASSUMPTIONS[key]}`);
+}

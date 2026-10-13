@@ -1,0 +1,31 @@
+{
+  "generado": "2026-10-13T14:05:39.129Z",
+  "sistemas": 4533,
+  "planetas": 6125,
+  "anfitrionaAusente": 307,
+  "planetasSinOrbitaDibujable": [
+    "SR 12 AB c",
+    "TOI-1814 b"
+  ],
+  "puntosCompartidos": [
+    "HD 41004 A / HD 41004 B",
+    "HD 133131 B / HD 133131 A"
+  ],
+  "circumbinarios": 34,
+  "anfitrionaEnSistemaMultiple": 416,
+  "marcas": {
+    "c": 3142,
+    "i": 798,
+    "r": 1235,
+    "e": 767,
+    "w": 399,
+    "f": 292,
+    "k": 160,
+    "a": 483,
+    "P": 63,
+    "R": 48,
+    "t": 339
+  },
+  "conFaseMedida": 5833,
+  "conRadioMedido": 4842
+}

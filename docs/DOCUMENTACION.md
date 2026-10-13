@@ -124,7 +124,33 @@ Capas del entorno solar, todas **ilustrativas** salvo sus distancias:
 
 ### Catálogo
 
-Fuente: AT-HYG v3.2 (compilación de Hipparcos, Gaia y otros catálogos). `scripts/process_stars.js` produce `data/processed/stars_15pc.json` con 118.660 estrellas (el nombre del archivo es heredado: no se limita a 15 pc). Campos: identificador, nombre, x, y, z, distancia, magnitud absoluta, índice de color B−V, tipo espectral y color RGB.
+Fuente: AT-HYG v3.2 (compilación de Hipparcos, Gaia y otros catálogos). `scripts/process_stars.js` produce `data/processed/stars_15pc.json` con 122.284 estrellas (el nombre del archivo es heredado: no se limita a 15 pc): 118.660 de AT-HYG y 3.624 anfitrionas de exoplanetas añadidas. Campos: identificador, nombre, x, y, z, distancia, magnitud absoluta, índice de color B−V, tipo espectral y color RGB.
+
+### Enlace con Gaia DR3 y correcciones de distancia
+
+Archivos: `scripts/catalog/`. AT-HYG no trae identificadores de Gaia. Se enlazan de dos maneras:
+
+- **Por número Hipparcos**, con la tabla de vecinos del propio Gaia: 99.274 estrellas.
+- **Por posición**, con el servicio CDS XMatch: la posición J2000 se lleva a la época 2016.0 con el movimiento propio y se busca en 5″. Un par se acepta si la paralaje es compatible con la distancia del catálogo y la magnitud V predicha desde G y BP−RP (Riello et al. 2021) coincide a ±1 mag; si hay dos candidatos válidos se descarta. Así se enlazan 18.773 más.
+
+Total: **118.047 de 118.660 estrellas (99,5 %)**. Las 613 restantes son estrellas muy brillantes, que Gaia no mide, o cruces ambiguos.
+
+La distancia del catálogo se sustituye por la de Gaia (`d = 1000 / paralaje`) solo si se cumple todo esto: paralaje con error relativo menor del 10 %, RUWE < 1,4 (astrometría de estrella simple), G > 5 (sin saturación), diferencia mayor del 10 %, enlace sin ambigüedad y magnitud coherente. Lo cumplen **31 estrellas**; otras 191 discrepan pero se dejan como están, casi siempre porque Gaia las señala como posibles binarias. Al corregir se conserva la dirección y se recalcula la magnitud absoluta.
+
+Las diferencias grandes no son dos medidas de la misma estrella. HIP 31821 figuraba a 1.201 pc y pasa a 47,9 pc: es una enana K1 de magnitud 8,4, que a 1.201 pc tendría que ser una gigante; el valor antiguo corresponde a otra estrella, de fondo, a unos 15″.
+
+### Anfitrionas de exoplanetas añadidas
+
+AT-HYG está limitado por brillo y no incluye muchas enanas rojas con planetas (TRAPPIST-1, la estrella de Teegarden). Se añaden 3.624, con identificador a partir de 9.000.001:
+
+| Dato | Procedencia |
+| --- | --- |
+| Posición | Gaia DR3 llevada de 2016.0 a J2000 con su movimiento propio (3.564); el resto, del NASA Exoplanet Archive |
+| Distancia | Paralaje de Gaia con error menor del 10 % (3.503); si no, la del archivo (121) |
+| Magnitud V | Desde G y BP−RP de Gaia (3.571); si no, la del archivo |
+| B−V y color | Inversa numérica de la fórmula de Ballesteros a partir de la temperatura publicada |
+
+Solo las 119 situadas a 50 pc o menos muestran su nombre en la escena; todas se encuentran con el buscador.
 
 ### Color
 
@@ -172,7 +198,7 @@ Eta Carinae no figura en el catálogo y se añade como registro aparte (coordena
 
 Archivos: `scripts/process_binaries.js`, `src/scene/visualBinary.js`, `CompanionStars.jsx`.
 
-Al acercarse a una estrella que en realidad es un sistema, sus compañeras se separan del punto del catálogo. El índice tiene 5.615 sistemas y 6.848 componentes.
+Al acercarse a una estrella que en realidad es un sistema, sus compañeras se separan del punto del catálogo. El índice tiene 5.786 sistemas y 7.037 componentes.
 
 | Fuente | Aporta |
 | --- | --- |
@@ -231,13 +257,74 @@ La compañera se dibuja como un punto de 4 a 14 px según su magnitud absoluta, 
 
 **Límites:** la primaria conserva su posición de catálogo; el signo del eje de fondo es ambiguo cuando el nodo ascendente no está identificado; la distancia del catálogo fija la escala de todo el sistema; las compañeras sin orientación medida (espectroscópicas) se listan en la ficha pero no se dibujan.
 
-## 9. Vía Láctea y púlsares
+## 9. Sistemas planetarios
+
+Archivos: `src/scene/exoplanetOrbit.js`, `src/scene/PlanetarySystem.jsx`, `scripts/exoplanets/`, `scripts/catalog/`.
+
+### Fuente y alcance
+
+NASA Exoplanet Archive, tabla `pscomppars`: un registro por planeta confirmado, que combina el mejor valor publicado de cada parámetro. Es una tabla compuesta: un planeta puede tener el período de un artículo y la excentricidad de otro.
+
+Se dibujan **4.533 sistemas con 6.125 planetas**. Quedan fuera 307 sistemas cuya estrella no puede situarse (281 son lentes de microlente sin estrella catalogada) y 2 planetas sin semieje ni período utilizable.
+
+### Qué es medido y qué es supuesto
+
+Cada planeta lleva la lista de sus valores que no son una medida de la tabla, y la ficha la muestra.
+
+| Dato | Planetas con el dato de la tabla | Qué se hace si falta |
+| --- | ---: | --- |
+| Período | 6.062 | Se calcula con la 3.ª ley de Kepler (63) |
+| Semieje mayor | 5.642 | Se calcula con la 3.ª ley de Kepler desde el período y la masa de la estrella (483) |
+| Excentricidad distinta de cero | 2.216 | 3.142 valen 0 en la tabla (suele ser un valor fijado en el ajuste) y 767 no la traen: órbita circular |
+| Inclinación respecto al cielo | 4.828 | Tránsito sin valor: 90° (339). Sistema con otros planetas medidos: su mismo plano (160). Resto: 60°, la mediana de orientaciones al azar (798) |
+| Argumento del periastro | — | Sin valor y con excentricidad: 0° (399) |
+| Posición en la órbita (fase) | 5.833 | Se dibuja en el periastro y se rotula «posición ilustrativa» (292) |
+| Radio | 4.842 medidos | 1.235 estimados por el archivo con una relación masa-radio; 48 sin radio, solo marcador |
+| Longitud del nodo ascendente (Ω) | 0 | Convencional (0°) en todos |
+
+Resumen por nivel de fidelidad de la órbita:
+
+| Nivel | Planetas |
+| --- | ---: |
+| Tamaño, forma, inclinación y fase de la tabla (solo Ω es convencional) | 1.005 (720 además con radio medido) |
+| Inclinación medida, con forma circular supuesta o algún otro valor calculado | 3.823 |
+| Sin inclinación medida (velocidad radial, imagen o tránsito sin valor) | 1.297 |
+
+**Ningún planeta tiene su órbita completa en 3D.** Ω, el giro del plano orbital alrededor de la línea de visión, no figura en la tabla. Son reales el tamaño de la órbita, su forma y, cuando se conoce, la inclinación respecto al cielo. El color, las nubes, los anillos y las lunas no se conocen en ningún caso: los planetas son esferas grises con un leve matiz por temperatura de equilibrio.
+
+### Geometría
+
+Posición en el plano de la órbita, con `E` la anomalía excéntrica:
+
+```
+x = a (cos E − e)        y = a √(1 − e²) sen E
+```
+
+Giro por `ω + 180°`, `i` y `Ω` al plano del cielo (norte, este, visual) y de ahí al marco ecuatorial con la ascensión recta y la declinación de la estrella. Es la misma transformación de la sección 8. El `ω` de la tabla es el de la órbita de la estrella, y el planeta está en el lado opuesto: de ahí los 180°.
+
+**Fase.** Con un tránsito central `t0`, se busca numéricamente el punto de la órbita dibujada cuya dirección queda más cerca de la del Sol, y desde ahí se avanza con el período hasta la fecha del modelo (18/09/2026):
+
+```
+M(t) = M_tránsito + 2π (t − t0) / P
+```
+
+Con un tiempo de periastro, `M = 0` en esa fecha. Un tiempo de periastro idéntico en varios planetas de un sistema (GJ 876) es la época de un ajuste dinámico, no un periastro, y no se usa. La posición resultante es la que predicen los valores publicados, propagada miles de órbitas; no es una efeméride.
+
+### En pantalla
+
+- Las órbitas y los nombres aparecen al acercarse, según el tamaño aparente de cada órbita.
+- De lejos cada planeta es un marcador de tamaño fijo. De cerca es una esfera con su radio físico (`radio × 6.378,1 km`), iluminada desde su estrella.
+- Al llegar a una estrella con planetas, la cámara queda a 35° de la normal del plano orbital, para ver las órbitas abiertas. Es solo la posición de la cámara: el catálogo no se gira.
+- Los planetas con radio se pueden elegir desde su nombre o desde el selector «Acercarse a», como los del sistema solar.
+- La estrella anfitriona usa el radio y la temperatura publicados en el archivo (4.507 estrellas).
+
+## 10. Vía Láctea y púlsares
 
 **Galaxia** (`galaxy.js`, `MilkyWay.jsx`). Es una **reconstrucción ilustrativa**, no un catálogo 3D medido. Parte de la imagen frontal de la Vía Láctea de ESA/Gaia/DPAC (Stefan Payne-Wardenaar): hasta 55.000 partículas se muestrean por rechazo sobre el brillo de la imagen y reciben espesor con una distribución gaussiana, mayor en el bulbo. La imagen abarca 40.610 pc de lado, registrada para que el vecindario solar caiga a 8.122 pc del centro. Aparece entre 1.800 y 7.000 años luz del Sol.
 
 **Púlsares** (`pulsarData.js`, `PulsarMap.jsx`). Los 14 púlsares del mapa de las placas Pioneer y Voyager, con coordenadas y distancias del catálogo ATNF. Las líneas unen el Sol con cada púlsar; los trazos discontinuos son decorativos y no codifican períodos.
 
-## 10. Navegación
+## 11. Navegación
 
 ### Viajes
 
@@ -281,7 +368,7 @@ Las velocidades son de navegación: superan la de la luz sin pretender realismo 
 
 El vuelo libre no supera 200.000 años luz del Sol, y la órbita de cámara no supera esa distancia respecto de su objetivo. Los viajes automáticos no recortan destinos: unas pocas estrellas del catálogo quedan más allá y se puede llegar a ellas.
 
-## 11. Datos y generadores
+## 12. Datos y generadores
 
 Los generadores se ejecutan a mano desde la raíz; no forman parte del build.
 
@@ -291,23 +378,32 @@ Los generadores se ejecutan a mano desde la raíz; no forman parte del build.
 | `node scripts/process_stellar_physics.js` | El mismo CSV | `data/processed/stellar_physics.json` |
 | `node scripts/process_star_search.js` | CSV y catálogo procesado | `public/data/star-search.json` |
 | `node scripts/process_binaries.js` | `data/raw/multiplicity/` | `data/processed/star_systems.json` |
+| `node scripts/exoplanets/process_exoplanets.js` | Tabla de la NASA | `data/exoplanets/exoplanet_systems.json` |
+| `python3 scripts/catalog/cruzar_gaia_posicion.py` | AT-HYG, CDS XMatch, Gaia | `data/raw/gaia/gaia_dr3_posicion.csv` |
+| `node scripts/catalog/build_star_identity.js` | AT-HYG, Gaia, SIMBAD, NASA | `data/catalog/star_identity.json` y anfitriones |
+| `node scripts/catalog/build_distance_corrections.js` | Identidad estelar | `data/catalog/distance_corrections.json` |
+| `node scripts/catalog/build_added_hosts.js` | Anfitriones y Gaia | `data/catalog/added_hosts.json` |
+| `node scripts/exoplanets/build_planet_scene.js` | Los anteriores | `public/data/exoplanets.json` |
+
+Orden al actualizar los exoplanetas: `process_exoplanets` → `build_star_identity` → `build_distance_corrections` → `build_added_hosts` → `process_stars` → `process_star_search` → `process_binaries` → `build_planet_scene`. `process_stars.js` aplica las correcciones de distancia y añade las anfitrionas si esos dos archivos existen; AT-HYG no se modifica.
 
 Cada carpeta de `data/raw/` incluye un `FUENTE.md` o `FUENTES.md` con la URL, la fecha de descarga y la cita de cada archivo. Algunos datos crudos voluminosos no se versionan y se descargan con las URL indicadas ahí.
 
-El catálogo (≈ 4,4 MB comprimido) y los sistemas múltiples (≈ 0,3 MB) se cargan aparte del bloque inicial de la aplicación, de modo que el sistema solar y la interfaz aparecen antes que las estrellas.
+El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los planetas (≈ 0,3 MB) se cargan aparte del bloque inicial de la aplicación, de modo que el sistema solar y la interfaz aparecen antes que las estrellas.
 
-## 12. Pruebas
+## 13. Pruebas
 
-`npm test` ejecuta las pruebas de `scripts/*.test.js` con el ejecutor nativo de Node. Cubren funciones puras y simulaciones de cámara: escalas, viajes, límites, marco galáctico, búsqueda y órbitas. Las órbitas de binarias se validan contra las efemérides del propio ORB6: el ángulo de posición y la separación de Sirio, Procyon y Alfa Centauri para 2026 coinciden dentro de 0,06° y 0,01″. No hay pruebas automáticas de navegador ni de shaders.
+`npm test` ejecuta las pruebas de `scripts/*.test.js` con el ejecutor nativo de Node. Cubren funciones puras y simulaciones de cámara: escalas, viajes, límites, marco galáctico, búsqueda, órbitas, exoplanetas y parches del catálogo. Las órbitas de binarias se validan contra las efemérides del propio ORB6: el ángulo de posición y la separación de Sirio, Procyon y Alfa Centauri para 2026 coinciden dentro de 0,06° y 0,01″. No hay pruebas automáticas de navegador ni de shaders.
 
-## 13. Lo que Hoshi no es
+## 14. Lo que Hoshi no es
 
 - No es un planetario con efemérides: las posiciones de planetas y la fecha de las órbitas son fijas.
+- Las órbitas de exoplanetas no están completas en 3D: el giro del plano en el cielo es convencional, y su aspecto no es conocido.
 - No es un censo estelar: el catálogo es una muestra, más completa cerca del Sol.
 - No simula relatividad, tiempo de viaje de la luz ni fotometría observacional.
 - Las nubes de partículas (Kuiper, Oort, galaxia) y los halos son recursos ilustrativos.
 
-## 14. Referencias
+## 15. Referencias
 
 - AT-HYG / HYG Database, D. Nash.
 - JPL Solar System Dynamics: parámetros astronómicos, elementos orbitales aproximados y parámetros físicos de los planetas.
@@ -321,4 +417,7 @@ El catálogo (≈ 4,4 MB comprimido) y los sistemas múltiples (≈ 0,3 MB) se c
 - Bond, H. E. et al. (2017), ApJ 840, 70: Sirio. Bond, H. E. et al. (2015), ApJ 813, 106: Procyon.
 - Thomas, J. D. et al. (2021), MNRAS 504, 5221: WR 140.
 - Manchester et al. (2005), AJ 129, 1993: catálogo de púlsares ATNF.
+- NASA Exoplanet Archive, tabla Planetary Systems Composite Parameters (`pscomppars`).
+- Gaia Collaboration (2023), A&A 674, A1: Gaia DR3. Riello, M. et al. (2021), A&A 649, A3: fotometría de Gaia.
+- CDS XMatch y SIMBAD, CDS, Estrasburgo.
 - ESA/Gaia/DPAC, Stefan Payne-Wardenaar: imagen de la Vía Láctea, CC BY-SA 3.0 IGO.
