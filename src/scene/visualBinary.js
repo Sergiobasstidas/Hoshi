@@ -59,15 +59,61 @@ export function companionOrbitPc(elements, position, samples = 256) {
 
 export const apastronAu = elements => elements.a * (1 + elements.e);
 
-// Une cada órbita con su registro del catálogo. La primaria conserva su posición de
+// Color ilustrativo por clase espectral (secuencia de Harvard); «D» mayúscula es una
+// enana blanca. Sin tipo espectral el marcador queda neutro: no se inventa un color.
+const SPECTRAL_COLORS = { O: [155, 176, 255], B: [170, 191, 255], A: [202, 215, 255], F: [248, 247, 255],
+  G: [255, 244, 234], K: [255, 210, 161], M: [255, 190, 127], D: [214, 224, 255], W: [170, 191, 255] };
+export const NEUTRAL_COMPANION_COLOR = [223, 230, 255];
+export function companionColor(spectral) {
+  const match = /^(?:esd|sd|d|g|c)?([OBAFGKMDW])/.exec(spectral || '');
+  return match ? SPECTRAL_COLORS[match[1]] : NEUTRAL_COMPANION_COLOR;
+}
+// Diámetro del marcador en píxeles según la magnitud absoluta V de la compañera.
+// Indica brillo relativo; no es un radio estelar.
+export function companionSizePx(magnitude, distancePc) {
+  if (!Number.isFinite(magnitude) || !(distancePc > 0)) return 7;
+  return Math.max(4, Math.min(14, 12 - 0.55 * (magnitude - 5 * Math.log10(distancePc / 10))));
+}
+
+// Par sin órbita: separación y ángulo de posición observados, proyectados en el plano
+// del cielo. La profundidad relativa se desconoce y se deja en cero.
+export function wideOffsetPc(pair, position) {
+  const theta = radians(pair.theta);
+  return equatorialVector({ north: pair.rho * Math.cos(theta), east: pair.rho * Math.sin(theta), away: 0 }, position).map(v => v * AU_TO_PC);
+}
+
+// Une cada sistema con su registro del catálogo y coloca sus componentes en cadena
+// (Castor: Ab y B respecto de A, Bb respecto de B). La primaria conserva su posición de
 // catálogo: sin masas por componente no se calcula el baricentro.
-export function buildBinarySystems(orbits, starsById) {
-  return Object.entries(orbits).flatMap(([id, orbit]) => {
+export function buildStarSystems(data, starsById) {
+  return Object.entries(data).flatMap(([id, entry]) => {
     const star = starsById.get(Number(id));
     if (!star) return [];
-    const position = [star.x, star.y, star.z];
-    const offsetPc = companionOffsetPc(orbit, position);
-    return [{ id: star.i, star, position, orbit, offsetPc, apastronPc: apastronAu(orbit) * AU_TO_PC,
-      separationAu: Math.hypot(...offsetPc) / AU_TO_PC, companion: starsById.get(orbit.companionId) || null }];
+    const position = [star.x, star.y, star.z], offsets = { A: [0, 0, 0] };
+    const components = entry.comps.flatMap(pair => {
+      const parent = offsets[pair.of];
+      if (!parent) return [];
+      const companion = starsById.get(pair.cid) || null;
+      let relative = pair.k === 'o' ? companionOffsetPc(pair, position) : wideOffsetPc(pair, position);
+      // Un par ancho cuya compañera ya es un registro del catálogo usa esa posición.
+      if (companion && pair.k === 'w') relative = [companion.x - position[0] - parent[0], companion.y - position[1] - parent[1], companion.z - position[2] - parent[2]];
+      const offsetPc = parent.map((v, i) => v + relative[i]);
+      // Con órbita, el registro del catálogo se coloca sobre ella en la fecha del modelo:
+      // su posición de catálogo corresponde a otra época.
+      if (companion && pair.k === 'o') [companion.x, companion.y, companion.z] = offsetPc.map((v, i) => v + position[i]);
+      offsets[pair.n] = offsetPc;
+      const separationAu = Math.hypot(...relative) / AU_TO_PC;
+      return [{ name: pair.n, pair, companion, parentOffsetPc: parent, offsetPc, separationAu,
+        scalePc: (pair.k === 'o' ? apastronAu(pair) : separationAu) * AU_TO_PC,
+        color: companion?.rgb || companionColor(pair.sp), sizePx: companionSizePx(pair.v, star.d),
+        label: `${star.n || entry.wds} ${pair.n}` }];
+    });
+    if (!components.length) return [];
+    // Encuadre de llegada: lo más ancho del sistema que siga siendo un conjunto compacto.
+    const framed = components.filter(c => Math.hypot(...c.offsetPc) + c.scalePc < FRAME_LIMIT_AU * AU_TO_PC);
+    return [{ id: star.i, star, position, wds: entry.wds, components,
+      rangePc: Math.max(...components.map(c => c.scalePc)),
+      framePc: framed.length ? Math.max(...framed.map(c => Math.hypot(...c.parentOffsetPc) + c.scalePc)) : 0 }];
   });
 }
+export const FRAME_LIMIT_AU = 2500;

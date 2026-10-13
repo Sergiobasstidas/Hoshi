@@ -3,7 +3,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import stellarPhysics from '../data/processed/stellar_physics.json';
-import binaryOrbits from '../data/processed/binary_orbits.json';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
 import SolarSystem from './scene/SolarSystem';
@@ -36,23 +35,29 @@ import CameraNavigation from './scene/CameraNavigation';
 import { PULSAR_VIEW } from './scene/navigation';
 import { CURATED_STARS } from './scene/curatedStars';
 import CompanionStars from './scene/CompanionStars';
-import { BINARY_MODEL_DATE, buildBinarySystems } from './scene/visualBinary.js';
+import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
 // el sistema solar y la interfaz aparezcan antes. Hasta entonces solo hay curados.
-function buildCatalogue(catalogue) {
+function buildCatalogue({ catalogue, systems }) {
   const stars = identifyStellarTargets([...catalogue, ...CURATED_STARS])
     .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || stellarPhysics[star.i] || null }));
   const STELLAR_TARGETS = stellarTargets(stars);
   const starsById = new Map(stars.map(star => [star.i, star]));
-  const BINARY_SYSTEMS = buildBinarySystems(binaryOrbits, starsById);
-  for (const system of BINARY_SYSTEMS) system.star.binary = system;
+  // Coloca las componentes de los sistemas múltiples; puede situar sobre su órbita a
+  // una compañera que ya era un registro del catálogo.
+  const BINARY_SYSTEMS = buildStarSystems(systems, starsById);
+  for (const system of BINARY_SYSTEMS) system.star.system = system;
   return { stars, starsById, STELLAR_TARGETS, BINARY_SYSTEMS,
     NAVIGATION_TARGETS: [...SOLAR_BODIES, ...STELLAR_TARGETS],
     BINARY_BACKGROUND: stars.filter(star => star.i !== WR140_ID) };
 }
-const EMPTY_CATALOGUE = [];
+const EMPTY_CATALOGUE = { catalogue: [], systems: {} };
+// Resumen de una componente para la ficha.
+const describeComponent = component => component.pair.k === 'o'
+  ? `${component.name}: órbita de ${(component.pair.p / 365.25).toLocaleString('es-CL', { maximumSignificantDigits: 3 })} años, a ${component.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA`
+  : `${component.name}: par ancho, ${component.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA proyectadas`;
 const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, { id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC }, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
@@ -76,8 +81,8 @@ export default function App() {
   const [catalogueStatus, setCatalogueStatus] = useState('loading');
   useEffect(() => {
     let active = true;
-    import('../data/processed/stars_15pc.json')
-      .then(module => { if (active) { setCatalogue(module.default); setCatalogueStatus('ready'); } })
+    Promise.all([import('../data/processed/stars_15pc.json'), import('../data/processed/star_systems.json')])
+      .then(([stars, systems]) => { if (active) { setCatalogue({ catalogue: stars.default, systems: systems.default }); setCatalogueStatus('ready'); } })
       .catch(() => { if (active) setCatalogueStatus('error'); });
     return () => { active = false; };
   }, []);
@@ -182,7 +187,7 @@ export default function App() {
       kind:'star',name:star.n||result.aliases[0],star,position:[star.x,star.y,star.z],
       radiusKm:physics?.radiusKm,source:physics?.source || star.source,distanceSource:star.distanceSource,
       // Al llegar desde el buscador se encuadra el sistema completo, no solo la primaria.
-      companionViewDistance:star.binary && star.binary.apastronPc * 3.2,
+      companionViewDistance:star.system && star.system.framePc * 3.2,
       identifiers:result.aliases.join(' · '),
     });
     if (star.n === 'Sol' || star.n === 'Sun') { aimAtSun(); return; }
@@ -307,8 +312,8 @@ export default function App() {
         <strong>{panelBody.name}</strong>
         {stellarBody?.star.physics && <div>Radio y temperatura {stellarBody.star.physics.status === 'published' ? 'publicados' : 'estimados'} · {Math.round(stellarBody.star.physics.temperatureK).toLocaleString('es-CL')} K · textura ilustrativa</div>}
         {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar} ± {stellarBody.star.physics.radiusUncertaintySolar} R☉ · temperatura: ±{stellarBody.star.physics.temperatureUncertaintyK} K</div>}
-        {stellarBody?.star.binary && <div>Sistema binario · par {stellarBody.star.binary.orbit.pair} · período {(stellarBody.star.binary.orbit.p / 365.25).toLocaleString('es-CL', { maximumSignificantDigits: 3 })} años · separación {stellarBody.star.binary.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA al {BINARY_MODEL_DATE}{stellarBody.star.binary.companion?.n ? ` · compañera: ${stellarBody.star.binary.companion.n}` : ''}</div>}
-        {stellarBody?.star.binary && <div>Órbita: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6 (USNO)</a> · grado {stellarBody.star.binary.orbit.grade} · ref. {stellarBody.star.binary.orbit.ref} · la compañera es un marcador, no un radio</div>}
+        {stellarBody?.star.system && <div>Sistema múltiple · WDS {stellarBody.star.system.wds} · {stellarBody.star.system.components.slice(0, 4).map(describeComponent).join(' · ')}{stellarBody.star.system.components.length > 4 ? ' · …' : ''}</div>}
+        {stellarBody?.star.system && <div>Datos: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6</a> y <a href="https://www.astro.gsu.edu/wds/" target="_blank" rel="noreferrer">WDS</a> (USNO) · órbitas al {BINARY_MODEL_DATE} · las compañeras son marcadores, no radios</div>}
         {curatedStellarBody && <div>Registro curado independiente de AT-HYG · distancia adoptada: {(stellarBody.star.d / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>}
         {stellarBody?.identifiers && <div className="star-identifiers">{stellarBody.identifiers}</div>}
         {(stellarBody?.star.physics || panelBody.name === 'Sol') && <div>Textura adaptada: <a href={PLANET_TEXTURE_SOURCE} target="_blank" rel="noreferrer">Solar System Scope</a> · <a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}
@@ -363,12 +368,12 @@ export default function App() {
       </svg>
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <footer className="scene-footer">
-        <span>© 2026 Sergio Bastidas</span>
         <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
           {freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
             : 'Arrastra / flechas: mirar · WASD: mover · R/F: subir/bajar · Q/E: inclinar · Rueda: velocidad · Shift + rueda: ajuste rápido'
             : 'Arrastra para orbitar · Desplázate para acercarte'}
         </span>
+        <span>© 2026 Sergio Bastidas</span>
       </footer>
     </div>
   </main>;
