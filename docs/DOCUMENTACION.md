@@ -1,6 +1,6 @@
 # Hoshi — documentación técnica
 
-Cómo está construido Hoshi y cómo calcula lo que muestra. Los valores citados salen del código; cada apartado indica el archivo donde viven. Resumen general, ejecución y créditos en el [README](../README.md).
+Cómo está construido Hoshi y cómo calcula lo que muestra. Los valores citados salen del código; cada apartado indica el archivo donde viven. Resumen general, ejecución y créditos en el [README](../README.md); avance por fechas en el [historial](HISTORIAL.md).
 
 ## 1. Finalidad
 

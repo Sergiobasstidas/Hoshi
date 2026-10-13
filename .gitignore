@@ -45,6 +45,7 @@ data/raw/simbad/*
 /PENDIENTES.md
 /docs/*
 !/docs/DOCUMENTACION.md
+!/docs/HISTORIAL.md
 # Material de referencia local
 /data/reference/
 # Retirados del repositorio por no usarse en la aplicación; las copias locales pueden borrarse
