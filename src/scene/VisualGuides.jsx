@@ -20,7 +20,7 @@ const RULERS = [
   { selector: '[data-day-ruler]', length: LIGHT_DAY_PC, gap: 48, day: true },
 ];
 
-export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget }) {
+export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget, distanceTarget }) {
   const elapsed = useRef(0);
   const visibleStars = useRef(new Set());
   const labelAlpha = useRef(new Map());
@@ -43,13 +43,15 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         barra.setAttribute('aria-valuetext', textoDistancia(earthPc));
       }
     }
-    const au = pc / AU_TO_PC;
+    // El visor mide hasta el objetivo actual; sin objetivo, hasta el Sol.
+    const targetPc = distanceTarget ? Math.hypot(camera.position.x + origin[0] - distanceTarget[0], camera.position.y + origin[1] - distanceTarget[1], camera.position.z + origin[2] - distanceTarget[2]) : pc;
+    const au = targetPc / AU_TO_PC;
     root.querySelector('[data-distance]').textContent = au < 1000
       ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)}`
-      : `${(pc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(pc / LIGHT_YEAR_PC)}`;
+      : `${(targetPc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(targetPc / LIGHT_YEAR_PC)}`;
     root.querySelector('[data-distance-unit]').textContent = au < 1000 ? 'UA' : 'años luz';
-    root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${barraDesdeDistancia(pc) * .75} 100`);
-    root.querySelector('[data-distance-detail]').textContent = `${pc < 0.01 ? pc.toLocaleString('es-CL', {maximumSignificantDigits:3}) : format.format(pc)} pc`;
+    root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${barraDesdeDistancia(targetPc) * .75} 100`);
+    root.querySelector('[data-distance-detail]').textContent = `${targetPc < 0.01 ? targetPc.toLocaleString('es-CL', {maximumSignificantDigits:3}) : format.format(targetPc)} pc`;
     const inspectingStar = origin.some(Boolean) || focusedBody?.kind === 'star' || aimTarget?.kind === 'star';
     const nameOpacity = inspectingStar ? 0.9 : starLabelOpacity(pc);
     if (focusedBody) {

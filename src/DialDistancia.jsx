@@ -1,6 +1,6 @@
-// © 2026 Sergio Bastidas Acosta. Lectura heliocéntrica junto al control de vuelo.
-export default function DialDistancia() {
-  return <section className="dial-distancia" aria-label="Distancia al Sol">
+// © 2026 Sergio Bastidas Acosta. Distancia al objetivo actual junto al control de vuelo.
+export default function DialDistancia({ titulo = 'Distancia al Sol' }) {
+  return <section className="dial-distancia" aria-label={titulo}>
     <div className="dial-superficie">
       <svg viewBox="0 0 200 200" aria-hidden="true">
         <defs><linearGradient id="degradado-distancia"><stop stopColor="#345065"/><stop offset="1" stopColor="#739eaa"/></linearGradient></defs>
@@ -10,7 +10,7 @@ export default function DialDistancia() {
         </g>
         {Array.from({length:31},(_,i)=>{const a=(135+i*9)*Math.PI/180;return <line key={i} x1={100+Math.cos(a)*74} y1={100+Math.sin(a)*74} x2={100+Math.cos(a)*(i%5===0?67:70)} y2={100+Math.sin(a)*(i%5===0?67:70)}/>;})}
       </svg>
-      <div className="dial-lectura"><span className="dial-titulo">DISTANCIA AL SOL</span><strong data-distance>—</strong><span data-distance-unit>UA</span><small data-distance-detail /></div>
+      <div className="dial-lectura"><span className="dial-titulo">{titulo.toUpperCase()}</span><strong data-distance>—</strong><span data-distance-unit>UA</span><small data-distance-detail /></div>
     </div>
   </section>;
 }

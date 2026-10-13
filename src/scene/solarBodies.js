@@ -21,10 +21,10 @@ export const SOLAR_BODIES = [
 ];
 
 export function bodyView(body) {
-  if(body.kind==='star' && !body.radiusKm) return {id:'star',body,target:body.position,distance:AU_TO_PC,minDistance:STAR_STOP_PC};
+  if(body.kind==='star' && !body.radiusKm) return {id:'star',body,target:body.position,distance:Math.max(AU_TO_PC,body.companionViewDistance||0),minDistance:STAR_STOP_PC};
   if (body.kind === 'system') {
     return { id: 'system', body, target: body.position, distance: body.viewDistance, minDistance: body.minDistance, direction: body.viewDirection };
   }
   const radiusPc = body.radiusKm * KM_TO_PC;
-  return { id: 'body', body, target: body.position, distance: radiusPc * 6, minDistance: radiusPc * 1.02 };
+  return { id: 'body', body, target: body.position, distance: Math.max(radiusPc * 6, body.companionViewDistance || 0), minDistance: radiusPc * 1.02 };
 }
