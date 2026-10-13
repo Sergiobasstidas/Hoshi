@@ -2,43 +2,62 @@
 
 © 2026 Sergio Bastidas Acosta. [Autoría y derechos](AUTORIA.md).
 
-Exploración 3D del sistema solar, el vecindario estelar y nuestro lugar en la Vía Láctea. Su propósito es hacer comprensibles las distancias y escalas astronómicas.
+Exploración 3D del sistema solar, el vecindario estelar y nuestro lugar en la Vía Láctea. Su propósito es hacer comprensibles las distancias y escalas astronómicas recorriéndolas de forma continua, desde la Tierra hasta 200.000 años luz.
 
-## Ejecutar
-
-Node 22.12 o posterior. `npm ci`, luego `npm run dev`.
-
-Validación: `npm test`, `npm run lint`, `npm run build`. Vista de producción: `npm run preview`.
+Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula todo: [documentación técnica](docs/DOCUMENTACION.md).
 
 ## Qué incluye
 
-- Catálogo AT-HYG/HYGLike: 118.660 registros locales más objetos curados; posiciones en parsecs, marco ecuatorial J2000 y origen solar.
-- Sol, ocho planetas y Luna con radios físicos; órbitas circulares con inclinaciones individuales. Texturas de Sol, Mercurio, Venus, Tierra y Luna.
-- Kuiper, heliosfera y Oort ilustrativos; Voyager con trayectorias todavía esquemáticas.
-- Búsqueda por nombres y varios identificadores, navegación con origen local, vuelo libre y visitas suaves. WR 140 como binario y Eta Carinae como registro curado.
-- Mapa activable de 14 púlsares y capa galáctica ESA/Gaia: imagen más partículas con espesor, centro galáctico y marcador solar. Escalas de navegación hasta 200.000 años luz; excepciones de límites documentadas en el estado actual.
+- **Sistema solar:** Sol, ocho planetas y Luna con radios a escala real, órbitas con su inclinación, cinturón de Kuiper, heliosfera, sondas Voyager y nube de Oort.
+- **Estrellas:** 118.660 estrellas del catálogo AT-HYG en sus posiciones medidas, con color por temperatura. Radio y temperatura estimados para 362 de ellas.
+- **Sistemas múltiples:** 5.615 sistemas que se separan en sus componentes al acercarse, con órbitas publicadas y, cuando hay masas, las dos estrellas girando en torno a su centro común.
+- **Vía Láctea:** reconstrucción con volumen a partir de la imagen de ESA/Gaia, centro galáctico y posición del Sol.
+- **Mapa de púlsares:** los 14 púlsares de las placas Pioneer y Voyager.
+- **Navegación:** buscador por nombre e identificadores, escala lateral, viajes suaves entre escalas y vuelo libre.
 
-Las partículas galácticas y los halos son ayudas visuales, no estrellas medidas ni radios físicos. La galaxia es una reconstrucción ilustrativa. Los 362 radios fotométricos son estimaciones; no equivalen a mediciones publicadas. Próxima tiene un valor publicado incorporado.
+Hoshi separa lo medido de lo ilustrativo. Posiciones, distancias, radios y órbitas publicadas están a escala. Halos, marcadores, nubes de partículas y texturas son ayudas visuales, y la interfaz lo indica.
+
+## Tecnologías
+
+React 19, Three.js con React Three Fiber y Drei, Vite 8, JavaScript con módulos ES. Sitio estático sin backend, alojado en Cloudflare Pages. Los catálogos se procesan con scripts de Node y se sirven como archivos estáticos.
+
+## Ejecutar
+
+Requiere Node 22.12 o posterior.
+
+```sh
+npm ci
+npm run dev
+```
+
+Comprobaciones: `npm test`, `npm run lint`, `npm run build`. Vista del build: `npm run preview`.
 
 ## Controles
 
-En vuelo libre: W/S avanzar/retroceder, A/D lateral, R/F vertical, Q/E giro y flechas para mirar. Arrastrar con el ratón orienta; la rueda y el dial cambian **velocidad**. La escala derecha previsualiza y viaja por clic/teclado en 2 s. Doble clic en una etiqueta fija rumbo sin viajar. Buscador y selector viajan al destino. «Volver al Sol» orienta sin trasladar.
+- **Buscador y selector:** viajan al destino.
+- **Escala lateral:** muestra la distancia y viaja al hacer clic.
+- **Doble clic en el nombre de una estrella:** fija el rumbo sin viajar.
+- **Vuelo libre:** W/S avanzar y retroceder, A/D lateral, R/F vertical, Q/E inclinar, flechas o arrastre para mirar. La rueda y el dial cambian la velocidad.
 
-## Documentación y relevo entre agentes
+## Estructura
 
-La carpeta local de Hoshi es la fuente de verdad, incluidos cambios sin commit. Codex y Claude se usan por turnos sobre esa misma carpeta; al cambiar de agente leer el relevo y registrar avances, sin depender del historial del chat.
-
-- [Reglas comunes](AGENTS.md) y [entrada para Claude](CLAUDE.md).
-- [Estado local actual](docs/PROJECT_STATE.md), [arquitectura](docs/ARCHITECTURE.md) y [decisiones](docs/DECISIONS.md).
-- [Relevo actual](HOSHI_HANDOFF.md), [registro de trabajo](docs/WORK_LOG.md) y [pendientes](PENDIENTES.md).
-- [Auditoría del 12/10/2026](docs/AUDIT_2026-10-12.md), [índice y fuentes](docs/README.md), [despliegue](docs/DEPLOYMENT.md).
-
-## Historial y publicación
-
-Remoto configurado: [Sergiobasstidas/Hoshi](https://github.com/Sergiobasstidas/Hoshi). Git registra historial; GitHub puede ir por detrás de la carpeta local. No hacer commit, push o deployment sin autorización aplicable de Sergio. La integración Cloudflare comunicada por el usuario puede publicar al subir; su estado remoto no se comprobó en esta auditoría.
-
-El historial Git comienza con una instantánea del desarrollo existente. `docs/milestones.json` conserva hitos retrospectivos, no commits históricos inventados. Build local: `npm run build`, salida `dist`. Ver configuración/evidencia en `docs/DEPLOYMENT.md`.
+| Ruta | Contenido |
+| --- | --- |
+| `src/` | Aplicación: interfaz, escena 3D y funciones de cálculo |
+| `data/raw/` | Catálogos originales con su procedencia |
+| `data/processed/` | Datos que carga la aplicación |
+| `scripts/` | Generadores de datos y pruebas |
+| `public/` | Texturas, índice de búsqueda y licencias |
+| `docs/DOCUMENTACION.md` | Unidades, coordenadas, fórmulas, fuentes y límites |
 
 ## Créditos
 
-ESA/Gaia/DPAC, Stefan Payne-Wardenaar: imagen galáctica CC BY-SA 3.0 IGO y adaptación con partículas; [atribución](public/textures/galaxy/ATTRIBUTION.md). Solar System Scope / INOVE: mapas CC BY 4.0; [detalles](public/textures/solar-system-scope/README.md). Ruido Ashima Arts: [licencia MIT](public/licenses/webgl-noise.txt). Catálogos y parámetros conservan las fuentes indicadas en los documentos específicos. Las licencias de recursos de terceros no conceden una licencia general al código de Hoshi.
+- **Catálogo estelar:** AT-HYG / HYG Database.
+- **Sistemas múltiples:** Sixth Catalog of Orbits of Visual Binary Stars y Washington Double Star Catalog (U.S. Naval Observatory), Multiple Star Catalog (A. Tokovinin), SB9 (Pourbaix et al.).
+- **Sistema solar:** NASA / JPL Solar System Dynamics.
+- **Púlsares:** catálogo ATNF.
+- **Imagen galáctica:** ESA/Gaia/DPAC, Stefan Payne-Wardenaar, CC BY-SA 3.0 IGO; [atribución](public/textures/galaxy/ATTRIBUTION.md).
+- **Texturas:** Solar System Scope / INOVE, CC BY 4.0; [detalles](public/textures/solar-system-scope/README.md).
+- **Ruido procedural:** Ashima Arts, [licencia MIT](public/licenses/webgl-noise.txt).
+
+Las referencias completas están en la [documentación técnica](docs/DOCUMENTACION.md) y en los archivos de fuentes de `data/raw/`. Las licencias de recursos de terceros no conceden una licencia general sobre el código de Hoshi.

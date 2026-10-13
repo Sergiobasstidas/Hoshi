@@ -40,3 +40,18 @@ data/catalog/star_identity.json
 # Datos crudos de SIMBAD (4,9 MB)
 data/raw/simbad/*
 !data/raw/simbad/FUENTES.md
+
+# Documentos de trabajo, relevo y decisiones: solo en la carpeta local
+/AGENTS.md
+/CLAUDE.md
+/HOSHI_*.md
+/PENDIENTES.md
+/docs/*
+!/docs/DOCUMENTACION.md
+/.claude/
+# Material de referencia local
+/data/reference/
+# Retirados del repositorio por no usarse en la aplicación; las copias locales pueden borrarse
+/public/propuestas/
+/data/processed/milkyway_desi.json
+/scripts/export_milkyway.js
