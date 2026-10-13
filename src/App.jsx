@@ -37,23 +37,31 @@ import { CURATED_STARS } from './scene/curatedStars';
 import CompanionStars from './scene/CompanionStars';
 import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
+import PlanetarySystems from './scene/PlanetarySystem';
+import { EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
 // el sistema solar y la interfaz aparezcan antes. Hasta entonces solo hay curados.
-function buildCatalogue({ catalogue, systems }) {
+function buildCatalogue({ catalogue, systems, planets }) {
+  // Radio y temperatura de las anfitrionas de exoplanetas publicados en el archivo de la
+  // NASA: preceden a la estimación fotométrica.
+  const hostPhysicsById = new Map((planets?.systems || []).map(system => [system.i, hostPhysics(system.st)]));
   const stars = identifyStellarTargets([...catalogue, ...CURATED_STARS])
-    .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || stellarPhysics[star.i] || null }));
+    .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || hostPhysicsById.get(star.i) || stellarPhysics[star.i] || null }));
   const STELLAR_TARGETS = stellarTargets(stars);
   const starsById = new Map(stars.map(star => [star.i, star]));
   // Coloca las componentes de los sistemas múltiples; puede situar sobre su órbita a
   // una compañera que ya era un registro del catálogo.
   const BINARY_SYSTEMS = buildStarSystems(systems, starsById);
   for (const system of BINARY_SYSTEMS) system.star.system = system;
-  return { stars, starsById, STELLAR_TARGETS, BINARY_SYSTEMS,
+  // Sistemas planetarios, después de recolocar compañeras: usan la posición final de su estrella.
+  const PLANETARY_SYSTEMS = buildPlanetarySystems(planets, starsById);
+  for (const system of PLANETARY_SYSTEMS) (system.star.planetary ||= []).push(system);
+  return { stars, starsById, STELLAR_TARGETS, BINARY_SYSTEMS, PLANETARY_SYSTEMS,
     NAVIGATION_TARGETS: [...SOLAR_BODIES, ...STELLAR_TARGETS],
     BINARY_BACKGROUND: stars.filter(star => star.i !== WR140_ID) };
 }
-const EMPTY_CATALOGUE = { catalogue: [], systems: {} };
+const EMPTY_CATALOGUE = { catalogue: [], systems: {}, planets: null };
 // Resumen de una componente para la ficha.
 const significant = value => value.toLocaleString('es-CL', { maximumSignificantDigits: 3 });
 const period = days => days < 365.25 ? `${significant(days)} días` : `${significant(days / 365.25)} años`;
@@ -84,12 +92,14 @@ export default function App() {
   const [catalogueStatus, setCatalogueStatus] = useState('loading');
   useEffect(() => {
     let active = true;
-    Promise.all([import('../data/processed/stars_15pc.json'), import('../data/processed/star_systems.json')])
-      .then(([stars, systems]) => { if (active) { setCatalogue({ catalogue: stars.default, systems: systems.default }); setCatalogueStatus('ready'); } })
+    // Los planetas viajan aparte del bundle; si fallan, el catálogo se muestra sin ellos.
+    const planets = fetch('/data/exoplanets.json').then(response => response.ok ? response.json() : null).catch(() => null);
+    Promise.all([import('../data/processed/stars_15pc.json'), import('../data/processed/star_systems.json'), planets])
+      .then(([stars, systems, planets]) => { if (active) { setCatalogue({ catalogue: stars.default, systems: systems.default, planets }); setCatalogueStatus('ready'); } })
       .catch(() => { if (active) setCatalogueStatus('error'); });
     return () => { active = false; };
   }, []);
-  const { stars, starsById, STELLAR_TARGETS, NAVIGATION_TARGETS, BINARY_BACKGROUND, BINARY_SYSTEMS } = useMemo(() => buildCatalogue(catalogue), [catalogue]);
+  const { stars, starsById, STELLAR_TARGETS, NAVIGATION_TARGETS, BINARY_BACKGROUND, BINARY_SYSTEMS, PLANETARY_SYSTEMS } = useMemo(() => buildCatalogue(catalogue), [catalogue]);
   const [view, setView] = useState(INITIAL_VIEW);
   const [freeFlight, setFreeFlight] = useState(false);
   const [traveling, setTraveling] = useState(false);
@@ -112,7 +122,12 @@ export default function App() {
   const bodyTexture = PLANET_TEXTURES[panelBody?.name];
   const stellarBody = view.body?.kind === 'star' ? view.body : null;
   const curatedStellarBody = stellarBody?.star.dataOrigin === 'curated';
-  const origin = binaryBody?.position || stellarBody?.position || SOLAR_ORIGIN;
+  // Planeta de otro sistema: el origen local pasa al planeta y su estrella sigue a escala.
+  const exoplanetBody = view.body?.kind === 'exoplanet' ? view.body : null;
+  const hostStar = stellarBody?.star || exoplanetBody?.star;
+  const localPlanets = (hostStar?.planetary || []).flatMap(system => system.planets.filter(planet => planet.body).map(planet => planet.body));
+  const hostName = exoplanetBody && (hostStar.n || exoplanetBody.system.name);
+  const origin = binaryBody?.position || stellarBody?.position || exoplanetBody?.position || SOLAR_ORIGIN;
   const navigate = (destination, options = {}) => {
     const camera = cameraRef.current;
     if (!camera) return;
@@ -136,7 +151,16 @@ export default function App() {
       ? {kind:'star',text:body.name,star:body.star,catalogueId:body.star.i,position:body.position} : null);
     navigate(bodyView(body), { arriveFree: fromSearch });
   };
-  const focusBody = body => visitBody(body);
+  const focusBody = body => { visitBody(body); if (body.kind === 'exoplanet') setShowBodyPanel(true); };
+  // Estrella como destino: encuadra su sistema (compañeras o planetas) y, si tiene
+  // planetas, llega mirando el plano orbital abierto en vez de canto.
+  const starBody = (star, name, identifiers) => ({
+    kind:'star',name,star,position:[star.x,star.y,star.z],
+    radiusKm:star.physics?.radiusKm,source:star.physics?.source || star.source,distanceSource:star.distanceSource,
+    companionViewDistance:Math.max(star.system?.framePc || 0, ...(star.planetary || []).map(system => system.framePc)) * 3.2,
+    viewDirection:star.planetary?.[0].viewDirection,
+    identifiers,
+  });
   const framePulsars = () => {
     setShowPulsars(true); setShowBodyPanel(false); setInspectedTarget(null);
     navigate(PULSAR_VIEW, { duration: 4 * JOURNEY_TIME_SCALE });
@@ -185,14 +209,8 @@ export default function App() {
     const star=starsById.get(result.id);
     if(!star || !cameraRef.current)return;
     setShowPulsars(false);
-    const physics=star.physics;
-    const body=STELLAR_TARGETS.find(b=>b.catalogueId===star.i) || (star.n==='Sol'?SOLAR_BODIES[0]:{
-      kind:'star',name:star.n||result.aliases[0],star,position:[star.x,star.y,star.z],
-      radiusKm:physics?.radiusKm,source:physics?.source || star.source,distanceSource:star.distanceSource,
-      // Al llegar desde el buscador se encuadra el sistema completo, no solo la primaria.
-      companionViewDistance:star.system && star.system.framePc * 3.2,
-      identifiers:result.aliases.join(' · '),
-    });
+    const body=STELLAR_TARGETS.find(b=>b.catalogueId===star.i) || (star.n==='Sol'?SOLAR_BODIES[0]
+      : starBody(star, star.n||result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : '')));
     if (star.n === 'Sol' || star.n === 'Sun') { aimAtSun(); return; }
     visitBody(body, true);
   };
@@ -232,9 +250,10 @@ export default function App() {
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} />
       {showPulsars && <PulsarMap origin={origin} />}
       <StarField gain={showPulsars ? 0.18 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
-        focusedStar={inspectedTarget?.star || stellarBody?.star} departureStar={departureBody?.star} />
+        focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} />
       {binaryBody && <BinarySystem />}
       {!binaryBody && <CompanionStars systems={BINARY_SYSTEMS} origin={origin} />}
+      {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
       {/* Conservar el escenario de partida al cambiar el origen local a una estrella. */}
       <group position={origin.map(v=>-v)}>
@@ -287,11 +306,16 @@ export default function App() {
       </aside>}
       <label className="body-selector">Acercarse a
         <select aria-label="Acercarse a un cuerpo" value={focusedBody?.name || ''} onChange={event => {
-          const body = NAVIGATION_TARGETS.find(b => b.name === event.target.value);
+          const name = event.target.value;
+          const body = localPlanets.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
           if (body) focusBody(body);
         }}>
           <option value="" disabled>Elegir cuerpo</option>
           {stellarBody && <option value={stellarBody.name}>{stellarBody.name}</option>}
+          {exoplanetBody && <option value={hostName}>{hostName}</option>}
+          {localPlanets.length > 0 && <optgroup label="Planetas de este sistema">
+            {localPlanets.map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
+          </optgroup>}
           {NAVIGATION_TARGETS.map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
         </select>
       </label>
@@ -314,7 +338,11 @@ export default function App() {
         <button className="panel-close" aria-label="Cerrar información" onClick={() => setShowBodyPanel(false)}>×</button>
         <strong>{panelBody.name}</strong>
         {stellarBody?.star.physics && <div>Radio y temperatura {stellarBody.star.physics.status === 'published' ? 'publicados' : 'estimados'} · {Math.round(stellarBody.star.physics.temperatureK).toLocaleString('es-CL')} K · textura ilustrativa</div>}
-        {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar} ± {stellarBody.star.physics.radiusUncertaintySolar} R☉ · temperatura: ±{stellarBody.star.physics.temperatureUncertaintyK} K</div>}
+        {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar}{stellarBody.star.physics.radiusUncertaintySolar ? ` ± ${stellarBody.star.physics.radiusUncertaintySolar}` : ''} R☉{stellarBody.star.physics.temperatureUncertaintyK ? ` · temperatura: ±${stellarBody.star.physics.temperatureUncertaintyK} K` : ''}</div>}
+        {stellarBody?.star.ds && <div>Distancia: {stellarBody.star.ds}{stellarBody.star.dataOrigin === 'exoplanet-host' ? ' · estrella añadida por albergar planetas (no figura en AT-HYG)' : ' (sustituye a la de AT-HYG)'}</div>}
+        {stellarBody?.star.planetary?.map(system => <div key={system.id}>Planetas de {system.name} al {EXOPLANET_EPOCH} · {system.planets.slice(0, 8).map(planet => describePlanet(planet, system)).join(' · ')}{system.planets.length > 8 ? ' · …' : ''}
+          <br />Supuestos · giro del plano en el cielo (Ω) convencional en todos{describeAssumptions(system).map(text => ` · ${text}`).join('')}{system.circumbinary ? ' · planetas circumbinarios: centrados en el punto del catálogo' : system.stars > 1 ? ' · anfitriona en un sistema múltiple: órbitas centradas en su punto del catálogo' : ''}
+          <br />Datos: <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank" rel="noreferrer">NASA Exoplanet Archive</a> (parámetros compuestos) · órbitas y radios a escala · color ilustrativo</div>)}
         {stellarBody?.star.system && <div>Sistema múltiple · WDS {stellarBody.star.system.wds} · {stellarBody.star.system.components.slice(0, 4).map(describeComponent).join(' · ')}{stellarBody.star.system.components.length > 4 ? ' · …' : ''}</div>}
         {stellarBody?.star.system?.hidden.length > 0 && <div>Sin dibujar, por no tener orientación medida: {stellarBody.star.system.hidden.slice(0, 4).map(item => `${item.n}${item.p ? ` (${period(item.p)})` : ''}`).join(', ')}{stellarBody.star.system.hidden.length > 4 ? '…' : ''}</div>}
         {stellarBody?.star.system && <div>Datos: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6</a> y <a href="https://www.astro.gsu.edu/wds/" target="_blank" rel="noreferrer">WDS</a> (USNO), <a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/235/6" target="_blank" rel="noreferrer">MSC</a> (Tokovinin) · órbitas al {BINARY_MODEL_DATE} · masas estimadas · las compañeras son marcadores, no radios</div>}
@@ -327,7 +355,9 @@ export default function App() {
           <div>Separación entre estrellas: <strong>{BINARY_STATE.separationAu.toLocaleString('es-CL', { maximumFractionDigits: 2 })} UA</strong></div>
           <div>Rango orbital: {(WR140_ORBIT.semiMajorAu * (1 - WR140_ORBIT.eccentricity)).toFixed(2)}–{(WR140_ORBIT.semiMajorAu * (1 + WR140_ORBIT.eccentricity)).toFixed(2)} UA</div>
           <div>Distancia al Sol (catálogo): {(panelBody.distancePc / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>
-        </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
+        </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : exoplanetBody ? exoplanetBody.planet.s.includes('r') ? 'estimado por masa' : 'medido' : 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
+        {exoplanetBody && <div>Planeta de {exoplanetBody.system.name} · {describePlanet(exoplanetBody.planet, exoplanetBody.system)} · excentricidad {exoplanetBody.planet.e.toLocaleString('es-CL')} · inclinación {exoplanetBody.planet.inc.toLocaleString('es-CL')}° respecto del cielo · a {exoplanetBody.planet.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA de su estrella el {EXOPLANET_EPOCH}
+          <br />Supuestos · giro del plano en el cielo (Ω) convencional{exoplanetBody.planet.assumptions.map(text => ` · ${text}`).join('')}</div>}
         <div data-body-altitude />
         {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000)</div>}
         <p>{panelBody.kind === 'system' ? 'Separación y órbitas a escala. Puntos de identificación; diámetros y brillo ilustrativos.'
@@ -336,11 +366,12 @@ export default function App() {
               : 'Posición de catálogo · tamaño del marcador ilustrativo'
           : panelBody.name === 'Sol' ? 'Radio solar a escala · 5.772 K · textura y orientación ilustrativas'
           : bodyTexture ? `Esfera a escala real · ${bodyTexture.description.toLowerCase()} · orientación ilustrativa`
+            : exoplanetBody ? 'Esfera a escala del radio · color neutro ilustrativo: no hay aspecto medido · iluminada desde su estrella'
             : 'Esfera a escala real · color ilustrativo'}</p>
         {panelBody.kind === 'system' ? <a href="https://doi.org/10.1093/mnras/stab1181" target="_blank" rel="noreferrer">Órbita: Thomas et al. (2021)</a>
           : curatedStellarBody ? <div><a href={panelBody.source} target="_blank" rel="noreferrer">Astrometría e identificadores: SIMBAD</a>
             {' · '}<a href={panelBody.distanceSource} target="_blank" rel="noreferrer">Distancia: NASA</a></div>
-            : panelBody.source && <a href={panelBody.source} target="_blank" rel="noreferrer">{stellarBody ? stellarBody.star.physics?.sourceLabel || 'Método: Flower / Torres · datos AT-HYG' : `Fuente: NASA${panelBody.name !== 'Sol' ? ' / JPL' : ''}`}</a>}
+            : panelBody.source && <a href={panelBody.source} target="_blank" rel="noreferrer">{stellarBody ? stellarBody.star.physics?.sourceLabel || 'Método: Flower / Torres · datos AT-HYG' : exoplanetBody ? 'Fuente: NASA Exoplanet Archive (parámetros compuestos)' : `Fuente: NASA${panelBody.name !== 'Sol' ? ' / JPL' : ''}`}</a>}
         {bodyTexture && <div className="texture-credit">Textura: <a href={PLANET_TEXTURE_SOURCE} target="_blank" rel="noreferrer">Solar System Scope / INOVE</a>
           {' · '}<a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}
       </aside>}

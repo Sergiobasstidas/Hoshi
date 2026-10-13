@@ -34,6 +34,7 @@ const num = v => {
 };
 // Redondeo a cifras significativas para aligerar el JSON sin perder precisión útil.
 const sig = (v, digits = 5) => v === null ? null : Number(v.toPrecision(digits));
+const maxError = (plus, minus) => num(plus) === null && num(minus) === null ? null : Math.max(Math.abs(num(plus) ?? 0), Math.abs(num(minus) ?? 0));
 const normId = s => (s || '').replace(/\s+/g, ' ').trim().toUpperCase();
 // AT-HYG escribe "Gl 551", "Gl 667C" y "GJ 1001"; la NASA usa "GJ 667 C" o "Gliese 12".
 // La clave ignora espacios para que el sufijo de componente coincida.
@@ -170,9 +171,13 @@ for (const p of planets) {
       pos: m ? [Number(m.row.x), Number(m.row.y), Number(m.row.z)] : own,
       d: m ? sig(Number(m.row.dist), 7) : dist,
       dNasa: dist,
+      // Astrometría y fotometría del archivo, para poder añadir el anfitrión si falta en Hoshi.
+      ra, dec, pm: [num(p.sy_pmra), num(p.sy_pmdec)], v: num(p.sy_vmag),
       ns: num(p.sy_snum), np: num(p.sy_pnum),
       st: {
         sp: decodeHtml(p.st_spectype) || null, teff: sig(num(p.st_teff), 4), r: sig(num(p.st_rad), 4),
+        // Incertidumbres publicadas (la mayor de las dos barras de error).
+        teffE: sig(maxError(p.st_tefferr1, p.st_tefferr2), 3), rE: sig(maxError(p.st_raderr1, p.st_raderr2), 3),
         m: sig(num(p.st_mass), 4), logL: sig(num(p.st_lum), 4), met: sig(num(p.st_met), 3),
         age: sig(num(p.st_age), 3),
       },

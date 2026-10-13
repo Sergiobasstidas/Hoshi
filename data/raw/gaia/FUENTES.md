@@ -51,3 +51,17 @@ Pedidos 4472 ids; devueltas 4472 filas, todas con `source_id` distinto; ninguno 
 - El trabajo asíncrono tardó unos 9 minutos; sin errores de red ni límites.
 - `/sync` de este servicio corta los resultados grandes; por eso la tabla HIP usa `/async`.
 - Posiciones en la época `ref_epoch` (2016.0), ICRS; no se propagaron a J2000.
+
+## Enlace por posición (13/10/2026, 10:33–10:50 -03:00)
+
+Generado con `python3 scripts/catalog/cruzar_gaia_posicion.py xmatch` y luego `validar`. Servicio: CDS XMatch, `http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync`, `request=xmatch`, `cat2=vizier:I/355/gaiadr3`, `colRA1=ra`, `colDec1=dec`, `RESPONSEFORMAT=csv`; columnas adicionales desde el TAP de ESA con la misma consulta por `source_id` que `gaia_dr3_exoplanet_hosts.csv`.
+
+| Archivo | Contenido | Tamaño (bytes) | Filas de datos | sha256 |
+| --- | --- | ---: | ---: | --- |
+| `xmatch_subida_posicion.csv` | `id,ra,dec` enviados: 19.385 filas de AT-HYG sin enlace por HIP, posición propagada de J2000 a 2016.0 con el movimiento propio de AT-HYG | 592558 | 19385 | `ba091dd5905e6a55d748a2cf834deb46961ff06248c1208239513ed5a7fa47c2` |
+| `xmatch_gaia_dr3_posicion.csv` | Respuesta cruda, radio 5″ | 20253744 | 22571 | `01badac8d80a6ec4c1c091c5231f3f7c827a42567f34680223e1c5c17f86924e` |
+| `xmatch_gaia_dr3_posicion_amplio.csv` | Radio 180″ para las 952 filas con `pos_src = GJ` y distancia Gaia. **No es la respuesta cruda:** pesaba 195 MB y se redujo a 14 columnas (`angDist,id,ra,dec,Source,RAdeg,DEdeg,Plx,e_Plx,pmRA,pmDE,Gmag,BP-RP,RUWE`) | 34029460 | 244771 | `cfc1394e2ccf7ddae34e4247520299373be16731be84f3f2432dc1f763a5708e` |
+| `gaia_dr3_posicion.csv` | Pares aceptados: `id` (AT-HYG), `angular_distance`, `number_of_neighbours` (candidatos en el radio), `validacion` y las 16 columnas de Gaia | 3983777 | 18773 | `45819fe5570b01f0e39481ab488576aa32531f8507213bafcf86c4d34832bb46` |
+| `gaia_dr3_posicion_rechazados.csv` | Candidatos descartados con su motivo | 361845 | — | — |
+
+Validación (constantes al inicio del script): paralaje compatible con la distancia de AT-HYG (±20 % o ±2,5 mas + 3σ) y V predicha desde G y BP−RP (Riello et al. 2021) a ±1 mag; exactamente un candidato válido, si no se descarta por ambiguo. Sin paralaje en Gaia: separación ≤ 1,5″ y magnitud a ±0,5 (`validacion = mag`). Radio amplio: paralaje a ±1 % y movimiento propio a ±2 mas/año o 2 % (`plx+pm`). Una fuente Gaia asignada a dos estrellas descarta ambas.

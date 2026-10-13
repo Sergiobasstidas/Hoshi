@@ -42,3 +42,11 @@ Desarrollo anterior al historial Git, reunido en la primera instantánea del rep
 - **Interfaz:** visores más pequeños abajo a la izquierda y créditos en la esquina inferior derecha.
 - **Datos preparados, aún sin mostrar:** sistemas planetarios (NASA Exoplanet Archive y exoplanet.eu) y enlace del catálogo con Gaia DR3 y SIMBAD.
 - **Orden del repositorio:** documentación técnica pública, README nuevo y retirada de archivos sin uso.
+
+## 13/10/2026 — Sistemas planetarios y Gaia
+
+- **Exoplanetas en la escena:** 6.125 planetas de 4.533 sistemas del NASA Exoplanet Archive, con órbitas y radios a escala. La ficha declara qué valores son medidos y cuáles supuestos.
+- **Llegada y selección:** al llegar a una estrella con planetas se ve el plano orbital abierto; cada planeta se puede elegir para acercarse, como los del sistema solar.
+- **Gaia DR3:** el 99,5 % del catálogo queda enlazado (antes el 84 %), sumando un cruce por posición validado con paralaje y magnitud.
+- **Distancias:** 31 estrellas corregidas con la paralaje de Gaia bajo un criterio estricto.
+- **Estrellas nuevas:** 3.624 anfitrionas de exoplanetas que el catálogo base no incluía, entre ellas TRAPPIST-1 y la estrella de Teegarden. El catálogo pasa a 122.284 estrellas y los sistemas múltiples a 5.786.

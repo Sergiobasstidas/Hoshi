@@ -11,6 +11,8 @@ import { parse } from 'csv-parse/sync';
 const ATHYG_CSV = './data/raw/hyglike_from_athyg_v32.csv';
 const STARS_JSON = './data/processed/stars_15pc.json';
 const GAIA_HIP_CSV = './data/raw/gaia/gaia_dr3_hip.csv';
+// Enlace por posición (scripts/catalog/cruzar_gaia_posicion.py) para las estrellas sin enlace por HIP.
+const GAIA_POSITION_CSV = './data/raw/gaia/gaia_dr3_posicion.csv';
 const GAIA_HOSTS_CSV = './data/raw/gaia/gaia_dr3_exoplanet_hosts.csv';
 const SIMBAD_CSV = './data/raw/simbad/simbad_exoplanet_hosts.csv';
 const SIMBAD_MAP_CSV = './data/raw/simbad/simbad_exoplanet_hosts_mapa.csv';
@@ -66,6 +68,11 @@ for (const g of read(GAIA_HIP_CSV)) {
   gaiaByHip.set(g.hip, g);
   gaiaBySource.set(g.source_id, g);
 }
+const gaiaByPosition = new Map();
+if (fs.existsSync(GAIA_POSITION_CSV)) for (const g of read(GAIA_POSITION_CSV)) {
+  gaiaByPosition.set(g.id, g);
+  if (!gaiaBySource.has(g.source_id)) gaiaBySource.set(g.source_id, g);
+}
 for (const g of read(GAIA_HOSTS_CSV)) if (!gaiaBySource.has(g.source_id)) gaiaBySource.set(g.source_id, g);
 
 
@@ -75,19 +82,22 @@ const athygByGaia = new Map();
 const distanceFlags = [], binaryCandidates = [];
 for (const r of athyg) {
   const id = Number(r.id);
-  const g = r.hip ? gaiaByHip.get(r.hip) : null;
+  const viaHip = r.hip ? gaiaByHip.get(r.hip) : null;
+  const g = viaHip || gaiaByPosition.get(r.id) || null;
   const a = astrometry(g);
   const rec = {
     i: id,
     gaia: g ? g.source_id : null,
+    // Vía del enlace con Gaia: 'hip' (tabla de vecinos de Gaia) o 'posicion' (CDS XMatch validado).
+    via: g ? (viaHip ? 'hip' : 'posicion') : null,
     hip: r.hip ? Number(r.hip) : null,
     hd: r.hd ? Number(r.hd) : null,
     hr: r.hr ? Number(r.hr) : null,
     gj: r.gl || null,
     n: r.proper || null,
     bf: r.bf || null,
-    // Calidad del enlace HIP→Gaia según el propio Gaia.
-    gq: g ? { sep: sig(num(g.angular_distance), 3), vecinos: num(g.number_of_neighbours) } : null,
+    // Calidad del enlace: separación (″) y candidatos; en 'posicion', además cómo se validó.
+    gq: g ? { sep: sig(num(g.angular_distance), 3), vecinos: num(g.number_of_neighbours), ...(g.validacion ? { val: g.validacion } : {}) } : null,
     g: a,
   };
   stars.push(rec);
@@ -174,8 +184,8 @@ for (const [host, r] of nasaHosts) {
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.writeFileSync(`${OUT_DIR}/star_identity.json`, JSON.stringify({
   meta: {
-    descripcion: 'Identidad de cada estrella de Hoshi (ID AT-HYG) con Gaia DR3 vía HIP y astrometría Gaia',
-    fuentes: ['AT-HYG v3.2', 'Gaia DR3 hipparcos2_best_neighbour + gaia_source + astrophysical_parameters'],
+    descripcion: 'Identidad de cada estrella de Hoshi (ID AT-HYG) con Gaia DR3 (vía HIP o posición) y astrometría Gaia',
+    fuentes: ['AT-HYG v3.2', 'Gaia DR3 hipparcos2_best_neighbour + gaia_source + astrophysical_parameters', 'CDS XMatch (I/355/gaiadr3) para el enlace por posición'],
     nota: 'Posiciones Gaia en época 2016.0; no reemplazan las del catálogo.',
   },
   stars,
@@ -188,9 +198,12 @@ const withGaia = stars.filter(s => s.gaia).length;
 const report = {
   generado: new Date().toISOString(),
   estrellasHoshi: stars.length,
-  conGaiaPorHip: withGaia,
+  conGaia: withGaia,
+  conGaiaPorHip: stars.filter(s => s.via === 'hip').length,
+  conGaiaPorPosicion: stars.filter(s => s.via === 'posicion').length,
+  validacionPorPosicion: stars.filter(s => s.via === 'posicion').reduce((o, s) => ({ ...o, [s.gq.val]: (o[s.gq.val] || 0) + 1 }), {}),
   sinGaia: stars.length - withGaia,
-  enlaceHipGaiaDudoso: stars.filter(s => s.gq && (s.gq.vecinos > 1 || s.gq.sep > 1)).length,
+  enlaceHipGaiaDudoso: stars.filter(s => s.via === 'hip' && (s.gq.vecinos > 1 || s.gq.sep > 1)).length,
   distanciaDiscrepante: { umbral: DISTANCE_FLAG, total: distanceFlags.length,
     porFuente: distanceFlags.reduce((o, f) => ({ ...o, [f.fuente || '?']: (o[f.fuente || '?'] || 0) + 1 }), {}),
     muestra: distanceFlags.sort((a, b) => a.dGaia - b.dGaia).slice(0, 40) },

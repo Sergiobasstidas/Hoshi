@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'csv-parse/sync';
+import { applyPatches, loadPatches } from './catalog/catalog_patches.js';
 
 // === CONFIGURACIÓN ===
 const MAX_DISTANCE_PC = 400000;
@@ -100,13 +101,20 @@ const processed = nearbyStars.map(s => {
 });
 
 
+// === 5b. Parches de data/catalog/: distancias de Gaia DR3 y anfitrionas de exoplanetas ===
+// Se aplican si los archivos existen; AT-HYG no se modifica. Ver scripts/catalog/catalog_patches.js.
+const patches = loadPatches();
+const patched = applyPatches(processed, patches);
+console.log(`✓ Distancias corregidas: ${patches.corrections.length}; anfitrionas añadidas: ${patches.added.length}`);
+
+
 // === 6. Ordenar por distancia (Sol primero) ===
-processed.sort((a, b) => a.d - b.d);
+patched.sort((a, b) => a.d - b.d);
 
 
 // === 7. Escribir el JSON ===
 fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-fs.writeFileSync(OUTPUT_PATH, JSON.stringify(processed, null, 2));
+fs.writeFileSync(OUTPUT_PATH, JSON.stringify(patched, null, 2));
 
 const sizeKB = (fs.statSync(OUTPUT_PATH).size / 1024).toFixed(1);
 console.log(`✓ Guardado: ${OUTPUT_PATH} (${sizeKB} KB)`);
@@ -114,7 +122,7 @@ console.log(`✓ Guardado: ${OUTPUT_PATH} (${sizeKB} KB)`);
 
 // === Bonus: mostrar las 5 más cercanas en consola, para verificar ===
 console.log(`\nLas 5 estrellas más cercanas al Sol:`);
-processed.slice(0, 5).forEach(s => {
+patched.slice(0, 5).forEach(s => {
   const name = s.n || '(sin nombre)';
   console.log(`  ${name.padEnd(25)} d=${s.d.toFixed(3)} pc   RGB=${s.rgb}`);
 });
