@@ -137,7 +137,7 @@
 
 /* Visores gemelos: ampliación uniforme de arcos, cifras y textos. */
 /* Visores abajo a la izquierda: el arco visible queda alineado con el logo (30 px). */
-.visores-vuelo{position:absolute;bottom:30px;left:18px;display:flex;gap:12px;width:412px;height:184px;transform:scale(1);transform-origin:bottom left;z-index:23;color:#8ca5b4;text-align:center;}
+.visores-vuelo{position:absolute;bottom:30px;left:18px;display:flex;gap:12px;width:412px;height:184px;transform:scale(1.15);transform-origin:bottom left;z-index:23;color:#8ca5b4;text-align:center;}
 .visores-vuelo .dial-velocidad,.dial-distancia{position:relative;left:auto;bottom:auto;transform:none;width:200px;height:184px;flex:none;}
 .dial-distancia{pointer-events:none;}
 .dial-arco,.dial-arco-distancia{stroke-width:2.7;}
@@ -150,10 +150,11 @@
 .creditos-contenido a{color:#9fcbd5;}
 @media(max-width:700px){.visores-vuelo{left:50%;transform-origin:bottom center;transform:translateX(-50%) scale(.92);bottom:36px;}.marca-hoshi{font-size:14.4px;}}
 @media(max-width:420px){.visores-vuelo{transform:translateX(-50%) scale(.8);}}
-@media(max-height:650px) and (min-width:701px){.visores-vuelo{transform:scale(.75);bottom:20px;}}
+@media(max-height:650px) and (min-width:701px){.visores-vuelo{transform:scale(.86);bottom:20px;}}
 @media(max-height:650px) and (max-width:700px){.visores-vuelo{transform:translateX(-50%) scale(.8625);bottom:20px;}}
 /* Pie: ayuda de controles y, debajo, el copyright en la esquina inferior derecha. */
 @media(min-width:701px){.scene-footer{left:auto;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}
-  .oort-note{bottom:205px}.galaxy-loading{bottom:230px}.pulsar-legend{bottom:205px}}
+  .oort-note{bottom:250px}.galaxy-loading{bottom:262px}.pulsar-legend{bottom:250px}}
 /* La ficha con planetas puede ser larga: desplazarla antes que tapar los visores inferiores. */
 .body-panel { max-height: max(220px, calc(100% - 500px)); overflow-y: auto; }
+@media(max-height:650px) and (min-width:701px){.body-panel{max-height:max(150px,calc(100% - 430px));}}

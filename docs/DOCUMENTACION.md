@@ -314,7 +314,7 @@ Con un tiempo de periastro, `M = 0` en esa fecha. Un tiempo de periastro idénti
 
 - Las órbitas y los nombres aparecen al acercarse, según el tamaño aparente de cada órbita.
 - De lejos cada planeta es un marcador de tamaño fijo. De cerca es una esfera con su radio físico (`radio × 6.378,1 km`), iluminada desde su estrella.
-- Al llegar a una estrella con planetas, la cámara queda a 35° de la normal del plano orbital, para ver las órbitas abiertas. Es solo la posición de la cámara: el catálogo no se gira.
+- Al llegar a una estrella con planetas, la cámara queda a 64° de la normal del plano orbital (26° sobre el plano), con el plano horizontal en pantalla: las órbitas se ven en perspectiva, abiertas y con profundidad; el giro termina antes de que se distingan las órbitas. Al elegir un planeta, la cámara queda a 10 radios, del lado opuesto a su estrella y algo por encima del plano orbital, con el planeta en primer plano y la estrella detrás; a esa distancia la cámara está casi en el plano y las órbitas se ven de canto. Es solo la posición de la cámara: el catálogo no se gira.
 - Los planetas con radio se pueden elegir desde su nombre o desde el selector «Acercarse a», como los del sistema solar.
 - La estrella anfitriona usa el radio y la temperatura publicados en el archivo (4.507 estrellas).
 

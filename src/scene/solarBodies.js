@@ -21,7 +21,8 @@ export const SOLAR_BODIES = [
 ];
 
 // Lado desde el que se llega, si el cuerpo lo declara (sistemas planetarios y sus planetas).
-const arrival = body => body.viewDirection ? { direction: body.viewDirection } : {};
+// El giro hacia ese lado termina a 0,6 del avance, antes de que se distingan las órbitas.
+const arrival = body => body.viewDirection ? { direction: body.viewDirection, turnBy: 0.6, ...(body.viewUp && { up: body.viewUp }) } : {};
 export function bodyView(body) {
   if(body.kind==='star' && !body.radiusKm) return {id:'star',body,target:body.position,distance:Math.max(AU_TO_PC,body.companionViewDistance||0),minDistance:STAR_STOP_PC,...arrival(body)};
   if (body.kind === 'system') {
