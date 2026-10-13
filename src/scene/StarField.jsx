@@ -119,6 +119,22 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
   );
 }
 
+// Estrella enfocada o de partida: marcador anclado y, con radio y temperatura, su esfera.
+function AnchoredStar({ star, origin, gain }) {
+  const stars = useMemo(() => [star], [star]);
+  // Restar la traslación del objeto de la cámara con doble precisión en CPU.
+  // Un punto centrado en cero conserva precisión de UA al llegar desde coordenadas Float32.
+  const anchor = useMemo(() => [star.x - origin[0], star.y - origin[1], star.z - origin[2]], [star, origin]);
+  return <>
+    <StarGroup gain={gain} stars={stars} named origin={origin} anchor={anchor} physicalRadius={star.physics?.radiusPc} />
+    {star.physics && <StellarSurface position={anchor} radiusPc={star.physics.radiusPc} temperatureK={star.physics.temperatureK} />}
+  </>;
+}
+// Una binaria anfitriona de planetas circumbinarios se dibuja como sus dos estrellas, cada
+// una en su posición en torno al centro de masas, en lugar del punto único del catálogo.
+// El brillo del marcador se reparte para que el par no destaque más que una estrella sola.
+const parts = star => star ? star.components || [star] : [];
+
 export default function StarField({ stars, origin, focusedStar, departureStar, gain = 1 }) {
   const groups = useMemo(() => ({
     solar: stars.filter(s => s.n === 'Sol' || s.n === 'Sun').map(s => ({...s,x:0,y:0,z:0})),
@@ -128,21 +144,10 @@ export default function StarField({ stars, origin, focusedStar, departureStar, g
   const retained = departureStar?.i !== focusedStar?.i ? departureStar : null;
   const visibleNamed = useMemo(() => groups.named.filter(s => s.i !== focusedStar?.i && s.i !== retained?.i), [groups, focusedStar, retained]);
   const visibleBackground = useMemo(() => groups.background.filter(s => s.i !== focusedStar?.i && s.i !== retained?.i), [groups, focusedStar, retained]);
-  const focused = useMemo(() => focusedStar ? [focusedStar] : [], [focusedStar]);
-  const departing = useMemo(() => retained ? [retained] : [], [retained]);
-  const departureAnchor = useMemo(() => retained
-    ? [retained.x-origin[0], retained.y-origin[1], retained.z-origin[2]] : null, [retained,origin]);
-  // Restar la traslación del objeto de la cámara con doble precisión en CPU.
-  // Un punto centrado en cero conserva precisión de UA al llegar desde coordenadas Float32.
-  const anchor = useMemo(() => focusedStar
-    ? [focusedStar.x - origin[0], focusedStar.y - origin[1], focusedStar.z - origin[2]] : null, [focusedStar, origin]);
   return <><StarGroup gain={gain} stars={visibleBackground} named={false} origin={origin} />
     <StarGroup gain={gain} stars={visibleNamed} named origin={origin} />
     <StarGroup gain={gain} stars={groups.solar} named solar origin={origin} physicalRadius={SUN_RADIUS_PC} />
-    {focusedStar && <StarGroup gain={gain} stars={focused} named origin={origin} anchor={anchor} physicalRadius={focusedStar.physics?.radiusPc} />}
-    {focusedStar?.physics && <StellarSurface position={anchor} radiusPc={focusedStar.physics.radiusPc}
-      temperatureK={focusedStar.physics.temperatureK} />}
-    {retained && <StarGroup gain={gain} stars={departing} named origin={origin} anchor={departureAnchor} physicalRadius={retained.physics?.radiusPc} />}
-    {retained?.physics && <StellarSurface position={departureAnchor} radiusPc={retained.physics.radiusPc} temperatureK={retained.physics.temperatureK} />}
+    {[focusedStar, retained].flatMap(star => parts(star).map((part, k, all) =>
+      <AnchoredStar key={`${part.i}:${k}`} star={part} origin={origin} gain={gain / all.length} />))}
   </>;
 }
