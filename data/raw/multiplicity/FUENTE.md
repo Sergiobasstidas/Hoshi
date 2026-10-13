@@ -26,3 +26,15 @@ Descargado el 13/10/2026 del CDS, catálogo J/ApJS/235/6 (versión actualizada a
 - `ReadMe`, `catalog.dat.gz`, `systems.dat.gz`, `orbits.dat` — https://cdsarc.cds.unistra.fr/ftp/J/ApJS/235/6/
 
 Autor: A. Tokovinin (2018, ApJS 235, 6; doi:10.26093/cds/vizier.22350006). Archivos sin modificar. Se usan las masas estimadas de cada par, la jerarquía, los tipos espectrales y las posiciones e identificadores de componentes. `orbits.dat` se conserva pero no se procesa.
+
+# Ninth Catalogue of Spectroscopic Binary Orbits (SB9)
+
+Descargado el 13/10/2026 del CDS, catálogo B/sb9 (versión 2013-10-27), en `sb9/`:
+
+- `ReadMe`, `main.dat`, `orbits.dat` — https://cdsarc.cds.unistra.fr/ftp/B/sb9/
+
+Autores: Pourbaix et al. (2004, A&A 424, 727). Archivos sin modificar. Solo se usa el cociente de amplitudes de velocidad K1/K2 de las binarias de doble línea, que mide la razón de masas, cuando su período coincide con el de una órbita visual ya aceptada.
+
+# Masas dinámicas publicadas (selección verificada)
+
+En `scripts/published_binary_masses.js`, cada valor con su referencia. Comprobados el 13/10/2026 contra el resumen de cada artículo en arXiv.

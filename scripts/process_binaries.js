@@ -7,10 +7,14 @@ import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { besselianYearToMjd } from '../src/scene/visualBinary.js';
 import { parseComponents } from './multiplicity.js';
+import { PUBLISHED_BINARY_MASSES } from './published_binary_masses.js';
 
 const ORBITS_PATH = 'data/raw/multiplicity/orb6orbits.txt';
 const WDS_PATH = 'data/raw/multiplicity/wdsweb_summ2.txt';
 const MSC_DIR = 'data/raw/multiplicity/msc';
+const SB9_DIR = 'data/raw/multiplicity/sb9';
+// Tolerancia de período para reconocer la misma órbita en SB9 y en ORB6.
+const SB9_PERIOD_TOLERANCE = 0.05;
 // Grado mínimo del MSC: 3 o más son jerarquías aceptadas; 1 y 2, refutadas o dudosas.
 const MSC_MIN_GRADE = 3;
 const OUTPUT_PATH = 'data/processed/star_systems.json';
@@ -78,7 +82,7 @@ function nearest(ra, dec, limit, magnitude, exclude) {
 // ---------- ORB6 ----------
 const counts = { orbits: 0, incomplete: 0, grade: 0, unmatched: 0, mass: 0, components: 0,
   wide: 0, widePhysical: 0, wideMatched: 0, wideKept: 0,
-  mscSystems: 0, mscRooted: 0, mscMasses: 0, mscWide: 0, mscHidden: 0, mscCompanions: 0 };
+  published: 0, sb9: 0, mscSystems: 0, mscRooted: 0, mscMasses: 0, mscWide: 0, mscHidden: 0, mscCompanions: 0 };
 const systems = new Map(); // id del catálogo → { wds, pairs: Map(clave → par) }
 const rootByWds = new Map();
 const system = (id, wds) => {
@@ -221,6 +225,38 @@ for (const line of readMsc('systems.dat.gz')) {
   }
 }
 
+// ---------- Masas de pares que el MSC no cubre: publicadas y SB9 ----------
+// SB9: en una binaria de doble línea K1/K2 = m2/m1, medido. La masa total sale de la
+// órbita visual (a³/P², con la distancia del catálogo); el reparto, de SB9.
+const sb9Hip = new Map();
+for (const line of fs.readFileSync(`${SB9_DIR}/main.dat`, 'latin1').split('\n')) {
+  const match = /HIP\s*(\d+)/.exec(line.slice(103));
+  if (match) sb9Hip.set(Number(line.slice(0, 4)), Number(match[1]));
+}
+const sb9ByStar = new Map();
+for (const line of fs.readFileSync(`${SB9_DIR}/orbits.dat`, 'latin1').split('\n')) {
+  if (line.length < 160) continue;
+  const id = byHip.get(sb9Hip.get(Number(line.slice(0, 4))));
+  const period = Number(line.slice(7, 23)), k1 = Number(line.slice(123, 133)), k2 = Number(line.slice(147, 157));
+  if (id === undefined || !(period > 0 && k1 > 0 && k2 > 0)) continue;
+  if (!sb9ByStar.has(id)) sb9ByStar.set(id, []);
+  sb9ByStar.get(id).push({ period, k1, k2, grade: Number(line.slice(225, 228)) || 0, ref: line.slice(229, 280).trim() });
+}
+for (const [id, entry] of systems) {
+  for (const [key, pair] of entry.pairs) {
+    if (pair.k !== 'o' || pair.m1) continue;
+    const published = PUBLISHED_BINARY_MASSES[`${entry.wds}|${key}`];
+    if (published) { Object.assign(pair, { m1: published.m1, m2: published.m2, mc: 'pub', ms: published.source }); counts.published++; continue; }
+    const match = (sb9ByStar.get(id) || []).filter(orbit => Math.abs(orbit.period - pair.p) / pair.p < SB9_PERIOD_TOLERANCE)
+      .sort((a, b) => b.grade - a.grade)[0];
+    if (!match) continue;
+    const total = match.k1 + match.k2;
+    Object.assign(pair, { m1: +(pair.mass * match.k2 / total).toPrecision(3), m2: +(pair.mass * match.k1 / total).toPrecision(3),
+      mc: 'sb9', ms: match.ref });
+    counts.sb9++;
+  }
+}
+
 // ---------- Jerarquía y compañeras ya presentes en el catálogo ----------
 const output = {};
 for (const [id, entry] of [...systems].sort((a, b) => a[0] - b[0])) {
@@ -257,6 +293,7 @@ console.log(`ORB6: ${counts.orbits} órbitas; ${counts.incomplete} incompletas o
 console.log(`WDS: ${counts.wide} pares; ${counts.widePhysical} físicos sin órbita aceptada, ${counts.wideMatched} cruzados, ${counts.wideKept} dentro de ${WIDE_MAX_AU} UA.`);
 console.log(`MSC: ${counts.mscSystems} pares de grado ≥ ${MSC_MIN_GRADE}; ${counts.mscRooted} con primaria en el catálogo; ${counts.mscMasses} aportan masas a pares ya dibujados, `
   + `${counts.mscWide} son compañeras nuevas con ángulo de posición, ${counts.mscHidden} quedan sin dibujar por falta de orientación; ${counts.mscCompanions} compañeras identificadas por HIP/HD.`);
+console.log(`Masas fuera del MSC: ${counts.published} pares con masas dinámicas publicadas, ${counts.sb9} con razón de masas de SB9.`);
 console.log(`✓ ${Object.keys(output).length} sistemas, ${all.length} componentes (${all.filter(c => c.k === 'o').length} con órbita, `
   + `${all.filter(c => c.k === 'w').length} pares anchos); ${all.filter(c => c.cid).length} ya presentes en el catálogo; `
   + `${all.filter(c => c.sp).length} con tipo espectral. ${OUTPUT_PATH}`);
