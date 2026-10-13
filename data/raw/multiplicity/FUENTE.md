@@ -9,3 +9,12 @@ Descargado el 13/10/2026 desde el espejo de Georgia State University del Washing
 Mantenido por el U.S. Naval Observatory (Hartkopf, Mason y Worley; actualización continua). Archivos sin modificar. Cita solicitada por los autores: «Sixth Catalog of Orbits of Visual Binary Stars», USNO. Cada órbita conserva su código de referencia original en la columna `REF`.
 
 Procesado por `scripts/process_binaries.js`. Detalle en `docs/BINARIAS.md`.
+
+# Washington Double Star Catalog (WDS)
+
+Descargado el 13/10/2026 desde el mismo espejo:
+
+- `wdsweb_summ2.txt` — https://www.astro.gsu.edu/wds/Webtextfiles/wdsweb_summ2.txt (resumen por par con coordenadas precisas; 157.980 pares)
+- `wdsweb_format.txt` — https://www.astro.gsu.edu/wds/Webtextfiles/wdsweb_format.txt (formato y códigos de notas)
+
+Mantenido por el U.S. Naval Observatory (Mason, Wycoff, Hartkopf, Douglass y Worley). Archivos sin modificar. Se usan los pares marcados como físicos (códigos T, V o Z, sin S, U, Y ni X) y el tipo espectral de la compañera.

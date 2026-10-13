@@ -79,12 +79,18 @@ function getStarColor(ci) {
 // Keys de 1 letra para que el JSON sea liviano (estilo BSC5P-JSON-XYZ).
 const processed = nearbyStars.map(s => {
   const [r, g, b] = getStarColor(s.ci);
+  // Las columnas x, y, z del CSV vienen redondeadas a ~0,001 pc (≈ 206 UA), lo que
+  // superpone componentes de un mismo sistema. Se recalculan desde ascensión recta,
+  // declinación y distancia, en el mismo marco ecuatorial J2000 con origen en el Sol.
+  const dist = parseFloat(s.dist), ra = parseFloat(s.ra) * Math.PI / 12, dec = parseFloat(s.dec) * Math.PI / 180;
+  // Siete cifras significativas: 0,02 UA a 1 pc y 2 UA a 100 pc, sin engordar el archivo.
+  const coordinate = value => Number((dist * value).toPrecision(7));
   return {
     i: parseInt(s.id),            // ID único
     n: s.proper || null,          // nombre propio (si existe)
-    x: parseFloat(s.x),           // posición X (parsecs, Sol = origen)
-    y: parseFloat(s.y),
-    z: parseFloat(s.z),
+    x: coordinate(Math.cos(dec) * Math.cos(ra)), // posición X (parsecs, Sol = origen)
+    y: coordinate(Math.cos(dec) * Math.sin(ra)),
+    z: coordinate(Math.sin(dec)),
     d: parseFloat(s.dist),        // distancia al Sol en parsecs
     m: parseFloat(s.absmag),      // magnitud absoluta (más bajo = más brillante)
     c: parseFloat(s.ci) || 0,     // índice B-V (color)

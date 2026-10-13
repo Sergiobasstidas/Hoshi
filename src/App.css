@@ -31,6 +31,7 @@
 .scene-label:hover .label-text { transform: scale(1.2); background: transparent; color: #edf4ff; }
 .distance-panel, .scale-navigation { z-index: 20; }
 .scene-label.sun { color: #f4e7c8; }
+.companion-label { display: block; transform: translate(8px, -8px); color: #b5becd; font-size: 9px; white-space: nowrap; text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
 .scene-label.star { color: #b5becd; font-size: 9px; text-shadow: 0 1px 3px #000, 0 0 5px #b4d8ed38; }
 .scene-label.star .label-text { transition: transform .28s ease, color .28s ease; }
 .scene-label.star:hover .label-text, .scene-label.star:focus-within .label-text { transform: scale(1.7856); color: #edf4ff; }
@@ -145,7 +146,8 @@
 @media(prefers-reduced-motion:reduce){.scene-label.star .label-text,.escala-linea{transition:none}}
 
 /* Visores gemelos: ampliación uniforme de arcos, cifras y textos. */
-.visores-vuelo{position:absolute;bottom:30px;left:50%;display:flex;gap:12px;width:412px;height:184px;transform:translateX(-50%) scale(1.15);transform-origin:bottom center;z-index:23;color:#8ca5b4;text-align:center;}
+/* Visores abajo a la izquierda: el arco visible queda alineado con el logo (30 px). */
+.visores-vuelo{position:absolute;bottom:30px;left:18px;display:flex;gap:12px;width:412px;height:184px;transform:scale(.8625);transform-origin:bottom left;z-index:23;color:#8ca5b4;text-align:center;}
 .visores-vuelo .dial-velocidad,.dial-distancia{position:relative;left:auto;bottom:auto;transform:none;width:200px;height:184px;flex:none;}
 .dial-distancia{pointer-events:none;}
 .dial-arco,.dial-arco-distancia{stroke-width:2.7;}
@@ -156,6 +158,10 @@
 .creditos-hoshi summary::-webkit-details-marker{display:none;}
 .creditos-contenido{max-width:300px;padding:12px;background:#0a1019ed;border:1px solid #405e7544;color:#9fb7c5;font-size:11px;line-height:1.6;pointer-events:auto;}
 .creditos-contenido a{color:#9fcbd5;}
-@media(max-width:700px){.visores-vuelo{transform:translateX(-50%) scale(.92);bottom:36px;}.marca-hoshi{font-size:14.4px;}}
+@media(max-width:700px){.visores-vuelo{left:50%;transform-origin:bottom center;transform:translateX(-50%) scale(.92);bottom:36px;}.marca-hoshi{font-size:14.4px;}}
 @media(max-width:420px){.visores-vuelo{transform:translateX(-50%) scale(.8);}}
-@media(max-height:650px){.visores-vuelo{transform:translateX(-50%) scale(.8625);bottom:20px;}}
+@media(max-height:650px) and (min-width:701px){.visores-vuelo{transform:scale(.647);bottom:20px;}}
+@media(max-height:650px) and (max-width:700px){.visores-vuelo{transform:translateX(-50%) scale(.8625);bottom:20px;}}
+/* Pie: ayuda de controles y, debajo, el copyright en la esquina inferior derecha. */
+@media(min-width:701px){.scene-footer{left:auto;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}
+  .oort-note{bottom:205px}.galaxy-loading{bottom:230px}.pulsar-legend{bottom:205px}}
