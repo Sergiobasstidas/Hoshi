@@ -1,5 +1,5 @@
 // scripts/process_stars.js
-// Lee el CSV de HYGLike, filtra estrellas dentro de 15 parsecs del Sol,
+// Lee el CSV de HYGLike, filtra estrellas hasta MAX_DISTANCE_PC del Sol,
 // agrega color RGB pre-calculado desde el índice B-V, y exporta JSON.
 
 import fs from 'node:fs';
@@ -9,6 +9,7 @@ import { parse } from 'csv-parse/sync';
 // === CONFIGURACIÓN ===
 const MAX_DISTANCE_PC = 400000;
 const RAW_DIR = './data/raw';
+// Nombre heredado: el archivo ya no se limita a 15 pc. Se conserva por los imports.
 const OUTPUT_PATH = './data/processed/stars_15pc.json';
 
 
@@ -34,7 +35,7 @@ console.log(`✓ Total de estrellas en el catálogo: ${records.length.toLocaleSt
 
 
 // === 3. Filtrar por distancia ===
-// El campo 'dist' está en parsecs. Nos quedamos con las que están a ≤ 15 pc.
+// El campo 'dist' está en parsecs. Nos quedamos con las que están a ≤ MAX_DISTANCE_PC.
 const nearbyStars = records.filter(s => {
   const d = parseFloat(s.dist);
   return !isNaN(d) && d >= 0 && d <= MAX_DISTANCE_PC;
