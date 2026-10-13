@@ -33,6 +33,19 @@ test('La barra conserva el lado de aproximación aunque cambie el origen local y
   }
 });
 
+test('El extremo de la escala centra la galaxia y queda a la distancia máxima de la Tierra', async () => {
+  const {GALAXY_CENTER,GALACTIC_Z}=await import('../src/scene/galaxy.js');
+  const {DISTANCIA_MAXIMA}=await import('../src/scene/escalaNavegacion.js');
+  const destino=destinoDesdeBarra(100,[1,2,3],[0,0,0]);
+  assert.deepEqual(destino.target,GALAXY_CENTER);
+  assert.deepEqual(destino.up,GALACTIC_Z);
+  const llegada=new Vector3(...destino.target).addScaledVector(new Vector3(...destino.direction),destino.distance);
+  assert.ok(Math.abs(llegada.distanceTo(new Vector3(...TIERRA.position))-DISTANCIA_MAXIMA)<1e-6);
+  assert.ok(Math.abs(barraDesdeDistancia(llegada.distanceTo(new Vector3(...TIERRA.position)))-100)<1e-9);
+  // Por debajo del extremo la escala sigue apuntando a la Tierra.
+  assert.deepEqual(destinoDesdeBarra(99,[1,2,3],[0,0,0]).target,TIERRA.position);
+});
+
 test('Las etiquetas conservan su identidad ante cambios mínimos de distancia y superposición', () => {
   let visibles=new Set([1,2]);
   for(let cuadro=0;cuadro<120;cuadro++){

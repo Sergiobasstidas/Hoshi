@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { AU_TO_PC, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, KM_TO_PC } from './scale.js';
 import { SOLAR_BODIES } from './solarBodies.js';
-import { galaxyView } from './galaxy.js';
+import { GALAXY_CENTER, galaxyView } from './galaxy.js';
 
 export const TIERRA = SOLAR_BODIES.find(cuerpo => cuerpo.name === 'Tierra');
 export const DISTANCIA_MINIMA = TIERRA.radiusKm * KM_TO_PC * 6;
@@ -37,8 +37,15 @@ export function destinoDesdeBarra(valor, posicion, origen) {
   if (direccion.lengthSq() < 1e-24) direccion.set(0, 0, 1);
   // El extremo exterior siempre encuadra la galaxia; las escalas intermedias
   // conservan el lado de aproximación que escogió el usuario.
-  const galaxia = valor >= 99.9 ? galaxyView() : null;
-  if (galaxia) direccion.fromArray(galaxia.direction);
-  return {id:'escala', target:TIERRA.position, distance:distanciaDesdeBarra(valor), up:galaxia?.up,
+  if (valor >= 99.9) {
+    // La cámara queda a la distancia máxima de la Tierra, como marca la barra, pero
+    // mira al centro galáctico: así el disco queda centrado y no el Sol.
+    const galaxia = galaxyView();
+    const llegada = new Vector3(...galaxia.direction).multiplyScalar(distanciaDesdeBarra(valor)).add(new Vector3(...TIERRA.position));
+    const desdeCentro = llegada.sub(new Vector3(...GALAXY_CENTER));
+    return {id:'escala', centro:'galaxia', target:GALAXY_CENTER, distance:desdeCentro.length(), up:galaxia.up,
+      direction:desdeCentro.clone().normalize().toArray()};
+  }
+  return {id:'escala', target:TIERRA.position, distance:distanciaDesdeBarra(valor),
     minDistance:TIERRA.radiusKm*KM_TO_PC*1.02, direction:direccion.normalize().toArray()};
 }
