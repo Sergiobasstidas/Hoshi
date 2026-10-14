@@ -133,7 +133,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
           / (2 * Math.tan(camera.fov * Math.PI / 360));
         alpha = smoothRange(radiusPixels, 20, 50);
       } else if (label.kind === 'probe') {
-        alpha = smoothRange(au, 100, 250) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
+        // Aparece al alejarse más allá del cinturón de Kuiper; se retira con la estela.
+        alpha = smoothRange(pc / AU_TO_PC, 20, 45) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
       } else if (label.kind === 'star') {
         alpha = nameOpacity;
         if (aimTarget === label) alpha = 0.9;
@@ -165,6 +166,11 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       el.style.visibility = visible ? 'visible' : 'hidden';
       if (visible) {
         el.style.transform = `translate(${box.x}px, ${box.y}px)`;
+        // Hexágono sobre la sonda, en la cabeza de su estela (ProbeTrails.jsx).
+        if (label.kind === 'probe') {
+          el.style.setProperty('--ring-x', `${point.x - box.x}px`);
+          el.style.setProperty('--ring-y', `${point.y - box.y}px`);
+        }
       }
     });
 

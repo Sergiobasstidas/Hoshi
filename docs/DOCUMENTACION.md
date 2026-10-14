@@ -117,8 +117,18 @@ Capas del entorno solar, todas **ilustrativas** salvo sus distancias:
 | --- | --- | --- |
 | Cinturón de Kuiper | 30–50 UA | 22.000 puntos sintéticos |
 | Heliosfera | ≈ 120 UA | Superficie translúcida estática |
-| Voyager 1 y 2 | 172 y 143 UA | Líneas esquemáticas desde el Sol |
+| Voyager 1 y 2, Pioneer 10 y 11 | ≈ 172, 144, 142 y 118 UA en octubre de 2026 | Posición de JPL Horizons en la fecha de carga; hexágono y cola ilustrativos (ver «Sondas») |
 | Nube de Oort | 2.000–100.000 UA | 140.000 partículas sintéticas |
+
+### Sondas
+
+Archivos: `probeTrajectories.js`, `ProbeComets.jsx`, `ProbeTrails.jsx`; datos en `public/data/probes.json`.
+
+- **Fuente:** vectores heliocéntricos de JPL Horizons (centro del Sol, ICRF, UA) de Voyager 1 (−31), Voyager 2 (−32), Pioneer 10 (−23) y Pioneer 11 (−24), desde el lanzamiento hasta el 31/12/2049, cada 2 días; se guarda una muestra cada 8 días redondeada a 10⁻⁴ UA (≈ 15.000 km).
+- **Posición:** interpolación lineal en la fecha en que se abre la página. Después de perder la señal (Pioneer 11 en 1995, Pioneer 10 en 2003) y en el futuro, Horizons da la trayectoria calculada, no seguida. Pasada la fecha final, cada sonda queda en su último punto.
+- **En pantalla:** un hexágono hueco marca la sonda y una cola de cometa recorre hacia atrás su trayectoria real, desde la posición de la fecha hasta el punto en que la sonda estaba al 48,25 % de su distancia actual; se estrecha y se vuelve transparente hacia el Sol. Gris tenue; al pasar el ratón por el nombre, la cola, el hexágono y el nombre se aclaran. Ancho, brillo y largo son de presentación.
+- **Rutas completas:** `ProbeTrails.jsx` dibuja toda la trayectoria desde el lanzamiento, con sus pasos por los planetas, como una estela que se apaga hacia el pasado. Está preparado para activarse más adelante (`probeRoutes` en `SolarSystem.jsx`) y hoy no se muestra.
+- **Comprobación:** las pruebas verifican que cada trayectoria parte a menos de 0,01 UA de la Tierra y pasa a menos de 0,05 UA de Júpiter, Saturno, Urano y Neptuno en las fechas de sus nueve encuentros, frente a posiciones de Horizons.
 
 ## 7. Estrellas
 
@@ -416,6 +426,8 @@ Los generadores se ejecutan a mano desde la raíz; no forman parte del build.
 | `node scripts/catalog/build_distance_corrections.js` | Identidad estelar | `data/catalog/distance_corrections.json` |
 | `node scripts/catalog/build_added_hosts.js` | Anfitriones y Gaia | `data/catalog/added_hosts.json` |
 | `node scripts/exoplanets/build_planet_scene.js` | Los anteriores | `public/data/exoplanets.json` |
+| `node scripts/probes/fetch_horizons.mjs` | JPL Horizons (descarga) | `data/probes/fuentes/*.csv` |
+| `node scripts/probes/build_probes.js` | `data/probes/fuentes/` | `public/data/probes.json` |
 | `python3 -I scripts/exoplanets/fetch_nasa_catalog_types.py <salida>` | Catálogo de exoplanetas de la NASA | `data/raw/exoplanets/nasa_science_catalog_types.csv` |
 | `node scripts/exoplanets/build_discoveries.js` | Tablas de la NASA (confirmados, TOI, KOI, K2) y catálogo procesado | `public/data/exoplanet-discoveries.json` |
 
@@ -441,6 +453,7 @@ El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los
 
 - AT-HYG / HYG Database, D. Nash.
 - JPL Solar System Dynamics: parámetros astronómicos, elementos orbitales aproximados y parámetros físicos de los planetas.
+- JPL Horizons (https://ssd.jpl.nasa.gov/horizons/): trayectorias de Voyager 1 y 2 y Pioneer 10 y 11.
 - Ballesteros, F. J. (2012), EPL 97, 34008: temperatura a partir de B−V.
 - Flower, P. J. (1996), ApJ 469, 355; Torres, G. (2010), AJ 140, 1158: corrección bolométrica.
 - Ribas, I. et al. (2017), A&A 603, A58: Próxima Centauri.
