@@ -52,3 +52,10 @@ Desarrollo anterior al historial Git, reunido en la primera instantánea del rep
 - **Estrellas nuevas:** 3.624 anfitrionas de exoplanetas que el catálogo base no incluía, entre ellas TRAPPIST-1 y la estrella de Teegarden. El catálogo pasa a 122.284 estrellas y los sistemas múltiples a 5.786.
 - **Cámara en los sistemas planetarios:** la llegada muestra el plano orbital en perspectiva, horizontal y con la estrella al centro; al elegir un planeta queda en primer plano con su estrella detrás. Visores de velocidad y distancia un 15 % más grandes.
 - **Sistemas circumbinarios:** los planetas que giran alrededor de dos estrellas (Kepler-16, Kepler-47, TOI-1338 y otros) muestran ahora la binaria: las dos estrellas se orbitan en torno a su centro de masas y los planetas rodean a ambas. 26 de los 34 sistemas tienen la órbita de la binaria, tomada del artículo de cada uno; la ficha declara lo supuesto y lo que falta, y cada estrella con radio y temperatura publicados se puede visitar.
+
+## 14/10/2026 — Mapa de exoplanetas
+
+- **Modo «Exoplanetas»:** inspirado en Eyes on Exoplanets de la NASA. Atenúa las estrellas y la Vía Láctea y marca con un destello de cuatro puntas cada sistema con planetas: 6.424 confirmados y 8.057 candidatos de TESS, Kepler y K2, en 12.134 sistemas.
+- **Filtros:** por estado (confirmados o candidatos), tipo de planeta (gigante gaseoso, tipo Neptuno, supertierra, terrestre, según el catálogo de la NASA) y misión, con recuentos en cada pestaña; color por temperatura de la estrella, tipo o misión.
+- **Interacción:** al pasar el ratón aparece la ficha del sistema y con un clic se viaja a él. Los datos se cargan solo al abrir el modo.
+- **Cámara:** el giro y el acercamiento con la rueda tienen inercia y frenan suavemente.

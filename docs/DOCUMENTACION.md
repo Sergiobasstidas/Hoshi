@@ -333,6 +333,19 @@ Con un tiempo de periastro, `M = 0` en esa fecha. Un tiempo de periastro idénti
 - Los planetas con radio se pueden elegir desde su nombre o desde el selector «Acercarse a», como los del sistema solar.
 - La estrella anfitriona usa el radio y la temperatura publicados en el archivo (4.507 estrellas).
 
+### Mapa de descubrimientos
+
+El botón «Exoplanetas» abre un modo inspirado en Eyes on Exoplanets de la NASA: las estrellas del catálogo y la Vía Láctea se atenúan y cada estrella con planetas conocidos se marca con un destello de cuatro puntas, de tamaño fijo en pantalla y algo mayor cuantos más planetas pasan el filtro (`ExoplanetDiscoveries.jsx`, `descubrimientos.js`, `PanelDescubrimientos.jsx`).
+
+- **Datos** (`public/data/exoplanet-discoveries.json`, ≈ 0,7 MB; solo se descarga al abrir el modo): 6.424 planetas confirmados de `pscomppars` y 8.057 candidatos: TOI de TESS con disposición PC o APC del TFOPWG (5.151), KOI de Kepler «CANDIDATE» (1.971) y candidatos de K2 de `k2pandc` (935). En total 12.134 sistemas; 516 candidatos orbitan estrellas que ya tienen planetas confirmados y se suman a ellas (por TIC, KIC o EPIC). Los confirmados que están en Hoshi usan la posición de su estrella del catálogo; los demás, ascensión recta, declinación y distancia del archivo (para los KOI, la distancia de `keplerstellar`, DR25). Quedan fuera 21 confirmados y 207 candidatos sin distancia.
+- **Estado:** todos, confirmados o candidatos. Un sistema solo con candidatos lleva un anillo y rayos más cortos.
+- **Tipo de planeta:** gigante gaseoso, tipo Neptuno, supertierra o terrestre, las categorías del catálogo de la NASA. Para los confirmados se usa el tipo de la ficha de cada planeta en `science.nasa.gov/exoplanets/exoplanet-catalog` (6.287 planetas). La NASA no publica sus límites, así que para candidatos y planetas sin ficha se ajustó una regla a esas fichas: gigante gaseoso desde 0,12 MJ (38,14 M⊕); tipo Neptuno desde 2,1 R⊕; supertierra desde 1 R⊕. El gigante se decide por masa cuando la hay (la NASA llama «tipo Neptuno» a planetas hinchados de poca masa, como WASP-107 b); los otros límites, por radio si lo hay. Sin radio o sin masa, cada límite se convierte con la relación masa-radio de Chen y Kipping (2017), la que usa el archivo para sus masas calculadas: 1 / 5,06 / 38,14 M⊕ equivalen a 1 / 2,1 / 6,9 R⊕. La regla coincide con el 96,2 % de las fichas; es una convención, no una propiedad medida.
+- **Misión:** instalación de descubrimiento (`disc_facility`): Kepler, K2, TESS, CoRoT, Gaia, otros telescopios espaciales (Hubble, Spitzer, CHEOPS, JWST, WISE y descubrimientos con varias instalaciones) y observatorios en tierra (`disc_locale`). Los candidatos pertenecen a la misión de su tabla.
+- **Color:** por defecto, el de la estrella según su temperatura efectiva (como en Eyes); también por tipo del planeta mayor que pasa el filtro o por misión. Los recuentos de cada pestaña se calculan con los filtros de las otras dos filas activos.
+- Al pasar el puntero sobre un destello aparecen su nombre, distancia, planetas por tipo y misión; con un clic se viaja al sistema si su estrella está en Hoshi. Al abrir el modo, la cámara se aleja a 2.400 pc del Sol con la vertical en el polo norte galáctico; las posiciones no se rotan.
+- En el modo las estrellas del catálogo brillan al 8 % y la Vía Láctea al 32 %; los destellos casi no pierden tamaño ni brillo de lejos, para que destaquen sobre el disco.
+- Los destellos son ilustrativos: no indican tamaño ni brillo de la estrella.
+
 ## 10. Vía Láctea y púlsares
 
 **Galaxia** (`galaxy.js`, `MilkyWay.jsx`). Es una **reconstrucción ilustrativa**, no un catálogo 3D medido. Parte de la imagen frontal de la Vía Láctea de ESA/Gaia/DPAC (Stefan Payne-Wardenaar): hasta 55.000 partículas se muestrean por rechazo sobre el brillo de la imagen y reciben espesor con una distribución gaussiana, mayor en el bulbo. La imagen abarca 40.610 pc de lado, registrada para que el vecindario solar caiga a 8.122 pc del centro. Aparece entre 1.800 y 7.000 años luz del Sol.
@@ -369,6 +382,10 @@ d = d_cerca · (d_lejos / d_cerca)^((v − v_inicio) / (v_fin − v_inicio))
 
 No es una escala lineal: el entorno solar ocupa el tercio inferior a propósito.
 
+### Cámara orbital
+
+Fuera del vuelo libre la cámara gira con inercia (amortiguación 0,06) y la rueda acerca con inercia (`ZoomSuave.jsx`, `inerciaCamara.js`): cada muesca da un impulso que frena exponencialmente (λ = 5,5 s⁻¹) y cambia en total un 11 % el logaritmo de la distancia, igual a cualquier frecuencia de cuadros. Los gestos táctiles siguen siendo los de OrbitControls.
+
 ### Vuelo libre
 
 Archivos: `FreeFlight.jsx`, `flightMotion.js`, `controlVelocidad.js`. La rueda y el dial eligen la **velocidad**, no la posición. El dial es logarítmico entre 10⁻¹⁴ pc/s y 15.000 años luz/s:
@@ -399,12 +416,14 @@ Los generadores se ejecutan a mano desde la raíz; no forman parte del build.
 | `node scripts/catalog/build_distance_corrections.js` | Identidad estelar | `data/catalog/distance_corrections.json` |
 | `node scripts/catalog/build_added_hosts.js` | Anfitriones y Gaia | `data/catalog/added_hosts.json` |
 | `node scripts/exoplanets/build_planet_scene.js` | Los anteriores | `public/data/exoplanets.json` |
+| `python3 -I scripts/exoplanets/fetch_nasa_catalog_types.py <salida>` | Catálogo de exoplanetas de la NASA | `data/raw/exoplanets/nasa_science_catalog_types.csv` |
+| `node scripts/exoplanets/build_discoveries.js` | Tablas de la NASA (confirmados, TOI, KOI, K2) y catálogo procesado | `public/data/exoplanet-discoveries.json` |
 
 Orden al actualizar los exoplanetas: `process_exoplanets` → `build_star_identity` → `build_distance_corrections` → `build_added_hosts` → `process_stars` → `process_star_search` → `process_binaries` → `build_planet_scene`. `process_stars.js` aplica las correcciones de distancia y añade las anfitrionas si esos dos archivos existen; AT-HYG no se modifica.
 
 Cada carpeta de `data/raw/` incluye un `FUENTE.md` o `FUENTES.md` con la URL, la fecha de descarga y la cita de cada archivo. Algunos datos crudos voluminosos no se versionan y se descargan con las URL indicadas ahí.
 
-El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los planetas (≈ 0,3 MB) se cargan aparte del bloque inicial de la aplicación, de modo que el sistema solar y la interfaz aparecen antes que las estrellas.
+El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los planetas (≈ 0,3 MB) se cargan aparte del bloque inicial de la aplicación, de modo que el sistema solar y la interfaz aparecen antes que las estrellas. El mapa de descubrimientos (≈ 0,2 MB comprimido) solo se pide al abrir el modo «Exoplanetas».
 
 ## 13. Pruebas
 
