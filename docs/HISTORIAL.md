@@ -59,3 +59,9 @@ Desarrollo anterior al historial Git, reunido en la primera instantánea del rep
 - **Filtros:** por estado (confirmados o candidatos), tipo de planeta (gigante gaseoso, tipo Neptuno, supertierra, terrestre, según el catálogo de la NASA) y misión, con recuentos en cada pestaña; color por temperatura de la estrella, tipo o misión.
 - **Interacción:** al pasar el ratón aparece la ficha del sistema y con un clic se viaja a él. Los datos se cargan solo al abrir el modo.
 - **Cámara:** el giro y el acercamiento con la rueda tienen inercia y frenan suavemente.
+
+## 14/10/2026 — Voyager y Pioneer
+
+- **Sondas en su posición real:** Voyager 1 y 2 y Pioneer 10 y 11 aparecen donde están el día en que se abre la página, según las trayectorias de JPL Horizons. Antes solo estaban las Voyager, con una línea esquemática desde el Sol.
+- **Estilo cometa:** cada sonda lleva un hexágono y una cola corta que sigue su trayectoria real y se difumina hacia el Sol sin entrar en el sistema solar. Al pasar el ratón por el nombre, la sonda se resalta.
+- **Rutas completas preparadas:** las trayectorias desde el lanzamiento, con los pasos por Júpiter, Saturno, Urano y Neptuno, están listas para mostrarse más adelante con un botón.

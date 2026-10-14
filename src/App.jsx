@@ -13,7 +13,7 @@ import VisualGuides from './scene/VisualGuides';
 import FreeFlight from './scene/FreeFlight';
 import StarAim from './scene/StarAim.jsx';
 import { canAimStar } from './scene/starHeading';
-import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, PROBES, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
+import { BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
 import { PLANET_TEXTURES, PLANET_TEXTURE_SOURCE, PLANET_TEXTURE_LICENSE } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
@@ -38,6 +38,7 @@ import CompanionStars from './scene/CompanionStars';
 import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 import PlanetarySystems from './scene/PlanetarySystem';
+import { probeHighlight, useProbes } from './scene/probeTrajectories';
 import ExoplanetDiscoveries from './scene/ExoplanetDiscoveries';
 import ZoomSuave from './scene/ZoomSuave';
 import PanelDescubrimientos from './PanelDescubrimientos';
@@ -237,20 +238,20 @@ export default function App() {
     const id = discoveries.data.systems.i[index];
     if (id >= 0) visitSearchResult({ id, aliases: [discoveries.data.systems.n[index]] });
   };
+  const { probes: probeBodies } = useProbes();
   const labels = useMemo(() => [
     { kind: 'moon', text: 'Luna · 384.400 km de la Tierra', position: MOON.position, width:230, body:MOON },
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
     ...PLANETS.map(p => ({ kind: 'planet', au: p.au, text: p.name,
       position: orbitalPosition(p, p.angle), width: 145, color: p.color, body: SOLAR_BODIES.find(b => b.name === p.name) })),
-    ...PROBES.filter(p => p.name.startsWith('Voyager')).map(p => ({ kind: 'probe', text: `${p.name} · ${p.au} UA`,
-      position: new THREE.Vector3(...p.direction).normalize().multiplyScalar(p.au * AU_TO_PC).toArray(), width: 165, color: p.color })),
+    ...probeBodies.map(p => ({ kind: 'probe', code: p.code, text: p.name, position: p.position, width: 120, color: p.color })),
     { kind: 'oort', text: 'Nube de Oort', position: [-OORT_OUTER_PC * 0.8, 0, 0], width: 125 },
     { kind: 'kuiper', text: 'Cinturón de Kuiper · 30–50 UA', position: orbitalPosition({au:45,inclinationDeg:0,ascendingNodeDeg:0},2.6), width: 225 },
     { kind: 'heliosphere', text: 'Heliosfera · ≈120 UA', position: [-HELIOSPHERE_RADIUS_PC * 0.72, 0, HELIOSPHERE_RADIUS_PC * 0.7], width: 185, color: '#80b6c0' },
     ...stars.filter(s => s.n && s.n !== 'Sol' && s.n !== 'Sun').sort((a,b) => a.d - b.d)
       .map(s => ({ kind: 'star', star: s, catalogueId: s.i, text: s.n, position: [s.x, s.y, s.z], width: s.n.length * 6 + 10,
         body: STELLAR_TARGETS.find(target => target.catalogueId === s.i) })),
-  ], [stars, STELLAR_TARGETS]);
+  ], [stars, STELLAR_TARGETS, probeBodies]);
   // Objetivo del visor de distancia: el rumbo fijado; en vuelo libre, la estrella
   // inspeccionada o el Sol; en las demás vistas, lo que queda centrado.
   const distanceTarget = aimTarget?.kind === 'star' ? { name: aimTarget.text, position: aimTarget.position }
@@ -408,7 +409,8 @@ export default function App() {
           {' · '}<a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}
       </aside>}
       <div data-labels className="scene-labels">
-        {labels.map((label, i) => <span key={i} className={`scene-label ${label.kind}${aimTarget === label ? ' is-target' : ''}`} style={{ color: label.color }}>
+        {labels.map((label, i) => <span key={i} className={`scene-label ${label.kind}${aimTarget === label ? ' is-target' : ''}`} style={{ color: label.color }}
+          {...label.kind === 'probe' && { onPointerEnter: () => { probeHighlight.code = label.code; }, onPointerLeave: () => { probeHighlight.code = null; } }}>
           {label.kind === 'star' ? <button className="label-text" onDoubleClick={() => aimAtStar(label)}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); aimAtStar(label); }

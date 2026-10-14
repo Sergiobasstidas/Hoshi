@@ -2,29 +2,13 @@ import { Suspense, useCallback, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { AU_TO_PC, KM_TO_PC, PLANETS, PROBES, orbitalPosition, smoothRange, SUN_RADIUS_PC, solarDistance } from './scale';
+import { AU_TO_PC, KM_TO_PC, PLANETS, orbitalPosition, smoothRange, SUN_RADIUS_PC, solarDistance } from './scale';
 import { PLANET_TEXTURES } from './planetTextures';
 import StellarSurface from './StellarSurface';
-import { probeVisibility } from './heliosphereScale';
 import { MOON } from './solarBodies';
 import { SOLAR_TEMPERATURE_K } from './stellarPhysics';
-
-// Solo la capa heredada de sondas usa marcadores de ubicación ampliados.
-function ProbeMarker({ position, color, opacityRef, pixels = 3 }) {
-  const ref = useRef();
-  const worldPosition = useMemo(() => new THREE.Vector3(), []);
-  useFrame(({ camera, size }) => {
-    const mesh = ref.current;
-    const distance = camera.position.distanceTo(mesh.getWorldPosition(worldPosition));
-    const radius = distance * Math.tan(camera.fov * Math.PI / 360) * pixels / size.height;
-    mesh.scale.setScalar(radius);
-    mesh.material.opacity = opacityRef.current;
-  });
-  return <mesh ref={ref} position={position}>
-    <sphereGeometry args={[1, 16, 12]} />
-    <meshBasicMaterial color={color} transparent depthWrite={false} toneMapped={false} depthTest={false} />
-  </mesh>;
-}
+import ProbeTrails from './ProbeTrails';
+import ProbeComets from './ProbeComets';
 
 function PlanetSurface({ url }) {
   const gl = useThree(state => state.gl);
@@ -75,26 +59,9 @@ function Planet({ planet, origin }) {
   </group>;
 }
 
-function Probe({ probe, origin }) {
-  const groupRef = useRef();
-  const opacityRef = useRef(0);
-  const materialRef = useRef();
-  const position = useMemo(() => new THREE.Vector3(...probe.direction).normalize().multiplyScalar(probe.au * AU_TO_PC).toArray(), [probe]);
-  const points = useMemo(() => new Float32Array([0, 0, 0, ...position]), [position]);
-  useFrame(({ camera }) => {
-    const alpha = probeVisibility(solarDistance(camera.position, origin));
-    opacityRef.current = alpha;
-    groupRef.current.visible = alpha > 0.01;
-    materialRef.current.opacity = alpha * 0.18;
-  });
-  return <group ref={groupRef}>
-    <line><bufferGeometry><bufferAttribute attach="attributes-position" args={[points, 3]} /></bufferGeometry>
-      <lineBasicMaterial ref={materialRef} color={probe.color} transparent depthWrite={false} /></line>
-    <ProbeMarker position={position} color={probe.color} opacityRef={opacityRef} />
-  </group>;
-}
-
-export default function SolarSystem({ origin }) {
+// `probeRoutes`: rutas completas de las sondas desde el lanzamiento (ProbeTrails.jsx), guardadas
+// para un botón futuro; por defecto se ven solo las colas de cometa (ProbeComets.jsx).
+export default function SolarSystem({ origin, probeRoutes = false }) {
   return <>
     {/* Sombreado legible; intensidad ilustrativa, radios y dirección solar geométricos. */}
     <ambientLight intensity={0.35} />
@@ -102,6 +69,7 @@ export default function SolarSystem({ origin }) {
     <StellarSurface position={[0, 0, 0]} radiusPc={SUN_RADIUS_PC} temperatureK={SOLAR_TEMPERATURE_K} />
     {PLANETS.map(planet => <Planet key={planet.name} planet={planet} origin={origin} />)}
     <PhysicalBody position={MOON.position} radiusPc={MOON.radiusKm * KM_TO_PC} color={MOON.color} texture={PLANET_TEXTURES.Luna} />
-    {PROBES.map(probe => <Probe key={probe.name} probe={probe} origin={origin} />)}
+    <ProbeComets origin={origin} />
+    {probeRoutes && <ProbeTrails origin={origin} />}
   </>;
 }
