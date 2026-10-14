@@ -48,7 +48,8 @@ const pointFragment = `
     #include <logdepthbuf_fragment>
   }`;
 
-export default function MilkyWay({ origin, onStatus, muted = false }) {
+// dim atenúa el disco sin ocultar sus rótulos (modo de descubrimientos de exoplanetas).
+export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
   const [requested,setRequested]=useState(false);
   const [asset,setAsset]=useState(null);
   const group=useRef(), disc=useRef(), points=useRef(), sunLabel=useRef(), centerLabel=useRef();
@@ -80,7 +81,7 @@ export default function MilkyWay({ origin, onStatus, muted = false }) {
   useFrame(({camera,size,gl})=>{
     const distance=solarDistance(camera.position,origin);
     if(!requested && distance>400)setRequested(true);
-    const alpha=galaxyOpacity(distance)*(muted?.22:1);
+    const alpha=galaxyOpacity(distance)*(muted?.22:1)*dim;
     const visible=alpha>.001;
     if(asset && lastVisible.current!==visible){lastVisible.current=visible;onStatus(visible?'visible':'ready');}
     if(group.current)group.current.visible=visible;

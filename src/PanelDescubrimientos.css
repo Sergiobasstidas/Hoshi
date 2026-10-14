@@ -1,0 +1,89 @@
+/* Modo de descubrimientos de exoplanetas: panel inferior de vidrio, al estilo de Eyes on
+   Exoplanets. En este modo se ocultan los visores de vuelo y los nombres de estrellas para
+   dejar el campo a los destellos. */
+.hoshi.modo-descubrimientos .visores-vuelo,
+.hoshi.modo-descubrimientos .scene-label.star,
+.hoshi.modo-descubrimientos .oort-note,
+.hoshi.modo-descubrimientos .navigation-hint { display: none; }
+
+.descubrimientos-panel {
+  position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);
+  width: min(1010px, calc(100% - 170px)); max-height: calc(100% - 230px); overflow-y: auto;
+  padding: 12px 18px 9px; z-index: 24; pointer-events: auto;
+  color: #c9d2df; font-size: 11px;
+  background: linear-gradient(180deg, #0d1828d9 0%, #070b14ee 100%);
+  border: 1px solid #ffffff1f; border-radius: 16px;
+  box-shadow: 0 18px 60px #000a, inset 0 1px 0 #ffffff14;
+  backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+.descubrimientos-panel header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 6px; }
+.descubrimientos-panel header > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.descubrimientos-panel header .eyebrow { width: 100%; color: #8fb4d8; letter-spacing: .32em; text-transform: uppercase; }
+.descubrimientos-panel header strong { font-size: 17px; font-weight: 400; letter-spacing: .04em; color: #f2f5fa; }
+.descubrimientos-resumen { color: #8d99ab; font-size: 11px; font-variant-numeric: tabular-nums; }
+.descubrimientos-cerrar {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #ffffff38;
+  background: #ffffff0a; color: #e8edf4; font-size: 17px; line-height: 1; cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.descubrimientos-cerrar:hover, .descubrimientos-cerrar:focus-visible { background: #ffffff1c; border-color: #ffffff80; outline: none; }
+.descubrimientos-estado { margin: 4px 0 6px; color: #a9c3dc; }
+
+.descubrimientos-fila { display: flex; align-items: center; gap: 12px; padding: 4px 0; border-top: 1px solid #ffffff0f; }
+.descubrimientos-rotulo { flex: none; width: 92px; color: #6f7c8f; font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; }
+.descubrimientos-pestanas { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.descubrimientos-pestanas button {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px;
+  border: 1px solid transparent; border-radius: 999px; background: transparent;
+  color: #8a96a8; font: inherit; font-size: 11.5px; cursor: pointer; white-space: nowrap;
+  transition: color .18s, background .18s, border-color .18s;
+}
+.descubrimientos-pestanas button:hover:not(:disabled) { color: #dfe6ef; background: #ffffff0b; }
+.descubrimientos-pestanas button:focus-visible { outline: 1px solid #9fd0ff; outline-offset: 1px; }
+.descubrimientos-pestanas button.activa {
+  color: #ffffff; background: linear-gradient(180deg, #ffffff1f, #ffffff0d);
+  border-color: #ffffff3d; box-shadow: 0 0 18px #7fbfff1f, inset 0 1px 0 #ffffff26;
+}
+.descubrimientos-pestanas button:disabled { opacity: .32; cursor: default; }
+.descubrimientos-pestanas small { color: #6e7b8e; font-size: 10px; font-variant-numeric: tabular-nums; }
+.descubrimientos-pestanas button.activa small { color: #b6c6d8; }
+.icono-descubrimiento { width: 15px; height: 15px; flex: none; }
+
+.descubrimientos-leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 7px 0 2px; border-top: 1px solid #ffffff0f; color: #8794a6; font-size: 10.5px; }
+.descubrimientos-leyenda span { display: inline-flex; align-items: center; gap: 7px; }
+.descubrimientos-leyenda .punto { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.descubrimientos-leyenda .gradiente-estelar { width: 46px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #ff9b54, #ffd9a3, #fff6e8, #cfe0ff, #9fbfff); }
+/* Destello en miniatura: dos rayos cruzados y un núcleo; el candidato lleva anillo. */
+.descubrimientos-leyenda .destello { position: relative; width: 16px; height: 16px; }
+.descubrimientos-leyenda .destello::before, .descubrimientos-leyenda .destello::after {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, #fff, #ffe2a8aa 45%, transparent);
+}
+.descubrimientos-leyenda .destello::before { width: 16px; height: 2px; box-shadow: 0 0 0 0 transparent; }
+.descubrimientos-leyenda .destello::after { width: 2px; height: 16px; }
+.descubrimientos-leyenda .destello.candidato { border-radius: 50%; box-shadow: inset 0 0 0 1.2px #ffe2a8aa; transform: scale(.85); }
+.descubrimientos-fuente { margin: 4px 0 0; color: #5f6b7d; font-size: 9.5px; line-height: 1.5; }
+.descubrimientos-fuente a { color: #7f9fbd; }
+
+/* Sol y etiqueta flotante del destello bajo el puntero. */
+.descubrimientos-sol { position: relative; color: #ffe7b0; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; padding-left: 14px; transform: translateY(-50%); text-shadow: 0 1px 8px #000; }
+.descubrimientos-sol i { position: absolute; left: -6px; top: calc(50% - 6px); width: 11px; height: 11px; border: 1.2px solid #ffd27a; border-radius: 50%; box-shadow: 0 0 12px #ffcf7088; }
+.descubrimiento-ficha {
+  position: relative; display: flex; flex-direction: column; gap: 2px; min-width: 170px; max-width: 260px;
+  margin: 14px 0 0 18px; padding: 9px 12px 10px; color: #b9c4d3; font-size: 10.5px; line-height: 1.45; white-space: nowrap;
+  background: #070c16e8; border: 1px solid #ffffff26; border-radius: 10px; box-shadow: 0 10px 30px #000b;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.descubrimiento-ficha strong { color: #fff; font-size: 13px; font-weight: 500; letter-spacing: .02em; }
+.descubrimiento-mira { position: absolute; left: -18px; top: -14px; width: 22px; height: 22px; transform: translate(-50%, -50%); border: 1px solid #ffffffcc; border-radius: 50%; box-shadow: 0 0 14px #9fd0ff88; }
+.descubrimiento-tipos { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.descubrimiento-tipos em { font-style: normal; display: inline-flex; align-items: center; gap: 5px; }
+.descubrimiento-tipos i { width: 6px; height: 6px; border-radius: 50%; }
+.descubrimiento-accion { margin-top: 3px; color: #8fc2ff; }
+
+@media (max-width: 900px) {
+  .descubrimientos-panel { width: calc(100% - 36px); bottom: 40px; max-height: calc(100% - 300px); padding: 12px 14px 10px; }
+  .descubrimientos-fila { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .descubrimientos-pestanas { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+
+}

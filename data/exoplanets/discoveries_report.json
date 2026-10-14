@@ -1,0 +1,77 @@
+{
+  "sistemas": 12134,
+  "sistemasEnHoshi": 4535,
+  "planetasConfirmados": 6424,
+  "tipoConfirmados": {
+    "ficha": 6287,
+    "regla": 137,
+    "coincide": 6047,
+    "acierto": 0.9618
+  },
+  "candidatos": {
+    "toi": 5151,
+    "koi": 1971,
+    "k2": 935
+  },
+  "candidatosEnSistemasConfirmados": 516,
+  "porTipo": {
+    "gigante": {
+      "confirmados": 2144,
+      "candidatos": 3938
+    },
+    "neptuno": {
+      "confirmados": 2228,
+      "candidatos": 1952
+    },
+    "supertierra": {
+      "confirmados": 1823,
+      "candidatos": 1277
+    },
+    "terrestre": {
+      "confirmados": 222,
+      "candidatos": 357
+    },
+    "desconocido": {
+      "confirmados": 7,
+      "candidatos": 533
+    }
+  },
+  "porMision": {
+    "kepler": 4747,
+    "k2": 1485,
+    "tess": 6159,
+    "corot": 35,
+    "gaia": 15,
+    "espacio": 16,
+    "tierra": 2024
+  },
+  "sinPosicion": {
+    "confirmados": 21,
+    "ejemplos": [
+      "Kepler-1737 b",
+      "CD-35 2722 B b",
+      "Kepler-1964 b",
+      "Kepler-1910 b",
+      "Kepler-1795 b",
+      "PSR B1620-26 b",
+      "MXB 1658-298 b",
+      "Kepler-1676 b",
+      "OGLE-2017-BLG-1140L b",
+      "Kepler-1984 b",
+      "Kepler-1985 b",
+      "OGLE-2016-BLG-1227L b",
+      "Kepler-1813 b",
+      "Kepler-1760 b",
+      "Kepler-1945 b",
+      "WISE J033605.05-014350.4 b",
+      "M62H b",
+      "V2376 Ori b",
+      "Luhman 16 b",
+      "CFHTWIR-Oph 98 b"
+    ],
+    "toi": 161,
+    "koi": 6,
+    "k2": 40
+  },
+  "bytes": 700414
+}

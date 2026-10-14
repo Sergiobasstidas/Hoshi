@@ -38,6 +38,12 @@ import CompanionStars from './scene/CompanionStars';
 import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 import PlanetarySystems from './scene/PlanetarySystem';
+import ExoplanetDiscoveries from './scene/ExoplanetDiscoveries';
+import ZoomSuave from './scene/ZoomSuave';
+import PanelDescubrimientos from './PanelDescubrimientos';
+import { useDescubrimientos } from './scene/useDescubrimientos.js';
+import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS } from './scene/descubrimientos.js';
+import { DEFAULT_DISCOVERY_VIEW } from './scene/discoveryViews.js';
 import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describeBinary, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
@@ -109,6 +115,10 @@ export default function App() {
   const [velocidadSolicitada, setVelocidadSolicitada] = useState(null);
   const [showBodyPanel, setShowBodyPanel] = useState(false);
   const [showPulsars, setShowPulsars] = useState(false);
+  // Modo de descubrimientos de exoplanetas: estrellas y galaxia atenuadas, sistemas resaltados.
+  const [showDiscoveries, setShowDiscoveries] = useState(false);
+  const [discoveryFilter, setDiscoveryFilter] = useState(FILTRO_DESCUBRIMIENTOS);
+  const discoveries = useDescubrimientos(showDiscoveries);
   const [galaxyStatus, setGalaxyStatus] = useState('idle');
   const [aimTarget, setAimTarget] = useState(null);
   const [inspectedTarget, setInspectedTarget] = useState(null);
@@ -149,7 +159,7 @@ export default function App() {
     document.activeElement?.blur();
   };
   const visitBody = (body, fromSearch = false) => {
-    setShowPulsars(false);
+    setShowPulsars(false); setShowDiscoveries(false);
     setShowBodyPanel(fromSearch);
     setInspectedTarget(fromSearch && body.kind === 'star'
       ? {kind:'star',text:body.name,star:body.star,catalogueId:body.star.i,position:body.position} : null);
@@ -166,7 +176,7 @@ export default function App() {
     identifiers,
   });
   const framePulsars = () => {
-    setShowPulsars(true); setShowBodyPanel(false); setInspectedTarget(null);
+    setShowDiscoveries(false); setShowPulsars(true); setShowBodyPanel(false); setInspectedTarget(null);
     navigate(PULSAR_VIEW, { duration: 4 * JOURNEY_TIME_SCALE });
   };
   const frameGalaxy = (edgeOn = false) => {
@@ -218,6 +228,15 @@ export default function App() {
     if (star.n === 'Sol' || star.n === 'Sun') { aimAtSun(); return; }
     visitBody(body, true);
   };
+  const frameDiscoveries = discoveryView => {
+    setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null); setShowDiscoveries(true);
+    navigate(discoveryView, { duration: 5 * JOURNEY_TIME_SCALE });
+  };
+  // Clic en un destello: viajar a la estrella si está en el catálogo de Hoshi.
+  const visitDiscovery = index => {
+    const id = discoveries.data.systems.i[index];
+    if (id >= 0) visitSearchResult({ id, aliases: [discoveries.data.systems.n[index]] });
+  };
   const labels = useMemo(() => [
     { kind: 'moon', text: 'Luna · 384.400 km de la Tierra', position: MOON.position, width:230, body:MOON },
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
@@ -240,24 +259,26 @@ export default function App() {
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
   const orbitTarget = (view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
-  return <main className="hoshi">
+  return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}`}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} gl={{ antialias: true, logarithmicDepthBuffer: true }}>
       <SceneReady />
       <color attach="background" args={['#020305']} />
       {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}
-        enablePan={false} enableDamping dampingFactor={0.12} rotateSpeed={0.55} zoomSpeed={1.35}
+        enablePan={false} enableDamping dampingFactor={0.06} rotateSpeed={0.45} zoomSpeed={1.35}
         onStart={() => { transitionRef.current = null; }} />}
+      {!freeFlight && !traveling && <ZoomSuave controlsRef={controlsRef} />}
       <CameraNavigation view={view} showPulsars={showPulsars} transitionRef={transitionRef} origin={origin} onComplete={arriveFree => { setTraveling(false); setFreeFlight(arriveFree); document.activeElement?.blur(); }} />
       <StarAim target={aimTarget} origin={origin} onRelease={releaseAim} cameraRef={cameraRef} />
-      <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} />
+      <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />
       {showPulsars && <PulsarMap origin={origin} />}
-      <StarField gain={showPulsars ? 0.18 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
+      <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
         focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} />
       {binaryBody && <BinarySystem />}
       {!binaryBody && <CompanionStars systems={BINARY_SYSTEMS} origin={origin} />}
       {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
+      {showDiscoveries && discoveries.data && <ExoplanetDiscoveries data={discoveries.data} filter={discoveryFilter} origin={origin} onSelect={visitDiscovery} />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
       {/* Conservar el escenario de partida al cambiar el origen local a una estrella. */}
       <group position={origin.map(v=>-v)}>
@@ -291,6 +312,7 @@ export default function App() {
           if (showPulsars) { setShowPulsars(false); transitionRef.current=null; setTraveling(false); setFreeFlight(true); }
           else framePulsars();
         }}>Mapa de púlsares</button>
+        <button aria-pressed={showDiscoveries} onClick={() => showDiscoveries ? setShowDiscoveries(false) : frameDiscoveries(DEFAULT_DISCOVERY_VIEW)}>Exoplanetas</button>
         <button aria-pressed={freeFlight} onClick={toggleFlight}>Vuelo libre</button>
         <button onClick={aimAtSun}>Volver al Sol</button>
       </nav>
@@ -298,6 +320,8 @@ export default function App() {
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
+      {showDiscoveries && <PanelDescubrimientos data={discoveries.data} status={discoveries.status} filter={discoveryFilter}
+        onFilter={setDiscoveryFilter} onClose={() => setShowDiscoveries(false)} />}
       {showPulsars && <aside className="pulsar-legend">
         <strong>Los 14 púlsares del mapa de Voyager</strong>
         <span>Conexiones desde el Sol · distancias estimadas · posiciones de catálogo</span>
