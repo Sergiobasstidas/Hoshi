@@ -1,27 +1,49 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { DoubleSide } from 'three';
-import { HELIOSPHERE_RADIUS_PC, HELIOSPHERE_BRIGHTNESS, heliosphereVisibility } from './heliosphereScale';
+import { BufferAttribute, DoubleSide, SphereGeometry } from 'three';
+import { HELIOSPHERE_RADIUS_AU, HELIOSPHERE_RADIUS_PC, HELIOSPHERE_BRIGHTNESS, heliosphereVisibility } from './heliosphereScale';
+import { heliopauseAu, heliopauseNormal } from './heliosphereShape';
 import simplex3d from './shaders/simplex3d.glsl?raw';
 import { solarDistance } from './scale';
 
-// Membrana translúcida estática, con textura procedural fija en el espacio.
-// Sin tiempo, rotación, cola, flujo animado ni esfera opaca de fondo.
-export default function Heliosphere({ origin }) {
+// Esfera unidad deformada con la distancia a la heliopausa de cada dirección.
+// «direction» conserva la dirección original para fijar la textura al espacio.
+function heliopauseGeometry() {
+  const geometry = new SphereGeometry(1, 320, 200);
+  const position = geometry.attributes.position;
+  const normal = geometry.attributes.normal;
+  geometry.setAttribute('direction', new BufferAttribute(position.array.slice(), 3));
+  for (let i = 0; i < position.count; i++) {
+    const direction = [position.getX(i), position.getY(i), position.getZ(i)];
+    const length = Math.hypot(...direction);
+    const unit = direction.map(c => c / length);
+    const radius = heliopauseAu(unit) / HELIOSPHERE_RADIUS_AU;
+    position.setXYZ(i, unit[0] * radius, unit[1] * radius, unit[2] * radius);
+    normal.setXYZ(i, ...heliopauseNormal(unit));
+  }
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+// Heliopausa translúcida y estática con la forma de croissant de Opher et al.,
+// orientada al viento interestelar y anclada a los cruces de las Voyager.
+// «hidden» la oculta desde el botón de la interfaz. Sin tiempo, rotación ni flujo animado. La textura y el color son ilustrativos.
+export default function Heliosphere({ origin, hidden = false }) {
   const surface = useRef();
   const material = useRef();
   const uniforms = useMemo(() => ({ visibility: { value: 0 } }), []);
+  const geometry = useMemo(() => heliopauseGeometry(), []);
   useFrame(({ camera }) => {
-    const visibility = heliosphereVisibility(solarDistance(camera.position, origin));
+    const visibility = hidden ? 0 : heliosphereVisibility(solarDistance(camera.position, origin));
     surface.current.visible = visibility > 0.001;
     material.current.uniforms.visibility.value = visibility * HELIOSPHERE_BRIGHTNESS;
   });
   return <group ref={surface} scale={HELIOSPHERE_RADIUS_PC} visible={false}>
-    <mesh renderOrder={1}>
-    <sphereGeometry args={[1, 144, 96]} />
+    <mesh renderOrder={1} geometry={geometry}>
     <shaderMaterial ref={material} uniforms={uniforms} transparent depthWrite={false}
       side={DoubleSide} forceSinglePass toneMapped={false}
       vertexShader={`
+        attribute vec3 direction;
         varying vec3 spherePosition;
         varying vec3 viewNormal;
         varying vec3 viewDirection;
@@ -29,10 +51,9 @@ export default function Heliosphere({ origin }) {
         #include <logdepthbuf_pars_vertex>
         ${simplex3d}
         void main() {
-          spherePosition = position;
-          // Pequeñas ondulaciones estáticas rompen el contorno perfecto; 120 UA sigue
-          // siendo la referencia nominal, no un límite medido.
-          float ripple = 0.008 * snoise(position * 3.0) + 0.003 * snoise(position * 7.0);
+          spherePosition = direction;
+          // Pequeñas ondulaciones estáticas rompen el contorno perfecto del modelo.
+          float ripple = 0.008 * snoise(direction * 3.0) + 0.003 * snoise(direction * 7.0);
           vec4 viewPosition = modelViewMatrix * vec4(position * (1.0 + ripple), 1.0);
           viewNormal = normalize(normalMatrix * normal);
           viewDirection = -viewPosition.xyz;

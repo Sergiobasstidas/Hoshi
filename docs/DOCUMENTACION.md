@@ -121,7 +121,7 @@ Capas del entorno solar, todas **ilustrativas** salvo sus distancias:
 | Capa | Distancias | Representación |
 | --- | --- | --- |
 | Cinturón de Kuiper | 30–50 UA | 22.000 puntos sintéticos |
-| Heliosfera | ≈ 120 UA | Superficie translúcida estática |
+| Heliosfera | nariz ≈ 107 UA, hueco entre lóbulos ≈ 370 UA, lóbulos ≈ 510 UA (norte) y ≈ 800 UA (sur) | Heliopausa translúcida estática con la forma de «croissant» del modelo de Opher, digitalizada de los cortes meridional y ecuatorial publicados por Kornbleuth et al. (2021, ApJ 923, 179) e interpolada entre ambos, orientada al viento interestelar medido por IBEX (λ 255,8°, β +5,16°) y anclada a los cruces de las Voyager (121,6 UA en 2012 y 119,0 UA en 2018, posiciones de JPL Horizons). Los lóbulos y la cola son de modelo; la forma real sigue en debate |
 | Voyager 1 y 2, Pioneer 10 y 11 | ≈ 172, 144, 142 y 118 UA en octubre de 2026 | Posición de JPL Horizons en la fecha de carga; hexágono y cola ilustrativos (ver «Sondas») |
 | Nube de Oort | 2.000–100.000 UA | 140.000 partículas sintéticas |
 

@@ -8,7 +8,8 @@ import StarField from './scene/StarField';
 import SolarSystem from './scene/SolarSystem';
 import OortCloud from './scene/OortCloud';
 import Heliosphere from './scene/Heliosphere';
-import { HELIOSPHERE_RADIUS_PC, HELIOSPHERE_VIEW_DISTANCE_PC } from './scene/heliosphereScale';
+import { HELIOSPHERE_LABELS, HELIOSPHERE_VIEW } from './scene/heliosphereShape';
+import FichaHeliosfera from './FichaHeliosfera';
 import VisualGuides from './scene/VisualGuides';
 import FreeFlight from './scene/FreeFlight';
 import StarAim from './scene/StarAim.jsx';
@@ -79,7 +80,7 @@ const describeComponent = component => `${component.name}: ${component.pair.k ==
   ? `órbita de ${period(component.pair.p)}, a ${significant(component.separationAu)} UA`
   : `par ancho, ${significant(component.separationAu)} UA proyectadas`}${component.pair.m1 && component.pair.m2
   ? `, masas ${component.pair.mc === 'pub' ? '' : '≈ '}${component.pair.m1.toLocaleString('es-CL')} y ${component.pair.m2.toLocaleString('es-CL')} M☉${component.pair.mc === 'pub' ? ` (${component.pair.ms})` : ''}` : ''}`;
-const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, { id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC }, ...VIEWS.slice(1)];
+const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, HELIOSPHERE_VIEW, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
 // Artículo del nombre en el título del visor: «al Sol», «a la Tierra», «a Marte», «a Sirius».
@@ -113,6 +114,7 @@ export default function App() {
   const [view, setView] = useState(INITIAL_VIEW);
   const [freeFlight, setFreeFlight] = useState(false);
   const [traveling, setTraveling] = useState(false);
+  const [showHeliosphere, setShowHeliosphere] = useState(true);
   const [speed, setSpeed] = useState(0);
   const [velocidadSolicitada, setVelocidadSolicitada] = useState(null);
   const [showBodyPanel, setShowBodyPanel] = useState(false);
@@ -248,11 +250,11 @@ export default function App() {
     ...probeBodies.map(p => ({ kind: 'probe', code: p.code, text: p.name, position: p.position, width: 120, color: p.color })),
     { kind: 'oort', text: 'Nube de Oort', position: [-OORT_OUTER_PC * 0.8, 0, 0], width: 125 },
     { kind: 'kuiper', text: 'Cinturón de Kuiper · 30–50 UA', position: orbitalPosition({au:45,inclinationDeg:0,ascendingNodeDeg:0},2.6), width: 225 },
-    { kind: 'heliosphere', text: 'Heliosfera · ≈120 UA', position: [-HELIOSPHERE_RADIUS_PC * 0.72, 0, HELIOSPHERE_RADIUS_PC * 0.7], width: 185, color: '#80b6c0' },
+    ...(showHeliosphere ? HELIOSPHERE_LABELS : []),
     ...stars.filter(s => s.n && s.n !== 'Sol' && s.n !== 'Sun').sort((a,b) => a.d - b.d)
       .map(s => ({ kind: 'star', star: s, catalogueId: s.i, text: s.n, position: [s.x, s.y, s.z], width: s.n.length * 6 + 10,
         body: STELLAR_TARGETS.find(target => target.catalogueId === s.i) })),
-  ], [stars, STELLAR_TARGETS, probeBodies]);
+  ], [stars, STELLAR_TARGETS, probeBodies, showHeliosphere]);
   // Objetivo del visor de distancia: el rumbo fijado; en vuelo libre, la estrella
   // inspeccionada o el Sol; en las demás vistas, lo que queda centrado.
   const distanceTarget = aimTarget?.kind === 'star' ? { name: aimTarget.text, position: aimTarget.position }
@@ -284,7 +286,7 @@ export default function App() {
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
       {/* Conservar el escenario de partida al cambiar el origen local a una estrella. */}
       <group position={origin.map(v=>-v)}>
-        <OortCloud origin={origin} /><SolarSystem origin={origin} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} />
+        <OortCloud origin={origin} /><SolarSystem origin={origin} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} hidden={!showHeliosphere} />
       </group>
       <VisualGuides overlayRef={overlayRef} labels={labels} focusedBody={panelBody} origin={origin} binary={Boolean(binaryBody)} aimTarget={aimTarget} distanceTarget={distanceTarget?.position} />
     </Canvas>
@@ -317,6 +319,7 @@ export default function App() {
         <button aria-pressed={showDiscoveries} onClick={() => showDiscoveries ? setShowDiscoveries(false) : frameDiscoveries(DEFAULT_DISCOVERY_VIEW)}>Exoplanetas</button>
         <button aria-pressed={freeFlight} onClick={toggleFlight}>Vuelo libre</button>
         <button onClick={aimAtSun}>Volver al Sol</button>
+        <button aria-pressed={!showHeliosphere} title="Muestra u oculta la heliosfera" onClick={() => setShowHeliosphere(visible => !visible)}>{showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera'}</button>
       </nav>
       {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
@@ -324,6 +327,7 @@ export default function App() {
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
       {showDiscoveries && <PanelDescubrimientos data={discoveries.data} status={discoveries.status} filter={discoveryFilter}
         onFilter={setDiscoveryFilter} onClose={() => setShowDiscoveries(false)} />}
+      {view.id === 'heliosphere' && !showPulsars && showHeliosphere && <FichaHeliosfera />}
       {showPulsars && <aside className="pulsar-legend">
         <strong>Los 14 púlsares del mapa de Voyager</strong>
         <span>Conexiones desde el Sol · distancias estimadas · posiciones de catálogo</span>
