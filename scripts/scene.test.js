@@ -816,3 +816,38 @@ test('Los viajes mantienen avance sostenido y entran suavemente en una fase de f
     assert.ok(outward>1e-8 && outward<1e4);
   }
 });
+
+test('La heliopausa pasa por los cruces de las Voyager y se orienta al viento interestelar', async () => {
+  const shape = await import('../src/scene/heliosphereShape.js');
+  const unit = v => { const length = Math.hypot(...v); return v.map(c => c / length); };
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  // Cruces medidos: 121,6 UA (Voyager 1, 2012) y 119,0 UA (Voyager 2, 2018).
+  for (const crossing of shape.VOYAGER_CROSSINGS) {
+    const measured = Math.hypot(...crossing.position);
+    assert.ok(Math.abs(measured - crossing.au) < 0.05);
+    assert.ok(Math.abs(shape.heliopauseAu(unit(crossing.position)) - measured) < 1e-9);
+  }
+  // El anclaje apenas retoca el modelo.
+  assert.ok(shape.HELIOSPHERE_FIT.every(gain => Math.abs(gain) < 0.12));
+  // Nariz en Ofiuco/Escorpio: α ≈ 255°, δ ≈ −17,5° para λ 255,8°, β +5,16°.
+  const [x, y, z] = shape.HELIOSPHERE_NOSE;
+  assert.ok(Math.abs((Math.atan2(y, x) * 180 / Math.PI + 360) % 360 - 255.2) < 0.5);
+  assert.ok(Math.abs(Math.asin(z) * 180 / Math.PI + 17.55) < 0.5);
+  assert.ok(Math.abs(dot(shape.HELIOSPHERE_NOSE, shape.HELIOSPHERE_NORTH)) < 1e-12);
+  // Contorno digitalizado: nariz corta, hueco entre lóbulos donde lo sitúa el artículo
+  // (el medio interestelar entra a partir de ≈300–350 UA) y lóbulo sur más largo que el norte.
+  const tail = shape.HELIOSPHERE_NOSE.map(c => -c);
+  assert.ok(shape.HELIOSPHERE_NOSE_AU > 95 && shape.HELIOSPHERE_NOSE_AU < 125);
+  assert.ok(shape.HELIOSPHERE_TAIL_AU > 300 && shape.HELIOSPHERE_TAIL_AU < 420);
+  assert.ok(Math.abs(shape.heliopauseAu(tail) - shape.HELIOSPHERE_TAIL_AU) < 1e-9);
+  assert.ok(shape.HELIOSPHERE_NORTH_LOBE_AU > 1.2 * shape.HELIOSPHERE_TAIL_AU);
+  assert.ok(shape.HELIOSPHERE_SOUTH_LOBE_AU > shape.HELIOSPHERE_NORTH_LOBE_AU);
+  // Superficie continua y con normal exterior en toda la esfera.
+  for (let k = 0; k < 400; k++) {
+    const d = unit([Math.sin(k * 1.7) + 0.01, Math.cos(k * 2.3), Math.sin(k * 0.9 + 1)]);
+    const near = unit(d.map((c, i) => c + (i === k % 3 ? 1e-4 : 0)));
+    assert.ok(Math.abs(shape.heliopauseAu(d) - shape.heliopauseAu(near)) < 1);
+    assert.ok(dot(shape.heliopauseNormal(d), d) > 0);
+  }
+  assert.ok(Math.abs(Math.hypot(...shape.HELIOSPHERE_VIEW.direction) - 1) < 1e-12);
+});

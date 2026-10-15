@@ -171,3 +171,8 @@
 .scene-label.probe::before { content: ''; position: absolute; left: var(--ring-x, 0); top: var(--ring-y, 0); width: 14px; height: 16px; transform: translate(-50%, -50%); background: currentColor; pointer-events: none;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat; }
+/* Ficha de la heliosfera: reutiliza el recuadro del mapa de púlsares. */
+.ficha-heliosfera { max-width: min(300px, calc(100% - 60px)); max-height: calc(100% - 330px); overflow-y: auto; padding-right: 34px; line-height: 1.6; }
+.ficha-heliosfera .ficha-titulo { margin-top: 6px; color: #d9b48a; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; }
+.ficha-heliosfera p { margin: 4px 0; }
+.ficha-heliosfera .panel-close { position: absolute; top: 4px; right: 6px; margin: 0; padding: 2px 8px; }

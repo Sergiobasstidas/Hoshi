@@ -73,3 +73,9 @@ Desarrollo anterior al historial Git, reunido en la primera instantánea del rep
 - **Luna en su sitio:** la Luna está en su posición y a su distancia reales del día, y la Tierra se separa del centro de masas Tierra-Luna.
 - **Estilo inspirado en NASA Eyes:** órbitas del sistema solar en una línea azul oscuro muy fina y difuminada, con un círculo hueco y el nombre en mayúsculas espaciadas sobre cada planeta; las de los exoplanetas llevan un trazo fino con un halo tenue.
 - **Cielo estrellado:** desde el sistema solar se ven muchas más estrellas de fondo.
+
+## 15/10/2026 — Heliosfera con forma de croissant
+
+- **Forma de la ciencia actual:** la heliosfera deja de ser una esfera. Su contorno se tomó de dos cortes publicados de la simulación del modelo «croissant» de Opher (Kornbleuth et al. 2021): nariz corta hacia el viento interestelar, dos lóbulos que se curvan hacia atrás y un hueco entre ellos.
+- **Medido y modelado, separados:** la figura está orientada a la dirección del viento interestelar medida por IBEX y pasa por los dos puntos donde las Voyager cruzaron la heliopausa (121,6 UA en 2012 y 119,0 UA en 2018). La ficha distingue lo medido de lo que viene del modelo y explica el debate sobre la forma.
+- **Mostrar u ocultar:** un botón en la barra superior oculta la heliosfera y la vuelve a mostrar.
