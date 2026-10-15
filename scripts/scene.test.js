@@ -11,7 +11,7 @@ import { advanceFlight } from '../src/scene/flightMotion.js';
 import { canAimStar, createStarAim, advanceStarAim, STAR_AIM_SECONDS, STAR_STOP_PC, approachSpeed, stopBeforeTarget } from '../src/scene/starHeading.js';
 import { selectStarLabels } from '../src/scene/starLabelSelection.js';
 import { buildSearchIndex, searchStars } from '../src/scene/starSearch.js';
-import { buildKuiperPositions, kuiperOpacity } from '../src/scene/kuiper.js';
+import { buildKuiperPositions, kuiperFadeOut, kuiperOpacity } from '../src/scene/kuiper.js';
 import { journeyDistance, journeyProgress, JOURNEY_SECONDS, JOURNEY_ACCELERATION, JOURNEY_DECELERATION } from '../src/scene/starJourney.js';
 import { beginJourney, advanceJourney, constrainFlight, PULSAR_VIEW, PULSAR_VIEW_DISTANCE_PC, pulsarFieldOfView } from '../src/scene/navigation.js';
 import { PULSARS } from '../src/scene/pulsarData.js';
@@ -35,6 +35,10 @@ test('Kuiper conserva la misma atenuación del 20 por ciento cerca y lejos; Voya
   assert.equal(kuiperOpacity(80*AU_TO_PC),.45*.8);
   assert.equal(kuiperOpacity(155*AU_TO_PC),.45*.8);
   assert.equal(kuiperOpacity(120*AU_TO_PC),.45*.8);
+  // Las órbitas de los planetas se apagan con Kuiper.
+  assert.equal(kuiperFadeOut(200*AU_TO_PC),1);
+  assert.ok(kuiperFadeOut(500*AU_TO_PC)>0 && kuiperFadeOut(500*AU_TO_PC)<1);
+  assert.equal(kuiperFadeOut(800*AU_TO_PC),0);
   assert.equal(HELIOSPHERE_BRIGHTNESS,.7*.85);
   assert.equal(probeVisibility(.02*LIGHT_YEAR_PC),0);
   assert.equal(heliosphereVisibility(.02*LIGHT_YEAR_PC),1);

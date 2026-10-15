@@ -8,6 +8,7 @@ import StellarSurface from './StellarSurface';
 import { MOON } from './solarBodies';
 import { planetOrbit, planetPosition } from './solarEphemeris';
 import OrbitLine from './OrbitLine';
+import { kuiperFadeOut } from './kuiper';
 import { SOLAR_TEMPERATURE_K } from './stellarPhysics';
 import ProbeTrails from './ProbeTrails';
 import ProbeComets from './ProbeComets';
@@ -40,9 +41,11 @@ function Planet({ planet, origin }) {
   const orbitRef = useRef();
   const points = useMemo(() => planetOrbit(planet.name), [planet]);
   useFrame(({ camera, size }) => {
-    const radiusPixels = planet.au * AU_TO_PC / solarDistance(camera.position, origin)
+    const distance = solarDistance(camera.position, origin);
+    const radiusPixels = planet.au * AU_TO_PC / distance
       * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
-    const opacity = smoothRange(radiusPixels, 8, 35);
+    // Las órbitas se apagan junto con el cinturón de Kuiper al alejarse.
+    const opacity = smoothRange(radiusPixels, 8, 35) * kuiperFadeOut(distance);
     orbitRef.current.visible = opacity > 0.005;
     orbitRef.current.material.opacity = opacity;
   });
