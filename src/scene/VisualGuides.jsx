@@ -166,6 +166,12 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       el.style.visibility = visible ? 'visible' : 'hidden';
       if (visible) {
         el.style.transform = `translate(${box.x}px, ${box.y}px)`;
+        // Círculo hueco sobre el planeta (estilo NASA Eyes); se retira cuando su esfera ya se ve.
+        if (label.kind === 'planet') {
+          el.style.setProperty('--ring-x', `${point.x - box.x}px`);
+          el.style.setProperty('--ring-y', `${point.y - box.y}px`);
+          el.style.setProperty('--ring-alpha', 1 - smoothRange(bodyPixels, 3, 6));
+        }
         // Hexágono sobre la sonda, en la cabeza de su estela (ProbeTrails.jsx).
         if (label.kind === 'probe') {
           el.style.setProperty('--ring-x', `${point.x - box.x}px`);

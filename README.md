@@ -8,7 +8,7 @@ Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula tod
 
 ## Qué incluye
 
-- **Sistema solar:** Sol, ocho planetas y Luna con radios a escala real, órbitas con su inclinación, cinturón de Kuiper, heliosfera, Voyager 1 y 2 y Pioneer 10 y 11 en su posición real del día (JPL Horizons) y nube de Oort.
+- **Sistema solar:** Sol, ocho planetas y Luna con radios a escala real, en su posición del día y sobre sus órbitas elípticas (elementos de JPL), cinturón de Kuiper, heliosfera, Voyager 1 y 2 y Pioneer 10 y 11 en su posición real del día (JPL Horizons) y nube de Oort.
 - **Estrellas:** 122.284 estrellas en sus posiciones medidas, con color por temperatura: 118.660 del catálogo AT-HYG, el 99,5 % enlazadas con Gaia DR3, y 3.624 anfitrionas de exoplanetas añadidas.
 - **Sistemas planetarios:** 6.125 exoplanetas de 4.533 sistemas, con órbitas y radios a escala. La ficha indica qué valores son medidos y cuáles supuestos. Se puede viajar a cada planeta.
 - **Mapa de exoplanetas:** el botón «Exoplanetas» atenúa estrellas y galaxia y marca los 12.134 sistemas con planetas confirmados o candidatos del NASA Exoplanet Archive, con filtros por estado, tipo de planeta y misión.

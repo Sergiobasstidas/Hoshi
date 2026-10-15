@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { AU_TO_PC, LIGHT_YEAR_PC, SUN_RADIUS_PC, backgroundGain, starExposure, smoothRange } from './scale';
+import { AU_TO_PC, LIGHT_YEAR_PC, SUN_RADIUS_PC, backgroundGain, skyExposure, smoothRange } from './scale';
 import { STAR_STOP_PC } from './starHeading';
 import { buildStellarAppearance, catalogueColor } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
@@ -94,7 +94,7 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
     physicalRadius: { value: physicalRadius } }), [named, anchor, physicalRadius]);
   useFrame(({ camera, gl }) => {
     const distance = Math.hypot(camera.position.x + origin[0], camera.position.y + origin[1], camera.position.z + origin[2]);
-    materialRef.current.uniforms.exposure.value = starExposure(distance) * (named ? 1 : backgroundGain(distance)) * gain * (anchor ? 1 : catalogueGalaxyGain(distance));
+    materialRef.current.uniforms.exposure.value = skyExposure(distance, named) * (named ? 1 : backgroundGain(distance)) * gain * (anchor ? 1 : catalogueGalaxyGain(distance));
     if (solar) materialRef.current.uniforms.exposure.value *= smoothRange(distance, 0.015 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC);
     materialRef.current.uniforms.pixelRatio.value = gl.getPixelRatio();
     materialRef.current.uniforms.individualMix.value = smoothRange(distance, 4, 12);

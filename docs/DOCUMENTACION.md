@@ -95,21 +95,26 @@ Solo cambia la codificación de profundidad; posiciones, radios y proyección no
 
 ## 6. Sistema solar
 
-Archivos: `scale.js`, `solarBodies.js`, `SolarSystem.jsx`.
+Archivos: `scale.js`, `solarEphemeris.js`, `solarBodies.js`, `SolarSystem.jsx`, `OrbitLine.jsx`.
 
 - Sol, ocho planetas y Luna con **radios volumétricos medios** (NASA/JPL) a escala real.
-- Órbitas **circulares** con el semieje medio de cada planeta, e inclinación i y longitud del nodo ascendente Ω reales (JPL, J2000). Para un ángulo θ en la órbita de radio r:
+- Órbitas **elípticas** con el Sol en un foco y cada planeta **en su posición de la fecha en que se abre la página**. Elementos keplerianos medios y sus tasas por siglo de JPL («Approximate Positions of the Planets», tabla 1, válida de 1800 a 2050): semieje a, excentricidad e, inclinación i, longitud media L, longitud del perihelio ϖ y longitud del nodo Ω, en la eclíptica J2000. Con T en siglos julianos desde J2000, cada elemento vale `valor + tasa · T`, y después:
 
 ```
-x' = r · cos θ            y' = r · sen θ
-x_ecl = cos Ω · x' − sen Ω · cos i · y'
-y_ecl = sen Ω · x' + cos Ω · cos i · y'
-z_ecl = sen i · y'
+ω = ϖ − Ω                 M = L − ϖ                 M = E − e · sen E   (Newton)
+x' = a · (cos E − e)      y' = a · √(1 − e²) · sen E
+u = x' · cos ω − y' · sen ω          v = x' · sen ω + y' · cos ω
+x_ecl = cos Ω · u − sen Ω · cos i · v
+y_ecl = sen Ω · u + cos Ω · cos i · v
+z_ecl = sen i · v
 ```
 
-seguido del giro eclíptica → ecuatorial del apartado 4.
+seguido del giro eclíptica → ecuatorial del apartado 4. La línea dibujada es la elipse de esos mismos elementos en esa fecha.
 
-- **Límites:** sin excentricidad y sin efemérides; la posición de cada planeta en su órbita es ilustrativa, no la de una fecha. La Luna está a su separación media (384.400 km). Texturas de Solar System Scope para Sol, Mercurio, Venus, Tierra y Luna; su orientación es ilustrativa.
+- **Precisión:** para el 14/10/2026 las ocho posiciones coinciden con los vectores de JPL Horizons a menos de 0,08° vistas desde el Sol (0,002° en Mercurio, 0,07° en Saturno); es el error propio de los elementos aproximados. La fila de la Tierra es la del baricentro Tierra-Luna; la Tierra se coloca separada de él en sentido opuesto a la Luna, según la razón de masas 81,30056.
+- **Luna:** en su posición y a su distancia de la misma fecha, con la serie de baja precisión del *Astronomical Almanac* (longitud y latitud eclípticas y paralaje), llevada a J2000 restando la precesión general. Frente a JPL Horizons, el 14 y el 22/10/2026: 0,06° de dirección y menos de 600 km de distancia.
+- **Límites:** los planetas no avanzan mientras la página está abierta; la fecha se toma al cargarla y figura en la ficha de cada planeta. La Luna tampoco avanza y su órbita no se dibuja. Las líneas de órbita son un estilo de presentación: su ancho y brillo no representan nada. En el sistema solar son una franja azul oscuro muy fina y difuminada, y cada planeta lleva un círculo hueco y su nombre en mayúsculas espaciadas; en los exoplanetas, un trazo fino con halo.
+- **Cielo desde el sistema solar:** cerca del Sol las estrellas tienen un mínimo de exposición (`skyExposure` en `scale.js`) para que se vea un cielo estrellado; es una decisión de presentación, no fotometría. Texturas de Solar System Scope para Sol, Mercurio, Venus, Tierra y Luna; su orientación es ilustrativa.
 
 Capas del entorno solar, todas **ilustrativas** salvo sus distancias:
 
@@ -439,11 +444,11 @@ El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los
 
 ## 13. Pruebas
 
-`npm test` ejecuta las pruebas de `scripts/*.test.js` con el ejecutor nativo de Node. Cubren funciones puras y simulaciones de cámara: escalas, viajes, límites, marco galáctico, búsqueda, órbitas, exoplanetas y parches del catálogo. Las órbitas de binarias se validan contra las efemérides del propio ORB6: el ángulo de posición y la separación de Sirio, Procyon y Alfa Centauri para 2026 coinciden dentro de 0,06° y 0,01″. No hay pruebas automáticas de navegador ni de shaders.
+`npm test` ejecuta las pruebas de `scripts/*.test.js` con el ejecutor nativo de Node. Cubren funciones puras y simulaciones de cámara: escalas, viajes, límites, marco galáctico, búsqueda, órbitas, exoplanetas y parches del catálogo. Las posiciones de los planetas se comparan con vectores de JPL Horizons. Las órbitas de binarias se validan contra las efemérides del propio ORB6: el ángulo de posición y la separación de Sirio, Procyon y Alfa Centauri para 2026 coinciden dentro de 0,06° y 0,01″. No hay pruebas automáticas de navegador ni de shaders.
 
 ## 14. Lo que Hoshi no es
 
-- No es un planetario con efemérides: las posiciones de planetas y la fecha de las órbitas son fijas.
+- No es un planetario: los planetas del sistema solar están en su posición del día en que se abre la página, pero no se puede elegir otra fecha ni verlos avanzar; binarias y exoplanetas se evalúan en una fecha fija.
 - Las órbitas de exoplanetas no están completas en 3D: el giro del plano en el cielo es convencional, y su aspecto no es conocido.
 - No es un censo estelar: el catálogo es una muestra, más completa cerca del Sol.
 - No simula relatividad, tiempo de viaje de la luz ni fotometría observacional.
