@@ -1,22 +1,23 @@
-import { AU_TO_PC, KM_TO_PC, PLANETS, SUN_RADIUS_KM, orbitalPosition } from './scale.js';
+import { AU_TO_PC, KM_TO_PC, PLANETS, SUN_RADIUS_KM } from './scale.js';
+import { ORBITAL_ELEMENTS_SOURCE, moonOffset, moonPosition, orbitalElements, planetPosition } from './solarEphemeris.js';
 import { STAR_STOP_PC } from './starHeading.js';
 
 // Radios volumétricos medios, consultados el 13/09/2026. Véase docs/SOLAR_RADII.md.
 // Una esfera de este radio conserva el volumen del cuerpo, no su achatamiento.
 export const PLANET_RADII_SOURCE = 'https://ssd.jpl.nasa.gov/planets/phys_par.html';
 export const SUN_RADIUS_SOURCE = 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html';
-// Separación media entre centros; fase y nodo ilustrativos, no efemérides actuales.
+// Separación media entre centros, como referencia; la Luna se dibuja en su posición y a su
+// distancia de la fecha de solarEphemeris.js (`distanceKm`).
 export const MOON_DISTANCE_KM = 384400;
-const earth = PLANETS.find(planet => planet.name === 'Tierra');
-const earthPosition = orbitalPosition(earth, earth.angle);
-const lunarOffset = orbitalPosition({au: MOON_DISTANCE_KM * KM_TO_PC / AU_TO_PC, inclinationDeg:5.145, ascendingNodeDeg:0}, 0.7);
 export const MOON = {name:'Luna', radiusKm:1737.4, color:'#c8c8c8',
-  position:earthPosition.map((value,i)=>value+lunarOffset[i]),
+  position:moonPosition(), distanceKm:Math.hypot(...moonOffset()) / KM_TO_PC,
   source:'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html'};
 
 export const SOLAR_BODIES = [
   { name: 'Sol', radiusKm: SUN_RADIUS_KM, position: [0, 0, 0], color: '#fff2c6', source: SUN_RADIUS_SOURCE },
-  ...PLANETS.map(planet => ({ ...planet, position: orbitalPosition(planet, planet.angle), source: PLANET_RADII_SOURCE })),
+  // Posición de la fecha de solarEphemeris.js; la excentricidad es la de esa misma fecha.
+  ...PLANETS.map(planet => ({ ...planet, position: planetPosition(planet.name), eccentricity: orbitalElements(planet.name).e,
+    source: PLANET_RADII_SOURCE, orbitSource: ORBITAL_ELEMENTS_SOURCE })),
   MOON,
 ];
 

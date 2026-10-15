@@ -65,3 +65,11 @@ Desarrollo anterior al historial Git, reunido en la primera instantánea del rep
 - **Sondas en su posición real:** Voyager 1 y 2 y Pioneer 10 y 11 aparecen donde están el día en que se abre la página, según las trayectorias de JPL Horizons. Antes solo estaban las Voyager, con una línea esquemática desde el Sol.
 - **Estilo cometa:** cada sonda lleva un hexágono y una cola corta que sigue su trayectoria real y se difumina hacia el Sol sin entrar en el sistema solar. Al pasar el ratón por el nombre, la sonda se resalta.
 - **Rutas completas preparadas:** las trayectorias desde el lanzamiento, con los pasos por Júpiter, Saturno, Urano y Neptuno, están listas para mostrarse más adelante con un botón.
+
+## 15/10/2026 — Órbitas reales del sistema solar
+
+- **Planetas en su posición del día:** los ocho planetas aparecen donde están la fecha en que se abre la página, calculados con los elementos orbitales de JPL. Coinciden con JPL Horizons a menos de 0,08°.
+- **Órbitas elípticas:** cada órbita es una elipse con el Sol en un foco, en lugar del círculo de distancia media.
+- **Luna en su sitio:** la Luna está en su posición y a su distancia reales del día, y la Tierra se separa del centro de masas Tierra-Luna.
+- **Estilo inspirado en NASA Eyes:** órbitas del sistema solar en una línea azul oscuro muy fina y difuminada, con un círculo hueco y el nombre en mayúsculas espaciadas sobre cada planeta; las de los exoplanetas llevan un trazo fino con un halo tenue.
+- **Cielo estrellado:** desde el sistema solar se ven muchas más estrellas de fondo.

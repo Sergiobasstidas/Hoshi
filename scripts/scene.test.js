@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { Vector3, PerspectiveCamera } from 'three';
 import { AU_KM, KM_TO_PC, BODY_CAMERA_NEAR_PC, SCENE_FAR_PC, SUN_RADIUS_PC, solarDistance, MAX_FLIGHT_SPEED_PC } from '../src/scene/scale.js';
 import { SOLAR_BODIES, MOON, MOON_DISTANCE_KM, bodyView } from '../src/scene/solarBodies.js';
+import { EPHEMERIS_DATE, moonOffset, moonPosition, orbitalElements, planetOrbit, planetPosition } from '../src/scene/solarEphemeris.js';
 import { encodedDepth } from '../src/scene/depthPrecision.js';
 import { readFileSync } from 'node:fs';
 import { WR140_ID, identifyStellarTargets, stellarTargets } from '../src/scene/stellarTargets.js';
@@ -243,7 +244,7 @@ import { WR140_ORBIT, binaryState, BINARY_STATE, dateMjd } from '../src/scene/bi
 import { buildStellarAppearance, stellarMarkerSize, vividStellarColor } from '../src/scene/stellarAppearance.js';
 import { HELIOSPHERE_RADIUS_PC, HELIOSPHERE_VIEW_DISTANCE_PC, heliosphereVisibility } from '../src/scene/heliosphereScale.js';
 import { LIGHT_DAY_PC, LIGHT_DAY_RULER_LIMIT_PC, lightDayRulerOpacity } from '../src/scene/scale.js';
-import { AU_TO_PC, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, PLANETS, orbitalPosition, starExposure, oortOpacity, oortLabelOpacity, oortPointScale, starLabelOpacity, backgroundGain, flightSpeed, wheelSpeed, stellarVisualWeight } from '../src/scene/scale.js';
+import { AU_TO_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, PLANETS, orbitalPosition, starExposure, oortOpacity, oortLabelOpacity, oortPointScale, starLabelOpacity, backgroundGain, flightSpeed, wheelSpeed, stellarVisualWeight } from '../src/scene/scale.js';
 
 test('La visita a WR 140 usa el punto de catálogo sin duplicarlo ni cambiar coordenadas', () => {
   const catalogue = JSON.parse(readFileSync(new URL('../data/processed/stars_15pc.json', import.meta.url), 'utf8'));
@@ -476,7 +477,7 @@ test('La aparición inicial se retrasa pero las estrellas aumentan su brillo hac
   assert.equal(starExposure(5 * AU_TO_PC), 0.13);
 });
 
-test('Las ocho órbitas esquemáticas conservan las distancias declaradas en parsecs', () => {
+test('El círculo inclinado de referencia conserva las distancias declaradas en parsecs', () => {
   assert.equal(PLANETS.length, 8);
   assert.equal(PLANETS.find(p => p.name === 'Tierra').au, 1);
   for (const planet of PLANETS) {
@@ -487,7 +488,7 @@ test('Las ocho órbitas esquemáticas conservan las distancias declaradas en par
   }
 });
 
-test('Los planos orbitales conservan inclinación y nodo publicados en el marco ecuatorial', () => {
+test('El círculo inclinado conserva inclinación y nodo publicados en el marco ecuatorial', () => {
   const earth = PLANETS.find(p => p.name === 'Tierra');
   const ex = new Vector3(...orbitalPosition(earth, 0)).normalize();
   const ey = new Vector3(...orbitalPosition(earth, Math.PI / 2)).normalize();
@@ -505,8 +506,6 @@ test('Los planos orbitales conservan inclinación y nodo publicados en el marco 
       const point = new Vector3(...orbitalPosition(planet, angle)).normalize();
       assert.ok(Math.abs(point.dot(normal)) < 1e-12);
     }
-    const body = SOLAR_BODIES.find(b => b.name === planet.name);
-    assert.deepEqual(body.position, orbitalPosition(planet, planet.angle));
     if (planet !== earth) assert.ok(quarter.dot(earthNormal) > 0);
   }
 });
@@ -615,6 +614,67 @@ test('Los radios físicos comparten escala orbital y reproducen el diámetro ang
   assert.ok(SUN_RADIUS_PC / (earth.radiusKm * KM_TO_PC) < 110);
 });
 
+// Vectores heliocéntricos ICRF de JPL Horizons (API, centro @10, UA) para el 14/10/2026
+// 00:00 TDB, consultados el 13/10/2026. Tierra es el cuerpo 399, no el baricentro.
+const HORIZONS_2026_10_14 = {
+  Mercurio: [2.499547920794146e-1, -2.963298485978150e-1, -1.842055350907613e-1],
+  Venus: [7.025096111356521e-1, 1.779210099015513e-1, 3.561587057762663e-2],
+  Tierra: [9.357183970242745e-1, 3.174894110161366e-1, 1.376224918151693e-1],
+  Marte: [-4.761074975707997e-2, 1.429512358533657, 6.569682205471816e-1],
+  Júpiter: [-3.564952275983285, 3.586377473994321, 1.623997005469994],
+  Saturno: [9.241262951322801, 1.845119544304865, 3.641295896677802e-1],
+  Urano: [8.884832199386326, 1.588313734695927e1, 6.830606774675267],
+  Neptuno: [2.983531629900223e1, 1.588988781639941, -9.237031185847058e-2],
+};
+
+test('Los planetas están donde los sitúa JPL Horizons en la fecha pedida', () => {
+  const date = new Date(Date.UTC(2026, 9, 14));
+  for (const planet of PLANETS) {
+    const expected = new Vector3(...HORIZONS_2026_10_14[planet.name]);
+    const actual = new Vector3(...planetPosition(planet.name, date)).divideScalar(AU_TO_PC);
+    // Los elementos aproximados de JPL difieren de la efeméride completa en minutos de arco.
+    assert.ok(actual.angleTo(expected) * 180 / Math.PI < 0.1, planet.name);
+    assert.ok(Math.abs(actual.length() - expected.length()) / expected.length() < 2e-3, planet.name);
+  }
+});
+
+test('Las órbitas son elipses con el Sol en un foco y pasan por su planeta', () => {
+  const date = new Date(Date.UTC(2026, 9, 14));
+  for (const planet of PLANETS) {
+    const { a, e, inclinationDeg, nodeDeg } = orbitalElements(planet.name, date);
+    assert.ok(Math.abs(inclinationDeg - planet.inclinationDeg) < 0.01 && e > 0 && e < 0.21);
+    const orbit = planetOrbit(planet.name, date, 720);
+    const radii = [], points = [];
+    for (let i = 0; i < orbit.length; i += 3) {
+      points.push(new Vector3(orbit[i], orbit[i + 1], orbit[i + 2]).divideScalar(AU_TO_PC));
+      radii.push(points.at(-1).length());
+    }
+    assert.ok(Math.abs(Math.min(...radii) - a * (1 - e)) < a * 1e-5);
+    assert.ok(Math.abs(Math.max(...radii) - a * (1 + e)) < a * 1e-5);
+    assert.ok(points[0].distanceTo(points.at(-1)) < a * 1e-6);
+    // Plano: normal a i de la eclíptica y línea de nodos en Ω.
+    const normal = points[0].clone().cross(points[180]).normalize();
+    const pole = new Vector3(...ECLIPTIC_UP);
+    assert.ok(Math.abs(normal.angleTo(pole) * 180 / Math.PI - Math.abs(inclinationDeg)) < 1e-3);
+    if (Math.abs(inclinationDeg) > 0.1) {
+      const node = pole.clone().cross(normal).normalize();
+      const longitude = Math.atan2(node.dot(new Vector3(0, Math.cos(23.43928 * Math.PI / 180), Math.sin(23.43928 * Math.PI / 180))), node.x) * 180 / Math.PI;
+      assert.ok(Math.abs(((longitude - nodeDeg) % 360 + 540) % 360 - 180) < 1e-3);
+    }
+    const body = new Vector3(...planetPosition(planet.name, date)).divideScalar(AU_TO_PC);
+    // La Tierra se aparta del plano hasta unos cientos de km por su giro en torno al baricentro con la Luna.
+    assert.ok(Math.abs(body.dot(normal)) < a * (planet.name === 'Tierra' ? 4e-5 : 1e-6));
+    assert.ok(Math.min(...points.map(point => point.distanceTo(body))) < a * 0.01);
+    // La Tierra pasa por el perihelio a comienzos de enero: en octubre se acerca al Sol.
+    if (planet.name === 'Tierra') assert.ok(body.length() > 0.99 && body.length() < 1.0);
+  }
+  // Cuerpos, etiquetas y destinos usan la posición de la fecha en que se carga el módulo.
+  for (const planet of PLANETS) assert.deepEqual(SOLAR_BODIES.find(b => b.name === planet.name).position, planetPosition(planet.name, EPHEMERIS_DATE));
+  // Un período sidéreo después, la Tierra vuelve al mismo punto.
+  const later = new Date(Date.UTC(2026, 9, 14) + 365.25636 * 86400000);
+  assert.ok(new Vector3(...planetPosition('Tierra', later)).distanceTo(new Vector3(...planetPosition('Tierra', date))) < 1e-3 * AU_TO_PC);
+});
+
 test('Los cuerpos físicos pueden inspeccionarse sin recortar sus superficies', () => {
   assert.equal(SOLAR_BODIES.length, 10);
   for (const body of SOLAR_BODIES) {
@@ -674,10 +734,28 @@ test('La heliosfera usa la escala aproximada de 120 UA y aparece cerca del cruce
 });
 
 
-test('La Luna conserva radio medio medido y distancia media entre centros Tierra-Luna', () => {
+test('La Luna conserva su radio medio y está donde la sitúa JPL Horizons', () => {
   const earth=SOLAR_BODIES.find(body=>body.name==='Tierra');
   assert.equal(MOON.radiusKm,1737.4);
-  assert.ok(Math.abs(new Vector3(...MOON.position).distanceTo(new Vector3(...earth.position))/KM_TO_PC-MOON_DISTANCE_KM)<1e-6);
+  const separationKm = new Vector3(...MOON.position).distanceTo(new Vector3(...earth.position))/KM_TO_PC;
+  assert.ok(Math.abs(separationKm-MOON.distanceKm)<1e-3);
+  // Entre el perigeo y el apogeo extremos, en torno a la separación media.
+  assert.ok(separationKm>356000 && separationKm<407000 && Math.abs(separationKm-MOON_DISTANCE_KM)<30000);
+  // Vectores geocéntricos ICRF de JPL Horizons (301 desde 399, km), consultados el 14/10/2026.
+  const horizons = [[Date.UTC(2026,9,14),[-2.044402710959230e5,-2.994152240832513e5,-1.684910031846481e5]],
+    [Date.UTC(2026,9,22),[3.547970002534878e5,-1.493515980925226e5,-5.950979877149166e4]]];
+  for (const [ms, expected] of horizons) {
+    const actual = new Vector3(...moonOffset(new Date(ms))).divideScalar(KM_TO_PC), reference = new Vector3(...expected);
+    assert.ok(actual.angleTo(reference)*180/Math.PI < 0.4);
+    assert.ok(Math.abs(actual.length()-reference.length()) < 2000);
+    // La Tierra y la Luna quedan a ambos lados de su baricentro, que sigue la elipse.
+    const date = new Date(ms), earthAt = new Vector3(...planetPosition('Tierra', date)), moonAt = new Vector3(...moonPosition(date));
+    const barycentre = earthAt.clone().multiplyScalar(81.30056).add(moonAt).divideScalar(82.30056);
+    const orbit = planetOrbit('Tierra', date, 2048);
+    let nearest = Infinity;
+    for (let k = 0; k < orbit.length; k += 3) nearest = Math.min(nearest, barycentre.distanceTo(new Vector3(orbit[k], orbit[k+1], orbit[k+2])));
+    assert.ok(nearest < 2e-3 * AU_TO_PC);
+  }
 });
 test('Enfocar el Sol tras trasladar el origen a una estrella conserva la posición global', () => {
   const origin=[606,-112,31];

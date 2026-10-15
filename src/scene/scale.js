@@ -44,6 +44,14 @@ export function starExposure(distancePc) {
     + 0.15 * smoothRange(logDistance, 0, 2.5);
 }
 
+// Cielo desde el sistema solar (pedido de Sergio, 14/10/2026): un mínimo de exposición para
+// que se vea un cielo estrellado como en NASA Eyes. Más alto en el fondo sin nombre, que el
+// sombreador ya atenúa a 0,36. Lejos del Sol manda starExposure, que lo supera.
+export const SOLAR_SKY_EXPOSURE = { named: 0.24, background: 0.42 };
+export function skyExposure(distancePc, named) {
+  return Math.max(starExposure(distancePc), named ? SOLAR_SKY_EXPOSURE.named : SOLAR_SKY_EXPOSURE.background);
+}
+
 // Conservar la vista cercana; mostrar el fondo sin nombre conforme Oort se desvanece.
 export function backgroundGain(distancePc) {
   return 1 + 1.1 * smoothRange(distancePc, 4, 12);
@@ -92,23 +100,22 @@ export function starLabelOpacity(distancePc) {
 }
 
 // Ficha planetaria NASA: distancia media en millones de km / 149,6.
-// Trayectorias circulares con distancias medias; fases compuestas, no efemérides.
-// Planos individuales: tabla 1 JPL, inclinación eclíptica y nodo ascendente J2000.
-// https://ssd.jpl.nasa.gov/planets/approx_pos.html
-// Tierra define la referencia eclíptica (0°), sin usar el ajuste baricéntrico Tierra-Luna.
+// `au` es la distancia media de la ficha; inclinación y nodo son los de J2000 de la tabla 1
+// de JPL (https://ssd.jpl.nasa.gov/planets/approx_pos.html) y se muestran en la ficha.
+// La elipse y la posición de cada planeta en su fecha salen de solarEphemeris.js.
 export const PLANETS = [
-  { name: 'Mercurio', au: 57.9 / 149.6, radiusKm: 2439.4, color: '#b9b6b0', angle: 2.3, inclinationDeg: 7.00497902, ascendingNodeDeg: 48.33076593 },
-  { name: 'Venus', au: 108.2 / 149.6, radiusKm: 6051.8, color: '#e1c9a0', angle: 0.7, inclinationDeg: 3.39467605, ascendingNodeDeg: 76.67984255 },
-  { name: 'Tierra', au: 1, radiusKm: 6371.0084, color: '#8dc9ef', angle: -0.5, inclinationDeg: 0, ascendingNodeDeg: 0 },
-  { name: 'Marte', au: 228 / 149.6, radiusKm: 3389.5, color: '#d58d73', angle: 2.8, inclinationDeg: 1.84969142, ascendingNodeDeg: 49.55953891 },
-  { name: 'Júpiter', au: 778.5 / 149.6, radiusKm: 69911, color: '#d5bba0', angle: 0.35, inclinationDeg: 1.30439695, ascendingNodeDeg: 100.47390909 },
-  { name: 'Saturno', au: 1432 / 149.6, radiusKm: 58232, color: '#ddd0a4', angle: 2.1, inclinationDeg: 2.48599187, ascendingNodeDeg: 113.66242448 },
-  { name: 'Urano', au: 2867 / 149.6, radiusKm: 25362, color: '#a5d4d7', angle: -0.9, inclinationDeg: 0.77263783, ascendingNodeDeg: 74.01692503 },
-  { name: 'Neptuno', au: 4515 / 149.6, radiusKm: 24622, color: '#799cdd', angle: -2.6, inclinationDeg: 1.77004347, ascendingNodeDeg: 131.78422574 },
+  { name: 'Mercurio', au: 57.9 / 149.6, radiusKm: 2439.4, color: '#b9b6b0', inclinationDeg: 7.00497902, ascendingNodeDeg: 48.33076593 },
+  { name: 'Venus', au: 108.2 / 149.6, radiusKm: 6051.8, color: '#e1c9a0', inclinationDeg: 3.39467605, ascendingNodeDeg: 76.67984255 },
+  { name: 'Tierra', au: 1, radiusKm: 6371.0084, color: '#8dc9ef', inclinationDeg: 0, ascendingNodeDeg: 0 },
+  { name: 'Marte', au: 228 / 149.6, radiusKm: 3389.5, color: '#d58d73', inclinationDeg: 1.84969142, ascendingNodeDeg: 49.55953891 },
+  { name: 'Júpiter', au: 778.5 / 149.6, radiusKm: 69911, color: '#d5bba0', inclinationDeg: 1.30439695, ascendingNodeDeg: 100.47390909 },
+  { name: 'Saturno', au: 1432 / 149.6, radiusKm: 58232, color: '#ddd0a4', inclinationDeg: 2.48599187, ascendingNodeDeg: 113.66242448 },
+  { name: 'Urano', au: 2867 / 149.6, radiusKm: 25362, color: '#a5d4d7', inclinationDeg: 0.77263783, ascendingNodeDeg: 74.01692503 },
+  { name: 'Neptuno', au: 4515 / 149.6, radiusKm: 24622, color: '#799cdd', inclinationDeg: 1.77004347, ascendingNodeDeg: 131.78422574 },
 ];
 
-// Rotar cada plano orbital a la eclíptica J2000 y después al marco ecuatorial
-// del catálogo. Trayectorias, cuerpos, nombres y destinos comparten la transformación.
+// Círculo inclinado en la eclíptica J2000, llevado al marco ecuatorial del catálogo.
+// Lo usan la Luna, el cinturón de Kuiper y la vista inicial; los planetas, solarEphemeris.js.
 const OBLIQUITY = 23.43928 * Math.PI / 180;
 // Normal eclíptica en el marco ecuatorial del catálogo: vertical de cámara por defecto.
 export const ECLIPTIC_UP = [0, -Math.sin(OBLIQUITY), Math.cos(OBLIQUITY)];

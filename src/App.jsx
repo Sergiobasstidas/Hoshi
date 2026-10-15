@@ -15,6 +15,7 @@ import StarAim from './scene/StarAim.jsx';
 import { canAimStar } from './scene/starHeading';
 import { BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
+import { EPHEMERIS_DATE } from './scene/solarEphemeris';
 import { PLANET_TEXTURES, PLANET_TEXTURE_SOURCE, PLANET_TEXTURE_LICENSE } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
 import BinarySystem from './scene/BinarySystem';
@@ -240,10 +241,10 @@ export default function App() {
   };
   const { probes: probeBodies } = useProbes();
   const labels = useMemo(() => [
-    { kind: 'moon', text: 'Luna · 384.400 km de la Tierra', position: MOON.position, width:230, body:MOON },
+    { kind: 'moon', text: `Luna · ${(Math.round(MOON.distanceKm / 100) * 100).toLocaleString('es-CL')} km de la Tierra`, position: MOON.position, width:230, body:MOON },
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
     ...PLANETS.map(p => ({ kind: 'planet', au: p.au, text: p.name,
-      position: orbitalPosition(p, p.angle), width: 145, color: p.color, body: SOLAR_BODIES.find(b => b.name === p.name) })),
+      position: SOLAR_BODIES.find(b => b.name === p.name).position, width: 145, color: p.color, body: SOLAR_BODIES.find(b => b.name === p.name) })),
     ...probeBodies.map(p => ({ kind: 'probe', code: p.code, text: p.name, position: p.position, width: 120, color: p.color })),
     { kind: 'oort', text: 'Nube de Oort', position: [-OORT_OUTER_PC * 0.8, 0, 0], width: 125 },
     { kind: 'kuiper', text: 'Cinturón de Kuiper · 30–50 UA', position: orbitalPosition({au:45,inclinationDeg:0,ascendingNodeDeg:0},2.6), width: 225 },
@@ -392,7 +393,7 @@ export default function App() {
         {exoplanetBody && <div>Planeta de {exoplanetBody.system.name} · {describePlanet(exoplanetBody.planet, exoplanetBody.system)} · excentricidad {exoplanetBody.planet.e.toLocaleString('es-CL')} · inclinación {exoplanetBody.planet.inc.toLocaleString('es-CL')}° respecto del cielo · a {exoplanetBody.planet.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA de su estrella el {EXOPLANET_EPOCH}
           <br />Supuestos · giro del plano en el cielo (Ω) convencional{exoplanetBody.planet.assumptions.map(text => ` · ${text}`).join('')}</div>}
         <div data-body-altitude />
-        {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000)</div>}
+        {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000){panelBody.eccentricity !== undefined && ` · excentricidad ${panelBody.eccentricity.toLocaleString('es-CL', { maximumFractionDigits: 4 })} · posición del ${EPHEMERIS_DATE.toLocaleDateString('es-CL')} (elementos de JPL)`}</div>}
         <p>{panelBody.kind === 'system' ? 'Separación y órbitas a escala. Puntos de identificación; diámetros y brillo ilustrativos.'
           : stellarBody ? stellarBody.star.physics ? `Esfera a escala del radio ${stellarBody.star.physics.status === 'published' ? 'publicado' : 'estimado'} · superficie compartida, no fotografía de esta estrella`
             : curatedStellarBody ? 'Posición curada de SIMBAD · distancia aproximada de NASA · tamaño del marcador ilustrativo'

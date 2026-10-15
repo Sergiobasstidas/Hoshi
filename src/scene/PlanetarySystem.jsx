@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import { AdditiveBlending, Color, SRGBColorSpace, Vector3 } from 'three';
 import { AU_TO_PC, smoothRange } from './scale';
 import { planetOrbitPc } from './exoplanetOrbit';
+import OrbitLine from './OrbitLine';
 
 // Planetas de las anfitrionas del catálogo (NASA Exoplanet Archive). Órbitas y radios a
 // escala física; de lejos cada planeta es un marcador de tamaño fijo que no representa su
@@ -73,7 +74,7 @@ function ActiveSystem({ system, origin, onSelect }) {
     system.planets.forEach((planet, i) => {
       const orbitPixels = planet.a * AU_TO_PC / hostDistance * focal;
       const line = lines.current.children[i];
-      line.material.opacity = 0.38 * smoothRange(orbitPixels, ...ORBIT_PIXELS);
+      line.material.opacity = smoothRange(orbitPixels, ...ORBIT_PIXELS);
       line.visible = line.material.opacity > 0.004;
       const distance = Math.hypot(camera.position.x - position[0] - planet.offsetPc[0],
         camera.position.y - position[1] - planet.offsetPc[1], camera.position.z - position[2] - planet.offsetPc[2]);
@@ -103,10 +104,7 @@ function ActiveSystem({ system, origin, onSelect }) {
   });
   return <group position={position}>
     <group ref={lines}>
-      {orbits.map((orbit, i) => <line key={system.planets[i].n} frustumCulled={false}>
-        <bufferGeometry><bufferAttribute attach="attributes-position" args={[orbit, 3]} /></bufferGeometry>
-        <lineBasicMaterial color="#a5afbd" transparent opacity={0} depthWrite={false} />
-      </line>)}
+      {orbits.map((orbit, i) => <OrbitLine key={system.planets[i].n} points={orbit} />)}
     </group>
     {pair && <group ref={starLines}>
       {pair.map(component => <line key={component.name} frustumCulled={false}>
