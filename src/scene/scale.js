@@ -135,7 +135,8 @@ export function orbitalPosition(planet, angle) {
 
 export const VIEWS = [
   { id: 'solar', label: 'Sistema solar', distance: 5 * AU_TO_PC },
-  { id: 'oort', label: 'Nube de Oort', distance: 1.05 },
+  // A 7 años luz del Sol, para ver la nube de Oort entera (pedido de Sergio, 15/10/2026).
+  { id: 'oort', label: 'Nube de Oort', distance: 7 * LIGHT_YEAR_PC },
   { id: 'stars', label: 'Vecindario', distance: 65 },
 ];
 

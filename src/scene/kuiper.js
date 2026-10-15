@@ -1,10 +1,14 @@
 import { AU_TO_PC, orbitalPosition, smoothRange } from './scale.js';
 export const KUIPER_VIEW = { id:'kuiper', label:'Kuiper', distance:110*AU_TO_PC };
 export const KUIPER_DIM = 0.8;
+// Desvanecimiento al alejarse (250–800 UA). Las órbitas de los planetas lo comparten.
+export function kuiperFadeOut(pc) {
+  return 1 - smoothRange(pc / AU_TO_PC, 250, 800);
+}
 export function kuiperOpacity(pc) {
   const au = pc / AU_TO_PC;
   // Brillo atenuado un 20 % a cualquier distancia: no se aviva al acercarse (pedido de Sergio, 15/10/2026).
-  return .45 * KUIPER_DIM * smoothRange(au,12,35) * (1-smoothRange(au,250,800));
+  return .45 * KUIPER_DIM * smoothRange(au,12,35) * kuiperFadeOut(pc);
 }
 export function buildKuiperPositions(count=22000) {
   let seed=30750;
