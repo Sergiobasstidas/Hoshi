@@ -31,10 +31,10 @@ test('Próxima tiene dimensiones físicas publicadas y permite acercarse a menos
   assert.ok(STAR_STOP_PC < AU_TO_PC);
 });
 
-test('Kuiper se atenúa un 20 por ciento al aparecer la heliosfera; Voyager conserva su transición', () => {
-  assert.equal(kuiperOpacity(80*AU_TO_PC),.45);
+test('Kuiper conserva la misma atenuación del 20 por ciento cerca y lejos; Voyager conserva su transición', () => {
+  assert.equal(kuiperOpacity(80*AU_TO_PC),.45*.8);
   assert.equal(kuiperOpacity(155*AU_TO_PC),.45*.8);
-  assert.ok(kuiperOpacity(120*AU_TO_PC)<.45);
+  assert.equal(kuiperOpacity(120*AU_TO_PC),.45*.8);
   assert.equal(HELIOSPHERE_BRIGHTNESS,.7*.85);
   assert.equal(probeVisibility(.02*LIGHT_YEAR_PC),0);
   assert.equal(heliosphereVisibility(.02*LIGHT_YEAR_PC),1);
