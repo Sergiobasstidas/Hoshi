@@ -1,9 +1,10 @@
 import { AU_TO_PC, orbitalPosition, smoothRange } from './scale.js';
 export const KUIPER_VIEW = { id:'kuiper', label:'Kuiper', distance:110*AU_TO_PC };
+export const KUIPER_DIM = 0.8;
 export function kuiperOpacity(pc) {
   const au = pc / AU_TO_PC;
-  const heliosphereDim = 1 - 0.2 * smoothRange(au, 100, 155);
-  return .45 * smoothRange(au,12,35) * (1-smoothRange(au,250,800)) * heliosphereDim;
+  // Brillo atenuado un 20 % a cualquier distancia: no se aviva al acercarse (pedido de Sergio, 15/10/2026).
+  return .45 * KUIPER_DIM * smoothRange(au,12,35) * (1-smoothRange(au,250,800));
 }
 export function buildKuiperPositions(count=22000) {
   let seed=30750;
