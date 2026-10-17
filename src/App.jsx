@@ -3,6 +3,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import stellarPhysics from '../data/processed/stellar_physics.json';
+import starsUrl from '../data/processed/stars_15pc.json?url';
+import systemsUrl from '../data/processed/star_systems.json?url';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
 import SolarSystem from './scene/SolarSystem';
@@ -105,8 +107,11 @@ export default function App() {
     let active = true;
     // Los planetas viajan aparte del bundle; si fallan, el catálogo se muestra sin ellos.
     const planets = fetch('/data/exoplanets.json').then(response => response.ok ? response.json() : null).catch(() => null);
-    Promise.all([import('../data/processed/stars_15pc.json'), import('../data/processed/star_systems.json'), planets])
-      .then(([stars, systems, planets]) => { if (active) { setCatalogue({ catalogue: stars.default, systems: systems.default, planets }); setCatalogueStatus('ready'); } })
+    // El catálogo se pide como archivo estático: importarlo como módulo hace que vite lo transforme
+    // con source map y el servidor de desarrollo llega a ~4 GB de RAM.
+    const json = url => fetch(url).then(response => { if (!response.ok) throw new Error(url); return response.json(); });
+    Promise.all([json(starsUrl), json(systemsUrl), planets])
+      .then(([stars, systems, planets]) => { if (active) { setCatalogue({ catalogue: stars, systems, planets }); setCatalogueStatus('ready'); } })
       .catch(() => { if (active) setCatalogueStatus('error'); });
     return () => { active = false; };
   }, []);
