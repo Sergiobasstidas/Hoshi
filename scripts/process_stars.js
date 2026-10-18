@@ -114,7 +114,7 @@ patched.sort((a, b) => a.d - b.d);
 
 // === 7. Escribir el JSON ===
 fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-fs.writeFileSync(OUTPUT_PATH, JSON.stringify(patched, null, 2));
+fs.writeFileSync(OUTPUT_PATH, JSON.stringify(patched));
 
 const sizeKB = (fs.statSync(OUTPUT_PATH).size / 1024).toFixed(1);
 console.log(`✓ Guardado: ${OUTPUT_PATH} (${sizeKB} KB)`);
