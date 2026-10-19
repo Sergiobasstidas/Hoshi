@@ -1,4 +1,4 @@
-import { AU_TO_PC } from './scale.js';
+import { AU_TO_PC, ECLIPTIC_UP } from './scale.js';
 import { HELIOSPHERE_VIEW_DISTANCE_PC } from './heliosphereScale.js';
 
 // Forma de la heliopausa en el marco ecuatorial J2000 del catálogo (UA, Sol en el origen).
@@ -162,10 +162,12 @@ export const HELIOSPHERE_SOUTH_LOBE_AU = meridional(-165);
 export const HELIOSPHERE_TAIL_AU = heliopauseAu(HELIOSPHERE_NOSE.map(c => -c));
 
 // Vista de presentación: de costado, con el viento llegando por la izquierda, la cola
-// hacia la derecha y el norte solar arriba. Solo mueve la cámara; el catálogo no se gira.
+// hacia la derecha y el plano de los planetas (eclíptica) horizontal en pantalla.
+// Solo mueve la cámara; el catálogo no se gira.
+const ECLIPTIC_SIDE = unit(cross(HELIOSPHERE_NOSE, ECLIPTIC_UP));
 export const HELIOSPHERE_VIEW = {
-  id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC, up: HELIOSPHERE_NORTH,
-  direction: unit(HELIOSPHERE_FLANK.map((c, i) => -c + 0.3 * HELIOSPHERE_NOSE[i] + 0.22 * HELIOSPHERE_NORTH[i])),
+  id: 'heliosphere', label: 'Heliosfera', distance: HELIOSPHERE_VIEW_DISTANCE_PC, up: ECLIPTIC_UP,
+  direction: unit(ECLIPTIC_SIDE.map((c, i) => -c + 0.3 * HELIOSPHERE_NOSE[i] + 0.22 * ECLIPTIC_UP[i])),
 };
 
 const at = (direction, au) => direction.map(c => c * au * AU_TO_PC);

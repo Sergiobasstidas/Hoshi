@@ -6,7 +6,7 @@ import { SOLAR_BODIES } from './solarBodies';
 import { BINARY_STATE } from './binaryOrbit';
 import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
-import { kuiperOpacity } from './kuiper';
+import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
@@ -131,7 +131,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       } else if (label.kind === 'planet') {
         const radiusPixels = label.au * AU_TO_PC / pc * size.height
           / (2 * Math.tan(camera.fov * Math.PI / 360));
-        alpha = smoothRange(radiusPixels, 20, 50);
+        // Los nombres se apagan con las órbitas y el cinturón de Kuiper (Urano y Neptuno, sobre todo).
+        alpha = smoothRange(radiusPixels, 20, 50) * kuiperFadeOut(pc);
       } else if (label.kind === 'probe') {
         // Aparece al alejarse más allá del cinturón de Kuiper; se retira con la estela.
         alpha = smoothRange(pc / AU_TO_PC, 20, 45) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
