@@ -95,7 +95,7 @@ Solo cambia la codificación de profundidad; posiciones, radios y proyección no
 
 ## 6. Sistema solar
 
-Archivos: `scale.js`, `solarEphemeris.js`, `solarBodies.js`, `SolarSystem.jsx`, `OrbitLine.jsx`.
+Archivos: `scale.js`, `solarEphemeris.js`, `solarBodies.js`, `SolarSystem.jsx`, `OrbitLine.jsx`, `planetTextures.js`, `MoonTrail.jsx`.
 
 - Sol, ocho planetas y Luna con **radios volumétricos medios** (NASA/JPL) a escala real.
 - Órbitas **elípticas** con el Sol en un foco y cada planeta **en su posición de la fecha en que se abre la página**. Elementos keplerianos medios y sus tasas por siglo de JPL («Approximate Positions of the Planets», tabla 1, válida de 1800 a 2050): semieje a, excentricidad e, inclinación i, longitud media L, longitud del perihelio ϖ y longitud del nodo Ω, en la eclíptica J2000. Con T en siglos julianos desde J2000, cada elemento vale `valor + tasa · T`, y después:
@@ -113,8 +113,8 @@ seguido del giro eclíptica → ecuatorial del apartado 4. La línea dibujada es
 
 - **Precisión:** para el 14/10/2026 las ocho posiciones coinciden con los vectores de JPL Horizons a menos de 0,08° vistas desde el Sol (0,002° en Mercurio, 0,07° en Saturno); es el error propio de los elementos aproximados. La fila de la Tierra es la del baricentro Tierra-Luna; la Tierra se coloca separada de él en sentido opuesto a la Luna, según la razón de masas 81,30056.
 - **Luna:** en su posición y a su distancia de la misma fecha, con la serie de baja precisión del *Astronomical Almanac* (longitud y latitud eclípticas y paralaje), llevada a J2000 restando la precesión general. Frente a JPL Horizons, el 14 y el 22/10/2026: 0,06° de dirección y menos de 600 km de distancia.
-- **Límites:** los planetas no avanzan mientras la página está abierta; la fecha se toma al cargarla y figura en la ficha de cada planeta. La Luna tampoco avanza y su órbita no se dibuja. Las líneas de órbita son un estilo de presentación: su ancho y brillo no representan nada. En el sistema solar son una franja azul oscuro muy fina y difuminada, y cada planeta lleva un círculo hueco y su nombre en mayúsculas espaciadas; en los exoplanetas, un trazo fino con halo.
-- **Cielo desde el sistema solar:** cerca del Sol las estrellas tienen un mínimo de exposición (`skyExposure` en `scale.js`) para que se vea un cielo estrellado; es una decisión de presentación, no fotometría. Texturas de Solar System Scope para Sol, Mercurio, Venus, Tierra y Luna; su orientación es ilustrativa.
+- **Límites:** los planetas no avanzan mientras la página está abierta; la fecha se toma al cargarla y figura en la ficha de cada planeta. La Luna tampoco avanza; su órbita se dibuja como una estela del mismo color que las de las lunas de Júpiter y Saturno, que recorre el 90 % del último mes sideral con la misma serie que la coloca y se desvanece hacia atrás. De cerca la Luna no lleva marca; desde 0,01 UA la señala el hexágono de las sondas. Las líneas de órbita son un estilo de presentación: su ancho y brillo no representan nada. En el sistema solar son una franja azul oscuro muy fina y difuminada, y cada planeta lleva un círculo hueco y su nombre en mayúsculas espaciadas; en los exoplanetas, un trazo fino con halo.
+- **Cielo desde el sistema solar:** cerca del Sol las estrellas tienen un mínimo de exposición (`skyExposure` en `scale.js`) para que se vea un cielo estrellado; es una decisión de presentación, no fotometría. Texturas de Solar System Scope para el Sol, los ocho planetas y la Luna. Cada esfera se orienta con el polo de rotación y el meridiano cero de la IAU (WGCCRE 2015) en la fecha de carga, `W = W0 + Ẇ · d` con d en días desde J2000: la Tierra muestra iluminado el lado donde es de día (el 19/10/2026 a las 15:00 UTC, el Sol en el cenit sobre 48,6° O y 10° S) y la Luna vuelve hacia la Tierra su cara visible, con unos grados de libración. En los planetas gaseosos el giro es real, pero el mapa de nubes no corresponde a ninguna fecha.
 
 Capas del entorno solar, todas **ilustrativas** salvo sus distancias:
 
@@ -134,6 +134,26 @@ Archivos: `probeTrajectories.js`, `ProbeComets.jsx`, `ProbeTrails.jsx`; datos en
 - **En pantalla:** un hexágono hueco marca la sonda y una cola de cometa recorre hacia atrás su trayectoria real, desde la posición de la fecha hasta el punto en que la sonda estaba al 48,25 % de su distancia actual; se estrecha y se vuelve transparente hacia el Sol. Gris tenue; al pasar el ratón por el nombre, la cola, el hexágono y el nombre se aclaran. Ancho, brillo y largo son de presentación.
 - **Rutas completas:** `ProbeTrails.jsx` dibuja toda la trayectoria desde el lanzamiento, con sus pasos por los planetas, como una estela que se apaga hacia el pasado. Está preparado para activarse más adelante (`probeRoutes` en `SolarSystem.jsx`) y hoy no se muestra.
 - **Comprobación:** las pruebas verifican que cada trayectoria parte a menos de 0,01 UA de la Tierra y pasa a menos de 0,05 UA de Júpiter, Saturno, Urano y Neptuno en las fechas de sus nueve encuentros, frente a posiciones de Horizons.
+
+### Lunas de Júpiter y Saturno
+
+Archivos: `moonEphemeris.js`, `moonBodies.js`, `Moons.jsx`, `MoonLabels.jsx`, `FichaLuna.jsx`; datos en `public/data/moons.json` (generador `scripts/moons/build_moons.js`).
+
+- **Cuáles:** las 406 lunas con elementos medios publicados por JPL (115 de Júpiter y 291 de Saturno), seleccionables desde su nombre o desde el grupo «Lunas de …» del selector.
+- **Tamaño:** 25 con radio medio de JPL, 21 con diámetro medido publicado (Thomas, Grav et al.) y 360 con diámetro **estimado por su brillo** (magnitud absoluta y albedo supuesto; puede errar en un factor de dos). La ficha dice cuál es cuál.
+- **Posición, lunas exteriores** (a > 1,4 millones de km: Calisto, Hiperión, Jápeto, Febe y todas las irregulares): el Sol las perturba tanto que una elipse media se aparta grados en semanas. Se guardan los elementos osculadores de JPL Horizons cada 60 días entre el 01/09/2026 y el 01/01/2030 y se propaga como órbita de dos cuerpos desde el conjunto más cercano, como mucho 30 días (< 0,1°).
+- **Posición, lunas interiores:** forma, plano (de Laplace) y periodos de precesión de los elementos medios de JPL; la anomalía media inicial, el movimiento medio, el nodo y el periápside se ajustan por mínimos cuadrados a 25 posiciones de Horizons tomadas cada 15 días durante un año. Propagados solos desde el año 2000, los elementos medios se desvían decenas de grados: sus periodos tienen siete cifras y la tabla no publica el sentido de las precesiones.
+- **Precisión** frente a Horizons en una fecha que no se usó al ajustar (14/02/2027): menos de 0,9° en las lunas comprobadas, salvo Mimas (2°). Las lunas pequeñas que oscilan alrededor de otra (Helena, Pólux, Anthe, Metone, Calipso) llegan a 2–8°. Dafnis no tiene efeméride de Horizons después de 2018 y su posición es aproximada.
+- **En pantalla:** esferas a escala, color ilustrativo e iluminadas por el Sol; de lejos, un punto fijo que no representa el radio. Cada una deja una estela beige con su trayectoria real del último 90 % de su vuelta, que se desvanece hacia atrás; en las lunas exteriores lentas el tramo anterior al 01/09/2026 se extrapola. A Júpiter y Saturno se llega desde el lado del Sol, 30° por encima del plano de sus lunas.
+
+### Anillos de Saturno
+
+Archivos: `ringParticles.js`, `SaturnRings.jsx`; datos en `public/data/saturn_rings.json` (generador `scripts/rings/build_rings.js`).
+
+- **Dato:** la profundidad óptica normal τ cada 10 km de 74.400 a 140.700 km, medida por Cassini UVIS en la ocultación de la estrella β Centauri del 18/08/2008 (PDS, `UVIS_HSP_2008_231_BETCEN_I_TAU10KM`). Ahí están el anillo C tenue, el B casi opaco (τ hasta ≈ 10), la división de Cassini, el A con las divisiones de Encke y Keeler y el anillo F. Bordes y albedos, de la ficha de anillos de NASA.
+- **Representación:** los anillos tienen del orden de 10¹⁶ a 10¹⁸ trozos de hielo de centímetros a metros; Hoshi dibuja 306.000 puntos, repartidos para que la cantidad en cada radio siga la luz que el anillo intercepta, `(1 − e^(−τ)) · 2πr`. Cada punto cubre en pantalla `S·μ / (N·θ²·d²)` de su píxel (S, área efectiva; μ, inclinación de la mirada; θ, ángulo de un píxel; d, distancia), así que el anillo tiene la misma opacidad vista de lejos que de cerca y tapa al planeta en esa proporción. Cuando el anillo se ve pequeño se dibuja solo una parte de los puntos (unos 6 por píxel).
+- **Espesor:** unos 10 m frente a 280.000 km de diámetro, como una hoja de papel de un kilómetro de ancho; no llega a un píxel y los puntos están en el plano ecuatorial (polo IAU de Saturno).
+- **Luz:** sombra del planeta sobre los anillos; la cara que no ilumina el Sol se aproxima con la luz que atraviesa, `τ e^(−τ) / (1 − e^(−τ))`, por lo que desde ella el anillo B, el más denso, se ve oscuro. En 2026 el Sol está 7,9° al sur del plano de los anillos. El anillo D, casi transparente (τ ≈ 10⁻⁵), lleva más puntos de los que le corresponderían para que se vea; tamaño y color de los puntos no son medidas.
 
 ## 7. Estrellas
 
@@ -433,12 +453,16 @@ Los generadores se ejecutan a mano desde la raíz; no forman parte del build.
 | `node scripts/exoplanets/build_planet_scene.js` | Los anteriores | `public/data/exoplanets.json` |
 | `node scripts/probes/fetch_horizons.mjs` | JPL Horizons (descarga) | `data/probes/fuentes/*.csv` |
 | `node scripts/probes/build_probes.js` | `data/probes/fuentes/` | `public/data/probes.json` |
+| `node scripts/moons/build_moons.js` | `data/moons/fuentes/`: tablas de JPL (elementos medios y parámetros físicos), tamaños compilados en Wikipedia y elementos y vectores de JPL Horizons | `public/data/moons.json` |
+| `node scripts/rings/build_rings.js` | `data/rings/fuentes/`: perfil de Cassini UVIS (PDS) | `public/data/saturn_rings.json` |
 | `python3 -I scripts/exoplanets/fetch_nasa_catalog_types.py <salida>` | Catálogo de exoplanetas de la NASA | `data/raw/exoplanets/nasa_science_catalog_types.csv` |
 | `node scripts/exoplanets/build_discoveries.js` | Tablas de la NASA (confirmados, TOI, KOI, K2) y catálogo procesado | `public/data/exoplanet-discoveries.json` |
 
 Orden al actualizar los exoplanetas: `process_exoplanets` → `build_star_identity` → `build_distance_corrections` → `build_added_hosts` → `process_stars` → `process_star_search` → `process_binaries` → `build_planet_scene`. `process_stars.js` aplica las correcciones de distancia y añade las anfitrionas si esos dos archivos existen; AT-HYG no se modifica.
 
 Cada carpeta de `data/raw/` incluye un `FUENTE.md` o `FUENTES.md` con la URL, la fecha de descarga y la cita de cada archivo. Algunos datos crudos voluminosos no se versionan y se descargan con las URL indicadas ahí.
+
+Las fuentes de lunas y anillos (`data/moons/fuentes/`, `data/rings/fuentes/`) no se versionan: incluyen texto de Wikipedia con otra licencia y descargas voluminosas de Horizons y del PDS; sus URL están en los generadores. Las lunas (≈ 0,25 MB comprimido) y los anillos (≈ 40 kB) se cargan aparte.
 
 El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los planetas (≈ 0,3 MB) se cargan aparte del bloque inicial de la aplicación, de modo que el sistema solar y la interfaz aparecen antes que las estrellas. El mapa de descubrimientos (≈ 0,2 MB comprimido) solo se pide al abrir el modo «Exoplanetas».
 

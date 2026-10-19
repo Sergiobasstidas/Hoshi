@@ -42,6 +42,9 @@ import CompanionStars from './scene/CompanionStars';
 import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 import PlanetarySystems from './scene/PlanetarySystem';
+import MoonLabels from './MoonLabels';
+import { FichaAnillos, FichaLuna } from './FichaLuna';
+import { moonHost, useMoons } from './scene/moonBodies';
 import { probeHighlight, useProbes } from './scene/probeTrajectories';
 import ExoplanetDiscoveries from './scene/ExoplanetDiscoveries';
 import ZoomSuave from './scene/ZoomSuave';
@@ -147,6 +150,9 @@ export default function App() {
   const exoplanetBody = view.body?.kind === 'exoplanet' ? view.body : null;
   const hostStar = stellarBody?.star || exoplanetBody?.star;
   const localPlanets = (hostStar?.planetary || []).flatMap(system => system.planets.filter(planet => planet.body).map(planet => planet.body));
+  // Lunas del planeta enfocado o de la luna enfocada (Júpiter y Saturno), para el selector.
+  const { bodies: moonBodies } = useMoons();
+  const localMoons = moonBodies.filter(body => body.planet === moonHost(view.body));
   // Estrellas de una binaria anfitriona a las que se puede viajar por separado.
   const localStars = (hostStar?.planetary || []).flatMap(system => (system.binary?.components || []).filter(component => component.body).map(component => component.body));
   const hostName = exoplanetBody && (hostStar.n || exoplanetBody.system.name);
@@ -174,7 +180,7 @@ export default function App() {
       ? {kind:'star',text:body.name,star:body.star,catalogueId:body.star.i,position:body.position} : null);
     navigate(bodyView(body), { arriveFree: fromSearch });
   };
-  const focusBody = body => { visitBody(body); if (body.kind === 'exoplanet') setShowBodyPanel(true); };
+  const focusBody = body => { visitBody(body); if (body.kind === 'exoplanet' || body.kind === 'satellite' || body.name === 'Saturno') setShowBodyPanel(true); };
   // Estrella como destino: encuadra su sistema (compañeras o planetas) y, si tiene
   // planetas, llega mirando el plano orbital abierto en vez de canto.
   const starBody = (star, name, identifiers) => ({
@@ -344,9 +350,9 @@ export default function App() {
         </details>
       </aside>}
       <label className="body-selector">Acercarse a
-        <select aria-label="Acercarse a un cuerpo" value={focusedBody?.name || ''} onChange={event => {
+        <select aria-label="Acercarse a un cuerpo" value={focusedBody?.optionValue || focusedBody?.name || ''} onChange={event => {
           const name = event.target.value;
-          const body = localPlanets.find(b => b.name === name) || localStars.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
+          const body = localMoons.find(b => b.optionValue === name) || localPlanets.find(b => b.name === name) || localStars.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
           if (body) focusBody(body);
         }}>
           <option value="" disabled>Elegir cuerpo</option>
@@ -357,6 +363,9 @@ export default function App() {
           </optgroup>}
           {localPlanets.length > 0 && <optgroup label="Planetas de este sistema">
             {localPlanets.map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
+          </optgroup>}
+          {localMoons.length > 0 && <optgroup label={`Lunas de ${localMoons[0].planet} (${localMoons.length})`}>
+            {localMoons.map(body => <option key={body.optionValue} value={body.optionValue}>{body.name}</option>)}
           </optgroup>}
           {NAVIGATION_TARGETS.map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
         </select>
@@ -398,7 +407,9 @@ export default function App() {
           <div>Separación entre estrellas: <strong>{BINARY_STATE.separationAu.toLocaleString('es-CL', { maximumFractionDigits: 2 })} UA</strong></div>
           <div>Rango orbital: {(WR140_ORBIT.semiMajorAu * (1 - WR140_ORBIT.eccentricity)).toFixed(2)}–{(WR140_ORBIT.semiMajorAu * (1 + WR140_ORBIT.eccentricity)).toFixed(2)} UA</div>
           <div>Distancia al Sol (catálogo): {(panelBody.distancePc / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>
-        </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : exoplanetBody ? exoplanetBody.planet.s.includes('r') ? 'estimado por masa' : 'medido' : 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
+        </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : exoplanetBody ? exoplanetBody.planet.s.includes('r') ? 'estimado por masa' : 'medido' : panelBody.radiusLabel || 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
+        {panelBody.kind === 'satellite' && <FichaLuna body={panelBody} />}
+        {panelBody.name === 'Saturno' && <FichaAnillos />}
         {exoplanetBody && <div>Planeta de {exoplanetBody.system.name} · {describePlanet(exoplanetBody.planet, exoplanetBody.system)} · excentricidad {exoplanetBody.planet.e.toLocaleString('es-CL')} · inclinación {exoplanetBody.planet.inc.toLocaleString('es-CL')}° respecto del cielo · a {exoplanetBody.planet.separationAu.toLocaleString('es-CL', { maximumSignificantDigits: 3 })} UA de su estrella el {EXOPLANET_EPOCH}
           <br />Supuestos · giro del plano en el cielo (Ω) convencional{exoplanetBody.planet.assumptions.map(text => ` · ${text}`).join('')}</div>}
         <div data-body-altitude />
@@ -418,6 +429,7 @@ export default function App() {
         {bodyTexture && <div className="texture-credit">Textura: <a href={PLANET_TEXTURE_SOURCE} target="_blank" rel="noreferrer">Solar System Scope / INOVE</a>
           {' · '}<a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}
       </aside>}
+      <MoonLabels focused={focusedBody} onSelect={focusBody} />
       <div data-labels className="scene-labels">
         {labels.map((label, i) => <span key={i} className={`scene-label ${label.kind}${aimTarget === label ? ' is-target' : ''}`} style={{ color: label.color }}
           {...label.kind === 'probe' && { onPointerEnter: () => { probeHighlight.code = label.code; }, onPointerLeave: () => { probeHighlight.code = null; } }}>

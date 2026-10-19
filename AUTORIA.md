@@ -11,6 +11,7 @@ Este aviso se refiere a las aportaciones originales del proyecto. No atribuye al
 - Imagen galáctica: ESA/Gaia/DPAC, Stefan Payne-Wardenaar; CC BY-SA 3.0 IGO. Atribución y adaptación en `public/textures/galaxy/ATTRIBUTION.md`.
 - Texturas de cuerpos: Solar System Scope / INOVE; CC BY 4.0. Fuentes en `public/textures/solar-system-scope/README.md`.
 - Ruido procedural: Ashima Arts y colaboradores; licencia original conservada en `public/licenses/webgl-noise.txt` y junto al código derivado.
+- Lunas y anillos: elementos y parámetros de satélites de NASA/JPL y JPL Horizons; perfil de los anillos de Cassini UVIS, PDS Ring-Moon Systems Node; tamaños de las lunas pequeñas compilados en Wikipedia (CC BY-SA), usados como datos.
 - Catálogos, medidas y modelos: AT-HYG/HYG, ATNF, SIMBAD, NASA/JPL y publicaciones citadas en los documentos específicos. Sus identificadores, nombres oficiales y referencias se conservan sin traducir para mantener trazabilidad.
 - Dependencias: cada biblioteca mantiene su licencia original. Este aviso no modifica sus permisos.
 

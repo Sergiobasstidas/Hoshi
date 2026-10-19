@@ -52,3 +52,7 @@ data/raw/simbad/*
 /public/propuestas/
 /data/processed/milkyway_desi.json
 /scripts/export_milkyway.js
+
+# Fuentes de lunas y anillos: descargas de JPL, PDS y Wikipedia; sus URL están en los generadores.
+data/moons/fuentes/
+data/rings/fuentes/

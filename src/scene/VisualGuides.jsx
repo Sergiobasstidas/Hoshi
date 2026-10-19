@@ -173,6 +173,13 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
           el.style.setProperty('--ring-y', `${point.y - box.y}px`);
           el.style.setProperty('--ring-alpha', 1 - smoothRange(bodyPixels, 3, 6));
         }
+        // Luna: sin marca de cerca (su esfera ya se ve); hexágono desde 0,01 UA (pedido de Sergio).
+        if (label.kind === 'moon') {
+          const moonDistance = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
+          el.style.setProperty('--ring-x', `${point.x - box.x}px`);
+          el.style.setProperty('--ring-y', `${point.y - box.y}px`);
+          el.style.setProperty('--ring-alpha', smoothRange(moonDistance / AU_TO_PC, 0.008, 0.012));
+        }
         // Hexágono sobre la sonda, en la cabeza de su estela (ProbeTrails.jsx).
         if (label.kind === 'probe') {
           el.style.setProperty('--ring-x', `${point.x - box.x}px`);

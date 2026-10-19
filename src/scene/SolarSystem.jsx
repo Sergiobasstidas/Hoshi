@@ -3,13 +3,16 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange, SUN_RADIUS_PC, solarDistance } from './scale';
-import { PLANET_TEXTURES } from './planetTextures';
+import { PLANET_TEXTURES, bodyAxes } from './planetTextures';
 import StellarSurface from './StellarSurface';
 import { MOON } from './solarBodies';
-import { planetOrbit, planetPosition } from './solarEphemeris';
+import { EPHEMERIS_DATE, planetOrbit, planetPosition } from './solarEphemeris';
 import OrbitLine from './OrbitLine';
 import { kuiperFadeOut } from './kuiper';
 import { SOLAR_TEMPERATURE_K } from './stellarPhysics';
+import Moons from './Moons';
+import SaturnRings from './SaturnRings';
+import MoonTrail from './MoonTrail';
 import ProbeTrails from './ProbeTrails';
 import ProbeComets from './ProbeComets';
 
@@ -27,9 +30,18 @@ function PlanetSurface({ url }) {
   return <meshLambertMaterial map={map} color="white" toneMapped={false} />;
 }
 
+// Orientación real en la fecha de carga (planetTextures.js): polo y meridiano cero de la IAU.
+function bodyQuaternion(texture) {
+  const { x, y, z } = bodyAxes(texture, EPHEMERIS_DATE);
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+    new THREE.Vector3(...x), new THREE.Vector3(...y), new THREE.Vector3(...z)));
+}
+
 function PhysicalBody({ position, radiusPc, color, texture }) {
-  // El norte del mapa apunta a +Z de escena. Longitudes y rotación siguen siendo ilustrativas.
-  return <mesh position={position} scale={radiusPc} rotation={texture ? [Math.PI / 2, 0, 0] : undefined}>
+  // Con polo y giro declarados, la esfera muestra la cara que mira al Sol en la fecha de carga.
+  const quaternion = useMemo(() => texture?.pole && texture?.spin ? bodyQuaternion(texture) : undefined, [texture]);
+  const orientation = quaternion ? { quaternion } : texture ? { rotation: [Math.PI / 2, 0, 0] } : {};
+  return <mesh position={position} scale={radiusPc} {...orientation}>
     <sphereGeometry args={texture ? [1, 96, 64] : [1, 64, 48]} />
     {texture ? <Suspense fallback={<meshLambertMaterial color={color} toneMapped={false} />}>
         <PlanetSurface url={texture.url} />
@@ -68,5 +80,8 @@ export default function SolarSystem({ origin, probeRoutes = false }) {
     <PhysicalBody position={MOON.position} radiusPc={MOON.radiusKm * KM_TO_PC} color={MOON.color} texture={PLANET_TEXTURES.Luna} />
     <ProbeComets origin={origin} />
     {probeRoutes && <ProbeTrails origin={origin} />}
+    <MoonTrail />
+    <Moons origin={origin} />
+    <SaturnRings origin={origin} />
   </>;
 }

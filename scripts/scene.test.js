@@ -689,7 +689,9 @@ test('Los cuerpos físicos pueden inspeccionarse sin recortar sus superficies', 
     assert.ok(view.distance > view.minDistance);
     assert.ok(view.minDistance - radiusPc > BODY_CAMERA_NEAR_PC * 100);
     const apparentDiameter = 2 * Math.asin(radiusPc / view.distance);
-    assert.ok(apparentDiameter > 0.3 && apparentDiameter < 0.4);
+    // Júpiter y Saturno se encuadran con las órbitas de sus lunas grandes (Calisto, Titán).
+    if (body.name === 'Júpiter' || body.name === 'Saturno') assert.ok(apparentDiameter > 0.02 && apparentDiameter < 0.1);
+    else assert.ok(apparentDiameter > 0.3 && apparentDiameter < 0.4);
   }
 });
 

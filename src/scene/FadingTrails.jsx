@@ -38,6 +38,10 @@ export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 
           'vColor.xyz = ( ( position.y < 0.5 ) ? instanceColorStart : instanceColorEnd ) * trailOpacity * smoothstep( fade.x, fade.y, instanceSize * pixelsPerUnit ) * ( 1.0 - smoothstep( instanceFadeOut, instanceFadeOut * 2.5, instanceSize * pixelsPerUnit ) );')
         // El mismo recorte junto al plano de la cámara que OrbitLine.jsx (plano cercano de 1e-14 pc).
         .replace('float nearEstimate = - 0.5 * b / a;', 'float nearEstimate = min( - 0.5 * b / a, start.z * 0.002 );');
+      // Sin remates redondos: con mezcla aditiva se sumaban en cada unión y la estela se veía
+      // como una sucesión de puntos (captura de Sergio, 15/10/2026).
+      shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>',
+        '#include <clipping_planes_fragment>\n\tif ( abs( vUv.y ) > 1.0 ) discard;');
     };
     material.customProgramCacheKey = () => 'estela-desvanecida';
     const object = new LineSegments2(geometry, material);

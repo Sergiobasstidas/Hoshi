@@ -1,6 +1,7 @@
 import { AU_TO_PC, KM_TO_PC, PLANETS, SUN_RADIUS_KM } from './scale.js';
 import { ORBITAL_ELEMENTS_SOURCE, moonOffset, moonPosition, orbitalElements, planetPosition } from './solarEphemeris.js';
 import { STAR_STOP_PC } from './starHeading.js';
+import { planetArrival } from './moonEphemeris.js';
 
 // Radios volumétricos medios, consultados el 13/09/2026. Véase docs/SOLAR_RADII.md.
 // Una esfera de este radio conserva el volumen del cuerpo, no su achatamiento.
@@ -17,7 +18,9 @@ export const SOLAR_BODIES = [
   { name: 'Sol', radiusKm: SUN_RADIUS_KM, position: [0, 0, 0], color: '#fff2c6', source: SUN_RADIUS_SOURCE },
   // Posición de la fecha de solarEphemeris.js; la excentricidad es la de esa misma fecha.
   ...PLANETS.map(planet => ({ ...planet, position: planetPosition(planet.name), eccentricity: orbitalElements(planet.name).e,
-    source: PLANET_RADII_SOURCE, orbitSource: ORBITAL_ELEMENTS_SOURCE })),
+    source: PLANET_RADII_SOURCE, orbitSource: ORBITAL_ELEMENTS_SOURCE,
+    // A Júpiter y Saturno se llega desde arriba del plano de sus lunas (moonEphemeris.js).
+    ...planetArrival(planet.name, planetPosition(planet.name)) })),
   MOON,
 ];
 
@@ -30,5 +33,5 @@ export function bodyView(body) {
     return { id: 'system', body, target: body.position, distance: body.viewDistance, minDistance: body.minDistance, direction: body.viewDirection };
   }
   const radiusPc = body.radiusKm * KM_TO_PC;
-  return { id: 'body', body, target: body.position, distance: Math.max(radiusPc * 6, body.companionViewDistance || 0), minDistance: radiusPc * 1.02, ...arrival(body) };
+  return { id: 'body', body, target: body.position, distance: Math.max(radiusPc * 6, body.companionViewDistance || 0), minDistance: body.minDistancePc || radiusPc * 1.02, ...arrival(body) };
 }
