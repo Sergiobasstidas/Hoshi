@@ -2,6 +2,10 @@
 
 Registro del avance del proyecto. A partir de aquí cada cambio queda descrito en su commit; este archivo resume los hitos para leerlos de corrido. Detalle técnico en la [documentación](DOCUMENTACION.md).
 
+## Versión 0.2.0 (19/10/2026)
+
+Primera versión marcada desde la base 0.1.0. Reúne todo lo descrito abajo a partir del 11/10/2026: sistemas múltiples, exoplanetas y su mapa, lunas y anillos de Júpiter y Saturno, planetas y sondas en su posición real y el Sol con imágenes del SDO. Desde aquí las versiones marcan hitos: el último número sube con correcciones y el del medio con funciones nuevas.
+
 ## Base del proyecto (antes del 11/10/2026)
 
 Desarrollo anterior al historial Git, reunido en la primera instantánea del repositorio.
