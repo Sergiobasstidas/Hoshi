@@ -8,12 +8,14 @@ import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
 import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
+import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
 const smallLightYears = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 4 });
 const vector = new THREE.Vector3();
 const right = new THREE.Vector3();
 const solarOrigin = new THREE.Vector3();
+const viewSpace = new THREE.Vector3();
 const earth = new THREE.Vector3(...SOLAR_BODIES.find(body => body.name === 'Tierra').position);
 const RULERS = [
   { selector: '[data-ruler]', length: LIGHT_YEAR_PC, gap: 69, day: false },
@@ -103,6 +105,21 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const text = guides.querySelector('[data-binary-distance]');
       text.setAttribute('x', mx); text.setAttribute('y', my + 20);
     }
+    // Discos en pantalla del Sol, los planetas, la Luna y la estrella inspeccionada: tapan los
+    // nombres de lo que está detrás de ellos.
+    const focal = size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
+    const sphereOf = (key, position, radiusPc) => {
+      viewSpace.set(...position).sub({ x: origin[0], y: origin[1], z: origin[2] }).applyMatrix4(camera.matrixWorldInverse);
+      return screenDisk(key, viewSpace, radiusPc, project(position), focal);
+    };
+    const disks = labels.filter(label => label.body?.radiusKm)
+      .map(label => sphereOf(label.body.name, label.position, label.body.radiusKm * KM_TO_PC));
+    for (const target of [focusedBody, aimTarget]) {
+      const radiusPc = target?.star?.physics?.radiusPc;
+      if (radiusPc) disks.push(sphereOf(target.name ?? target.text, target.position, radiusPc));
+    }
+    publishOccluders('cuerpos', disks.filter(Boolean));
+    const occluders = currentOccluders();
     const labelElements = root.querySelector('[data-labels]').children;
     const candidates = [];
     labels.forEach((label, i) => {
@@ -162,7 +179,9 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
       const width = label.width * (label.kind === 'star' ? 0.75 : 1.2);
       const box = { x: Math.max(8, Math.min(point.x + Math.min(bodyPixels, size.width/3) + 9, size.width - width - 12)), y: point.y - 8 };
-      const visible = point.visible && alpha > 0.015;
+      const labelDistance = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
+      const covered = hiddenBehind({ x: box.x, y: box.y, width, height: 16 }, labelDistance, occluders, label.body?.name ?? label.text);
+      const visible = point.visible && alpha > 0.015 && !covered;
       el.style.opacity = visible ? alpha : 0;
       el.style.visibility = visible ? 'visible' : 'hidden';
       if (visible) {
@@ -175,10 +194,9 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         }
         // Luna: sin marca de cerca (su esfera ya se ve); hexágono desde 0,01 UA (pedido de Sergio).
         if (label.kind === 'moon') {
-          const moonDistance = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
           el.style.setProperty('--ring-x', `${point.x - box.x}px`);
           el.style.setProperty('--ring-y', `${point.y - box.y}px`);
-          el.style.setProperty('--ring-alpha', smoothRange(moonDistance / AU_TO_PC, 0.008, 0.012));
+          el.style.setProperty('--ring-alpha', smoothRange(labelDistance / AU_TO_PC, 0.008, 0.012));
         }
         // Hexágono sobre la sonda, en la cabeza de su estela (ProbeTrails.jsx).
         if (label.kind === 'probe') {

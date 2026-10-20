@@ -7,6 +7,7 @@ import { julianDay, moonOffsetKm, orbitalPeriodDays } from './moonEphemeris';
 import { sampleTrail } from './fadingTrail';
 import FadingTrails from './FadingTrails';
 import { MOON_PLANETS, hiddenByPlanet, useMoons } from './moonBodies';
+import { currentOccluders, hiddenBehind, publishOccluders } from './labelOcclusion';
 
 // Lunas de Júpiter y Saturno: esferas a escala de su radio, en su posición de la fecha y con
 // una estela de casi toda su última vuelta (FadingTrails.jsx). De lejos, un punto de tamaño fijo (no representa el radio) indica dónde
@@ -116,11 +117,13 @@ function MoonGroup({ planet, moons, origin }) {
     // Lejos del planeta no hay nada que dibujar: ni puntos ni nombres.
     const active = outermostPc / planetDistance * focal > MARKER_PIXELS[0];
     group.current.visible = active || warmup.current-- > 0;
-    if (!active) { hideLabels(); assignNear([]); return; }
+    if (!active) { hideLabels(); assignNear([]); publishOccluders(`lunas-${planet}`, []); return; }
     const near = [];
     const focused = container?.dataset.focused || '';
     const candidates = [];
     camera.updateMatrixWorld();
+    // Los nombres tapados por un cuerpo más cercano (planeta, Sol u otra luna) no se muestran.
+    const occluders = currentOccluders(), moonDisks = [];
     moons.forEach((body, i) => {
       const { orbitPc, radiusPc, major } = metrics[i];
       const dx = cx - body.offsetPc[0], dy = cy - body.offsetPc[1], dz = cz - body.offsetPc[2];
@@ -139,10 +142,13 @@ function MoonGroup({ planet, moons, origin }) {
       vector.applyMatrix4(camera.projectionMatrix);
       if (Math.abs(vector.x) > 0.97 || Math.abs(vector.y) > 0.93) return;
       const screenX = (vector.x + 1) * size.width / 2, screenY = (1 - vector.y) * size.height / 2;
+      if (spherePixels > 3) moonDisks.push({ key: body.name, x: screenX, y: screenY, radius: spherePixels, distance });
       const item = { code: String(body.moon.code), alpha: labelAlpha, priority: isFocused ? Infinity : body.radiusKm,
         x: screenX + Math.min(spherePixels, size.width / 3) + 8, y: screenY - 8, width: body.name.length * 6.2 + 8 };
+      if (!isFocused && hiddenBehind({ x: item.x, y: item.y, width: item.width, height: 16 }, distance, occluders, body.name)) return;
       candidates.push(item);
     });
+    publishOccluders(`lunas-${planet}`, moonDisks);
     assignNear(near.sort((a, b) => b[1] - a[1]).slice(0, NEAR_POOL).map(([index]) => index).sort((a, b) => a - b));
     points.current.geometry.attributes.alpha.needsUpdate = true;
     material.current.uniforms.pixelRatio.value = gl.getPixelRatio();
