@@ -6,6 +6,16 @@ import { constrainFlight } from './navigation.js';
 import { advanceFlight, FLIGHT_KEYS, isFlightTypingTarget } from './flightMotion';
 import { approachSpeed, stopBeforeTarget, STAR_STOP_PC } from './starHeading';
 import { stellarStopDistance } from './stellarPhysics';
+import { dialDesdeVelocidad, velocidadDesdeDial } from './controlVelocidad.js';
+
+// Mando táctil: un dedo en el lado derecho actúa de acelerador (deslizar hacia arriba sube la
+// velocidad y mantiene el avance aunque se suelte; un toque avanza o se detiene), un dedo en
+// el resto de la pantalla mira y dos dedos pellizcan para acercarse o alejarse.
+const ZONA_ACELERADOR = 0.6;
+const DIAL_POR_ALTURA = 60;
+const TOQUE_PX = 10;
+const PELLIZCO_SEGUNDOS = 2.5;
+const AVANCE = new Set(['KeyW']);
 
 export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initialBody, origin, onManualLook, aimTarget, inspectedTarget }) {
   const { camera, gl } = useThree();
@@ -35,7 +45,7 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
       const delta = (now - lastTick) / 1000;
       const start = camera.position.clone();
       const speed = state.target ? approachSpeed(state.speed, camera.position.distanceTo(state.target), state.stopDistance) : state.speed;
-      advanceFlight(camera, state.keys, speed, delta);
+      advanceFlight(camera, state.crucero ? new Set([...state.keys, ...AVANCE]) : state.keys, speed, delta);
       if (state.target) {
         stopBeforeTarget(camera, start, state.target, state.stopDistance);
       }
@@ -43,9 +53,13 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
       lastTick = now;
     };
     let pointer = null;
+    const toques = new Map();
+    let pellizco = null;
     const clear = () => {
       state.advance();
       state.keys.clear();
+      toques.clear();
+      pellizco = null;
       if (pointer && canvas.hasPointerCapture(pointer.id)) canvas.releasePointerCapture(pointer.id);
       pointer = null;
     };
@@ -63,20 +77,76 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
     };
     // Considerar pulsaciones breves que empiezan y terminan entre cuadros renderizados.
     const keyup = event => { state.advance(); state.keys.delete(event.code); };
+    const separacion = () => {
+      const [a, b] = [...toques.values()].filter(toque => toque.rol === 'mirar');
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : null;
+    };
+    const desplazar = distancia => {
+      const start = camera.position.clone();
+      camera.translateZ(-distancia);
+      if (state.target) stopBeforeTarget(camera, start, state.target, state.stopDistance);
+      constrainFlight(camera.position, start, origin);
+    };
+    const tocar = event => {
+      canvas.focus({ preventScroll: true });
+      try { canvas.setPointerCapture(event.pointerId); } catch { /* puntero ya liberado */ }
+      const acelerador = event.clientX - canvas.getBoundingClientRect().left > canvas.clientWidth * ZONA_ACELERADOR
+        && ![...toques.values()].some(toque => toque.rol === 'acelerador');
+      toques.set(event.pointerId, { x: event.clientX, y: event.clientY, inicioY: event.clientY, rol: acelerador ? 'acelerador' : 'mirar',
+        dial: dialDesdeVelocidad(state.speed), movido: false });
+      pellizco = separacion();
+    };
+    const moverToque = event => {
+      const toque = toques.get(event.pointerId);
+      if (!toque) return;
+      const dx = event.clientX - toque.x, dy = event.clientY - toque.y;
+      toque.x = event.clientX; toque.y = event.clientY;
+      if (Math.abs(toque.inicioY - toque.y) > TOQUE_PX) toque.movido = true;
+      if (toque.rol === 'acelerador') {
+        if (!toque.movido) return;
+        state.advance();
+        const dial = Math.max(0, Math.min(100, toque.dial + (toque.inicioY - toque.y) / canvas.clientHeight * DIAL_POR_ALTURA));
+        state.speed = velocidadDesdeDial(dial);
+        state.crucero = dial > 0;
+        onSpeedChange(state.speed);
+        return;
+      }
+      if (pellizco) {
+        const actual = separacion();
+        if (!actual) return;
+        state.advance();
+        desplazar(state.speed * PELLIZCO_SEGUNDOS * Math.log(actual / pellizco));
+        pellizco = actual;
+        return;
+      }
+      if (dx || dy) onManualLook();
+      camera.rotateY(-dx * 0.002);
+      camera.rotateX(-dy * 0.002);
+    };
+    const soltarToque = event => {
+      const toque = toques.get(event.pointerId);
+      if (!toque) return;
+      toques.delete(event.pointerId);
+      if (toque.rol === 'acelerador' && !toque.movido) { state.advance(); state.crucero = !state.crucero; }
+      pellizco = separacion();
+    };
     const down = event => {
+      if (event.pointerType === 'touch') { tocar(event); return; }
       if (event.button !== 0) return;
       canvas.focus({ preventScroll: true });
       pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
       canvas.setPointerCapture(event.pointerId);
     };
     const move = event => {
+      if (event.pointerType === 'touch') { moverToque(event); return; }
       if (!pointer || pointer.id !== event.pointerId) return;
       if (event.clientX !== pointer.x || event.clientY !== pointer.y) onManualLook();
       camera.rotateY(-(event.clientX - pointer.x) * 0.002);
       camera.rotateX(-(event.clientY - pointer.y) * 0.002);
       pointer.x = event.clientX; pointer.y = event.clientY;
     };
-    const up = () => {
+    const up = event => {
+      if (event.pointerType === 'touch') { soltarToque(event); return; }
       if (pointer && canvas.hasPointerCapture(pointer.id)) canvas.releasePointerCapture(pointer.id);
       pointer = null;
     };
@@ -104,6 +174,7 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
     return () => {
       // No aplicar movimientos de teclas anteriores tras cambiar el origen local de cámara.
       state.keys.clear();
+      state.crucero = false;
       if (pointer && canvas.hasPointerCapture(pointer.id)) canvas.releasePointerCapture(pointer.id);
       pointer = null;
       state.advance = null;

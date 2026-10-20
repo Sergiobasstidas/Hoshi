@@ -1,0 +1,65 @@
+/* Celular: los botones de escalas y modos se agrupan en la lista «Explorar», que queda junto a
+   «Acercarse a»; los visores se achican y sus textos crecen para leerse sin acercar la vista. */
+.menu-explorar { display: none; position: absolute; pointer-events: auto; z-index: 21; }
+.menu-explorar select { width: 100%; padding: 8px 10px; color: #d5dbe4; background: #080d15; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
+
+/* Vertical. */
+@media (max-width: 700px) {
+  .scale-navigation { display: none; }
+  .menu-explorar { display: block; }
+  /* iOS acerca la página al enfocar campos con letra menor de 16 px. */
+  .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
+  .distance-panel { top: 16px; left: 18px; }
+  .star-search { top: 10px; right: 18px; width: min(220px, calc(100% - 160px)); font-size: 13px; }
+  .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .menu-explorar, .body-selector { top: 58px; width: calc(50% - 23px); }
+  .body-selector select { width: 100%; padding: 8px 10px; }
+  .menu-explorar { left: 18px; }
+  .body-selector { left: calc(50% + 5px); right: auto; display: block; font-size: 0; }
+  .body-panel, .aim-panel { top: 108px; }
+  .body-panel { font-size: 12px; max-height: calc(100% - 300px); }
+  .aim-panel { font-size: 12px; }
+  .barra-distancia { --superior: 120px; --inferior: 180px; font-size: 11px; }
+  .escala-vista { font-size: 12px; }
+  .pulsar-legend, .galaxy-loading { bottom: 170px; font-size: 12px; }
+  .visores-vuelo { transform: translateX(-50%) scale(.6); bottom: 40px; }
+  .scene-footer { max-width: none; font-size: 11px; bottom: 10px; }
+  .scene-footer:has(.flight-hint) > span:last-child { display: none; }
+  .navigation-hint.flight-hint { max-width: none; text-align: center; }
+}
+@media (max-width: 420px) { .visores-vuelo { transform: translateX(-50%) scale(.52); } }
+
+/* Horizontal: buscador arriba al centro, «Explorar» a su lado hasta la esquina y «Acercarse a»
+   debajo; la escala lateral baja para dejarles espacio. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .scale-navigation { display: none; }
+  .menu-explorar { display: block; }
+  .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
+  .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
+  .distance-panel { top: 12px; left: 18px; }
+  .star-search { top: 10px; left: 50%; right: auto; width: 220px; transform: translateX(-50%); font-size: 13px; }
+  .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .menu-explorar, .body-selector { left: calc(50% + 120px); right: 18px; width: auto; }
+  .menu-explorar { top: 10px; }
+  .body-selector { top: 52px; display: block; font-size: 0; }
+  .body-selector select { width: 100%; }
+  .body-panel { top: 50px; left: 18px; font-size: 12px; max-width: min(300px, calc(50% - 130px)); max-height: calc(100% - 190px); }
+  .aim-panel { top: 96px; right: 90px; font-size: 12px; }
+  .barra-distancia { --superior: 96px; --inferior: 30px; font-size: 11px; }
+  .visores-vuelo { left: 12px; bottom: 10px; transform: scale(.56); transform-origin: bottom left; }
+  .pulsar-legend, .galaxy-loading, .oort-note { bottom: 130px; left: 18px; font-size: 12px; }
+  .scene-footer { left: auto; right: 90px; bottom: 8px; max-width: 45%; font-size: 11px; flex-direction: column; align-items: flex-end; text-align: right; }
+  .navigation-hint { display: none; }
+  .navigation-hint.flight-hint { display: block; max-width: none; }
+  .scene-footer:has(.flight-hint) > span:last-child { display: none; }
+}
+
+/* Textos de los visores más grandes en el celular, compensando la reducción del conjunto. */
+@media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {
+  .dial-lectura { top: 38px; gap: 3px; }
+  .dial-titulo { font-size: 15px; letter-spacing: .06em; max-width: 220px; }
+  .dial-lectura strong { font-size: 42px; line-height: 1.1; }
+  .dial-lectura span:not(.dial-titulo) { font-size: 21px; }
+  .dial-lectura small { font-size: 18px; margin-top: 2px; }
+  .dial-instruccion button { font-size: 20px; }
+}

@@ -25,6 +25,7 @@ import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stella
 import BinarySystem from './scene/BinarySystem';
 import { BINARY_EPOCH, BINARY_STATE, WR140_ORBIT } from './scene/binaryOrbit';
 import './App.css';
+import './movil.css';
 import StarSearch from './StarSearch';
 import BarraDistancia from './BarraDistancia';
 import DialVelocidad from './DialVelocidad';
@@ -90,6 +91,8 @@ const describeComponent = component => `${component.name}: ${component.pair.k ==
   ? `, masas ${component.pair.mc === 'pub' ? '' : '≈ '}${component.pair.m1.toLocaleString('es-CL')} y ${component.pair.m2.toLocaleString('es-CL')} M☉${component.pair.mc === 'pub' ? ` (${component.pair.ms})` : ''}` : ''}`;
 const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, HELIOSPHERE_VIEW, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
+// Pantalla táctil como entrada principal (celular o tableta): cambia la ayuda del vuelo libre.
+const TACTIL = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
 // Artículo del nombre en el título del visor: «al Sol», «a la Tierra», «a Marte», «a Sirius».
 const distanceTitle = name => `Distancia ${name === 'Sol' || name === 'centro galáctico' ? 'al' : name === 'Tierra' || name === 'Luna' ? 'a la' : 'a'} ${name}`;
@@ -286,6 +289,33 @@ export default function App() {
     : view.body ? { name: view.body.name, position: view.body.position }
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
+  // Botones de escalas y modos: barra en pantallas anchas, lista «Explorar» en el celular.
+  const acciones = [
+    ...SCALE_VIEWS.map(option => ({ id: option.id, texto: option.label })),
+    { id: 'via-lactea', texto: 'Vía Láctea', activa: view.id === 'galaxy' },
+    { id: 'pulsares', texto: 'Mapa de púlsares', activa: showPulsars },
+    { id: 'exoplanetas', texto: 'Exoplanetas', activa: showDiscoveries },
+    { id: 'vuelo-libre', texto: 'Vuelo libre', activa: freeFlight },
+    { id: 'volver-sol', texto: 'Volver al Sol' },
+    { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
+      titulo: 'Muestra u oculta la heliosfera' },
+    { id: 'filtro', texto: `Filtro: ${filtroPorId(filtroEstelar).nombre}`, activa: filtroEstelar !== 'ninguno',
+      titulo: 'Cambia el filtro con que se observa el Sol: sin filtro o las imágenes más recientes del SDO en luz visible, ultravioleta extremo y campo magnético' },
+  ];
+  const ejecutarAccion = id => {
+    const escala = SCALE_VIEWS.find(option => option.id === id);
+    if (escala) { setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null); navigate(escala); }
+    else if (id === 'via-lactea') frameGalaxy();
+    else if (id === 'pulsares') {
+      if (showPulsars) { setShowPulsars(false); transitionRef.current=null; setTraveling(false); setFreeFlight(true); }
+      else framePulsars();
+    }
+    else if (id === 'exoplanetas') { if (showDiscoveries) setShowDiscoveries(false); else frameDiscoveries(DEFAULT_DISCOVERY_VIEW); }
+    else if (id === 'vuelo-libre') toggleFlight();
+    else if (id === 'volver-sol') aimAtSun();
+    else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
+    else if (id === 'filtro') cambiarFiltroEstelar();
+  };
   const orbitTarget = (view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}`}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
@@ -332,20 +362,15 @@ export default function App() {
         </div>
       </details>
       <nav className="scale-navigation" aria-label="Explorar escalas">
-        {SCALE_VIEWS.map(option => <button key={option.id} onClick={() => { setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null); navigate(option); }}>
-          {option.label}
-        </button>)}
-        <button aria-pressed={view.id === 'galaxy'} onClick={() => frameGalaxy()}>Vía Láctea</button>
-        <button aria-pressed={showPulsars} onClick={() => {
-          if (showPulsars) { setShowPulsars(false); transitionRef.current=null; setTraveling(false); setFreeFlight(true); }
-          else framePulsars();
-        }}>Mapa de púlsares</button>
-        <button aria-pressed={showDiscoveries} onClick={() => showDiscoveries ? setShowDiscoveries(false) : frameDiscoveries(DEFAULT_DISCOVERY_VIEW)}>Exoplanetas</button>
-        <button aria-pressed={freeFlight} onClick={toggleFlight}>Vuelo libre</button>
-        <button onClick={aimAtSun}>Volver al Sol</button>
-        <button aria-pressed={!showHeliosphere} title="Muestra u oculta la heliosfera" onClick={() => setShowHeliosphere(visible => !visible)}>{showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera'}</button>
-        <button aria-pressed={filtroEstelar !== 'ninguno'} title="Cambia el filtro con que se observa el Sol: sin filtro o las imágenes más recientes del SDO en luz visible, ultravioleta extremo y campo magnético" onClick={() => cambiarFiltroEstelar()}>Filtro: {filtroPorId(filtroEstelar).nombre}</button>
+        {acciones.map(accion => <button key={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
       </nav>
+      {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
+      <label className="menu-explorar">
+        <select aria-label="Explorar" value="" onChange={event => ejecutarAccion(event.target.value)}>
+          <option value="" disabled>Explorar</option>
+          {acciones.map(accion => <option key={accion.id} value={accion.id}>{accion.activa ? '✓ ' : ''}{accion.texto}</option>)}
+        </select>
+      </label>
       {view.body?.name === 'Sol' && <CreditoSDO filtro={filtroEstelar} />}
       {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
@@ -475,9 +500,10 @@ export default function App() {
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <footer className="scene-footer">
         <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
-          {freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
+          {freeFlight && TACTIL ? 'Izquierda: mirar · Pulgar derecho arriba o abajo: velocidad · Toque a la derecha: avanzar o detener · Pellizco: acercarse'
+            : freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
             : 'Arrastra / flechas: mirar · WASD: mover · R/F: subir/bajar · Q/E: inclinar · Rueda: velocidad · Shift + rueda: ajuste rápido'
-            : 'Arrastra para orbitar · Desplázate para acercarte'}
+            : TACTIL ? 'Arrastra para orbitar · Pellizca para acercarte' : 'Arrastra para orbitar · Desplázate para acercarte'}
         </span>
         <span>© 2026 Sergio Bastidas</span>
       </footer>
