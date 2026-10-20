@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import stellarPhysics from '../data/processed/stellar_physics.json';
 import starsUrl from '../data/processed/stars_15pc.json?url';
@@ -96,10 +96,15 @@ const START_DIRECTION = new THREE.Vector3(...orbitalPosition({au:1,inclinationDe
 const INITIAL_VIEW = bodyView(EARTH);
 const START_POSITION = START_DIRECTION.clone().multiplyScalar(INITIAL_VIEW.distance).add(new THREE.Vector3(...EARTH.position)).toArray();
 
-function SceneReady() {
+// Avisa a la pantalla de carga (index.html) cuando todo está listo: catálogo de estrellas
+// recibido, sin texturas pendientes (Tierra, planetas, Luna) y dos cuadros ya dibujados con ellos.
+function SceneReady({ catalogueReady }) {
   const frames = useRef(0);
+  const { active, loaded, total } = useProgress();
+  const texturesReady = !active && loaded >= total;
   useFrame(() => {
-    if (++frames.current === 2) document.getElementById('boot-loader')?.remove();
+    if (!catalogueReady || !texturesReady) { frames.current = 0; return; }
+    if (++frames.current === 2) window.hoshiCargaLista?.();
   });
   return null;
 }
@@ -280,7 +285,7 @@ export default function App() {
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}`}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} gl={{ antialias: true, logarithmicDepthBuffer: true }}>
-      <SceneReady />
+      <SceneReady catalogueReady={catalogueStatus !== 'loading'} />
       <color attach="background" args={['#020305']} />
       {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}

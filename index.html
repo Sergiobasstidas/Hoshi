@@ -7,14 +7,41 @@
     <title>H O S H I</title>
   </head>
   <body> 
-    <div id="boot-loader" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:9999;background:#020305;color:#b8cadb;display:grid;place-content:center;text-align:center;font:16px system-ui">
-      <div style="font-size:22px;letter-spacing:8px;margin-bottom:20px">HOSHI</div>
-      <div>Cargando datos y preparando el vecindario estelar…</div>
+    <div id="boot-loader" role="status" aria-live="polite">
+      <div class="boot-marca">HOSHI</div>
+      <div class="boot-consola"></div>
       <div class="boot-track"><span></span></div>
     </div>
-    <style>body{margin:0;background:#020305}.boot-track{width:220px;height:2px;background:#20303d;margin:24px auto;overflow:hidden}.boot-track span{display:block;width:45%;height:100%;background:#91bed2;animation:boot 1.8s ease-in-out infinite}@keyframes boot{from{transform:translateX(-110%)}to{transform:translateX(330%)}}@media(prefers-reduced-motion:reduce){.boot-track span{animation:none}}</style>
+    <style>body{margin:0;background:#020305}#boot-loader{position:fixed;inset:0;z-index:9999;background:#020305;color:#b8cadb;display:grid;place-content:center;justify-items:center;text-align:center;font:16px system-ui;transition:opacity .6s ease}#boot-loader.fin{opacity:0;pointer-events:none}.boot-marca{font-size:22px;letter-spacing:8px;margin-bottom:22px}.boot-consola{width:min(460px,86vw);min-height:6.4em;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;font:14px/1.5 ui-monospace,Menlo,monospace;text-align:left}.boot-consola div{transition:color .5s;padding-left:1.4em;text-indent:-1.4em}.boot-consola b{display:inline-block;width:1.4em;font-weight:400}.boot-consola .hecha{color:#5f7486}.boot-consola .hecha b{color:#8fe0b0}.boot-puntos::after{content:'';animation:boot-puntos 2.4s steps(1) infinite}@keyframes boot-puntos{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}.boot-track{width:220px;height:2px;background:#20303d;margin:24px auto;overflow:hidden}.boot-track span{display:block;width:45%;height:100%;background:#91bed2;animation:boot 1.8s ease-in-out infinite}@keyframes boot{from{transform:translateX(-110%)}to{transform:translateX(330%)}}@media(prefers-reduced-motion:reduce){.boot-track span,.boot-puntos::after{animation:none}.boot-puntos::after{content:'...'}}</style>
+    <script>
+      // Pantalla de carga en forma de consola: cada mensaje dura entre 2 y 3,5 s al azar y queda
+      // marcado con ✓; se ven 4 líneas. El último se mantiene hasta que la escena avisa que todo
+      // cargó (window.hoshiCargaLista, desde App.jsx); solo entonces se retira la pantalla.
+      (function () {
+        var hoy = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+        var mensajes = ['Cargando catálogo AT-HYG', 'Cargando catálogo Gaia DR3', 'Cargando catálogo NASA Exoplanet Archive',
+          'Cargando catálogo ATNF de púlsares', 'Calibrando distancias por paralaje (Hipparcos y Gaia)',
+          'Sincronizando órbitas planetarias al ' + hoy, 'Ubicando 122.284 estrellas en pársecs',
+          'Trazando 6.125 exoplanetas confirmados en 4.533 sistemas'];
+        var pantalla = document.getElementById('boot-loader'), consola = pantalla.querySelector('.boot-consola');
+        var listo = false, enUltimo = false;
+        function retirar() { pantalla.classList.add('fin'); setTimeout(function () { pantalla.remove(); }, 650); }
+        window.hoshiCargaLista = function () { listo = true; if (enUltimo) retirar(); };
+        function mostrar(i) {
+          var previa = consola.lastElementChild;
+          if (previa) { previa.className = 'hecha'; previa.querySelector('b').textContent = '✓'; previa.querySelector('.boot-puntos').remove(); }
+          var linea = document.createElement('div');
+          linea.innerHTML = '<b>›</b>' + mensajes[i] + '<span class="boot-puntos"></span>';
+          consola.appendChild(linea);
+          while (consola.children.length > 4) consola.firstElementChild.remove();
+          if (i === mensajes.length - 1) { enUltimo = true; if (listo) setTimeout(retirar, 2000); return; }
+          setTimeout(function () { mostrar(i + 1); }, 2000 + Math.random() * 1500);
+        }
+        mostrar(0);
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
- 
+  
