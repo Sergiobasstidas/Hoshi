@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useProgress } from '@react-three/drei';
+import { progresoCarga } from './progresoCarga';
 import * as THREE from 'three';
 import stellarPhysics from '../data/processed/stellar_physics.json';
 import starsUrl from '../data/processed/stars_15pc.json?url';
@@ -102,6 +103,7 @@ function SceneReady({ catalogueReady }) {
   const frames = useRef(0);
   const { active, loaded, total } = useProgress();
   const texturesReady = !active && loaded >= total;
+  useEffect(() => { progresoCarga('texturas', texturesReady ? 1 : total ? loaded / total : 0); }, [texturesReady, loaded, total]);
   useFrame(() => {
     if (!catalogueReady || !texturesReady) { frames.current = 0; return; }
     if (++frames.current === 2) window.hoshiCargaLista?.();
@@ -120,7 +122,10 @@ export default function App() {
     // El catálogo se pide como archivo estático: importarlo como módulo hace que vite lo transforme
     // con source map y el servidor de desarrollo llega a ~4 GB de RAM.
     const json = url => fetch(url).then(response => { if (!response.ok) throw new Error(url); return response.json(); });
-    Promise.all([json(starsUrl), json(systemsUrl), planets])
+    const partes = [json(starsUrl), json(systemsUrl), planets];
+    let recibidas = 0;
+    partes.forEach(parte => parte.then(() => progresoCarga('catalogo', ++recibidas / partes.length), () => {}));
+    Promise.all(partes)
       .then(([stars, systems, planets]) => { if (active) { setCatalogue({ catalogue: stars, systems, planets }); setCatalogueStatus('ready'); } })
       .catch(() => { if (active) setCatalogueStatus('error'); });
     return () => { active = false; };
