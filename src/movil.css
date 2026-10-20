@@ -37,14 +37,14 @@
   .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
   .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
   .distance-panel { top: 12px; left: 18px; }
-  .star-search { top: 10px; left: 50%; right: auto; width: 220px; transform: translateX(-50%); font-size: 13px; }
+  .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 220px; transform: translateX(-50%); font-size: 13px; }
   .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .menu-explorar, .body-selector { left: calc(50% + 120px); right: 18px; width: auto; }
   .menu-explorar { top: 10px; }
-  .body-selector { top: 52px; display: block; font-size: 0; }
+  .scene-overlay .body-selector { top: 52px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
-  .body-panel { top: 50px; left: 18px; font-size: 12px; max-width: min(300px, calc(50% - 130px)); max-height: calc(100% - 190px); }
-  .aim-panel { top: 96px; right: 90px; font-size: 12px; }
+  .scene-overlay .body-panel { top: 50px; left: 18px; font-size: 12px; max-width: min(300px, calc(50% - 130px)); max-height: calc(100% - 190px); }
+  .scene-overlay .aim-panel { top: 96px; right: 90px; font-size: 12px; }
   .barra-distancia { --superior: 96px; --inferior: 30px; font-size: 11px; }
   .visores-vuelo { left: 12px; bottom: 10px; transform: scale(.56); transform-origin: bottom left; }
   .pulsar-legend, .galaxy-loading, .oort-note { bottom: 130px; left: 18px; font-size: 12px; }
