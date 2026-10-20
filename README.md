@@ -9,6 +9,7 @@ Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula tod
 ## Qué incluye
 
 - **Sistema solar:** Sol, ocho planetas y Luna con radios a escala real, en su posición del día y sobre sus órbitas elípticas (elementos de JPL), cinturón de Kuiper, heliosfera, Voyager 1 y 2 y Pioneer 10 y 11 en su posición real del día (JPL Horizons) y nube de Oort. Cada planeta y la Luna giran según su rotación real a la hora de carga.
+- **El Sol:** superficie simulada con granulación, manchas y arcos de plasma, y un botón «Filtro» con las imágenes más recientes del Solar Dynamics Observatory (SDO) de la NASA: luz visible, corona en 131 Å (vídeo de 48 h), 171 y 193 Å, cromosfera en 304 Å, dos composiciones de tres bandas y el magnetograma. Por defecto, corona en 193 Å.
 - **Lunas y anillos:** las 406 lunas conocidas de Júpiter y Saturno en su posición del día, con su tamaño y una estela de su órbita, y los anillos de Saturno como partículas repartidas según la opacidad medida por la sonda Cassini.
 - **Estrellas:** 122.284 estrellas en sus posiciones medidas, con color por temperatura: 118.660 del catálogo AT-HYG, el 99,5 % enlazadas con Gaia DR3, y 3.624 anfitrionas de exoplanetas añadidas.
 - **Sistemas planetarios:** 6.125 exoplanetas de 4.533 sistemas, con órbitas y radios a escala. La ficha indica qué valores son medidos y cuáles supuestos. Se puede viajar a cada planeta.
@@ -60,6 +61,7 @@ Comprobaciones: `npm test`, `npm run lint`, `npm run build`. Vista del build: `n
 - **Sistemas múltiples:** Sixth Catalog of Orbits of Visual Binary Stars y Washington Double Star Catalog (U.S. Naval Observatory), Multiple Star Catalog (A. Tokovinin), SB9 (Pourbaix et al.).
 - **Sistema solar y sondas:** NASA / JPL Solar System Dynamics y JPL Horizons.
 - **Lunas y anillos:** elementos y parámetros físicos de satélites de JPL, JPL Horizons, tamaños compilados en Wikipedia («Moons of Jupiter», «Moons of Saturn»), Cassini UVIS (PDS Ring-Moon Systems Node) y ficha de anillos de Saturno de NASA.
+- **Sol:** imágenes y vídeo del Solar Dynamics Observatory: «Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams» ([detalles](public/textures/sdo/README.md)); mapa completo en 304 Å de NASA/Goddard Scientific Visualization Studio, «STEREO+SDO: Around the Sun for 81 Days» ([detalles](public/textures/nasa-svs-3851/README.md)).
 - **Púlsares:** catálogo ATNF.
 - **Imagen galáctica:** ESA/Gaia/DPAC, Stefan Payne-Wardenaar, CC BY-SA 3.0 IGO; [atribución](public/textures/galaxy/ATTRIBUTION.md).
 - **Texturas:** Solar System Scope / INOVE, CC BY 4.0; [detalles](public/textures/solar-system-scope/README.md).

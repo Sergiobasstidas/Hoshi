@@ -52,6 +52,8 @@ import PanelDescubrimientos from './PanelDescubrimientos';
 import { useDescubrimientos } from './scene/useDescubrimientos.js';
 import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS } from './scene/descubrimientos.js';
 import { DEFAULT_DISCOVERY_VIEW } from './scene/discoveryViews.js';
+import { cambiarFiltroEstelar, filtroPorId, useFiltroEstelar } from './scene/filtroEstelar';
+import CreditoSDO from './CreditoSDO';
 import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describeBinary, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
@@ -121,6 +123,7 @@ export default function App() {
   const { stars, starsById, STELLAR_TARGETS, NAVIGATION_TARGETS, BINARY_BACKGROUND, BINARY_SYSTEMS, PLANETARY_SYSTEMS } = useMemo(() => buildCatalogue(catalogue), [catalogue]);
   const [view, setView] = useState(INITIAL_VIEW);
   const [freeFlight, setFreeFlight] = useState(false);
+  const filtroEstelar = useFiltroEstelar();
   const [traveling, setTraveling] = useState(false);
   const [showHeliosphere, setShowHeliosphere] = useState(true);
   const [speed, setSpeed] = useState(0);
@@ -331,7 +334,9 @@ export default function App() {
         <button aria-pressed={freeFlight} onClick={toggleFlight}>Vuelo libre</button>
         <button onClick={aimAtSun}>Volver al Sol</button>
         <button aria-pressed={!showHeliosphere} title="Muestra u oculta la heliosfera" onClick={() => setShowHeliosphere(visible => !visible)}>{showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera'}</button>
+        <button aria-pressed={filtroEstelar !== 'ninguno'} title="Cambia el filtro con que se observa el Sol: sin filtro o las imágenes más recientes del SDO en luz visible, ultravioleta extremo y campo magnético" onClick={() => cambiarFiltroEstelar()}>Filtro: {filtroPorId(filtroEstelar).nombre}</button>
       </nav>
+      {view.body?.name === 'Sol' && <CreditoSDO filtro={filtroEstelar} />}
       {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}
@@ -388,7 +393,7 @@ export default function App() {
       {showBodyPanel && panelBody && <aside className="body-panel">
         <button className="panel-close" aria-label="Cerrar información" onClick={() => setShowBodyPanel(false)}>×</button>
         <strong>{panelBody.name}</strong>
-        {stellarBody?.star.physics && <div>Radio y temperatura {stellarBody.star.physics.status === 'published' ? 'publicados' : 'estimados'} · {Math.round(stellarBody.star.physics.temperatureK).toLocaleString('es-CL')} K · textura ilustrativa</div>}
+        {stellarBody?.star.physics && <div>Radio y temperatura {stellarBody.star.physics.status === 'published' ? 'publicados' : 'estimados'} · {Math.round(stellarBody.star.physics.temperatureK).toLocaleString('es-CL')} K · superficie simulada</div>}
         {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar}{stellarBody.star.physics.radiusUncertaintySolar ? ` ± ${stellarBody.star.physics.radiusUncertaintySolar}` : ''} R☉{stellarBody.star.physics.temperatureUncertaintyK ? ` · temperatura: ±${stellarBody.star.physics.temperatureUncertaintyK} K` : ''}</div>}
         {stellarBody?.star.ds && <div>Distancia: {stellarBody.star.ds}{stellarBody.star.dataOrigin === 'exoplanet-host' ? ' · estrella añadida por albergar planetas (no figura en AT-HYG)' : ' (sustituye a la de AT-HYG)'}</div>}
         {stellarBody?.star.planetary?.map(system => <div key={system.id}>Planetas de {system.name} al {EXOPLANET_EPOCH} · {system.planets.slice(0, 8).map(planet => describePlanet(planet, system)).join(' · ')}{system.planets.length > 8 ? ' · …' : ''}
@@ -400,7 +405,7 @@ export default function App() {
         {stellarBody?.star.system && <div>Datos: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6</a> y <a href="https://www.astro.gsu.edu/wds/" target="_blank" rel="noreferrer">WDS</a> (USNO), <a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/235/6" target="_blank" rel="noreferrer">MSC</a> (Tokovinin) · órbitas al {BINARY_MODEL_DATE} · masas estimadas · las compañeras son marcadores, no radios</div>}
         {curatedStellarBody && <div>Registro curado independiente de AT-HYG · distancia adoptada: {(stellarBody.star.d / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>}
         {stellarBody?.identifiers && <div className="star-identifiers">{stellarBody.identifiers}</div>}
-        {(stellarBody?.star.physics || panelBody.name === 'Sol') && <div>Textura adaptada: <a href={PLANET_TEXTURE_SOURCE} target="_blank" rel="noreferrer">Solar System Scope</a> · <a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}
+        {(stellarBody?.star.physics || panelBody.name === 'Sol') && <div>Superficie simulada con medidas solares de granulación, manchas y oscurecimiento del borde, escaladas a la temperatura y el radio; tiempo acelerado 60 veces</div>}
         {panelBody.kind === 'system' ? <>
           <div>WC7 + O5.5 · modelo orbital estático</div>
           <div>Fecha del modelo: {BINARY_EPOCH}</div>

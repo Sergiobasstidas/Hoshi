@@ -75,7 +75,7 @@ export default function SolarSystem({ origin, probeRoutes = false }) {
     {/* Sombreado legible; intensidad ilustrativa, radios y dirección solar geométricos. */}
     <ambientLight intensity={0.35} />
     <pointLight position={[0, 0, 0]} intensity={2} decay={0} />
-    <StellarSurface position={[0, 0, 0]} radiusPc={SUN_RADIUS_PC} temperatureK={SOLAR_TEMPERATURE_K} />
+    <StellarSurface position={[0, 0, 0]} radiusPc={SUN_RADIUS_PC} temperatureK={SOLAR_TEMPERATURE_K} solar />
     {PLANETS.map(planet => <Planet key={planet.name} planet={planet} origin={origin} />)}
     <PhysicalBody position={MOON.position} radiusPc={MOON.radiusKm * KM_TO_PC} color={MOON.color} texture={PLANET_TEXTURES.Luna} />
     <ProbeComets origin={origin} />

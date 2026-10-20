@@ -1,70 +1,63 @@
 {
-  "descarga": "2026-10-19T23:36:55.856Z",
+  "descarga": "2026-10-19T23:55:24.046Z",
   "fuente": "https://sdo.gsfc.nasa.gov/assets/img/latest/",
   "credito": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
   "canales": {
     "211193171": {
       "archivo": "211193171.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_211193171.jpg",
-      "fecha": "2026-10-19T23:26:09.000Z",
-      "bytes": 720442,
-      "sha256": "93c9ade7118541ea9a84dc9cf30c1405318c8c411ba352ef615440182353f83c"
+      "fecha": "2026-10-19T23:41:08.000Z",
+      "bytes": 721212,
+      "sha256": "f5cc05f0cc230953b93594b6fd823b2bfaa388d2d2545f280e6a26869d78b3ca"
     },
     "0131": {
       "archivo": "0131.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0131.jpg",
-      "fecha": "2026-10-19T23:31:06.000Z",
-      "bytes": 1061832,
-      "sha256": "26d3402c65b36d32d645c9b3b8a2b9649acffa83d6855e584be6e0304aa45d03"
+      "fecha": "2026-10-19T23:51:05.000Z",
+      "bytes": 1060110,
+      "sha256": "8470db31a3c5bd655a81017345390438c0ff756f732faa4456846a60700929b8"
     },
     "0171": {
       "archivo": "0171.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0171.jpg",
-      "fecha": "2026-10-19T23:32:05.000Z",
-      "bytes": 674687,
-      "sha256": "cb78b18e47b04d097147f624289e606948f8b07e93c5b77af8572f6ad2f3a934"
+      "fecha": "2026-10-19T23:52:05.000Z",
+      "bytes": 674966,
+      "sha256": "72820d246a4f420551e021f44d832dc248cdab7c58a8b7e2459f435034d51fb1"
     },
     "0193": {
       "archivo": "0193.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0193.jpg",
-      "fecha": "2026-10-19T23:33:07.000Z",
-      "bytes": 498633,
-      "sha256": "48922329c6005d21c192f650e4e54299a85779e2238463fd45136bf78a79aa40"
+      "fecha": "2026-10-19T23:53:05.000Z",
+      "bytes": 496616,
+      "sha256": "0d3b5502a3e861ae31b5238f0ea8be23f515a417a5813905e56eb015b68f5214"
     },
     "0211": {
       "archivo": "0211.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0211.jpg",
-      "fecha": "2026-10-19T23:35:05.000Z",
-      "bytes": 522431,
-      "sha256": "59df7ea94b2900aea1b8165d08cb76d71e94777a1dad02c2bf1df1811f71f9ff"
+      "fecha": "2026-10-19T23:45:06.000Z",
+      "bytes": 522415,
+      "sha256": "53e66d9399c654fcc74611ae75ff60e630183616756218c6dc17bc5b270f7d28"
     },
     "0304": {
       "archivo": "0304.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0304.jpg",
-      "fecha": "2026-10-19T23:34:06.000Z",
-      "bytes": 906090,
-      "sha256": "352dfd65e3b61efb75ffc6cf5c3b72b723a5f35dadef4bd33f834b8bac363a07"
+      "fecha": "2026-10-19T23:44:05.000Z",
+      "bytes": 904112,
+      "sha256": "8eaf6f32f786b41b529f29575a4de6a56d8b270879315c14f5a49ff3bd89d80b"
     },
     "HMIB": {
       "archivo": "HMIB.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIB.jpg",
-      "fecha": "2026-10-19T23:30:13.000Z",
-      "bytes": 1665537,
-      "sha256": "6f992301d1596086f5e5ad66a2dbc16ded636aff319969e29173a0c56e1b1e31"
-    },
-    "HMII": {
-      "archivo": "HMII.jpg",
-      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMII.jpg",
-      "fecha": "2026-10-19T23:20:07.000Z",
-      "bytes": 617093,
-      "sha256": "92ce88ee4a9245fc64f8f504e6a5ae4d83183b22cf93e0341f20833cdad5ee5b"
+      "fecha": "2026-10-19T23:40:14.000Z",
+      "bytes": 1665000,
+      "sha256": "5480819ecae6dba92f5fdb0f9e4bb93478dd8202e286067d92242ee0d8cebcf8"
     },
     "HMIIF": {
       "archivo": "HMIIF.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIIF.jpg",
-      "fecha": "2026-10-19T23:30:09.000Z",
-      "bytes": 1404696,
-      "sha256": "ee5e7fcd723b3072f2113c113b73e0f844a8ff77c7a6ac92935ecfb8592cf788"
+      "fecha": "2026-10-19T23:40:09.000Z",
+      "bytes": 1404980,
+      "sha256": "5c7b8dc58a13aceeef9176c10e38346bca80f1b4132a17fb3969b9cfc298ab93"
     }
   },
   "video": {

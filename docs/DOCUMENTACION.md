@@ -155,6 +155,18 @@ Archivos: `ringParticles.js`, `SaturnRings.jsx`; datos en `public/data/saturn_ri
 - **Espesor:** unos 10 m frente a 280.000 km de diámetro, como una hoja de papel de un kilómetro de ancho; no llega a un píxel y los puntos están en el plano ecuatorial (polo IAU de Saturno).
 - **Luz:** sombra del planeta sobre los anillos; la cara que no ilumina el Sol se aproxima con la luz que atraviesa, `τ e^(−τ) / (1 − e^(−τ))`, por lo que desde ella el anillo B, el más denso, se ve oscuro. En 2026 el Sol está 7,9° al sur del plano de los anillos. El anillo D, casi transparente (τ ≈ 10⁻⁵), lleva más puntos de los que le corresponderían para que se vea; tamaño y color de los puntos no son medidas.
 
+### Superficie del Sol y filtros
+
+Archivos: `StellarSurface.jsx`, `stellarSurfaceModel.js`, `PlasmaLoops.jsx`, `filtroEstelar.js`, `sdoSolar.js`, `solarChromosphereMap.js`; imágenes en `public/textures/sdo/` (generador `scripts/sdo/descargar_sdo.mjs`).
+
+- **Superficie simulada:** gránulos, manchas con umbra y penumbra, oscurecimiento del borde y arcos de plasma en las regiones activas, con medidas solares escaladas a la temperatura y el radio de cada estrella; el tiempo va 60 veces más rápido. Es una ilustración, no una observación. «Sin filtro», la estrella deslumbra: los rayos representan la luz que desborda al mirarla, no la corona.
+- **Filtros del SDO (solo en el Sol):** cada filtro es un canal real del Solar Dynamics Observatory: luz visible de HMI («sin filtro NASA»), 131 Å (vídeo de las últimas 48 h), 171, 193 y 304 Å de AIA, la composición 211/193/171 Å que publica el SDO, la composición 304/211/171 Å armada aquí con el brillo de cada canal en rojo, verde y azul, y el magnetograma de HMI. Por defecto, 193 Å.
+- **Geometría:** el SDO orbita la Tierra y solo ve la cara del Sol que mira hacia ella. La imagen se proyecta sobre esa cara para la fecha de cada imagen: dirección Sol-Tierra de las efemérides de JPL, norte solar del polo IAU (AR 286,13°, Dec 63,87°) arriba y oeste a la derecha. El radio del disco en la imagen es el radio angular del Sol (≈ 963″ en octubre) dividido por el semicampo del instrumento (AIA: 2048 × 0,6″; HMI: 2048 × 0,504″); medido en las imágenes, coincide al 0,1 %.
+- **Cara oculta:** recibe el reflejo en espejo de la visible, de modo que la esfera queda completa y sin costura en el borde; no es una observación. Junto al borde del disco la imagen se estira y se lee desenfocada. En luz visible se usa la imagen aplanada de HMI y se repone el oscurecimiento del borde según el ángulo de la cámara (brillo ≈ 0,53 × cos θ, medido en la imagen sin aplanar).
+- **Resplandor:** con un filtro del SDO toma el color medido de la corona justo fuera del disco en cada imagen.
+- **Descarga:** el script baja las imágenes de 2048 px y una copia del vídeo de 131 Å reducida a 768 px (≈ 0,9 MB; el original pesa ≈ 70 MB y el servidor del SDO no permite usarlo desde otra web). Se niega a repetir antes de 15 minutos, como pide el SDO. `sdo.json` guarda la fecha de cada imagen, que se muestra en pantalla.
+- **En otras estrellas** los filtros muestran la simulación de la capa equivalente (fotosfera, cromosfera, corona o campo magnético).
+
 ## 7. Estrellas
 
 ### Catálogo
@@ -454,6 +466,7 @@ Los generadores se ejecutan a mano desde la raíz; no forman parte del build.
 | `node scripts/probes/fetch_horizons.mjs` | JPL Horizons (descarga) | `data/probes/fuentes/*.csv` |
 | `node scripts/probes/build_probes.js` | `data/probes/fuentes/` | `public/data/probes.json` |
 | `node scripts/moons/build_moons.js` | `data/moons/fuentes/`: tablas de JPL (elementos medios y parámetros físicos), tamaños compilados en Wikipedia y elementos y vectores de JPL Horizons | `public/data/moons.json` |
+| `node scripts/sdo/descargar_sdo.mjs` | Imágenes «latest» y vídeo de 48 h del SDO (descarga; requiere ffmpeg para el vídeo) | `public/textures/sdo/` |
 | `node scripts/rings/build_rings.js` | `data/rings/fuentes/`: perfil de Cassini UVIS (PDS) | `public/data/saturn_rings.json` |
 | `python3 -I scripts/exoplanets/fetch_nasa_catalog_types.py <salida>` | Catálogo de exoplanetas de la NASA | `data/raw/exoplanets/nasa_science_catalog_types.csv` |
 | `node scripts/exoplanets/build_discoveries.js` | Tablas de la NASA (confirmados, TOI, KOI, K2) y catálogo procesado | `public/data/exoplanet-discoveries.json` |
