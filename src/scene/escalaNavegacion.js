@@ -29,7 +29,7 @@ export function barraDesdeDistancia(distancia) {
   return inicio + (fin - inicio) * Math.log(d / cerca) / Math.log(lejos / cerca);
 }
 export function textoDistancia(distancia) {
-  const esUA = distancia < 1000 * AU_TO_PC;
+  const esUA = distancia < 0.1 * LIGHT_YEAR_PC;
   return `${(distancia / (esUA ? AU_TO_PC : LIGHT_YEAR_PC)).toLocaleString('es-CL', {maximumSignificantDigits:3})} ${esUA ? 'UA' : 'años luz'}`;
 }
 export function destinoDesdeBarra(valor, posicion, origen) {

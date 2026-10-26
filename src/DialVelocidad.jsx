@@ -25,7 +25,7 @@ export default function DialVelocidad({ velocidad, activo, viajando, onCambiar, 
           <circle className="dial-arco" cx="100" cy="100" r="86" pathLength="100" strokeDasharray={`${valor*.75} 100`}/></g>
         {Array.from({length:31},(_,i)=>{const a=(135+i*9)*Math.PI/180;return <line key={i} x1={100+Math.cos(a)*74} y1={100+Math.sin(a)*74} x2={100+Math.cos(a)*(i%5===0?67:70)} y2={100+Math.sin(a)*(i%5===0?67:70)}/>;})}
       </svg>
-      <div className="dial-lectura"><span className="dial-titulo">VELOCIDAD DE VUELO</span><strong>{activo?formato.numero:'—'}</strong><span>{formato.unidad}</span><small>{activo?`${formato.km} km/s`:viajando?'Viaje automático':'Modo orbital'}</small></div>
+      <div className="dial-lectura"><span className="dial-titulo">VELOCIDAD DE VUELO</span><strong style={{'--largo':activo?formato.numero.length:1}}>{activo?formato.numero:'—'}</strong><span>{formato.unidad}</span><small>{activo?`${formato.km} km/s`:viajando?'Viaje automático':'Modo orbital'}</small></div>
       <i className="pildora-barra" aria-hidden="true"><b style={{width:`${activo?valor:0}%`}} /></i>
     </div>
     <input className="dial-teclado" type="range" min="0" max="100" step="0.1" value={valor} disabled={!activo}

@@ -69,7 +69,7 @@
   .visores-vuelo .dial-superficie svg, .visores-vuelo .dial-lectura small { display: none; }
   .visores-vuelo .dial-lectura { position: static; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 5px; font-size: 12px; }
   .visores-vuelo .dial-titulo { flex-basis: 100%; max-width: 100%; margin: 0 0 2px; font-size: 9px; letter-spacing: .12em; }
-  .visores-vuelo .dial-lectura strong { font-size: 20px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .visores-vuelo .dial-lectura strong { font-size: min(20px, calc(290px / var(--largo, 1))); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   .pildora-barra { display: block; height: 3px; margin-top: 6px; border-radius: 2px; background: #ffffff14; overflow: hidden; }
   .pildora-barra b { display: block; height: 100%; width: 0; border-radius: 2px; background: linear-gradient(90deg, #345065, #8fc3cc); }
   .visores-vuelo .dial-instruccion { position: static; display: block; margin-top: 4px; font-size: 12px; letter-spacing: 0; }
@@ -103,3 +103,5 @@
   .body-selector select { font-size: 11px; }
 }
 .star-search input::placeholder { text-align: right; }
+/* La cifra de los visores se achica a medida que gana dígitos para no salirse del círculo. */
+.dial-lectura strong { font-size: min(23px, calc(230px / var(--largo, 1))); white-space: nowrap; }

@@ -11,7 +11,6 @@ import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
 import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
-const smallLightYears = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 4 });
 const vector = new THREE.Vector3();
 const right = new THREE.Vector3();
 const solarOrigin = new THREE.Vector3();
@@ -48,14 +47,17 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     // El visor mide hasta el objetivo actual; sin objetivo, hasta el Sol.
     const targetPc = distanceTarget ? Math.hypot(camera.position.x + origin[0] - distanceTarget[0], camera.position.y + origin[1] - distanceTarget[1], camera.position.z + origin[2] - distanceTarget[2]) : pc;
     const au = targetPc / AU_TO_PC;
-    root.querySelector('[data-distance]').textContent = au < 1000
+    // UA hasta que la distancia alcanza 0,1 años luz; desde ahí, años luz.
+    const enUA = targetPc < 0.1 * LIGHT_YEAR_PC;
+    const cifra = root.querySelector('[data-distance]');
+    cifra.textContent = enUA
       ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)}`
-      : `${(targetPc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(targetPc / LIGHT_YEAR_PC)}`;
-    root.querySelector('[data-distance-unit]').textContent = au < 1000 ? 'UA' : 'años luz';
+      : format.format(targetPc / LIGHT_YEAR_PC);
+    cifra.style.setProperty('--largo', cifra.textContent.length);
+    root.querySelector('[data-distance-unit]').textContent = enUA ? 'UA' : 'años luz';
     const llenado = barraDesdeDistancia(targetPc);
     root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${llenado * .75} 100`);
     root.querySelector('[data-distance-bar]').style.width = `${llenado}%`;
-    root.querySelector('[data-distance-detail]').textContent = `${targetPc < 0.01 ? targetPc.toLocaleString('es-CL', {maximumSignificantDigits:3}) : format.format(targetPc)} pc`;
     const inspectingStar = origin.some(Boolean) || focusedBody?.kind === 'star' || aimTarget?.kind === 'star';
     const nameOpacity = inspectingStar ? 0.9 : starLabelOpacity(pc);
     if (focusedBody) {
