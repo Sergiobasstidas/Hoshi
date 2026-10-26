@@ -18,8 +18,8 @@ export default function AvisoCelular() {
   const cerrar = () => setAbierto(false);
   return <div className="aviso-celular" role="dialog" aria-modal="true" aria-labelledby="aviso-celular-titulo">
     <div className="aviso-celular-caja">
-      <strong id="aviso-celular-titulo">Hoshi está pensado para pantallas grandes</strong>
-      <p>Estás viendo la versión para celular, con algunas funciones limitadas. Hoshi está pensado para pantallas grandes, con teclado y ratón: ábrelo en un computador para tener todos los controles y la mejor calidad.</p>
+      <strong id="aviso-celular-titulo">Sugerencia</strong>
+      <p>Hoshi está pensado para pantallas grandes. Desde el celular puedes explorar lo esencial; para volar con teclado y ratón y ver cada detalle, ábrelo en un computador.</p>
       <button onClick={cerrar} autoFocus>Entendido</button>
     </div>
   </div>;
