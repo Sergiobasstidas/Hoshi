@@ -98,7 +98,14 @@ const TACTIL = typeof window !== 'undefined' && window.matchMedia?.('(pointer: c
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
 // Artículo del nombre en el título del visor: «al Sol», «a la Tierra», «a Marte», «a Sirius».
 const distanceTitle = name => `Distancia ${name === 'Sol' || name === 'centro galáctico' ? 'al' : name === 'Tierra' || name === 'Luna' ? 'a la' : 'a'} ${name}`;
-const START_DIRECTION = new THREE.Vector3(...orbitalPosition({au:1,inclinationDeg:0,ascendingNodeDeg:0},-Math.PI/2)).normalize().multiplyScalar(0.85).addScaledVector(new THREE.Vector3(...ECLIPTIC_UP),0.52).normalize();
+// Vista al cargar: la cámara a 7° sobre la eclíptica, mirando la Tierra con el Sol 25° a la
+// izquierda; se calcula desde la dirección del Sol en la fecha, así se ve igual cualquier día.
+const START_DIRECTION = (() => {
+  const up = new THREE.Vector3(...ECLIPTIC_UP), sunward = new THREE.Vector3(...EARTH.position).negate().normalize();
+  const sunHorizontal = sunward.addScaledVector(up, -sunward.dot(up)).normalize();
+  const view = sunHorizontal.applyAxisAngle(up, -25 * Math.PI / 180).multiplyScalar(Math.cos(7 * Math.PI / 180)).addScaledVector(up, -Math.sin(7 * Math.PI / 180));
+  return view.negate().normalize();
+})();
 const INITIAL_VIEW = bodyView(EARTH);
 const START_POSITION = START_DIRECTION.clone().multiplyScalar(INITIAL_VIEW.distance).add(new THREE.Vector3(...EARTH.position)).toArray();
 
