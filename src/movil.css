@@ -16,7 +16,7 @@
   .menu-explorar { display: block; }
   /* Con maximum-scale=1 (index.html) iOS no acerca la página al enfocar letras menores de 16 px. */
   .menu-explorar select, .body-selector select, .star-search input { font-size: 13px; padding: 6px 8px; }
-  .distance-panel { top: 16px; left: 18px; }
+  .distance-panel { top: 30px; left: 24px; }
   .marca-hoshi { font-size: 20px; }
   .star-search, .menu-explorar, .body-selector { right: 18px; left: auto; width: min(180px, calc(100% - 36px)); }
   .star-search { top: 58px; font-size: 13px; width: min(236px, calc(100% - 36px)); }
@@ -46,7 +46,7 @@
   .menu-explorar { display: block; }
   .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
   .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
-  .distance-panel { top: 12px; left: 18px; }
+  .distance-panel { top: 20px; left: 22px; }
   .marca-hoshi { font-size: 22px; }
   .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 270px; transform: translateX(-50%); font-size: 13px; }
   .star-search { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
@@ -125,3 +125,4 @@
 /* Logo: Comfortaa fina, redonda y con brillo, en computador y celular. El texto ya lleva
    espacios entre letras («H O S H I»), así que la separación extra es menor. */
 .marca-hoshi { font-family: 'Comfortaa', -apple-system, sans-serif; font-weight: 300; letter-spacing: .15em; text-shadow: 0 0 6px currentColor, 0 0 18px currentColor; }
+@media (min-width: 701px) and (min-height: 501px) { .marca-hoshi { font-size: 22.7px; } }
