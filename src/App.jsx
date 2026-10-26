@@ -56,6 +56,7 @@ import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS } from './scene/descubrimiento
 import { DEFAULT_DISCOVERY_VIEW } from './scene/discoveryViews.js';
 import { cambiarFiltroEstelar, filtroPorId, useFiltroEstelar } from './scene/filtroEstelar';
 import CreditoSDO from './CreditoSDO';
+import AvisoCelular from './AvisoCelular';
 import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describeBinary, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
@@ -498,6 +499,7 @@ export default function App() {
         <text data-ruler-text textAnchor="middle">Un día luz</text>
       </svg>
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
+      <AvisoCelular />
       <footer className="scene-footer">
         <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
           {freeFlight && TACTIL ? 'Desliza: mirar · Pellizca: acercarte o alejarte'

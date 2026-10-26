@@ -11,6 +11,9 @@ export function valorDesdeAngulo(x,y) {
   return angulo<=270?angulo/270*100:angulo<315?100:0;
 }
 export function formatoVelocidad(velocidad) {
+  // Bajo 1 UA/s las cifras en UA llevan demasiados decimales: se muestran en km/h.
+  if(velocidad<AU_TO_PC)return {numero:Math.round(velocidad/KM_TO_PC*3600).toLocaleString('es-CL'),unidad:'km/h',
+    km:Math.round(velocidad/KM_TO_PC).toLocaleString('es-CL',{maximumFractionDigits:0})};
   const lejana=velocidad>=.01;
   return {numero:(velocidad/(lejana?LIGHT_YEAR_PC:AU_TO_PC)).toLocaleString('es-CL',{maximumSignificantDigits:3}),
     unidad:lejana?'años luz/s':'UA/s',km:Math.round(velocidad/KM_TO_PC).toLocaleString('es-CL',{maximumFractionDigits:0})};

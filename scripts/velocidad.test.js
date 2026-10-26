@@ -23,6 +23,8 @@ test('El arco recorre mínimo, centro y máximo sin invertir extremos en su zona
 });
 test('El indicador conserva UA o años luz y añade kilómetros por segundo enteros',()=>{
   assert.equal(formatoVelocidad(AU_TO_PC).unidad,'UA/s');
+  assert.equal(formatoVelocidad(AU_TO_PC*.5).unidad,'km/h');
+  assert.equal(formatoVelocidad(10*KM_TO_PC).numero,'36.000');
   assert.equal(formatoVelocidad(LIGHT_YEAR_PC).unidad,'años luz/s');
   assert.equal(formatoVelocidad(1234567.8*KM_TO_PC).km,'1.234.568');
   assert.ok(!formatoVelocidad(MAX_FLIGHT_SPEED_PC).km.includes(','));
