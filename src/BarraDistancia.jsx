@@ -4,7 +4,7 @@ import { CANTIDAD_LINEAS_ESCALA, intensidadLinea } from './scene/ondaEscala.js';
 
 const MARCAS = MARCAS_ESCALA;
 const LINEAS = Array.from({length:CANTIDAD_LINEAS_ESCALA},(_,i)=>i);
-export default function BarraDistancia({ onViajar }) {
+export default function BarraDistancia({ onViajar, onSeguir }) {
   const recorrido=useRef(null);
   const lineas=useRef([]);
   const salida=useRef(null);
@@ -12,6 +12,8 @@ export default function BarraDistancia({ onViajar }) {
   const distancia=useRef(null);
   const vista=useRef(null);
   const cuadro=useRef(null);
+  // Arrastre con el dedo: la cámara sigue la posición del dedo, como con la rueda.
+  const arrastre=useRef(null);
   useEffect(()=>()=>cancelAnimationFrame(cuadro.current),[]);
 
   const previsualizar=valor=>{
@@ -47,8 +49,19 @@ export default function BarraDistancia({ onViajar }) {
     <button className="escala-extremo escala-galaxia" onClick={()=>onViajar(100)}>Vía Láctea</button>
     <div ref={recorrido} className="barra-recorrido" role="slider" tabIndex="0" data-barra-distancia
       aria-label="Escala de distancia desde la Tierra" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-vista=""
-      onPointerMove={evento=>previsualizar(desdePuntero(evento))} onPointerLeave={()=>previsualizar(null)}
-      onClick={evento=>onViajar(desdePuntero(evento))}
+      onPointerDown={evento=>{if(evento.pointerType==='touch')arrastre.current={inicio:evento.clientY,movido:false};}}
+      onPointerMove={evento=>{
+        const valor=desdePuntero(evento);
+        previsualizar(valor);
+        const toque=arrastre.current;
+        if(!toque||evento.pointerType!=='touch')return;
+        if(Math.abs(evento.clientY-toque.inicio)>6)toque.movido=true;
+        if(toque.movido)onSeguir(valor);
+      }}
+      onPointerUp={evento=>{const toque=arrastre.current;if(toque?.movido)onSeguir(desdePuntero(evento),true);}}
+      onPointerCancel={()=>{arrastre.current=null;}}
+      onPointerLeave={()=>previsualizar(null)}
+      onClick={evento=>{const toque=arrastre.current;arrastre.current=null;if(!toque?.movido)onViajar(desdePuntero(evento));}}
       onFocus={()=>previsualizar(Number(recorrido.current.dataset.valor||0))} onBlur={()=>previsualizar(null)}
       onKeyDown={evento=>{
         if(!['ArrowUp','ArrowDown','Home','End','Enter',' '].includes(evento.key))return;

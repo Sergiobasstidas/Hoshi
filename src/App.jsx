@@ -216,10 +216,20 @@ export default function App() {
     setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null);
     navigate(galaxyView(edgeOn), { duration: 8 * JOURNEY_TIME_SCALE });
   };
-  const viajarDesdeBarra = valor => {
+  const viajarDesdeBarra = (valor, siguiendo = false) => {
     if (!cameraRef.current) return;
     setShowPulsars(false); setShowBodyPanel(false); setInspectedTarget(null);
-    navigate(destinoDesdeBarra(valor, cameraRef.current.position.toArray(), origin), {arriveFree:freeFlight, duration:2});
+    navigate(destinoDesdeBarra(valor, cameraRef.current.position.toArray(), origin), {arriveFree:freeFlight, duration:siguiendo ? 0.45 : 2});
+  };
+  // Dedo arrastrado sobre la escala: la primera vez se viaja a la vista de escala; ya en ella,
+  // la cámara se coloca a la distancia que marca el dedo en cada movimiento, como con la rueda.
+  const seguirBarra = (valor, final = false) => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    if (traveling && !final) return;
+    if (view.id !== 'escala' || view.centro || traveling || freeFlight || valor >= 99.9) { viajarDesdeBarra(valor, true); return; }
+    const destino = destinoDesdeBarra(valor, camera.position.toArray(), origin);
+    camera.position.set(...destino.target.map((v, i) => v - origin[i] + destino.direction[i] * destino.distance));
   };
   const toggleFlight = () => {
     if (freeFlight) { aimAtSun(); return; }
@@ -349,7 +359,7 @@ export default function App() {
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
       <StarSearch onSelect={visitSearchResult} />
-      <BarraDistancia onViajar={viajarDesdeBarra} />
+      <BarraDistancia onViajar={viajarDesdeBarra} onSeguir={seguirBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
       <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight} onDesactivar={toggleFlight}
         onCambiar={valor=>{setSpeed(valor);setVelocidadSolicitada({valor});}} />
