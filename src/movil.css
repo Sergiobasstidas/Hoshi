@@ -1,5 +1,6 @@
-/* Celular: los botones de escalas y modos se agrupan en la lista «Explorar», que queda junto a
-   «Acercarse a»; los visores se achican y sus textos crecen para leerse sin acercar la vista. */
+/* Celular: los botones de escalas y modos se agrupan en la lista «Ver», que queda junto a
+   «Viajar a…»; los visores circulares pasan a dos píldoras bajas con cifra y barra. */
+.pildora-barra { display: none; }
 .menu-explorar { display: none; position: absolute; pointer-events: auto; z-index: 21; }
 .menu-explorar select { width: 100%; padding: 8px 10px; color: #d5dbe4; background: #080d15; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
 
@@ -24,15 +25,14 @@
   .body-panel, .aim-panel { top: 108px; }
   .body-panel { font-size: 12px; max-height: calc(100% - 300px); }
   .aim-panel { font-size: 12px; }
-  .barra-distancia { --superior: 120px; --inferior: 180px; font-size: 11px; }
+  .barra-distancia { --superior: 120px; --inferior: 110px; font-size: 11px; }
   .escala-vista { font-size: 12px; }
-  .pulsar-legend, .galaxy-loading { bottom: 170px; font-size: 12px; }
-  .visores-vuelo { transform: translateX(-50%) scale(.6); bottom: 40px; }
-  .scene-footer { max-width: none; font-size: 11px; bottom: 10px; }
+  .pulsar-legend, .galaxy-loading { bottom: 110px; font-size: 12px; }
+  .visores-vuelo { left: 12px; right: 12px; bottom: 10px; width: auto; }
+  .scene-footer { max-width: none; font-size: 11px; bottom: 82px; }
   .scene-footer > span:last-child { display: none; }
   .navigation-hint.flight-hint { max-width: none; text-align: center; }
 }
-@media (max-width: 420px) { .visores-vuelo { transform: translateX(-50%) scale(.52); } }
 
 /* Horizontal: buscador arriba al centro, «Explorar» a su lado hasta la esquina y «Acercarse a»
    debajo; la escala lateral baja para dejarles espacio. */
@@ -51,20 +51,27 @@
   .scene-overlay .body-panel { top: 50px; left: 18px; font-size: 12px; max-width: min(300px, calc(50% - 130px)); max-height: calc(100% - 190px); }
   .scene-overlay .aim-panel { top: 96px; right: 90px; font-size: 12px; }
   .barra-distancia { --superior: 96px; --inferior: 30px; font-size: 11px; }
-  .visores-vuelo { left: 12px; bottom: 10px; transform: scale(.56); transform-origin: bottom left; }
-  .pulsar-legend, .galaxy-loading, .oort-note { bottom: 130px; left: 18px; font-size: 12px; }
+  .visores-vuelo { left: 12px; bottom: 10px; width: min(360px, calc(100% - 110px)); }
+  .pulsar-legend, .galaxy-loading, .oort-note { bottom: 80px; left: 18px; font-size: 12px; }
   .scene-footer { left: auto; right: 90px; bottom: 8px; max-width: 45%; font-size: 11px; flex-direction: column; align-items: flex-end; text-align: right; }
   .navigation-hint { display: none; }
   .navigation-hint.flight-hint { display: block; max-width: none; }
   .scene-footer > span:last-child { display: none; }
 }
 
-/* Textos de los visores más grandes en el celular, compensando la reducción del conjunto. */
+/* Visores en píldoras: título corto en una línea, cifra con su unidad y una barra fina en lugar
+   del arco. La de velocidad se ajusta deslizando el dedo sobre ella (DialVelocidad.jsx). */
 @media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {
-  .dial-lectura { top: 38px; gap: 3px; }
-  .dial-titulo { font-size: 15px; letter-spacing: .06em; max-width: 220px; }
-  .dial-lectura strong { font-size: 42px; line-height: 1.1; }
-  .dial-lectura span:not(.dial-titulo) { font-size: 21px; }
-  .dial-lectura small { font-size: 18px; margin-top: 2px; }
-  .dial-instruccion button { font-size: 20px; }
+  .visores-vuelo { display: flex; gap: 8px; height: auto; transform: none; text-align: left; }
+  .visores-vuelo .dial-velocidad, .visores-vuelo .dial-distancia { position: relative; left: auto; bottom: auto; transform: none; text-align: left; flex: 1; min-width: 0; width: auto; height: auto; padding: 7px 10px 8px;
+    border: 1px solid #ffffff1f; border-radius: 8px; background: #05080dcc; }
+  .visores-vuelo .dial-superficie { width: auto; height: auto; }
+  .visores-vuelo .dial-superficie svg, .visores-vuelo .dial-lectura small { display: none; }
+  .visores-vuelo .dial-lectura { position: static; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 5px; font-size: 12px; }
+  .visores-vuelo .dial-titulo { flex-basis: 100%; max-width: 100%; margin: 0 0 2px; font-size: 9px; letter-spacing: .12em; }
+  .visores-vuelo .dial-lectura strong { font-size: 20px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .pildora-barra { display: block; height: 3px; margin-top: 6px; border-radius: 2px; background: #ffffff14; overflow: hidden; }
+  .pildora-barra b { display: block; height: 100%; width: 0; border-radius: 2px; background: linear-gradient(90deg, #345065, #8fc3cc); }
+  .visores-vuelo .dial-instruccion { position: static; display: block; margin-top: 4px; font-size: 12px; letter-spacing: 0; }
+  .visores-vuelo .dial-instruccion button { padding: 0; font-size: 12px; }
 }

@@ -16,10 +16,10 @@ export default function StarSearch({ onSelect }) {
   };
   const select=result=>{onSelect(result);setQuery(result.aliases[0]);setOpen(false);};
   return <div className="star-search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}}>
-    <label htmlFor="star-search-input">Buscar estrella</label>
+    <label htmlFor="star-search-input">Buscar</label>
     <input id="star-search-input" role="combobox" aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
-      placeholder="Nombre, HIP, HD, HR, Gliese…" value={query} onFocus={load}
+      placeholder="Sirio, Vega, HIP 71683…" value={query} onFocus={load}
       onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}
       onKeyDown={e=>{
         if(e.key==='Escape'){setOpen(false);e.stopPropagation();}

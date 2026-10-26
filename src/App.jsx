@@ -289,7 +289,7 @@ export default function App() {
     : view.body ? { name: view.body.name, position: view.body.position }
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
-  // Botones de escalas y modos: barra en pantallas anchas, lista «Explorar» en el celular.
+  // Botones de escalas y modos: barra en pantallas anchas, lista «Ver» en el celular.
   const acciones = [
     ...SCALE_VIEWS.map(option => ({ id: option.id, texto: option.label })),
     { id: 'via-lactea', texto: 'Vía Láctea', activa: view.id === 'galaxy' },
@@ -366,8 +366,8 @@ export default function App() {
       </nav>
       {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
       <label className="menu-explorar">
-        <select aria-label="Explorar" value="" onChange={event => ejecutarAccion(event.target.value)}>
-          <option value="" disabled>Explorar</option>
+        <select aria-label="Ver" value="" onChange={event => ejecutarAccion(event.target.value)}>
+          <option value="" disabled>Ver</option>
           {acciones.map(accion => <option key={accion.id} value={accion.id}>{accion.activa ? '✓ ' : ''}{accion.texto}</option>)}
         </select>
       </label>
@@ -395,7 +395,7 @@ export default function App() {
           const body = localMoons.find(b => b.optionValue === name) || localPlanets.find(b => b.name === name) || localStars.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
           if (body) focusBody(body);
         }}>
-          <option value="" disabled>Elegir cuerpo</option>
+          <option value="" disabled>Viajar a…</option>
           {stellarBody && <option value={stellarBody.name}>{stellarBody.name}</option>}
           {exoplanetBody && <option value={hostName}>{hostName}</option>}
           {localStars.length > 0 && <optgroup label="Estrellas de este sistema">

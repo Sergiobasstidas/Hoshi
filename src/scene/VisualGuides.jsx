@@ -52,7 +52,9 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)}`
       : `${(targetPc / LIGHT_YEAR_PC < 0.1 ? smallLightYears : format).format(targetPc / LIGHT_YEAR_PC)}`;
     root.querySelector('[data-distance-unit]').textContent = au < 1000 ? 'UA' : 'años luz';
-    root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${barraDesdeDistancia(targetPc) * .75} 100`);
+    const llenado = barraDesdeDistancia(targetPc);
+    root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${llenado * .75} 100`);
+    root.querySelector('[data-distance-bar]').style.width = `${llenado}%`;
     root.querySelector('[data-distance-detail]').textContent = `${targetPc < 0.01 ? targetPc.toLocaleString('es-CL', {maximumSignificantDigits:3}) : format.format(targetPc)} pc`;
     const inspectingStar = origin.some(Boolean) || focusedBody?.kind === 'star' || aimTarget?.kind === 'star';
     const nameOpacity = inspectingStar ? 0.9 : starLabelOpacity(pc);
