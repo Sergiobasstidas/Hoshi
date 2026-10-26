@@ -9,23 +9,25 @@
 .barra-distancia, .barra-distancia * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 @media (pointer: coarse) { .barra-recorrido:focus, .barra-recorrido:focus-visible { outline: none; } }
 
-/* Vertical. */
+/* Vertical: la primera fila es solo del logo; buscador y listas, un 30 % más chicos, se apilan
+   a la derecha debajo de él. La escala lateral empieza bajo la pila. */
 @media (max-width: 700px) {
   .scale-navigation { display: none; }
   .menu-explorar { display: block; }
-  /* iOS acerca la página al enfocar campos con letra menor de 16 px. */
-  .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
+  /* Con maximum-scale=1 (index.html) iOS no acerca la página al enfocar letras menores de 16 px. */
+  .menu-explorar select, .body-selector select, .star-search input { font-size: 13px; padding: 6px 8px; }
   .distance-panel { top: 16px; left: 18px; }
-  .star-search { top: 10px; right: 18px; width: min(220px, calc(100% - 160px)); font-size: 13px; }
+  .marca-hoshi { font-size: 20px; }
+  .star-search, .menu-explorar, .body-selector { right: 18px; left: auto; width: min(180px, calc(100% - 36px)); }
+  .star-search { top: 58px; font-size: 13px; }
   .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .menu-explorar, .body-selector { top: 58px; width: calc(50% - 23px); }
-  .body-selector select { width: 100%; padding: 8px 10px; }
-  .menu-explorar { left: 18px; }
-  .body-selector { left: calc(50% + 5px); right: auto; display: block; font-size: 0; }
-  .body-panel, .aim-panel { top: 108px; }
-  .body-panel { font-size: 12px; max-height: calc(100% - 300px); }
+  .menu-explorar { top: 92px; }
+  .body-selector { top: 126px; display: block; font-size: 0; }
+  .body-selector select { width: 100%; }
+  .body-panel, .aim-panel { top: 166px; }
+  .body-panel { font-size: 12px; max-height: calc(100% - 330px); max-width: calc(100% - 96px); }
   .aim-panel { font-size: 12px; }
-  .barra-distancia { --superior: 120px; --inferior: 110px; font-size: 11px; }
+  .barra-distancia { --superior: 190px; --inferior: 110px; font-size: 11px; }
   .escala-vista { font-size: 12px; }
   .pulsar-legend, .galaxy-loading { bottom: 110px; font-size: 12px; }
   .visores-vuelo { left: 12px; right: 12px; bottom: 10px; width: auto; }
@@ -42,6 +44,7 @@
   .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
   .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
   .distance-panel { top: 12px; left: 18px; }
+  .marca-hoshi { font-size: 22px; }
   .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 220px; transform: translateX(-50%); font-size: 13px; }
   .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .menu-explorar, .body-selector { left: calc(50% + 120px); right: 18px; width: auto; }
@@ -90,7 +93,7 @@
 .menu-ver-boton span { display: inline-block; margin-left: 4px; transition: transform .3s ease; }
 .menu-ver.abierto .menu-ver-boton span { transform: rotate(180deg); }
 .menu-ver-opciones { position: absolute; top: 0; right: calc(100% + 4px); display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px;
-  width: max-content; max-width: max(320px, calc(100vw - 600px)); clip-path: inset(0 0 0 100%); transition: clip-path .35s cubic-bezier(.2, .7, .2, 1); pointer-events: none; }
+  width: max-content; max-width: max(300px, calc(100vw / var(--zoom-ui, 1) - 600px)); clip-path: inset(0 0 0 100%); transition: clip-path .35s cubic-bezier(.2, .7, .2, 1); pointer-events: none; }
 .menu-ver.abierto .menu-ver-opciones { clip-path: inset(0 0 0 0); pointer-events: auto; }
 .menu-ver-opciones button { opacity: 0; transform: translateX(14px); transition: opacity .25s ease, transform .3s ease, color .2s, border-color .2s; transition-delay: 0s; }
 .menu-ver.abierto .menu-ver-opciones button { opacity: 1; transform: none; transition-delay: var(--retardo, 0s); }
@@ -105,3 +108,11 @@
 .star-search input::placeholder { text-align: right; }
 /* La cifra de los visores se achica a medida que gana dígitos para no salirse del círculo. */
 .dial-lectura strong { font-size: min(23px, calc(230px / var(--largo, 1))); white-space: nowrap; }
+
+/* Computador: controles y textos un 30 % más grandes, como al ver la página con zoom de 130 %.
+   No se aplica a los nombres de la escena, que se colocan en píxeles desde la cámara. */
+@media (min-width: 1201px) and (pointer: fine) {
+  :root { --zoom-ui: 1.3; }
+  .distance-panel, .scale-navigation, .body-selector, .star-search, .visores-vuelo, .scene-footer,
+  .body-panel, .aim-panel, .pulsar-legend, .credito-sdo, .barra-distancia, .galaxy-loading { zoom: 1.3; }
+}
