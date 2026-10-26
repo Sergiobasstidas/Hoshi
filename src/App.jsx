@@ -307,7 +307,7 @@ export default function App() {
     ...SCALE_VIEWS.map(option => ({ id: option.id, texto: option.label })),
     { id: 'via-lactea', texto: 'Vía Láctea', activa: view.id === 'galaxy' },
     { id: 'pulsares', texto: 'Mapa de púlsares', activa: showPulsars },
-    { id: 'exoplanetas', texto: 'Exoplanetas', activa: showDiscoveries },
+    { id: 'exoplanetas', texto: 'Exoplanetas', activa: showDiscoveries, fija: true },
     { id: 'vuelo-libre', texto: 'Vuelo libre', textoLista: freeFlight ? 'Salir del vuelo libre' : 'Vuelo libre', activa: freeFlight, fija: true },
     { id: 'volver-sol', texto: 'Volver al Sol', fija: true },
     { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
