@@ -377,7 +377,7 @@ export default function App() {
       </details>
       <nav className="scale-navigation" aria-label="Explorar escalas">
         <MenuVer acciones={acciones.filter(accion => !accion.fija)} onElegir={ejecutarAccion} />
-        {acciones.filter(accion => accion.fija && !accion.oculta).map(accion => <button key={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
+        {acciones.filter(accion => accion.fija && !accion.oculta).map(accion => <button key={accion.id} data-accion={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
       </nav>
       {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
       <label className="menu-explorar">

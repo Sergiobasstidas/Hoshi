@@ -19,7 +19,7 @@ export default function StarSearch({ onSelect }) {
     <label htmlFor="star-search-input" className="solo-lector">Buscar estrella</label>
     <input id="star-search-input" role="combobox" aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
-      placeholder="Buscar: Sirio, Vega, HIP 71683…" value={query} onFocus={load}
+      placeholder="Buscar: Sirio, Vega, HIP…" value={query} onFocus={load}
       onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}
       onKeyDown={e=>{
         if(e.key==='Escape'){setOpen(false);e.stopPropagation();}
