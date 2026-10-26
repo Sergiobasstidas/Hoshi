@@ -16,18 +16,19 @@ export default function StarSearch({ onSelect }) {
   };
   const select=result=>{onSelect(result);setQuery(result.aliases[0]);setOpen(false);};
   return <div className="star-search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}}>
-    <label htmlFor="star-search-input">Buscar</label>
+    <label htmlFor="star-search-input" className="solo-lector">Buscar estrella</label>
     <input id="star-search-input" role="combobox" aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
-      placeholder="Sirio, Vega, HIP 71683…" value={query} onFocus={load}
+      placeholder="Buscar: Sirio, Vega, HIP 71683…" value={query} onFocus={load}
       onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}
       onKeyDown={e=>{
         if(e.key==='Escape'){setOpen(false);e.stopPropagation();}
         if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setOpen(true);setActive(i=>Math.max(0,Math.min(results.length-1,i+(e.key==='ArrowDown'?1:-1))));}
         if(e.key==='Enter'&&open&&results[active]){e.preventDefault();select(results[active]);}
       }} />
-    {open&&<div className="search-dropdown">
-      <div role="status">{error?'No se pudo cargar.':!index?'Cargando catálogo…':query.trim().length<2?'Escribe al menos dos caracteres':results.length?`${results.length} sugerencias`:'Sin coincidencias: el catálogo local no contiene todas las estrellas ni todos sus nombres'}</div>
+    {/* Sin texto suficiente no se abre la lista: no hace falta pedir más letras. */}
+    {open&&(error||!index||query.trim().length>=2)&&<div className="search-dropdown">
+      <div role="status">{error?'No se pudo cargar.':!index?'Cargando catálogo…':results.length?`${results.length} sugerencias`:'Sin coincidencias: el catálogo local no contiene todas las estrellas ni todos sus nombres'}</div>
       {error&&<button onClick={load}>Reintentar</button>}
       <ul id="star-search-results" role="listbox">
         {results.map((result,i)=><li key={result.id} id={`star-result-${result.id}`} role="option" aria-selected={active===i}

@@ -18,12 +18,8 @@
   .menu-explorar select, .body-selector select, .star-search input { font-size: 13px; padding: 6px 8px; }
   .distance-panel { top: 30px; left: 24px; }
   .marca-hoshi { font-size: 20px; }
-  .star-search, .menu-explorar, .body-selector { right: 18px; left: auto; width: min(180px, calc(100% - 36px)); }
-  .star-search { top: 58px; font-size: 13px; width: min(236px, calc(100% - 36px)); }
-  .star-search { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
-  .star-search label { margin: 0; font-size: 12px; text-align: left; }
-  .star-search input { flex: 1; min-width: 0; }
-  .star-search .search-dropdown { flex-basis: 100%; margin-top: 4px; }
+  .star-search, .menu-explorar, .body-selector { right: 18px; left: auto; width: min(210px, calc(100% - 36px)); }
+  .star-search { top: 58px; font-size: 13px; }
   .menu-explorar { top: 92px; }
   .body-selector { top: 126px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
@@ -48,12 +44,8 @@
   .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
   .distance-panel { top: 20px; left: 22px; }
   .marca-hoshi { font-size: 22px; }
-  .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 270px; transform: translateX(-50%); font-size: 13px; }
-  .star-search { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
-  .star-search label { margin: 0; font-size: 12px; text-align: left; }
-  .star-search input { flex: 1; min-width: 0; }
-  .star-search .search-dropdown { flex-basis: 100%; margin-top: 4px; }
-  .menu-explorar, .body-selector { left: calc(50% + 145px); right: 18px; width: auto; }
+  .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 240px; transform: translateX(-50%); font-size: 13px; }
+  .menu-explorar, .body-selector { left: calc(50% + 130px); right: 18px; width: auto; }
   .menu-explorar { top: 10px; }
   .scene-overlay .body-selector { top: 52px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
@@ -103,7 +95,8 @@
 .menu-ver.abierto .menu-ver-opciones { clip-path: inset(0 0 0 0); pointer-events: auto; }
 .menu-ver-opciones button { opacity: 0; transform: translateX(14px); transition: opacity .25s ease, transform .3s ease, color .2s, border-color .2s; transition-delay: 0s; }
 .menu-ver.abierto .menu-ver-opciones button { opacity: 1; transform: none; transition-delay: var(--retardo, 0s); }
-.star-search label { text-align: right; }
+/* «Buscar» va dentro de la sugerencia del campo; la etiqueta queda solo para lectores de pantalla. */
+.solo-lector { position: absolute !important; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .dial-salir { display: none; }
 @media (prefers-reduced-motion: reduce) { .menu-ver-opciones, .menu-ver-opciones button, .menu-ver-boton span { transition: none; } }
 /* Computador: «Viajar a…» ya lo dice la lista; sin la etiqueta «Acercarse a» al lado. */
