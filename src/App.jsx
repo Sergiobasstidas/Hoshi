@@ -57,6 +57,7 @@ import { DEFAULT_DISCOVERY_VIEW } from './scene/discoveryViews.js';
 import { cambiarFiltroEstelar, filtroPorId, useFiltroEstelar } from './scene/filtroEstelar';
 import CreditoSDO from './CreditoSDO';
 import AvisoCelular from './AvisoCelular';
+import MenuVer from './MenuVer';
 import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeAssumptions, describeBinary, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
@@ -290,17 +291,18 @@ export default function App() {
     : view.body ? { name: view.body.name, position: view.body.position }
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
-  // Botones de escalas y modos: barra en pantallas anchas, lista «Ver» en el celular.
+  // Botones de escalas y modos: en el computador quedan a la vista vuelo libre, Sol y filtro, y el
+  // resto va en la lista «Ver»; en el celular todo va en la lista.
   const acciones = [
     ...SCALE_VIEWS.map(option => ({ id: option.id, texto: option.label })),
     { id: 'via-lactea', texto: 'Vía Láctea', activa: view.id === 'galaxy' },
     { id: 'pulsares', texto: 'Mapa de púlsares', activa: showPulsars },
     { id: 'exoplanetas', texto: 'Exoplanetas', activa: showDiscoveries },
-    { id: 'vuelo-libre', texto: 'Vuelo libre', activa: freeFlight },
-    { id: 'volver-sol', texto: 'Volver al Sol' },
+    { id: 'vuelo-libre', texto: 'Vuelo libre', textoLista: freeFlight ? 'Salir del vuelo libre' : 'Vuelo libre', activa: freeFlight, fija: true },
+    { id: 'volver-sol', texto: 'Volver al Sol', fija: true },
     { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
       titulo: 'Muestra u oculta la heliosfera' },
-    { id: 'filtro', texto: `Filtro: ${filtroPorId(filtroEstelar).nombre}`, activa: filtroEstelar !== 'ninguno',
+    { id: 'filtro', texto: `Filtro: ${filtroPorId(filtroEstelar).nombre}`, activa: filtroEstelar !== 'ninguno', fija: true,
       titulo: 'Cambia el filtro con que se observa el Sol: sin filtro o las imágenes más recientes del SDO en luz visible, ultravioleta extremo y campo magnético' },
   ];
   const ejecutarAccion = id => {
@@ -349,7 +351,7 @@ export default function App() {
       <StarSearch onSelect={visitSearchResult} />
       <BarraDistancia onViajar={viajarDesdeBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
-      <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight}
+      <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight} onDesactivar={toggleFlight}
         onCambiar={valor=>{setSpeed(valor);setVelocidadSolicitada({valor});}} />
       </div>
       <details className="distance-panel creditos-hoshi">
@@ -363,13 +365,14 @@ export default function App() {
         </div>
       </details>
       <nav className="scale-navigation" aria-label="Explorar escalas">
-        {acciones.map(accion => <button key={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
+        <MenuVer acciones={acciones.filter(accion => !accion.fija)} onElegir={ejecutarAccion} />
+        {acciones.filter(accion => accion.fija).map(accion => <button key={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
       </nav>
       {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
       <label className="menu-explorar">
         <select aria-label="Ver" value="" onChange={event => ejecutarAccion(event.target.value)}>
           <option value="" disabled>Ver</option>
-          {acciones.map(accion => <option key={accion.id} value={accion.id}>{accion.activa ? '✓ ' : ''}{accion.texto}</option>)}
+          {acciones.map(accion => <option key={accion.id} value={accion.id}>{accion.activa && accion.id !== 'vuelo-libre' ? '✓ ' : ''}{accion.textoLista || accion.texto}</option>)}
         </select>
       </label>
       {view.body?.name === 'Sol' && <CreditoSDO filtro={filtroEstelar} />}

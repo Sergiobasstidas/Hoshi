@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { dialDesdeVelocidad, velocidadDesdeDial, valorDesdeAngulo, formatoVelocidad } from './scene/controlVelocidad.js';
 import { wheelSpeed } from './scene/scale.js';
 
-export default function DialVelocidad({ velocidad, activo, viajando, onCambiar, onActivar }) {
+export default function DialVelocidad({ velocidad, activo, viajando, onCambiar, onActivar, onDesactivar }) {
   const arrastre=useRef(null);
   const valor=dialDesdeVelocidad(velocidad);
   const formato=formatoVelocidad(velocidad);
@@ -32,5 +32,6 @@ export default function DialVelocidad({ velocidad, activo, viajando, onCambiar, 
       aria-label="Ajustar velocidad de vuelo" aria-valuetext={`${formato.numero} ${formato.unidad}; ${formato.km} kilómetros por segundo`}
       onChange={evento=>onCambiar(velocidadDesdeDial(Number(evento.target.value)))}/>
     {!activo&&<span className="dial-instruccion"><button disabled={viajando} onClick={onActivar}>{viajando?'En tránsito':'Activar vuelo libre'}</button></span>}
+    {activo&&<span className="dial-instruccion dial-salir"><button onClick={onDesactivar}>Salir del vuelo libre</button></span>}
   </section>;
 }
