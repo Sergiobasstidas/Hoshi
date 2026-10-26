@@ -3,6 +3,11 @@
 .menu-explorar { display: none; position: absolute; pointer-events: auto; z-index: 21; }
 .menu-explorar select { width: 100%; padding: 8px 10px; color: #d5dbe4; background: #080d15; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
 
+/* Al deslizar el dedo por la escala lateral solo debe verse la onda, sin el resaltado de
+   selección ni el sombreado del toque que pone el navegador. */
+.barra-distancia, .barra-distancia * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+@media (pointer: coarse) { .barra-recorrido:focus, .barra-recorrido:focus-visible { outline: none; } }
+
 /* Vertical. */
 @media (max-width: 700px) {
   .scale-navigation { display: none; }
@@ -24,7 +29,7 @@
   .pulsar-legend, .galaxy-loading { bottom: 170px; font-size: 12px; }
   .visores-vuelo { transform: translateX(-50%) scale(.6); bottom: 40px; }
   .scene-footer { max-width: none; font-size: 11px; bottom: 10px; }
-  .scene-footer:has(.flight-hint) > span:last-child { display: none; }
+  .scene-footer > span:last-child { display: none; }
   .navigation-hint.flight-hint { max-width: none; text-align: center; }
 }
 @media (max-width: 420px) { .visores-vuelo { transform: translateX(-50%) scale(.52); } }
@@ -51,7 +56,7 @@
   .scene-footer { left: auto; right: 90px; bottom: 8px; max-width: 45%; font-size: 11px; flex-direction: column; align-items: flex-end; text-align: right; }
   .navigation-hint { display: none; }
   .navigation-hint.flight-hint { display: block; max-width: none; }
-  .scene-footer:has(.flight-hint) > span:last-child { display: none; }
+  .scene-footer > span:last-child { display: none; }
 }
 
 /* Textos de los visores más grandes en el celular, compensando la reducción del conjunto. */

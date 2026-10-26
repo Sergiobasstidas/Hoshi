@@ -500,7 +500,7 @@ export default function App() {
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <footer className="scene-footer">
         <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
-          {freeFlight && TACTIL ? 'Izquierda: mirar · Pulgar derecho arriba o abajo: velocidad · Toque a la derecha: avanzar o detener · Pellizco: acercarse'
+          {freeFlight && TACTIL ? 'Desliza: mirar · Pellizca: acercarte o alejarte'
             : freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
             : 'Arrastra / flechas: mirar · WASD: mover · R/F: subir/bajar · Q/E: inclinar · Rueda: velocidad · Shift + rueda: ajuste rápido'
             : TACTIL ? 'Arrastra para orbitar · Pellizca para acercarte' : 'Arrastra para orbitar · Desplázate para acercarte'}
