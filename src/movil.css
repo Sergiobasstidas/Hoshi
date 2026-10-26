@@ -121,3 +121,7 @@
   .distance-panel, .scale-navigation, .body-selector, .star-search, .visores-vuelo, .scene-footer,
   .body-panel, .aim-panel, .pulsar-legend, .credito-sdo, .barra-distancia, .galaxy-loading { zoom: 1.3; }
 }
+
+/* Logo: Comfortaa fina, redonda y con brillo, en computador y celular. El texto ya lleva
+   espacios entre letras («H O S H I»), así que la separación extra es menor. */
+.marca-hoshi { font-family: 'Comfortaa', -apple-system, sans-serif; font-weight: 300; letter-spacing: .15em; text-shadow: 0 0 6px currentColor, 0 0 18px currentColor; }
