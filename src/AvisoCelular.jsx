@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
 
-// Aviso único en el celular: aparece cuando la pantalla de carga se retira y no vuelve a salir
-// después de pulsar «Entendido».
-const CLAVE = 'hoshi-aviso-celular';
+// Aviso en el celular: aparece cada vez que la pantalla de carga se retira.
 const CELULAR = '(pointer: coarse) and (max-width: 700px), (pointer: coarse) and (max-height: 500px)';
-const visto = () => { try { return localStorage.getItem(CLAVE) === '1'; } catch { return false; } };
 
 export default function AvisoCelular() {
   const [abierto, setAbierto] = useState(false);
   useEffect(() => {
-    if (visto() || !window.matchMedia?.(CELULAR).matches) return;
+    if (!window.matchMedia?.(CELULAR).matches) return;
     const revisar = setInterval(() => {
       if (document.getElementById('boot-loader')) return;
       clearInterval(revisar);
@@ -18,10 +15,7 @@ export default function AvisoCelular() {
     return () => clearInterval(revisar);
   }, []);
   if (!abierto) return null;
-  const cerrar = () => {
-    try { localStorage.setItem(CLAVE, '1'); } catch { /* sin almacenamiento: volverá a salir */ }
-    setAbierto(false);
-  };
+  const cerrar = () => setAbierto(false);
   return <div className="aviso-celular" role="dialog" aria-modal="true" aria-labelledby="aviso-celular-titulo">
     <div className="aviso-celular-caja">
       <strong id="aviso-celular-titulo">Hoshi, mejor en pantalla grande</strong>
