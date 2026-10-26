@@ -19,8 +19,11 @@
   .distance-panel { top: 16px; left: 18px; }
   .marca-hoshi { font-size: 20px; }
   .star-search, .menu-explorar, .body-selector { right: 18px; left: auto; width: min(180px, calc(100% - 36px)); }
-  .star-search { top: 58px; font-size: 13px; }
-  .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .star-search { top: 58px; font-size: 13px; width: min(236px, calc(100% - 36px)); }
+  .star-search { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
+  .star-search label { margin: 0; font-size: 12px; text-align: left; }
+  .star-search input { flex: 1; min-width: 0; }
+  .star-search .search-dropdown { flex-basis: 100%; margin-top: 4px; }
   .menu-explorar { top: 92px; }
   .body-selector { top: 126px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
@@ -45,9 +48,12 @@
   .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
   .distance-panel { top: 12px; left: 18px; }
   .marca-hoshi { font-size: 22px; }
-  .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 220px; transform: translateX(-50%); font-size: 13px; }
-  .star-search label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .menu-explorar, .body-selector { left: calc(50% + 120px); right: 18px; width: auto; }
+  .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 270px; transform: translateX(-50%); font-size: 13px; }
+  .star-search { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
+  .star-search label { margin: 0; font-size: 12px; text-align: left; }
+  .star-search input { flex: 1; min-width: 0; }
+  .star-search .search-dropdown { flex-basis: 100%; margin-top: 4px; }
+  .menu-explorar, .body-selector { left: calc(50% + 145px); right: 18px; width: auto; }
   .menu-explorar { top: 10px; }
   .scene-overlay .body-selector { top: 52px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
@@ -105,7 +111,6 @@
   .body-selector { font-size: 0; gap: 0; }
   .body-selector select { font-size: 11px; }
 }
-.star-search input::placeholder { text-align: right; }
 /* La cifra de los visores se achica a medida que gana dígitos para no salirse del círculo. */
 .dial-lectura strong { font-size: min(23px, calc(230px / var(--largo, 1))); white-space: nowrap; }
 

@@ -58,7 +58,7 @@ export default function BarraDistancia({ onViajar, onSeguir }) {
         if(Math.abs(evento.clientY-toque.inicio)>6)toque.movido=true;
         if(toque.movido)onSeguir(valor);
       }}
-      onPointerUp={evento=>{const toque=arrastre.current;if(toque?.movido)onSeguir(desdePuntero(evento),true);}}
+      onPointerUp={evento=>{const toque=arrastre.current;if(toque?.movido)onSeguir(desdePuntero(evento),true);if(evento.pointerType==='touch')previsualizar(null);}}
       onPointerCancel={()=>{arrastre.current=null;}}
       onPointerLeave={()=>previsualizar(null)}
       onClick={evento=>{const toque=arrastre.current;arrastre.current=null;if(!toque?.movido)onViajar(desdePuntero(evento));}}
