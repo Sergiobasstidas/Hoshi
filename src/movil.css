@@ -97,3 +97,9 @@
 .star-search label { text-align: right; }
 .dial-salir { display: none; }
 @media (prefers-reduced-motion: reduce) { .menu-ver-opciones, .menu-ver-opciones button, .menu-ver-boton span { transition: none; } }
+/* Computador: «Viajar a…» ya lo dice la lista; sin la etiqueta «Acercarse a» al lado. */
+@media (min-width: 701px) and (min-height: 501px) {
+  .body-selector { font-size: 0; gap: 0; }
+  .body-selector select { font-size: 11px; }
+}
+.star-search input::placeholder { text-align: right; }
