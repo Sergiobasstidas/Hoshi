@@ -312,7 +312,8 @@ export default function App() {
     { id: 'volver-sol', texto: 'Volver al Sol', fija: true },
     { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
       titulo: 'Muestra u oculta la heliosfera' },
-    { id: 'filtro', texto: `Filtro: ${filtroPorId(filtroEstelar).nombre}`, activa: filtroEstelar !== 'ninguno', fija: true,
+    // El filtro solo afecta al Sol: aparece únicamente al estar en él.
+    { id: 'filtro', texto: `Sol en: ${filtroPorId(filtroEstelar).nombre}`, activa: filtroEstelar !== 'ninguno', fija: true, oculta: view.body?.name !== 'Sol',
       titulo: 'Cambia el filtro con que se observa el Sol: sin filtro o las imágenes más recientes del SDO en luz visible, ultravioleta extremo y campo magnético' },
   ];
   const ejecutarAccion = id => {
@@ -376,13 +377,13 @@ export default function App() {
       </details>
       <nav className="scale-navigation" aria-label="Explorar escalas">
         <MenuVer acciones={acciones.filter(accion => !accion.fija)} onElegir={ejecutarAccion} />
-        {acciones.filter(accion => accion.fija).map(accion => <button key={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
+        {acciones.filter(accion => accion.fija && !accion.oculta).map(accion => <button key={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
       </nav>
       {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
       <label className="menu-explorar">
         <select aria-label="Ver" value="" onChange={event => ejecutarAccion(event.target.value)}>
           <option value="" disabled>Ver</option>
-          {acciones.map(accion => <option key={accion.id} value={accion.id}>{accion.activa && accion.id !== 'vuelo-libre' ? '✓ ' : ''}{accion.textoLista || accion.texto}</option>)}
+          {acciones.filter(accion => !accion.oculta).map(accion => <option key={accion.id} value={accion.id}>{accion.activa && accion.id !== 'vuelo-libre' ? '✓ ' : ''}{accion.textoLista || accion.texto}</option>)}
         </select>
       </label>
       {view.body?.name === 'Sol' && <CreditoSDO filtro={filtroEstelar} />}
