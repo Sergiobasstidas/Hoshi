@@ -23,14 +23,14 @@
 .scale-navigation button:hover, .scale-navigation button:focus-visible { color: #fff; border-color: #b6c8e366; outline: none; }
 .scale-navigation button[aria-pressed="true"] { color: #c9e3ed; border-color: #7ca4b077; background: #16252de0; }
 .hoshi canvas:focus { outline: none; }
-.scene-label { position: absolute; top: 0; left: 0; opacity: 0; font-size: 12px; white-space: nowrap; text-shadow: 0 1px 5px #000, 0 0 3px #000; user-select: none; pointer-events: auto; }
+.scene-label { position: absolute; top: 0; left: 0; opacity: 0; font-size: calc(12px * var(--escala-nombres, 1)); white-space: nowrap; text-shadow: 0 1px 5px #000, 0 0 3px #000; user-select: none; pointer-events: auto; }
 .label-text { display: block; transform-origin: left center; transition: transform .15s; background: transparent; padding: 1px 2px; }
 .scene-label:hover { z-index: 10; opacity: 1 !important; }
 .scene-label:hover .label-text { transform: scale(1.2); background: transparent; color: #edf4ff; }
 .distance-panel, .scale-navigation { z-index: 20; }
 .scene-label.sun { color: #f4e7c8; }
-.companion-label { display: block; transform: translate(8px, -8px); color: #b5becd; font-size: 9px; white-space: nowrap; text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
-.scene-label.star { color: #b5becd; font-size: 9px; text-shadow: 0 1px 3px #000, 0 0 5px #b4d8ed38; }
+.companion-label { display: block; transform: translate(8px, -8px); color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); white-space: nowrap; text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
+.scene-label.star { color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); text-shadow: 0 1px 3px #000, 0 0 5px #b4d8ed38; }
 .scene-label.star .label-text { transition: transform .28s ease, color .28s ease; }
 .scene-label.star:hover .label-text, .scene-label.star .label-text:focus-visible { transform: scale(1.7856); color: #edf4ff; }
 .scene-label.is-target { z-index: 11; }
@@ -40,10 +40,10 @@
 .aim-panel { position: absolute; right: 28px; top: 125px; display: grid; gap: 6px; padding: 12px; background: #080d15df; border: 1px solid #89c9d133; border-radius: 4px; color: #afc4d0; font-size: 11px; pointer-events: auto; z-index: 20; }
 .aim-panel strong { font-weight: 500; color: #c7e3e8; }
 .aim-panel button { margin-top: 4px; padding: 5px 8px; border: 1px solid #ffffff26; border-radius: 3px; background: transparent; color: #afc4d0; cursor: pointer; font: inherit; }
-.scene-label.oort { color: #9ba7b8; font-family: monospace; font-size: 14px; }
+.scene-label.oort { color: #9ba7b8; font-family: monospace; font-size: calc(14px * var(--escala-nombres, 1)); }
 .light-year-ruler { position: absolute; inset: 0; width: 100%; height: 100%; color: #b9c0ca; opacity: 0; }
 .light-year-ruler text { fill: currentColor; font-family: monospace; font-size: 14px; letter-spacing: .03em; }
-.oort-note { position: absolute; bottom: 72px; left: 30px; opacity: 0; font: 11px monospace; color: #94a0b1; }
+.oort-note { position: absolute; bottom: 72px; left: 30px; opacity: 0; font: calc(11px * var(--escala-nombres, 1)) monospace; color: #94a0b1; }
 .scene-footer { position: absolute; bottom: 22px; left: 30px; right: 30px; display: flex; justify-content: space-between; gap: 20px; color: #636e7e; font-size: 10px; line-height: 1.6; }
 @media (max-width: 700px) {
   .aim-panel { top: 142px; right: 18px; max-width: calc(100% - 36px); }
@@ -115,15 +115,15 @@
 .dial-superficie{position:relative;width:200px;height:200px;touch-action:none;cursor:default;}
 .dial-velocidad.activo .dial-superficie {cursor:crosshair;}
 .dial-superficie svg{width:100%;height:100%;fill:none;pointer-events:none;}
-.dial-fondo{stroke:#293a4555;stroke-width:2}.dial-arco{stroke:url(#degradado-velocidad);stroke-width:2;filter:drop-shadow(0 0 3px #6593a022);}
-.dial-superficie line{stroke:#54738080;stroke-width:1;}
+.dial-fondo{stroke:#6f91a38c;stroke-width:2}.dial-arco{stroke:url(#degradado-velocidad);stroke-width:2;filter:drop-shadow(0 0 3px #8fc4d466);}
+.dial-superficie line{stroke:#a4c6d4d9;stroke-width:1.2;}
 .dial-lectura{position:absolute;top:66px;left:-20px;right:-20px;display:grid;gap:3px;pointer-events:none;font-size:11px;}
-.dial-titulo{font-size:7px;letter-spacing:.17em;color:#78919f;max-width:150px;margin:0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dial-titulo{font-size:7px;letter-spacing:.17em;color:#a9c0cb;max-width:150px;margin:0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .dial-lectura strong{font-weight:300;font-size:23px;font-variant-numeric:tabular-nums;color:#c0d9de;}
-.dial-lectura small{font-size:9px;color:#738c9a;font-variant-numeric:tabular-nums;margin-top:6px;}
+.dial-lectura small{font-size:9px;color:#a0b6c1;font-variant-numeric:tabular-nums;margin-top:6px;}
 .dial-instruccion{position:absolute;bottom:0;left:-20px;right:-20px;font-size:7px;letter-spacing:.08em;}
 .dial-instruccion button{background:none;border:0;color:#96b5c1;font:inherit;font-size:9px;cursor:pointer;padding:5px;}
-.dial-instruccion button:disabled{cursor:default;color:#64747e;}
+.dial-instruccion button:disabled{cursor:default;color:#8a9ca6;}
 .dial-teclado{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:50%;bottom:30px;}
 .dial-velocidad:has(input:focus-visible) .dial-fondo{stroke:#94c7d5;}
 .scene-footer{padding-right:0}
@@ -157,12 +157,12 @@
 .ficha-heliosfera .panel-close { position: absolute; top: 4px; right: 6px; margin: 0; padding: 2px 8px; }
 /* Planetas del sistema solar al estilo de NASA Eyes: nombre blanco en mayúsculas espaciadas
    y un círculo hueco en el color del planeta, centrado en su posición (VisualGuides.jsx). */
-.scene-label.planet .label-text { color: #e6ebf3; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; }
+.scene-label.planet .label-text { color: #e6ebf3; font-size: calc(10px * var(--escala-nombres, 1)); letter-spacing: .24em; text-transform: uppercase; }
 .scene-label.planet::before { content: ''; position: absolute; left: var(--ring-x, 0); top: var(--ring-y, 0); width: 9px; height: 9px; transform: translate(-50%, -50%); border: 1.2px solid currentColor; border-radius: 50%; opacity: var(--ring-alpha, 0); pointer-events: none; }
 /* Sondas (fotos de NASA Eyes de Sergio): hexágono hueco algo más alto que ancho sobre la posición
    de la fecha y el nombre en letra normal, en gris tenue como su cola; al pasar el ratón, ambos se
    aclaran a la vez que la cola (ProbeComets.jsx). */
-.scene-label.probe .label-text { font-size: 14px; letter-spacing: .02em; color: inherit; transition: color .2s ease; }
+.scene-label.probe .label-text { font-size: calc(14px * var(--escala-nombres, 1)); letter-spacing: .02em; color: inherit; transition: color .2s ease; }
 .scene-label.probe:hover { color: #e6e9ee !important; }
 .scene-label.probe:hover .label-text { transform: none; color: #e6e9ee; }
 .scene-label.probe::before { content: ''; position: absolute; left: var(--ring-x, 0); top: var(--ring-y, 0); width: 14px; height: 16px; transform: translate(-50%, -50%); background: currentColor; pointer-events: none;

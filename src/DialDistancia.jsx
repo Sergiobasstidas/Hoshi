@@ -3,7 +3,7 @@ export default function DialDistancia({ titulo = 'Distancia al Sol' }) {
   return <section className="dial-distancia" aria-label={titulo}>
     <div className="dial-superficie">
       <svg viewBox="0 0 200 200" aria-hidden="true">
-        <defs><linearGradient id="degradado-distancia"><stop stopColor="#345065"/><stop offset="1" stopColor="#739eaa"/></linearGradient></defs>
+        <defs><linearGradient id="degradado-distancia"><stop stopColor="#6d9ab3"/><stop offset="1" stopColor="#b5dfe8"/></linearGradient></defs>
         <g transform="rotate(135 100 100)">
           <circle className="dial-fondo" cx="100" cy="100" r="86" pathLength="100" strokeDasharray="75 100"/>
           <circle className="dial-arco-distancia" data-distance-arc cx="100" cy="100" r="86" pathLength="100" strokeDasharray="0 100"/>

@@ -1,7 +1,7 @@
 /* Nombres de las lunas de Júpiter y Saturno (MoonLabels.jsx, colocados por Moons.jsx). */
 .moon-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .moon-label { position: absolute; top: 0; left: 0; opacity: 0; visibility: hidden; padding: 1px 2px; border: 0; background: none;
-  color: #b9c2cf; font: inherit; font-size: 9px; letter-spacing: .04em; white-space: nowrap; cursor: pointer; pointer-events: auto;
+  color: #b9c2cf; font: inherit; font-size: calc(9px * var(--escala-nombres, 1)); letter-spacing: .04em; white-space: nowrap; cursor: pointer; pointer-events: auto;
   text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
 .moon-label:hover, .moon-label:focus-visible { color: #edf4ff; opacity: 1 !important; z-index: 10; outline: none; }
 

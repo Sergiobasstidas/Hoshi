@@ -3,10 +3,10 @@ import { FILTROS_ESTELARES, cambiarFiltroEstelar, filtroPorId, useFiltroEstelar 
 import { precargarImagenes, sdoTexture } from './scene/sdoSolar';
 import './filtrosSol.css';
 
-// Filtros del Sol a la vista mientras es el foco: un clic elige el filtro y lo explica en un subtítulo.
-export default function FiltrosSol() {
+// Filtros del Sol a la vista mientras es el foco. En el computador van en el panel de los controles,
+// con su explicación; en el celular, en una fila de chips junto al rótulo de CreditoSDO.
+export default function FiltrosSol({ enPanel = false }) {
   const actual = useFiltroEstelar();
-  const [explicando, setExplicando] = useState(false);
   const [cargando, setCargando] = useState(false);
   useEffect(precargarImagenes, []);
   // Indicador en el botón elegido mientras su imagen o su vídeo no están listos.
@@ -17,28 +17,25 @@ export default function FiltrosSol() {
     const reloj = setInterval(revisar, 300);
     return () => clearInterval(reloj);
   }, [actual]);
-  useEffect(() => {
-    if (!explicando) return undefined;
-    const ocultar = () => setExplicando(false);
-    const fin = setTimeout(ocultar, 2500);
-    const enEscena = event => { if (event.target instanceof HTMLCanvasElement) ocultar(); };
-    window.addEventListener('pointerdown', enEscena);
-    window.addEventListener('wheel', enEscena, { passive: true });
-    window.addEventListener('keydown', ocultar);
-    return () => {
-      clearTimeout(fin);
-      window.removeEventListener('pointerdown', enEscena);
-      window.removeEventListener('wheel', enEscena);
-      window.removeEventListener('keydown', ocultar);
-    };
-  }, [explicando, actual]);
-  return <>
-    <p className={`subtitulo-escena${explicando ? ' visible' : ''}`} role="status">{filtroPorId(actual).texto}</p>
-    <div className="filtros-sol" role="radiogroup" aria-label="Filtro del Sol">
+  if (enPanel) {
+    const { banda, canal, nombre, texto } = filtroPorId(actual);
+    return <div className="controles-panel" role="radiogroup" aria-label="Filtro del Sol">
+      <h3>Filtros del Sol</h3>
       {FILTROS_ESTELARES.map(filtro => <button key={filtro.id} role="radio" aria-checked={filtro.id === actual}
-        className={`${filtro.id === actual ? 'encendido' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => { cambiarFiltroEstelar(filtro.id); setExplicando(true); }}>
-        {filtro.id === actual && <span aria-hidden="true" />}{filtro.nombre}{filtro.banda && <small>{filtro.banda}</small>}
+        className={`controles-fila${filtro.id === actual ? ' actual' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => cambiarFiltroEstelar(filtro.id)}>
+        <span>{filtro.nombre}</span>{filtro.banda && <small>{filtro.banda}</small>}
       </button>)}
-    </div>
-  </>;
+      <div className="controles-explicacion" role="status">
+        <strong>{nombre}{banda ? ` · ${banda}` : ''}</strong>
+        <p>{texto}</p>
+        {canal && <p>La cara oculta es un reflejo en espejo de la visible, no una observación</p>}
+      </div>
+    </div>;
+  }
+  return <div className="filtros-sol" role="radiogroup" aria-label="Filtro del Sol">
+    {FILTROS_ESTELARES.map(filtro => <button key={filtro.id} role="radio" aria-checked={filtro.id === actual}
+      className={`${filtro.id === actual ? 'encendido' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => cambiarFiltroEstelar(filtro.id)}>
+      {filtro.id === actual && <span aria-hidden="true" />}{filtro.nombre}{filtro.banda && <small>{filtro.banda}</small>}
+    </button>)}
+  </div>;
 }

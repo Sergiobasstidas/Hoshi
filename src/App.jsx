@@ -64,6 +64,7 @@ import FichaEstrella from './FichaEstrella';
 import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
 import { useFichas } from './useFichas';
+import { useEsComputador } from './esComputador';
 import FranjaHabitable from './scene/FranjaHabitable';
 import { zonaDeEstrella } from './scene/zonaHabitable';
 import { cambiarOrbitas, cambiarZonaVisible, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
@@ -176,6 +177,7 @@ export default function App() {
   const [estrellaPrevia, setEstrellaPrevia] = useState(null);
   // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
   const [estrellaVista, setEstrellaVista] = useState(null);
+  const esComputador = useEsComputador();
   const verOrbitas = useOrbitas(), verZona = useZonaVisible();
   const fichas = useFichas();
   const [direccionFicha, setDireccionFicha] = useState(1);
@@ -347,7 +349,7 @@ export default function App() {
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
   // Botones de escalas y modos: en el computador quedan a la vista vuelo libre, Sol y filtro, y el
-  // resto va en la lista «Ver»; en el celular todo va en la lista.
+  // resto va en la lista «Ir a»; en el celular todo va en la lista.
   // El Sol es el foco al llegar a él o tras apuntarle con el botón «Sol».
   const solEnFoco = view.body?.name === 'Sol' || (view.id === 'solar-aim' && !freeFlight);
   const acciones = [
@@ -376,6 +378,7 @@ export default function App() {
     else if (id === 'exoplanetas') { if (showDiscoveries) setShowDiscoveries(false); else frameDiscoveries(DEFAULT_DISCOVERY_VIEW); }
     else if (id === 'vuelo-libre') toggleFlight();
     else if (id === 'volver-sol') aimAtSun();
+    else if (id === 'ir-al-sol') focusBody(SOLAR_BODIES[0]);
     else if (id === 'orbitas') cambiarOrbitas(!verOrbitas);
     else if (id === 'zona-habitable') cambiarZonaVisible(!verZona);
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
@@ -492,17 +495,17 @@ export default function App() {
         <MenuVer acciones={acciones.filter(accion => !accion.fija)} onElegir={ejecutarAccion} />
         {acciones.filter(accion => accion.fija && !accion.oculta).map(accion => <button key={accion.id} data-accion={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}
       </nav>
-      <ControlesComputador acciones={acciones} vistaId={view.id} solApuntado={solApuntado} onElegir={ejecutarAccion} />
+      <ControlesComputador acciones={acciones} vistaId={view.id} solApuntado={solApuntado} solEnFoco={solEnFoco} onElegir={ejecutarAccion} />
       {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
       <label className="menu-explorar">
-        <select aria-label="Ver" value="" onChange={event => ejecutarAccion(event.target.value)}>
-          <option value="" disabled>Ver</option>
+        <select aria-label="Ir a" value="" onChange={event => ejecutarAccion(event.target.value)}>
+          <option value="" disabled>Ir a</option>
           {acciones.filter(accion => !accion.oculta).map(accion => <option key={accion.id} value={accion.id}>{accion.activa && accion.id !== 'vuelo-libre' ? '✓ ' : ''}{accion.textoLista || accion.texto}</option>)}
         </select>
       </label>
       <SelectorBrillo viajando={traveling} />
-      {solEnFoco && <FiltrosSol />}
-      {solEnFoco && <CreditoSDO filtro={filtroEstelar} />}
+      {solEnFoco && !esComputador && <FiltrosSol />}
+      {solEnFoco && !esComputador && <CreditoSDO filtro={filtroEstelar} />}
       {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}

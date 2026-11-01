@@ -30,23 +30,27 @@
   .controles-exoplanetas:hover { color: #ffe2a6; border-color: #f2c46b; }
   .controles-exoplanetas.encendido { color: #ffe2a6; box-shadow: inset 0 -2px 0 #f2c46b; }
 
-  .controles-ver { position: absolute; top: calc(100% + 6px); right: 0; width: 260px; display: grid; gap: 1px; padding: 8px; border: 1px solid #aac8dca6; border-radius: 10px; background: #060a10f0; box-shadow: 0 12px 36px #00000080; }
-  .controles-ver h3 { margin: 6px 8px 4px; color: #7c8796; font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  .controles-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; box-sizing: border-box; max-height: calc(100vh / var(--zoom-ui, 1) - 96px); overflow: auto; display: grid; gap: 1px; padding: 8px; border: 1px solid #7f9aa966; border-radius: 10px; background: #060a10f0; box-shadow: 0 12px 36px #00000080; }
+  .controles-panel h3 { margin: 6px 8px 4px; color: #7c8796; font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
   .controles-fila { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 5px; background: transparent; color: #9fb2c0; text-align: left; }
   .controles-fila > span { margin-right: auto; }
   .controles-fila:hover { color: #e6ebf3; background: #e6ebf30f; }
   .controles-fila small { color: #7c8796; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; }
   .controles-fila.actual { color: #e6ebf3; background: #8fd3ff1a; }
   .controles-fila.actual::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #8fd3ff; box-shadow: 0 0 6px #8fd3ff; }
+  .controles-fila.actual.cargando::before { animation: filtro-cargando 1s ease-in-out infinite; }
+  .controles-explicacion { margin: 6px 8px 4px; padding-top: 9px; border-top: 1px solid #ffffff12; color: #9fb2c0; font-size: 10.5px; line-height: 1.5; }
+  .controles-explicacion strong { color: #e6ebf3; font-weight: 500; }
+  .controles-explicacion p { margin: 2px 0 0; }
   .controles-interruptor { position: relative; width: 26px; height: 14px; border-radius: 999px; background: #1b2633; transition: background .2s; }
   .controles-interruptor::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: #7c8796; transition: left .2s, background .2s; }
   [aria-checked="true"] .controles-interruptor { background: #456a80; }
   [aria-checked="true"] .controles-interruptor::after { left: 14px; background: #8fd3ff; }
 }
 @media (min-width: 1201px) {
-  .scene-overlay .star-search { width: min(340px, calc((100vw - 932px) / 1.3)); }
+  .scene-overlay .star-search { width: min(340px, calc(100vw / var(--zoom-ui, 1.3) - 717px)); }
 }
 @media (min-width: 1201px) and (min-height: 501px) and (pointer: fine) {
-  .controles-computador { zoom: 1.3; }
+  .controles-computador { zoom: var(--zoom-ui, 1.3); }
 }
-@media (prefers-reduced-motion: reduce) { .controles-flecha, .controles-interruptor, .controles-interruptor::after { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .controles-fila.actual.cargando::before { animation: none; } .controles-flecha, .controles-interruptor, .controles-interruptor::after { transition: none; } }

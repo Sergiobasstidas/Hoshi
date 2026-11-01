@@ -11,7 +11,7 @@
 /* Subtítulo centrado abajo, como en una película. */
 .subtitulo-escena { position: absolute; left: 50%; bottom: 8px; z-index: 40; max-width: calc(100% - 28px); margin: 0; padding: 3px 12px; border-radius: 999px; background: #04080ea6; color: #c6d1de; font-size: 11px; text-align: center; white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity .3s; pointer-events: none; }
 .subtitulo-escena.visible { opacity: 1; }
-@media (min-width: 1201px) and (pointer: fine) { .selector-brillo, .subtitulo-escena, .scene-overlay .pantalla-completa { zoom: 1.3; } }
+@media (min-width: 1201px) and (pointer: fine) { .selector-brillo, .subtitulo-escena, .scene-overlay .pantalla-completa { zoom: var(--zoom-ui, 1.3); } }
 @media (max-width: 700px) {
   .selector-brillo { right: 56px; bottom: 94px; font-size: 11px; }
   .scene-overlay .pantalla-completa { right: 14px; bottom: 94px; }
