@@ -905,3 +905,35 @@ test('La física oficial exige radio y temperatura y no calcula lo que falta', a
   assert.equal(fisicaOficial(null), null);
   assert.equal(fisicaOficial({ temperatureK: 5000, radiusSolar: 2 }).radiusSolar, 2);
 });
+
+test('Las estrellas conocidas se encuentran por su nombre en español', async () => {
+  const { addCuratedSearchRows } = await import('../src/scene/curatedStars.js');
+  const filas = JSON.parse(readFileSync(new URL('../public/data/star-search.json', import.meta.url), 'utf8'));
+  const indice = buildSearchIndex(addCuratedSearchRows(filas));
+  for (const [buscar, nombre] of [['Sirio', 'Sirius'], ['Betelgeuse', 'Betelgeuse'], ['Rigel', 'Rigel'], ['Vega', 'Vega'], ['Arturo', 'Arcturus'], ['Antares', 'Antares'], ['Canopus', 'Canopus'], ['Proción', 'Procyon'], ['Altair', 'Altair'], ['Aldebarán', 'Aldebaran'], ['Polaris', 'Polaris']]) {
+    assert.equal(searchStars(indice, buscar)[0]?.aliases[0], nombre, buscar);
+  }
+});
+
+test('Detener un viaje con destino lo deja fijo a la distancia actual; sin destino no fija nada', async () => {
+  const { vistaAlDetener } = await import('../src/scene/navigation.js');
+  const cuerpo = { name: 'Vega' };
+  const fijada = vistaAlDetener({ body: cuerpo, target: [10, 0, 0], distance: 1, journey: {} }, [-7, 0, 0], [1, 0, 0]);
+  assert.equal(fijada.body, cuerpo);
+  assert.equal(fijada.distance, 16);
+  assert.equal(vistaAlDetener({ id: 'kuiper', target: [0, 0, 0], distance: 5, journey: {} }, [1, 0, 0], [0, 0, 0]), null);
+  assert.equal(vistaAlDetener({ body: cuerpo, target: [0, 0, 0], journey: { headingOnly: true } }, [1, 0, 0], [0, 0, 0]), null);
+});
+
+test('La zona habitable reproduce los límites de Kopparapu para el Sol y exige datos', async () => {
+  const { zonaHabitable, enZonaHabitable } = await import('../src/scene/zonaHabitable.js');
+  const sol = zonaHabitable(5780, 1);
+  assert.ok(Math.abs(sol.interior - 0.993) < 0.005);
+  assert.ok(Math.abs(sol.exterior - 1.705) < 0.005);
+  assert.ok(sol.optimistaInterior < sol.interior && sol.optimistaExterior > sol.exterior);
+  assert.ok(enZonaHabitable(sol, 1.2));
+  assert.ok(!enZonaHabitable(sol, 5.2));
+  assert.equal(zonaHabitable(12000, 40), null);
+  assert.ok(zonaHabitable(2566, 0.00055).interior > 0);
+  assert.equal(zonaHabitable(5000), null);
+});

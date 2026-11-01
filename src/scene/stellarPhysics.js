@@ -60,3 +60,11 @@ export function fisicaOficial(datos) {
   return { temperatureK: datos.temperatureK, luminositySolar: datos.luminositySolar ?? null, radiusSolar: datos.radiusSolar,
     radiusKm: datos.radiusSolar * SUN_RADIUS_KM, radiusPc: datos.radiusSolar * SUN_RADIUS_KM * KM_TO_PC, status: 'published' };
 }
+
+// Color de su temperatura para textos, aclarado lo justo para leerse sobre fondo oscuro.
+export function colorLegible(temperatura) {
+  const rgb = temperatureColor(temperatura);
+  const luminancia = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+  const mezcla = Math.max(0, (0.72 - luminancia) / (1 - luminancia));
+  return `rgb(${rgb.map(v => Math.round((v + (1 - v) * mezcla) * 255)).join(', ')})`;
+}

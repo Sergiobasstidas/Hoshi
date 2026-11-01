@@ -1,4 +1,6 @@
-import { Dato } from './FichaLateral';
+import { Dato, FilaZona } from './FichaLateral';
+import { useFichas } from './useFichas';
+import { comparacionSolar, enZonaHabitable, zonaDeEstrella } from './scene/zonaHabitable';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 const JUPITER_RADIOS_TIERRA = 11.2;
@@ -31,7 +33,15 @@ function ComparacionPlaneta({ nombre, radio, color }) {
   </figure>;
 }
 
-export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver, onVerEstrella, onVerPlaneta }) {
+const conError = (valor, error) => `${numero(valor)}${error ? ` ± ${numero(error, 2)}` : ''}`;
+const LECTURA_DENSIDAD = densidad => densidad > 3.5 ? 'Rocoso' : densidad > 1.5 ? 'Con mucha agua o hielo, o atmósfera' : 'Gaseoso';
+
+export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver, onVerEstrella, onVerPlaneta, zonaActiva, onZona }) {
+  const fichas = useFichas();
+  const mas = fichas?.planetas[planeta.n] || {};
+  const zona = zonaDeEstrella(sistema.star, fichas);
+  const dentro = enZonaHabitable(zona, planeta.a);
+  const masaMinima = mas.tipoMasa && /sin/i.test(mas.tipoMasa);
   const [tipo, relato] = clasePlaneta(planeta.r);
   const hermanos = sistema.planets.filter(otro => otro.n !== planeta.n);
   const excentrica = planeta.e >= 0.3;
@@ -42,12 +52,19 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver,
     <p className="ficha-estrella-relato">{relato}</p>
     <ComparacionPlaneta nombre={planeta.n} radio={planeta.r} color={`rgb(${planeta.color.map(v => Math.round(v * 255)).join(', ')})`} />
     <dl>
-      <Dato etiqueta="Radio" valor={`${numero(planeta.r)} Tierras`} />
-      {planeta.m > 0 && <Dato etiqueta="Masa" valor={`${numero(planeta.m)} Tierras`} />}
-      {planeta.P > 0 && <Dato etiqueta="Su año dura" valor={duracionAno(planeta.P)} />}
+      <Dato etiqueta="Radio" valor={`${conError(planeta.r, mas.errorRadio)} Tierras`} />
+      {planeta.m > 0 && <Dato etiqueta={masaMinima ? 'Masa mínima' : 'Masa'} valor={`${conError(planeta.m, mas.errorMasa)} Tierras`} secundario={masaMinima ? 'Medida por el vaivén de su estrella: la real puede ser mayor' : undefined} />}
+      {planeta.m > 0 && planeta.r > 0 && !masaMinima && <Dato etiqueta="Gravedad" valor={`${numero(planeta.m / planeta.r ** 2, 2)} veces la de la Tierra`} />}
+      {mas.densidad > 0 && <Dato etiqueta="Densidad" valor={`${numero(mas.densidad, 2)} g/cm³`} secundario={LECTURA_DENSIDAD(mas.densidad)} />}
+      {planeta.P > 0 && <Dato etiqueta="Su año dura" valor={duracionAno(planeta.P)} secundario={mas.errorPeriodo ? `± ${numero(mas.errorPeriodo, 2)} días` : undefined} />}
       {planeta.a > 0 && <Dato etiqueta="Distancia a su estrella" valor={`${numero(planeta.a)} UA`} />}
+      {planeta.e !== undefined && <Dato etiqueta="Órbita" valor={planeta.e >= 0.3 ? 'Muy alargada' : planeta.e >= 0.1 ? 'Algo alargada' : 'Casi circular'} secundario={`Excentricidad ${numero(planeta.e, 2)}`} />}
+      {mas.insolacion > 0 && <Dato etiqueta="Luz que recibe" valor={`${numero(mas.insolacion)} veces la de la Tierra`} />}
+      {mas.transito > 0 && <Dato etiqueta="Tránsito" valor={`${numero(mas.transito)} horas`} secundario={mas.profundidad > 0 ? `Oscurece su estrella un ${numero(mas.profundidad, 2)} %` : undefined} />}
+      {mas.metodo && <Dato etiqueta="Descubrimiento" valor={`${mas.metodo}${mas.ano ? `, ${mas.ano}` : ''}`} secundario={mas.telescopio} />}
       {planeta.teq > 0 && <Dato etiqueta="Temperatura" valor={`${Math.round(planeta.teq).toLocaleString('es-CL')} K`} secundario={`${Math.round(planeta.teq - 273.15).toLocaleString('es-CL')} °C`} />}
     </dl>
+    {sistema.planets.some(otro => enZonaHabitable(zona, otro.a)) && <FilaZona zona={zona} activa={zonaActiva} onAlternar={onZona} nota={dentro ? 'Este planeta está dentro' : comparacionSolar(zona)} />}
     {planeta.a > 0 && <p className="ficha-estrella-relato">{distanciaComparada(planeta.a)}.{excentrica ? ' Su órbita es muy alargada: pasa de acercarse mucho a su estrella a alejarse de ella.' : ''}</p>}
     {!volver && <button className="ficha-estrella-enlace" onClick={onVerEstrella}>Ver su estrella: {nombreEstrella}</button>}
     {hermanos.length > 0 && <section>

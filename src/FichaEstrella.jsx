@@ -1,9 +1,11 @@
 import { useEffect, useId, useState } from 'react';
-import { temperatureColor } from './scene/stellarPhysics';
+import { colorLegible, temperatureColor } from './scene/stellarPhysics';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { indiceBusqueda } from './indiceBusqueda';
 import { estrellaDeComponente } from './scene/visualBinary';
-import { Dato } from './FichaLateral';
+import { Dato, FilaZona } from './FichaLateral';
+import { useFichas } from './useFichas';
+import { comparacionSolar, enZonaHabitable, zonaDeEstrella } from './scene/zonaHabitable';
 
 const CONSTELACIONES = { And: 'Andrómeda', Ant: 'Antlia', Aps: 'Ave del Paraíso', Aqr: 'Acuario', Aql: 'Águila', Ara: 'Altar', Ari: 'Aries', Aur: 'Auriga', Boo: 'Boyero', Cae: 'Cincel', Cam: 'Jirafa', Cnc: 'Cáncer', CVn: 'Lebreles', CMa: 'Can Mayor', CMi: 'Can Menor', Cap: 'Capricornio', Car: 'Quilla', Cas: 'Casiopea', Cen: 'Centauro', Cep: 'Cefeo', Cet: 'Ballena', Cha: 'Camaleón', Cir: 'Compás', Col: 'Paloma', Com: 'Cabellera de Berenice', CrA: 'Corona Austral', CrB: 'Corona Boreal', Crv: 'Cuervo', Crt: 'Copa', Cru: 'Cruz del Sur', Cyg: 'Cisne', Del: 'Delfín', Dor: 'Dorado', Dra: 'Dragón', Equ: 'Caballito', Eri: 'Erídano', For: 'Horno', Gem: 'Géminis', Gru: 'Grulla', Her: 'Hércules', Hor: 'Reloj', Hya: 'Hidra', Hyi: 'Hidra Macho', Ind: 'Indio', Lac: 'Lagarto', Leo: 'Leo', LMi: 'León Menor', Lep: 'Liebre', Lib: 'Libra', Lup: 'Lobo', Lyn: 'Lince', Lyr: 'Lira', Men: 'Mesa', Mic: 'Microscopio', Mon: 'Unicornio', Mus: 'Mosca', Nor: 'Escuadra', Oct: 'Octante', Oph: 'Ofiuco', Ori: 'Orión', Pav: 'Pavo', Peg: 'Pegaso', Per: 'Perseo', Phe: 'Fénix', Pic: 'Pintor', Psc: 'Piscis', PsA: 'Pez Austral', Pup: 'Popa', Pyx: 'Brújula', Ret: 'Retículo', Sge: 'Flecha', Sgr: 'Sagitario', Sco: 'Escorpio', Scl: 'Escultor', Sct: 'Escudo', Ser: 'Serpiente', Sex: 'Sextante', Tau: 'Tauro', Tel: 'Telescopio', Tri: 'Triángulo', TrA: 'Triángulo Austral', Tuc: 'Tucán', UMa: 'Osa Mayor', UMi: 'Osa Menor', Vel: 'Vela', Vir: 'Virgo', Vol: 'Pez Volador', Vul: 'Zorra' };
 
@@ -38,69 +40,30 @@ function componentesDelSistema(star, nombre) {
   }))].filter(miembro => miembro.star !== star && miembro.nombre !== nombre);
 }
 
-// Magnitud aparente desde su magnitud absoluta y distancia, comparada con estrellas conocidas.
-const REFERENCIAS = [['Sirio', -1.46], ['Vega', 0.03], ['Polaris', 1.98], ['Megrez', 3.3], ['Alcor', 3.99]];
-function brilloDesdeLaTierra(star, nombre) {
+// Cómo se ve desde la Tierra, según su magnitud aparente.
+function comoSeVe(star) {
   if (!Number.isFinite(star.m) || !(star.d > 0)) return null;
   const magnitud = star.m + 5 * Math.log10(star.d / 10);
-  if (magnitud >= 8) return 'Solo con telescopio';
-  if (magnitud >= 6) return 'Solo con binoculares';
-  if (magnitud < -1) return 'A simple vista, de las más brillantes del cielo';
-  const [cercana] = REFERENCIAS.filter(([estrella]) => estrella !== nombre)
-    .sort((a, b) => Math.abs(a[1] - magnitud) - Math.abs(b[1] - magnitud))[0];
-  return `A simple vista, brilla como ${cercana}`;
-}
-
-// Color de su temperatura para el título, aclarado lo justo para leerse sobre fondo oscuro.
-function colorLegible(temperatura) {
-  const rgb = temperatureColor(temperatura);
-  const luminancia = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
-  const mezcla = Math.max(0, (0.72 - luminancia) / (1 - luminancia));
-  return `rgb(${rgb.map(v => Math.round((v + (1 - v) * mezcla) * 255)).join(', ')})`;
-}
-
-// Resumen de Wikipedia: en español y, si no hay, en inglés. Un nombre puede ser también de un
-// personaje o un lugar, así que se exige que el texto hable de una estrella.
-const ES_ESTRELLA = /estrella|star\b|enana|dwarf|gigante|giant|binari|binary|constelaci|constellation|sistema estelar/i;
-async function resumenWikipedia(nombre, signal) {
-  const intentos = [['es', nombre], ['es', `${nombre} (estrella)`], ['en', nombre], ['en', `${nombre} (star)`]];
-  for (const [lengua, titulo] of intentos) {
-    try {
-      const respuesta = await fetch(`https://${lengua}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titulo.replace(/ /g, '_'))}`, { signal });
-      if (!respuesta.ok) continue;
-      const pagina = await respuesta.json();
-      if (pagina.type === 'standard' && pagina.extract && ES_ESTRELLA.test(`${pagina.description || ''} ${pagina.extract}`)) {
-        return { texto: pagina.extract, enlace: pagina.content_urls?.desktop?.page, lengua };
-      }
-    } catch (error) {
-      if (error.name === 'AbortError') throw error;
-    }
-  }
-  return null;
-}
-
-function useResumen(nombre) {
-  const [resumen, setResumen] = useState({ nombre: null, datos: null });
-  useEffect(() => {
-    const control = new AbortController();
-    resumenWikipedia(nombre, control.signal).then(datos => setResumen({ nombre, datos })).catch(() => {});
-    return () => control.abort();
-  }, [nombre]);
-  return resumen.nombre === nombre ? resumen.datos : null;
+  const frase = magnitud < 0 ? 'Desde la Tierra es una de las estrellas más brillantes del cielo nocturno.'
+    : magnitud < 3 ? 'Desde la Tierra se ve a simple vista, incluso desde la ciudad.'
+    : magnitud < 6 ? 'Desde la Tierra se ve a simple vista solo con cielo oscuro.'
+    : magnitud < 9 ? 'Desde la Tierra necesitas binoculares para verla.' : 'Desde la Tierra solo se ve con telescopio.';
+  return { frase, aparente: magnitud };
 }
 
 function useConstelacion(id) {
-  const [resultado, setResultado] = useState({ id: null, nombre: null });
+  const [resultado, setResultado] = useState({ id: null });
   useEffect(() => {
     let activo = true;
     indiceBusqueda().then(indice => {
       const fila = indice.find(item => item.id === id);
       const sigla = fila?.aliases.map(alias => alias.match(/ ([A-Z][A-Za-z]{2})$/)?.[1]).find(valor => CONSTELACIONES[valor]);
-      if (activo) setResultado({ id, nombre: sigla ? CONSTELACIONES[sigla] : null });
+      const designacion = prefijo => fila?.aliases.find(alias => alias.startsWith(`${prefijo} `));
+      if (activo) setResultado({ id, constelacion: sigla ? CONSTELACIONES[sigla] : null, hd: designacion('HD'), hip: designacion('HIP') });
     }).catch(() => {});
     return () => { activo = false; };
   }, [id]);
-  return resultado.id === id ? resultado.nombre : null;
+  return resultado.id === id ? resultado : {};
 }
 
 // Disco de una estrella: la textura roja del Sol (304 Å), teñida con el color de su temperatura.
@@ -134,9 +97,13 @@ function ComparacionSol({ radio, temperatura }) {
 }
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, children }) {
-  const resumen = useResumen(nombre);
-  const constelacion = useConstelacion(star.i);
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, zonaActiva, onZona }) {
+  const { constelacion, hd, hip } = useConstelacion(star.i);
+  const fichas = useFichas();
+  const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
+  const zona = zonaDeEstrella(star, fichas);
+  const movimiento = mas.pmRa !== undefined && mas.pmDec !== undefined ? Math.hypot(mas.pmRa, mas.pmDec) : null;
+  const metales = mas.metalicidad;
   const { physics, planetary } = star;
   const datos = star.datos;
   const temperatura = physics?.temperatureK ?? datos?.temperatureK;
@@ -146,15 +113,16 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   const fuentes = Object.entries({ temperatura: datos?.fuentes.temperatureK, radio: datos?.fuentes.radiusSolar, masa: datos?.fuentes.massSolar, luminosidad: datos?.fuentes.luminositySolar }).filter(([, fuente]) => fuente);
   const miembros = componentesDelSistema(star, nombre);
   const color = temperatura ? `rgb(${temperatureColor(temperatura).map(v => Math.round(v * 255)).join(', ')})` : '#fff';
-  const luminosidad = physics?.luminositySolar ?? datos?.luminositySolar;
+  const luminosidad = physics?.luminositySolar ?? datos?.luminositySolar ?? mas.luminosidad;
   const anosLuz = star.d / LIGHT_YEAR_PC;
   const tipo = tipoEstelar(espectro);
   const planetas = (planetary || []).flatMap(sistema => sistema.planets);
-  const referencia = brilloDesdeLaTierra(star, nombre);
+  const vista = comoSeVe(star);
+  const dentro = planetas.filter(planeta => enZonaHabitable(zona, planeta.a)).length;
   return <>
       <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{nombre}</h2>
       {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${espectro.replace(/\.+\s*$/, '').trim()}`}</p>}
-      {tipo && <p className="ficha-estrella-relato">{tipo.texto}</p>}
+      {(tipo || vista) && <p className="ficha-estrella-relato">{[tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
       {radio > 0 && <ComparacionSol radio={radio} temperatura={temperatura || 5772} />}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
@@ -163,10 +131,21 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {radio > 0 && <Dato etiqueta="Radio" valor={`${numero(radio)} R☉`} />}
         {masa > 0 && <Dato etiqueta="Masa" valor={`${numero(masa)} M☉`} />}
         {luminosidad > 0 && <Dato etiqueta="Luminosidad" valor={`${numero(luminosidad)} L☉`} />}
-        {referencia && <Dato etiqueta="Desde la Tierra" valor={referencia} />}
+        {vista && <Dato etiqueta="Magnitud aparente" valor={numero(vista.aparente, 3)} />}
+        {Number.isFinite(star.m) && <Dato etiqueta="Magnitud absoluta" valor={numero(star.m, 3)} />}
         <Dato etiqueta="Distancia al Sol" valor={`${numero(anosLuz, anosLuz < 100 ? 3 : 2)} años luz`} />
         {constelacion && <Dato etiqueta="Constelación" valor={constelacion} />}
+        {mas.paralaje > 0 && <Dato etiqueta="Paralaje" valor={`${numero(mas.paralaje)}${mas.paralajeError ? ` ± ${numero(mas.paralajeError, 2)}` : ''} mas`} />}
+        {mas.edad > 0 && <Dato etiqueta="Edad" valor={`${numero(mas.edad, 2)} mil millones de años`} secundario="Sol: 4,6" />}
+        {mas.etapa > 0 && <Dato etiqueta="Fase" valor={mas.etapa <= 360 ? 'Secuencia principal' : mas.etapa <= 420 ? 'Subgigante' : 'Gigante'} />}
+        {metales !== undefined && <Dato etiqueta="Metalicidad [Fe/H]" valor={numero(metales, 2)} secundario={metales > 0.05 ? 'Más elementos pesados que el Sol' : metales < -0.05 ? 'Menos elementos pesados que el Sol' : 'Como el Sol'} />}
+        {mas.gravedad > 0 && <Dato etiqueta="Gravedad superficial" valor={`log g ${numero(mas.gravedad)}`} secundario="Sol: 4,44" />}
+        {mas.rotacion > 0 && <Dato etiqueta="Rotación" valor={`${numero(mas.rotacion)} días`} secundario="Sol: ~25" />}
+        {mas.radial !== undefined && <Dato etiqueta="Velocidad radial" valor={`${mas.radial < 0 ? 'Se acerca' : 'Se aleja'} a ${numero(Math.abs(mas.radial))} km/s`} />}
+        {movimiento > 0 && <Dato etiqueta="Movimiento propio" valor={`${numero(movimiento)} mas/año`} />}
+        {(hd || hip || mas.gaia) && <Dato etiqueta="Catálogos" valor={[hd, hip].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
       </dl>
+      {dentro > 0 && <FilaZona zona={zona} activa={zonaActiva} onAlternar={onZona} nota={`${comparacionSolar(zona)}. ${dentro === 1 ? 'Un planeta conocido dentro' : `${dentro} planetas conocidos dentro`}`} />}
       {miembros.length > 0 && <section>
         <h3>Sistema</h3>
         <ul className="ficha-estrella-planetas">
@@ -181,14 +160,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
           </li>)}
         </ul>
       </section>}
-      {resumen && <section className="ficha-estrella-wikipedia">
-        <p>{resumen.texto}</p>
-      </section>}
       {onVerSuperficie && physics && <button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button>}
-      {(children || resumen || fuentes.length > 0) && <details className="ficha-estrella-tecnico"><summary>Datos técnicos y fuentes</summary>{children}
-        {fuentes.length > 0 && <div>{fuentes.map(([dato, fuente]) => `${dato[0].toUpperCase()}${dato.slice(1)}: ${fuente}`).join(' · ')}</div>}
-        {/* La licencia CC BY-SA del resumen exige citar su origen; va aquí, sin ocupar la ficha. */}
-        {resumen && <div>Texto: <a href={resumen.enlace} target="_blank" rel="noreferrer">Wikipedia</a> (CC BY-SA)</div>}
-      </details>}
+      {fuentes.length > 0 && <p className="ficha-estrella-fuente">Datos: {[...new Set(fuentes.map(([, fuente]) => fuente))].join(' · ')}</p>}
   </>;
 }

@@ -15,7 +15,7 @@ export function FichaLuna({ body }) {
   const days = propagationDays(moon, EPHEMERIS_DATE);
   return <>
     <div>Luna de {moon.planet}{moon.iau !== body.name ? ` · ${moon.iau}` : ''} · a {distance(semiMajorAxisKm(moon, EPHEMERIS_DATE))} de media · una vuelta cada {period(orbitalPeriodDays(moon, EPHEMERIS_DATE))}{retrograde ? ' · órbita retrógrada' : ''}</div>
-    {moon.size !== 'jpl' && <div>{moon.size === 'published' ? 'Diámetro medido publicado (recopilado en Wikipedia: Thomas, Grav et al.).'
+    {moon.size !== 'jpl' && <div>{moon.size === 'published' ? 'Diámetro medido publicado (Thomas, Grav et al.).'
       : `Diámetro estimado, no medido: sale de su brillo${moon.H != null ? ` (magnitud absoluta H = ${number(moon.H)})` : ''} suponiendo un albedo bajo; puede errar en un factor de dos.`}</div>}
     <div>Posición del {EPHEMERIS_DATE.toLocaleDateString('es-CL')} · {moon.sets
       ? `elementos osculadores de JPL Horizons propagados ${Math.round(days)} días${days > 31 ? ' (fuera del intervalo calculado: el error crece con el tiempo)' : ''}`
