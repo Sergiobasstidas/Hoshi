@@ -8,6 +8,14 @@ const PIVOTE_MINIMO_PC = 5e-7;
 // Por debajo de unas 1.000 UA del Sol la salida no gira.
 const GIRO_MINIMO_PC = 1000 / 206265;
 
+// Vista con que se queda fijo un viaje detenido: el mismo destino, a la distancia actual. Las
+// vistas sin cuerpo (escalas) o un giro ya en curso no fijan nada.
+export function vistaAlDetener(view, posicion, origen) {
+  if (!view.body || !posicion || view.journey?.headingOnly) return null;
+  const distance = Math.hypot(...posicion.map((v, i) => v + origen[i] - view.target[i]));
+  return { ...view, distance };
+}
+
 export function beginJourney(camera, view, origin) {
   const target = new Vector3(...view.target).sub(new Vector3(...origin));
   camera.position.fromArray(view.journey.start).sub(new Vector3(...origin));

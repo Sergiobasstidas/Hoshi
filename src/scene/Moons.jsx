@@ -10,7 +10,7 @@ import { MOON_PLANETS, hiddenByPlanet, useMoons } from './moonBodies';
 import { currentOccluders, hiddenBehind, publishOccluders } from './labelOcclusion';
 
 // Lunas de Júpiter y Saturno: esferas a escala de su radio, en su posición de la fecha y con
-// una estela de casi toda su última vuelta (FadingTrails.jsx). De lejos, un punto de tamaño fijo (no representa el radio) indica dónde
+// una estela de un cuarto de vuelta (FadingTrails.jsx). De lejos, un punto de tamaño fijo (no representa el radio) indica dónde
 // está cada una hasta que la esfera ocupa unos píxeles. Color ilustrativo; iluminación desde
 // el Sol (la luz puntual de SolarSystem.jsx), sin sombras del planeta. Los nombres se colocan
 // sobre los botones de [data-moon-labels] (MoonLabels.jsx), con descarte de solapes.
@@ -28,9 +28,9 @@ const MAJOR_RADIUS_KM = 40, MAX_LABELS = 20;
 const NEAR_POOL = 6, NEAR_PIXELS = 0.5;
 const hidden = new Matrix4().makeScale(0, 0, 0);
 
-// Estela: la trayectoria real del último 90 % de la vuelta (como la Luna, pedido de Sergio del
-// 19/10/2026; antes media vuelta), de transparente a opaca hasta la luna.
-const TRAIL_SPAN = 0.9, TRAIL_POINTS = 140;
+// Estela: la trayectoria real del último cuarto de vuelta, de transparente a opaca hasta la luna.
+// Se acortó el 01/11/2026 para que no se confunda con los anillos.
+const TRAIL_SPAN = 0.25, TRAIL_POINTS = 60;
 // Color (el beige de NASA Eyes, pedido por Sergio) y desvanecimiento son estilo; las pequeñas, más tenues.
 const TRAIL_FADE = [12, 50], TRAIL_COLOR = new Color('#d9c59a'), MINOR_TRAIL_COLOR = new Color('#a8987a');
 // Las órbitas no se ven de lejos (pedido de Sergio, 31/10/2026): aparecen de forma gradual al
@@ -185,7 +185,7 @@ function MoonGroup({ planet, moons, origin }) {
       <sphereGeometry args={[1, 48, 32]} />
       <meshLambertMaterial toneMapped={false} />
     </mesh>)}
-    <FadingTrails trails={trails} fadePixels={TRAIL_FADE} opacity={1} width={1.6} fadeDistance={TRAIL_DISTANCE} />
+    <FadingTrails trails={trails} fadePixels={TRAIL_FADE} opacity={0.65} width={1.6} fadeDistance={TRAIL_DISTANCE} />
     <points ref={points} frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[attributes.position, 3]} />

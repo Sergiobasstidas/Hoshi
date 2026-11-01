@@ -6,16 +6,16 @@ import { useSyncExternalStore } from 'react';
 // demás estrellas, la simulación de la misma capa (`capa`): blanca = fotosfera,
 // cromosfera = 304 Å, corona = ultravioleta extremo, magnetica = campo en la superficie.
 export const FILTROS_ESTELARES = [
-  { id: 'visible', corto: 'sin filtro', nombre: 'sin filtro', capa: 'blanca' },
-  { id: 'ninguno', corto: 'deslumbrante', nombre: 'deslumbrante' },
-  { id: 'sdo-hmii', corto: 'NASA visible', nombre: 'sin filtro NASA (luz visible)', canal: 'HMIIF', capa: 'blanca', instrumento: 'SDO/HMI' },
-  { id: 'sdo-0131', corto: 'corona caliente', nombre: 'corona caliente (131 Å, vídeo de 48 h)', canal: '0131', capa: 'corona', instrumento: 'SDO/AIA' },
-  { id: 'sdo-0171', corto: 'corona y arcos', nombre: 'corona y arcos (171 Å)', canal: '0171', capa: 'corona', instrumento: 'SDO/AIA' },
-  { id: 'sdo-0193', corto: 'corona', nombre: 'corona (193 Å)', canal: '0193', capa: 'corona', instrumento: 'SDO/AIA' },
-  { id: 'sdo-211193171', corto: 'corona en tres bandas', nombre: 'corona en tres bandas (211, 193 y 171 Å)', canal: '211193171', capa: 'corona', instrumento: 'SDO/AIA' },
-  { id: 'sdo-0304', corto: 'cromosfera', nombre: 'cromosfera (304 Å)', canal: '0304', capa: 'cromosfera', instrumento: 'SDO/AIA' },
-  { id: 'sdo-304211171', corto: 'cromosfera y corona', nombre: 'cromosfera y corona (304, 211 y 171 Å)', canal: '304211171', capa: 'corona', instrumento: 'SDO/AIA' },
-  { id: 'sdo-hmib', corto: 'magnetograma', nombre: 'magnetograma', canal: 'HMIB', capa: 'magnetica', instrumento: 'SDO/HMI' },
+  { id: 'visible', nombre: 'Luz visible', banda: '', texto: 'Simulación de la superficie con el color de su temperatura real.', capa: 'blanca' },
+  { id: 'ninguno', nombre: 'Sin filtro', banda: '', texto: 'El Sol tal como deslumbra sin protección.' },
+  { id: 'sdo-hmii', nombre: 'Fotosfera', banda: 'HMI', texto: 'Foto real de la superficie en luz visible, tomada por el SDO de la NASA.', canal: 'HMIIF', capa: 'blanca', instrumento: 'SDO/HMI' },
+  { id: 'sdo-0131', nombre: 'Corona en llamarada', banda: '131 Å', texto: 'Plasma a ~10 millones de °C: revela las fulguraciones. Vídeo de 48 horas.', canal: '0131', capa: 'corona', instrumento: 'SDO/AIA' },
+  { id: 'sdo-0171', nombre: 'Bucles coronales', banda: '171 Å', texto: 'Luz de hierro a ~600.000 °C: muestra los arcos de plasma sobre las manchas.', canal: '0171', capa: 'corona', instrumento: 'SDO/AIA' },
+  { id: 'sdo-0193', nombre: 'Corona', banda: '193 Å', texto: 'La corona a ~1,2 millones de °C y los agujeros coronales oscuros.', canal: '0193', capa: 'corona', instrumento: 'SDO/AIA' },
+  { id: 'sdo-211193171', nombre: 'Corona compuesta', banda: '211/193/171 Å', texto: 'Tres cámaras de distinta temperatura combinadas en una imagen.', canal: '211193171', capa: 'corona', instrumento: 'SDO/AIA' },
+  { id: 'sdo-0304', nombre: 'Cromosfera', banda: '304 Å', texto: 'Capa sobre la superficie a ~50.000 °C, con protuberancias y filamentos.', canal: '0304', capa: 'cromosfera', instrumento: 'SDO/AIA' },
+  { id: 'sdo-304211171', nombre: 'Cromosfera y corona', banda: '304/211/171 Å', texto: 'La cromosfera y la corona combinadas.', canal: '304211171', capa: 'corona', instrumento: 'SDO/AIA' },
+  { id: 'sdo-hmib', nombre: 'Campo magnético', banda: 'HMI', texto: 'Magnetograma: blanco y negro son las polaridades norte y sur.', canal: 'HMIB', capa: 'magnetica', instrumento: 'SDO/HMI' },
 ];
 export const filtroPorId = id => FILTROS_ESTELARES.find(filtro => filtro.id === id) || FILTROS_ESTELARES[0];
 // Por defecto, la fotosfera simulada en luz visible, con el color de la temperatura (pedido de Sergio, 31/10/2026).

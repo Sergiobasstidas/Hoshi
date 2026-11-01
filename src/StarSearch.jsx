@@ -4,7 +4,7 @@ import { indiceBusqueda } from './indiceBusqueda';
 import { useEsComputador } from './esComputador';
 const SIN_DESTINOS=[];
 // En el computador el buscador también reemplaza a «Viajar a…»: suma planetas, lunas y estrellas de destino.
-export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTINOS }) {
+export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTINOS, elegida }) {
   const computador=useEsComputador();
   const [index,setIndex]=useState(null), [query,setQuery]=useState(''), [open,setOpen]=useState(false);
   const [active,setActive]=useState(0), [error,setError]=useState(false);
@@ -31,7 +31,8 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
   const select=result=>{if(result.body)onSelectBody(result.body);else onSelect(result);setQuery(result.aliases[0]);setOpen(false);};
   return <div className="star-search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}}>
     <label htmlFor="star-search-input" className="solo-lector">Buscar estrella</label>
-    <input id="star-search-input" role="combobox" aria-autocomplete="list" aria-expanded={open}
+    <input id="star-search-input" role="combobox" autoComplete="off" className={elegida&&query===elegida.nombre?'con-estrella':undefined}
+      style={elegida&&query===elegida.nombre?{'--color-estrella':elegida.color}:undefined} aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
       placeholder={computador?'¿A dónde vamos? Sirio, Júpiter, TRAPPIST-1…':'Buscar: Sirio, Vega, HIP…'} value={query} onFocus={load}
       onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}

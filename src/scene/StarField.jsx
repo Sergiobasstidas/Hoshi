@@ -5,6 +5,7 @@ import { AU_TO_PC, LIGHT_YEAR_PC, SUN_RADIUS_PC, backgroundGain, skyExposure, sm
 import { STAR_STOP_PC } from './starHeading';
 import { buildStellarAppearance } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
+import { parametrosBrillo } from './modosBrillo';
 import StellarSurface from './StellarSurface';
 
 const vertexShader = `
@@ -19,6 +20,9 @@ const vertexShader = `
   uniform float distantSize;
   uniform float farCompression;
   uniform float individualMix;
+  uniform float fisico;
+  uniform float limite;
+  uniform float ganancia;
   uniform float inspect;
   uniform float physicalRadius;
   varying vec3 vColor;
@@ -47,6 +51,10 @@ const vertexShader = `
     // Como el ojo: muestra su color lo que se ve brillante, ya sea por su brillo real desde la cámara
     // o por el que tiene en pantalla; lo que apenas se ve tiende a blanco.
     float apparentMagnitude = absoluteMagnitude + 5.0 * (log(max(distanceToEye, 1e-6) / 10.0) / log(10.0));
+    if (fisico > 0.5) {
+      vAlpha = clamp(0.08 * pow(10.0, 0.4 * (limite - apparentMagnitude)), 0.0, 1.0) * ganancia;
+      gl_PointSize = (clamp(2.5 + 1.6 * (limite - apparentMagnitude), 1.5, 34.0) + inspectionSize) * pixelRatio;
+    }
     float saturation = max(1.0 - smoothstep(1.0, 3.0, apparentMagnitude), smoothstep(0.22, 0.5, vAlpha));
     vColor = mix(vec3(0.92), vividColor, saturation);
     // Atenuar el marcador al resolverse el disco estelar real. No dibujar
@@ -91,13 +99,17 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
   }, [stars, origin, anchor]);
   const uniforms = useMemo(() => ({ named: { value: named ? 1 : 0 },
     exposure: { value: 0.13 }, pixelRatio: { value: 1 }, distantSize: { value: 1 },
-    farCompression: { value: 0 }, individualMix: { value: 0 }, inspect: { value: anchor ? 1 : 0 },
+    farCompression: { value: 0 }, individualMix: { value: 0 }, fisico: { value: 0 }, limite: { value: 6 }, ganancia: { value: 1 }, inspect: { value: anchor ? 1 : 0 },
     physicalRadius: { value: physicalRadius } }), [named, anchor, physicalRadius]);
   useFrame(({ camera, gl }) => {
     const distance = Math.hypot(camera.position.x + origin[0], camera.position.y + origin[1], camera.position.z + origin[2]);
     materialRef.current.uniforms.exposure.value = skyExposure(distance, named) * (named ? 1 : backgroundGain(distance)) * gain * (anchor ? 1 : catalogueGalaxyGain(distance));
     if (solar) materialRef.current.uniforms.exposure.value *= smoothRange(distance, 0.015 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC);
     materialRef.current.uniforms.pixelRatio.value = gl.getPixelRatio();
+    const { fisico, limite } = parametrosBrillo();
+    materialRef.current.uniforms.fisico.value = fisico;
+    materialRef.current.uniforms.limite.value = limite;
+    materialRef.current.uniforms.ganancia.value = gain * (anchor ? 1 : catalogueGalaxyGain(distance));
     materialRef.current.uniforms.individualMix.value = smoothRange(distance, 4, 12);
     materialRef.current.uniforms.farCompression.value = THREE.MathUtils.smoothstep(distance, 300, 3000);
     materialRef.current.uniforms.distantSize.value = 1 - 0.22

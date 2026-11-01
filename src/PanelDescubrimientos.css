@@ -3,8 +3,7 @@
    dejar el campo a los destellos. */
 .hoshi.modo-descubrimientos .visores-vuelo,
 .hoshi.modo-descubrimientos .scene-label.star,
-.hoshi.modo-descubrimientos .oort-note,
-.hoshi.modo-descubrimientos .navigation-hint { display: none; }
+.hoshi.modo-descubrimientos .oort-note { display: none; }
 
 .descubrimientos-panel {
   position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);

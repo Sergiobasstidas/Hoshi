@@ -32,7 +32,7 @@
   .visores-vuelo { left: 12px; right: 12px; bottom: 10px; width: auto; }
   .scene-footer { max-width: none; font-size: 11px; bottom: 82px; }
   .scene-footer > span:last-child { display: none; }
-  .navigation-hint.flight-hint { max-width: none; text-align: center; }
+  
 }
 
 /* Horizontal: buscador arriba al centro, «Explorar» a su lado hasta la esquina y «Acercarse a»
@@ -55,8 +55,6 @@
   .visores-vuelo { left: 12px; bottom: 10px; width: min(360px, calc(100% - 110px)); }
   .pulsar-legend, .galaxy-loading, .oort-note { bottom: 80px; left: 18px; font-size: 12px; }
   .scene-footer { left: auto; right: 90px; bottom: 8px; max-width: 45%; font-size: 11px; flex-direction: column; align-items: flex-end; text-align: right; }
-  .navigation-hint { display: none; }
-  .navigation-hint.flight-hint { display: block; max-width: none; }
   .scene-footer > span:last-child { display: none; }
 }
 

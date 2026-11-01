@@ -21,15 +21,15 @@ const HMI_HALF_FIELD_ARCSEC = 2048 * 0.504;
 // `compose`: canales cuyo brillo forma el rojo, el verde y el azul. `video`: últimas 48 h.
 export const SDO_CHANNELS = {
   '0131': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [0.02, 1, 1], video: '0131.mp4' },
-  '0171': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [1, 0.7, 0.01] },
-  '0193': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [1, 0.63, 0.26] },
+  '0171': { halfField: AIA_HALF_FIELD_ARCSEC, video: '0171.mp4', tint: [1, 0.7, 0.01] },
+  '0193': { halfField: AIA_HALF_FIELD_ARCSEC, video: '0193.mp4', tint: [1, 0.63, 0.26] },
   '0211': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [1, 0.59, 0.74] },
-  '0304': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [1, 0.05, 0.03] },
-  '211193171': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [0.95, 1, 0.48] },
+  '0304': { halfField: AIA_HALF_FIELD_ARCSEC, video: '0304.mp4', tint: [1, 0.05, 0.03] },
+  '211193171': { halfField: AIA_HALF_FIELD_ARCSEC, video: '211193171.mp4', tint: [0.95, 1, 0.48] },
   // El SDO publica esta composición solo en vídeo; la imagen fija se arma aquí.
-  '304211171': { halfField: AIA_HALF_FIELD_ARCSEC, tint: [0.35, 1, 0.6], compose: ['0304', '0211', '0171'], gains: [1.15, 0.85, 1.35] },
-  HMIB: { halfField: HMI_HALF_FIELD_ARCSEC },
-  HMIIF: { halfField: HMI_HALF_FIELD_ARCSEC, flat: true },
+  '304211171': { halfField: AIA_HALF_FIELD_ARCSEC, video: '304211171.mp4', tint: [0.35, 1, 0.6], compose: ['0304', '0211', '0171'], gains: [1.15, 0.85, 1.35] },
+  HMIB: { halfField: HMI_HALF_FIELD_ARCSEC, video: 'HMIB.mp4' },
+  HMIIF: { halfField: HMI_HALF_FIELD_ARCSEC, video: 'HMIIF.mp4', flat: true },
 };
 
 const RAD = Math.PI / 180;
@@ -63,9 +63,9 @@ const textures = {};
 // Fecha y textura de cada canal; la primera llamada inicia la descarga desde public/.
 export function sdoState() {
   if (!metadata) {
-    metadata = { status: 'loading', channels: {}, video: null };
+    metadata = { status: 'loading', channels: {}, videos: {} };
     fetch(`${BASE}sdo.json`).then(response => response.ok ? response.json() : Promise.reject(response.status))
-      .then(data => { metadata = { status: 'ready', channels: data.canales, video: data.video || null }; })
+      .then(data => { metadata = { status: 'ready', channels: data.canales, videos: data.videos || {} }; })
       .catch(() => { metadata = { status: 'error', channels: {} }; });
   }
   return metadata;
@@ -146,8 +146,8 @@ export function playSdoVideo(channel, active) {
 // Fecha de la imagen de un canal; la composición armada aquí toma la de su primer canal y el
 // vídeo, la de su último fotograma.
 export function sdoChannelDate(channel) {
-  const { channels, video } = sdoState();
-  if (SDO_CHANNELS[channel]?.video && textures[channel]?.playing && video) return video.fecha;
+  const { channels, videos } = sdoState();
+  if (textures[channel]?.playing && videos[channel]) return videos[channel].fecha;
   return channels[SDO_CHANNELS[channel]?.compose?.[0] || channel]?.fecha;
 }
 
@@ -155,4 +155,9 @@ export function sdoChannelDate(channel) {
 export function sdoDateLabel(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleString('es-CL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }) + ' UTC';
+}
+
+// Imágenes fijas en la caché del navegador, para que cambiar de filtro nunca espere de vacío.
+export function precargarImagenes() {
+  for (const channel of Object.keys(SDO_CHANNELS)) if (!SDO_CHANNELS[channel].compose) new Image().src = `${BASE}${channel}.jpg`;
 }

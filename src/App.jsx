@@ -16,7 +16,7 @@ import FichaHeliosfera from './FichaHeliosfera';
 import VisualGuides from './scene/VisualGuides';
 import FreeFlight from './scene/FreeFlight';
 import StarAim from './scene/StarAim.jsx';
-import { BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
+import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
 import { EPHEMERIS_DATE } from './scene/solarEphemeris';
 import { PLANET_TEXTURES, PLANET_TEXTURE_SOURCE, PLANET_TEXTURE_LICENSE } from './scene/planetTextures';
@@ -37,10 +37,10 @@ import { PULSARS } from './scene/pulsarData';
 import KuiperBelt from './scene/KuiperBelt';
 import { KUIPER_VIEW } from './scene/kuiper';
 import CameraNavigation from './scene/CameraNavigation';
-import { PULSAR_VIEW } from './scene/navigation';
+import { vistaAlDetener, PULSAR_VIEW } from './scene/navigation';
 import { CURATED_STARS } from './scene/curatedStars';
 import CompanionStars from './scene/CompanionStars';
-import { BINARY_MODEL_DATE, buildStarSystems } from './scene/visualBinary.js';
+import { buildStarSystems } from './scene/visualBinary.js';
 import { JOURNEY_TIME_SCALE } from './scene/starJourney.js';
 import PlanetarySystems from './scene/PlanetarySystem';
 import MoonLabels from './MoonLabels';
@@ -59,12 +59,16 @@ import PantallaCompleta from './PantallaCompleta';
 import AvisoCelular from './AvisoCelular';
 import MenuVer from './MenuVer';
 import ControlesComputador from './ControlesComputador';
-import { fisicaOficial } from './scene/stellarPhysics';
+import { colorLegible, fisicaOficial } from './scene/stellarPhysics';
 import FichaEstrella from './FichaEstrella';
 import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
+import { useFichas } from './useFichas';
+import FranjaHabitable from './scene/FranjaHabitable';
+import { zonaDeEstrella } from './scene/zonaHabitable';
+import SelectorBrillo from './SelectorBrillo';
 import FichaPlaneta from './FichaPlaneta';
-import { ARRIVAL_FRAME_FACTOR, EXOPLANET_EPOCH, buildPlanetarySystems, describeBinary, describePlanet, hostPhysics } from './scene/exoplanetOrbit.js';
+import { ARRIVAL_FRAME_FACTOR, buildPlanetarySystems, hostPhysics } from './scene/exoplanetOrbit.js';
 
 // El catálogo pesa más que el resto de la aplicación: se descarga aparte para que
 // el sistema solar y la interfaz aparezcan antes. Hasta entonces solo hay curados.
@@ -95,12 +99,6 @@ function buildCatalogue({ catalogue, systems, planets }) {
 }
 const EMPTY_CATALOGUE = { catalogue: [], systems: {}, planets: null };
 // Resumen de una componente para la ficha.
-const significant = value => value.toLocaleString('es-CL', { maximumSignificantDigits: 3 });
-const period = days => days < 365.25 ? `${significant(days)} días` : `${significant(days / 365.25)} años`;
-const describeComponent = component => `${component.name}: ${component.pair.k === 'o'
-  ? `órbita de ${period(component.pair.p)}, a ${significant(component.separationAu)} UA`
-  : `par ancho, ${significant(component.separationAu)} UA proyectadas`}${component.pair.m1 && component.pair.m2
-  ? `, masas ${component.pair.mc === 'pub' ? '' : '≈ '}${component.pair.m1.toLocaleString('es-CL')} y ${component.pair.m2.toLocaleString('es-CL')} M☉${component.pair.mc === 'pub' ? ` (${component.pair.ms})` : ''}` : ''}`;
 const SCALE_VIEWS = [VIEWS[0], KUIPER_VIEW, HELIOSPHERE_VIEW, ...VIEWS.slice(1)];
 const SOLAR_ORIGIN = [0, 0, 0];
 // Pantalla táctil como entrada principal (celular o tableta): cambia la ayuda del vuelo libre.
@@ -175,6 +173,10 @@ export default function App() {
   // El botón «Sol» queda encendido mientras la cámara sigue apuntando al Sol tras pulsarlo.
   const [solApuntado, setSolApuntado] = useState(false);
   const [estrellaPrevia, setEstrellaPrevia] = useState(null);
+  // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
+  const [estrellaVista, setEstrellaVista] = useState(null);
+  const [zonaDe, setZonaDe] = useState(null);
+  const fichas = useFichas();
   const [direccionFicha, setDireccionFicha] = useState(1);
   const overlayRef = useRef();
   const controlsRef = useRef();
@@ -205,6 +207,7 @@ export default function App() {
     transitionRef.current = null;
     releaseAim();
     setSolApuntado(false);
+    setEstrellaVista(null);
     setFreeFlight(false);
     setTraveling(true);
     setVelocidadSolicitada(null);
@@ -264,10 +267,15 @@ export default function App() {
     const destino = destinoDesdeBarra(valor, camera.position.toArray(), origin);
     camera.position.set(...destino.target.map((v, i) => v - origin[i] + destino.direction[i] * destino.distance));
   };
-  // Detener un viaje en curso (T-03, pedido de Sergio): clic en la escena o Esc. La cámara queda
-  // donde está y pasa a vuelo libre, que conserva posición y orientación.
+  // Detener un viaje en curso (T-03, pedido de Sergio): clic en la escena o Esc. Sin destino concreto,
+  // la cámara queda donde está y pasa a vuelo libre, que conserva posición y orientación.
   const detenerViaje = () => {
     if (!traveling) return;
+    // Con un destino concreto, la cámara se queda donde está y gira hacia él para orbitarlo.
+    // Si ya está girando para fijarse, otro clic no cambia nada.
+    if (view.journey?.headingOnly && (view.body || view.id === 'solar-aim')) return;
+    const fijar = vistaAlDetener(view, cameraRef.current?.position.toArray(), origin);
+    if (fijar) { navigate(fijar, { headingOnly: true }); return; }
     transitionRef.current = null;
     setSolApuntado(false);
     setTraveling(false);
@@ -297,13 +305,6 @@ export default function App() {
     navigate({id:'solar-aim',target:SOLAR_ORIGIN,
       distance:Math.hypot(...camera.position.toArray().map((v,i)=>v+origin[i]))}, { headingOnly:true });
     setSolApuntado(true);
-  };
-  const inspectSurface = (target = aimTarget) => {
-    const physics = target.star.physics;
-    const body = { kind: 'star', name: target.text, position: target.position,
-      star: target.star, radiusKm: physics.radiusKm, source: physics.source };
-    releaseAim();
-    visitBody(body);
   };
   const visitSearchResult = (result, sistema = false) => {
     const star=starsById.get(result.id);
@@ -375,7 +376,7 @@ export default function App() {
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
-  const cerrarFicha = () => { setShowBodyPanel(false); releaseAim(); };
+  const cerrarFicha = () => { setEstrellaVista(null); setShowBodyPanel(false); releaseAim(); };
   // Pasar de la estrella a uno de sus planetas y volver, como páginas de la misma ficha.
   const verPlanetaDesdeFicha = planeta => {
     setEstrellaPrevia(planeta.star.i);
@@ -395,18 +396,7 @@ export default function App() {
   const orbitTarget = (view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
   // Datos del cuerpo enfocado, en su recuadro o dentro de la ficha de estrella.
   const detalle = showBodyPanel && panelBody && <>
-        {stellarBody?.star.physics && <div>Radio y temperatura {stellarBody.star.physics.status === 'published' ? 'publicados' : 'estimados'} · {Math.round(stellarBody.star.physics.temperatureK).toLocaleString('es-CL')} K · superficie simulada</div>}
-        {stellarBody?.star.physics?.status === 'published' && <div>Radio: {stellarBody.star.physics.radiusSolar}{stellarBody.star.physics.radiusUncertaintySolar ? ` ± ${stellarBody.star.physics.radiusUncertaintySolar}` : ''} R☉{stellarBody.star.physics.temperatureUncertaintyK ? ` · temperatura: ±${stellarBody.star.physics.temperatureUncertaintyK} K` : ''}</div>}
-        {stellarBody?.star.ds && <div>Distancia: {stellarBody.star.ds}{stellarBody.star.dataOrigin === 'exoplanet-host' ? ' · estrella añadida por albergar planetas (no figura en AT-HYG)' : ' (sustituye a la de AT-HYG)'}</div>}
-        {stellarBody?.star.planetary?.map(system => <div key={system.id}>Planetas de {system.name} al {EXOPLANET_EPOCH} · {system.planets.slice(0, 8).map(planet => describePlanet(planet, system)).join(' · ')}{system.planets.length > 8 ? ' · …' : ''}
-          {system.circumbinary && <><br />{describeBinary(system).join(' · ')}{system.binary && <> · <a href={system.binary.url} target="_blank" rel="noreferrer">{system.binary.ref}</a></>}</>}
-          <br />Datos: <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank" rel="noreferrer">NASA Exoplanet Archive</a> · órbitas y radios a escala</div>)}
-        {stellarBody?.star.system && <div>Sistema múltiple · WDS {stellarBody.star.system.wds} · {stellarBody.star.system.components.slice(0, 4).map(describeComponent).join(' · ')}{stellarBody.star.system.components.length > 4 ? ' · …' : ''}</div>}
-        {stellarBody?.star.system?.hidden.length > 0 && <div>Sin dibujar, por no tener orientación medida: {stellarBody.star.system.hidden.slice(0, 4).map(item => `${item.n}${item.p ? ` (${period(item.p)})` : ''}`).join(', ')}{stellarBody.star.system.hidden.length > 4 ? '…' : ''}</div>}
-        {stellarBody?.star.system && <div>Datos: <a href="https://www.astro.gsu.edu/wds/orb6.html" target="_blank" rel="noreferrer">ORB6</a> y <a href="https://www.astro.gsu.edu/wds/" target="_blank" rel="noreferrer">WDS</a> (USNO), <a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/235/6" target="_blank" rel="noreferrer">MSC</a> (Tokovinin) · órbitas al {BINARY_MODEL_DATE} · masas estimadas · las compañeras son marcadores, no radios</div>}
-        {curatedStellarBody && <div>Registro curado independiente de AT-HYG · distancia adoptada: {(stellarBody.star.d / LIGHT_YEAR_PC).toLocaleString('es-CL', { maximumFractionDigits: 0 })} años luz</div>}
-        {stellarBody?.identifiers && <div className="star-identifiers">{stellarBody.identifiers}</div>}
-        {(stellarBody?.star.physics || panelBody.name === 'Sol') && <div>Superficie simulada con medidas solares de granulación, manchas y oscurecimiento del borde, escaladas a la temperatura y el radio; tiempo acelerado 60 veces</div>}
+        {panelBody.name === 'Sol' && <div>Superficie simulada con medidas solares de granulación, manchas y oscurecimiento del borde, escaladas a la temperatura y el radio; tiempo acelerado 60 veces</div>}
         {panelBody.kind === 'system' ? <>
           <div>WC7 + O5.5 · modelo orbital estático</div>
           <div>Fecha del modelo: {BINARY_EPOCH}</div>
@@ -416,15 +406,10 @@ export default function App() {
         </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : exoplanetBody ? exoplanetBody.planet.s.includes('r') ? 'estimado por masa' : 'medido' : panelBody.radiusLabel || 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
         {panelBody.kind === 'satellite' && <FichaLuna body={panelBody} />}
         {panelBody.name === 'Saturno' && <FichaAnillos />}
-        <div data-body-altitude />
-        {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000){panelBody.eccentricity !== undefined && ` · excentricidad ${panelBody.eccentricity.toLocaleString('es-CL', { maximumFractionDigits: 4 })} · posición del ${EPHEMERIS_DATE.toLocaleDateString('es-CL')} (elementos de JPL)`}</div>}
+                {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000){panelBody.eccentricity !== undefined && ` · excentricidad ${panelBody.eccentricity.toLocaleString('es-CL', { maximumFractionDigits: 4 })} · posición del ${EPHEMERIS_DATE.toLocaleDateString('es-CL')} (elementos de JPL)`}</div>}
         <p>{panelBody.kind === 'system' ? 'Separación y órbitas a escala. Puntos de identificación; diámetros y brillo ilustrativos.'
-          : stellarBody ? stellarBody.star.physics ? `Esfera a escala del radio ${stellarBody.star.physics.status === 'published' ? 'publicado' : 'estimado'} · superficie compartida, no fotografía de esta estrella`
-            : curatedStellarBody ? 'Posición curada de SIMBAD · distancia aproximada de NASA · tamaño del marcador ilustrativo'
-              : 'Posición de catálogo · tamaño del marcador ilustrativo'
           : panelBody.name === 'Sol' ? 'Radio solar a escala · 5.772 K · textura y orientación ilustrativas'
           : bodyTexture ? `Esfera a escala real · ${bodyTexture.description.toLowerCase()} · orientación ilustrativa`
-            : exoplanetBody ? 'Esfera a escala del radio · color neutro ilustrativo: no hay aspecto medido · iluminada desde su estrella'
             : 'Esfera a escala real · color ilustrativo'}</p>
         {panelBody.kind === 'system' ? <a href="https://doi.org/10.1093/mnras/stab1181" target="_blank" rel="noreferrer">Órbita: Thomas et al. (2021)</a>
           : curatedStellarBody ? <div><a href={panelBody.source} target="_blank" rel="noreferrer">Astrometría e identificadores: SIMBAD</a>
@@ -433,12 +418,35 @@ export default function App() {
         {bodyTexture && <div className="texture-credit">Textura: <a href={PLANET_TEXTURE_SOURCE} target="_blank" rel="noreferrer">Solar System Scope / INOVE</a>
           {' · '}<a href={PLANET_TEXTURE_LICENSE} target="_blank" rel="noreferrer">CC BY 4.0</a></div>}
         </>;
+  // La zona habitable se dibuja para la estrella de la ficha abierta; si no cabría en pantalla, la cámara se aleja.
+  const estrellaZona = exoplanetBody && showBodyPanel ? exoplanetBody.star : estrellaVista?.star ?? (showBodyPanel ? stellarBody?.star : null);
+  const zonaActiva = Boolean(estrellaZona) && zonaDe === estrellaZona.i;
+  const alternarZona = () => {
+    if (zonaActiva) { setZonaDe(null); return; }
+    setZonaDe(estrellaZona.i);
+    const zona = zonaDeEstrella(estrellaZona, fichas), camara = cameraRef.current;
+    if (!zona || !camara) return;
+    // Sin haber viajado a la estrella la franja sería invisible: primero se va hacia ella.
+    if (estrellaVista) {
+      const sistema = estrellaZona.planetary?.[0];
+      setShowBodyPanel(true);
+      navigate({ ...bodyView(starBody(estrellaZona, estrellaVista.text)), distance: zona.exterior * 2.6 * AU_TO_PC,
+        ...(sistema && { direction: sistema.viewDirection, up: sistema.viewUp }) });
+      return;
+    }
+    if (view.body !== stellarBody || !stellarBody) return;
+    // Se mira el plano de las órbitas abierto: de canto, la franja sería solo una línea.
+    const sistema = estrellaZona.planetary?.[0];
+    const distanciaPc = Math.hypot(...camara.position.toArray().map((v, i) => v + origin[i] - view.target[i]));
+    navigate({ ...view, distance: Math.max(zona.exterior * 2.6 * AU_TO_PC, Math.min(distanciaPc, zona.exterior * 8 * AU_TO_PC)),
+      ...(sistema && { direction: sistema.viewDirection, up: sistema.viewUp }) }, { duration: 3 });
+  };
   // Ficha lateral: la del planeta enfocado, la de la estrella enfocada o la de la estrella fijada.
-  const fichaPlaneta = showBodyPanel && exoplanetBody;
-  const estrellaEnfocada = showBodyPanel && !exoplanetBody && stellarBody;
-  const estrellaFijada = !estrellaEnfocada && aimTarget && aimTarget.kind !== 'sun' && !(showBodyPanel && panelBody) ? aimTarget : null;
-  const estrellaFicha = estrellaEnfocada ? estrellaEnfocada.star : estrellaFijada?.star;
-  const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaEnfocada ? panelBody.name : estrellaFijada?.text;
+  const fichaPlaneta = !estrellaVista && showBodyPanel && exoplanetBody;
+  const estrellaEnfocada = !estrellaVista && showBodyPanel && !exoplanetBody && stellarBody;
+  const estrellaFicha = estrellaVista ? estrellaVista.star : estrellaEnfocada?.star;
+  const temperaturaFicha = estrellaFicha?.physics?.temperatureK ?? estrellaFicha?.datos?.temperatureK;
+  const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text : panelBody?.name;
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}`}
     onPointerDown={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
@@ -458,6 +466,7 @@ export default function App() {
         focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} />
       {binaryBody && <BinarySystem />}
       {!binaryBody && <CompanionStars onElegir={(star, nombre) => visitBody(starBody(star, nombre), true)} systems={BINARY_SYSTEMS} origin={origin} />}
+      {zonaActiva && <FranjaHabitable star={estrellaZona} origin={origin} fichas={fichas} />}
       {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
       {showDiscoveries && discoveries.data && <ExoplanetDiscoveries data={discoveries.data} filter={discoveryFilter} origin={origin} onSelect={visitDiscovery} />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
@@ -468,7 +477,8 @@ export default function App() {
       <VisualGuides overlayRef={overlayRef} labels={labels} focusedBody={panelBody} origin={origin} binary={Boolean(binaryBody)} aimTarget={aimTarget} distanceTarget={distanceTarget?.position} />
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
-      <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS]} />
+      <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS]}
+        elegida={estrellaFicha && temperaturaFicha ? { nombre: nombreFicha, color: colorLegible(temperaturaFicha) } : null} />
       <BarraDistancia onViajar={viajarDesdeBarra} onSeguir={seguirBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
       <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight} onDesactivar={toggleFlight}
@@ -496,6 +506,7 @@ export default function App() {
           {acciones.filter(accion => !accion.oculta).map(accion => <option key={accion.id} value={accion.id}>{accion.activa && accion.id !== 'vuelo-libre' ? '✓ ' : ''}{accion.textoLista || accion.texto}</option>)}
         </select>
       </label>
+      <SelectorBrillo viajando={traveling} />
       {solEnFoco && <FiltrosSol />}
       {solEnFoco && <CreditoSDO filtro={filtroEstelar} />}
       {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
@@ -542,11 +553,11 @@ export default function App() {
       {(fichaPlaneta || estrellaFicha) && <FichaLateral clave={fichaPlaneta ? `planeta:${nombreFicha}` : `estrella:${estrellaFicha.i}`} direccion={direccionFicha}
         etiqueta={`Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
-          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha}
-            onVerSuperficie={() => { if (estrellaEnfocada) visitBody(panelBody, true); else inspectSurface(); }}>{estrellaEnfocada ? detalle : null}</FichaEstrella>}
+          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} zonaActiva={zonaActiva} onZona={alternarZona} />
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} zonaActiva={zonaActiva} onZona={alternarZona}
+            onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
-      {showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">
+      {!estrellaVista && showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">
             <button className="panel-close" aria-label="Cerrar información" onClick={() => setShowBodyPanel(false)}>×</button>
             <strong>{panelBody.name}</strong>
             {detalle}
@@ -555,10 +566,10 @@ export default function App() {
       <div data-labels className="scene-labels">
         {labels.map((label, i) => <span key={i} className={`scene-label ${label.kind}${aimTarget === label ? ' is-target' : ''}`} style={{ color: label.color }}
           {...label.kind === 'probe' && { onPointerEnter: () => { probeHighlight.code = label.code; }, onPointerLeave: () => { probeHighlight.code = null; } }}>
-          {label.kind === 'star' ? <button className="label-text" onDoubleClick={() => aimAtStar(label)}
+          {label.kind === 'star' ? <button className="label-text" onClick={() => { setDireccionFicha(1); setEstrellaVista(label); }} onDoubleClick={() => aimAtStar(label)}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); aimAtStar(label); }
-            }} title="Doble clic: fijar rumbo">{label.text}</button>
+            }} title="Clic: ver su ficha · Doble clic: viajar a ella">{label.text}</button>
             : label.body ? <button className="label-text" onClick={() => focusBody(label.body)} title={`Acercarse a ${label.body.name}`}>{label.text}</button>
             : <span className="label-text">{label.text}</span>}
         </span>)}
@@ -582,14 +593,8 @@ export default function App() {
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <AvisoCelular />
       <PantallaCompleta />
+      {traveling && <p className="subtitulo-escena visible" role="status">{TACTIL ? 'Toca la escena para detener el viaje' : 'Clic en la escena o Esc: detener el viaje'}</p>}
       <footer className="scene-footer">
-        <span className={`navigation-hint${freeFlight ? ' flight-hint' : ''}`}>
-          {traveling ? TACTIL ? 'Toca la escena para detener el viaje' : 'Clic en la escena o Esc: detener el viaje'
-            : freeFlight && TACTIL ? 'Desliza: mirar · Pellizca: acercarte o alejarte'
-            : freeFlight ? aimTarget ? 'W / S: acercarse / alejarse · Rueda: velocidad · A / D: lateral · Esc o girar: soltar objetivo'
-            : 'Arrastra / flechas: mirar · WASD: mover · R/F: subir/bajar · Q/E: inclinar · Rueda: velocidad · Shift + rueda: ajuste rápido'
-            : TACTIL ? 'Arrastra para orbitar · Pellizca para acercarte' : 'Arrastra para orbitar · Desplázate para acercarte'}
-        </span>
         <span>© 2026 Sergio Bastidas</span>
       </footer>
     </div>

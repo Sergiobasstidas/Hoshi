@@ -56,6 +56,10 @@ const surfaceFragment = `
   uniform float magnet;
   uniform float sdo;
   uniform sampler2D sdoMap;
+  uniform sampler2D sdoMapAnterior;
+  uniform float sdoFundido;
+  uniform float sdoFlatAnterior;
+  uniform float sdoVideoAnterior;
   uniform vec3 sdoToward;
   uniform vec3 sdoUp;
   uniform vec3 sdoRight;
@@ -223,16 +227,21 @@ const surfaceFragment = `
     // Junto al borde del disco los píxeles se estiran sobre la esfera: allí se lee la imagen
     // desenfocada (mipmaps) para que no se vean franjas.
     float facing = dot(p, sdoToward);
-    vec3 observedSdo = texture2D(sdoMap, sdoUv, 4.0 * (1.0 - smoothstep(0.0, 0.25, abs(facing)))).rgb;
+    float desenfoque = 4.0 * (1.0 - smoothstep(0.0, 0.25, abs(facing)));
+    vec3 flatTint = temperatureTint / max(max(temperatureTint.r, temperatureTint.g), temperatureTint.b);
+    vec3 observedSdo = texture2D(sdoMap, sdoUv, desenfoque).rgb;
+    vec3 sdoAnterior = texture2D(sdoMapAnterior, sdoUv, desenfoque).rgb;
+    sdoAnterior = mix(sdoAnterior, pow(sdoAnterior, vec3(2.2)), sdoVideoAnterior);
+    float nivelAnterior = dot(pow(sdoAnterior, vec3(1.0 / 2.2)), vec3(0.299, 0.587, 0.114)) / 0.813;
+    sdoAnterior = mix(sdoAnterior, flatTint * pow(clamp(0.95 * nivelAnterior * (0.45 + 0.55 * mu), 0.0, 1.0), 2.2), sdoFlatAnterior);
     // Un vídeo llega en sRGB sin decodificar; la imagen fija ya llega en lineal.
     observedSdo = mix(observedSdo, pow(observedSdo, vec3(2.2)), sdoVideo);
     // Imagen aplanada (HMI): se repone el oscurecimiento del borde según la cámara, medido en
     // la imagen sin aplanar; el centro se lleva casi a blanco para que el disco se vea luminoso.
     float flatLevel = dot(pow(observedSdo, vec3(1.0 / 2.2)), vec3(0.299, 0.587, 0.114)) / 0.813;
     // La imagen HMI es monocroma: se le da el color de la temperatura de la estrella.
-    vec3 flatTint = temperatureTint / max(max(temperatureTint.r, temperatureTint.g), temperatureTint.b);
     observedSdo = mix(observedSdo, flatTint * pow(clamp(0.95 * flatLevel * (0.45 + 0.55 * mu), 0.0, 1.0), 2.2), sdoFlat);
-    filtered = mix(filtered, observedSdo, sdo);
+    filtered = mix(filtered, mix(sdoAnterior, observedSdo, sdoFundido), sdo);
 
     // Sin filtro: disco sobreexpuesto, sin detalle, como al mirar la estrella directamente.
     vec3 overexposed = mix(temperatureTint, vec3(1.0), 0.55);
@@ -352,7 +361,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
       surface: { ...shared, spots: { value: spots }, limb: { value: limbDarkening(temperatureK) },
         granules: { value: granules }, regions: { value: regions },
         chromosphereMap: { value: null }, chromosphereReal: { value: 0 }, chromosphereVideo: { value: 0 },
-        magnet: { value: 0 }, sdo: { value: 0 }, sdoMap: { value: null }, sdoRadius: { value: 0.8 }, sdoFlat: { value: 0 }, sdoVideo: { value: 0 },
+        magnet: { value: 0 }, sdo: { value: 0 }, sdoMap: { value: null }, sdoMapAnterior: { value: null }, sdoFundido: { value: 1 }, sdoFlatAnterior: { value: 0 }, sdoVideoAnterior: { value: 0 }, sdoRadius: { value: 0.8 }, sdoFlat: { value: 0 }, sdoVideo: { value: 0 },
         sdoToward: { value: new THREE.Vector3(0, 0, 1) }, sdoUp: { value: new THREE.Vector3(0, 1, 0) }, sdoRight: { value: new THREE.Vector3(1, 0, 0) },
         // Los gránulos grandes evolucionan más despacio; aproximación, no medida por estrella.
         boil: { value: BOIL_RATE * Math.max(0.15, Math.min(2, Math.sqrt(granules / SOLAR_GRANULES))) },
@@ -374,22 +383,37 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   // Los filtros son del Sol: las demás estrellas se ven siempre en luz visible, con el color de su temperatura.
   const filtroSolar = useFiltroEstelar();
   const filtro = solar ? filtroSolar : FILTRO_POR_DEFECTO;
+  // Filtro que se ve: el pedido no lo reemplaza hasta tener su imagen lista, y entra con un fundido.
+  const mostrado = useRef(filtro);
   useFrame(({ clock, camera }, delta) => {
     if (!surface.current || !corona.current) return;
     const shared = surface.current.uniforms, halo = corona.current.uniforms;
+    const pedido = solar ? filtroPorId(filtro).canal : null;
+    const textura = pedido ? sdoTexture(pedido) : null;
+    if (filtro !== mostrado.current && (!textura || textura.ready)) {
+      if (textura && shared.sdo.value > 0.5) {
+        shared.sdoMapAnterior.value = shared.sdoMap.value;
+        shared.sdoFlatAnterior.value = shared.sdoFlat.value;
+        shared.sdoVideoAnterior.value = shared.sdoVideo.value;
+        shared.sdoFundido.value = 0;
+      }
+      mostrado.current = filtro;
+    }
+    shared.sdoFundido.value = Math.min(1, shared.sdoFundido.value + delta / 0.4);
+    const filtroVisible = mostrado.current;
     // Mapa real de la cromosfera: el vídeo en cuanto se reproduce; antes, la imagen fija.
     const maps = solarChromosphereMap();
     const map = maps.videoReady ? maps.video : maps.stillReady ? maps.still : null;
     shared.chromosphereMap.value = map ?? maps.still;
     shared.chromosphereReal.value = map ? 1 : 0;
     shared.chromosphereVideo.value = maps.videoReady ? 1 : 0;
-    const { capa, canal } = filtroPorId(filtro);
+    const { capa, canal } = filtroPorId(filtroVisible);
     if (solar) playSolarChromosphere(capa === 'cromosfera');
     view.current.real = map ? 1 : 0;
     view.current.time = shared.time.value = halo.time.value = clock.elapsedTime % 3600;
     // Transición breve entre la vista deslumbrada y la filtrada.
     const step = Math.min(1, delta * 4);
-    [['glare', filtro === 'ninguno'], ['halpha', capa === 'cromosfera'], ['euv', capa === 'corona']].forEach(([name, on]) => {
+    [['glare', filtroVisible === 'ninguno'], ['halpha', capa === 'cromosfera'], ['euv', capa === 'corona']].forEach(([name, on]) => {
       shared[name].value += ((on ? 1 : 0) - shared[name].value) * step;
       view.current[name] = halo[name].value = shared[name].value;
     });
@@ -397,7 +421,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     // Imagen del SDO del canal elegido, solo en el Sol y cuando ya cargó.
     const image = solar && canal ? sdoTexture(canal) : null;
     const fecha = image && sdoChannelDate(canal);
-    if (solar) playSdoVideo(canal, Boolean(image));
+    if (solar) playSdoVideo(pedido, Boolean(textura));
     if (image) {
       const { flat, tint } = SDO_CHANNELS[canal];
       shared.sdoMap.value = image.texture;

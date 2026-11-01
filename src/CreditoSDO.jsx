@@ -16,7 +16,7 @@ export default function CreditoSDO({ filtro }) {
     return () => clearInterval(timer);
   }, [canal]);
   if (!canal) return null;
-  const video = SDO_CHANNELS[canal].video && sdoState().video;
+  const video = SDO_CHANNELS[canal].video && sdoState().videos?.[canal];
   return <div className="credito-sdo" role="note">
     <strong>Sol · {nombre} · {instrumento}</strong>
     <span>Vista desde la Tierra{fecha ? ` · ${video ? 'vídeo de las 48 h hasta el' : 'imagen del'} ${sdoDateLabel(fecha)}` : ''}</span>

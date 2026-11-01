@@ -52,9 +52,6 @@
   .distance-panel { top: 24px; left: 24px; }
   .scale-navigation { top: auto; bottom: 66px; left: 18px; right: auto; }
   .scene-footer { left: 18px; right: 18px; bottom: 15px; }
-  .navigation-hint { display: none; }
-  .navigation-hint.flight-hint { display: block; }
-  .scene-footer:has(.flight-hint) { flex-direction: column; gap: 3px; }
   .scale-navigation { flex-wrap: wrap; right: 18px; }
   .oort-note { bottom: 115px; left: 18px; }
 }
@@ -129,7 +126,7 @@
 .dial-instruccion button:disabled{cursor:default;color:#64747e;}
 .dial-teclado{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:50%;bottom:30px;}
 .dial-velocidad:has(input:focus-visible) .dial-fondo{stroke:#94c7d5;}
-.scene-footer{padding-right:0}.navigation-hint{max-width:34vw;text-align:right;line-height:1.6;}
+.scene-footer{padding-right:0}
 .body-panel{left:30px}
 @media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.body-panel{left:18px;max-width:calc(100% - 96px)}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
 @media(max-height:650px){.barra-distancia{--superior:155px;--inferior:70px}.dial-velocidad{transform:translateX(-50%) scale(.75);transform-origin:bottom center;bottom:6px}}

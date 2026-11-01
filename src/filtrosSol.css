@@ -1,10 +1,16 @@
 /* Chips de los filtros del Sol: bajo los controles en el computador; en el celular, una fila
    que se desliza bajo los selectores. */
-.filtros-sol { position: absolute; z-index: 30; top: 66px; right: 28px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; width: 440px; max-width: calc(100% - 300px); font-size: 10px; pointer-events: auto; }
+.filtros-sol { position: absolute; z-index: 30; top: 66px; right: 28px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; width: 480px; max-width: calc(100% - 300px); font-size: 10px; pointer-events: auto; transition: opacity .2s; }
+/* Al abrir «Ver» se ocultan para no superponerse con su panel. */
+.scene-overlay:has(.controles-ver) .filtros-sol { opacity: 0; pointer-events: none; }
 .filtros-sol button { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid #7f9aa952; border-radius: 999px; background: #04080ed9; color: #9fb2c0; font: inherit; white-space: nowrap; cursor: pointer; transition: color .2s, background .2s, border-color .2s; }
 .filtros-sol button:hover, .filtros-sol button:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
 .filtros-sol button.encendido { color: #e6ebf3; background: #8fd3ff1f; border-color: #8fd3ff80; }
 .filtros-sol button span { width: 6px; height: 6px; border-radius: 50%; background: #8fd3ff; box-shadow: 0 0 6px #8fd3ff; }
+.filtros-sol button.cargando span { animation: filtro-cargando 1s ease-in-out infinite; }
+@keyframes filtro-cargando { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .filtros-sol button.cargando span { animation: none; } }
+.filtros-sol small { color: #7c8796; font-size: .85em; }
 @media (min-width: 1201px) and (pointer: fine) { .filtros-sol { zoom: 1.3; } }
 @media (max-width: 900px) {
   .filtros-sol { top: 255px; left: 20px; right: 20px; width: auto; max-width: none; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; font-size: 12px; }
