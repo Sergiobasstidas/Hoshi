@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useProgress } from '@react-three/drei';
 import { progresoCarga } from './progresoCarga';
 import * as THREE from 'three';
-import stellarPhysics from '../data/processed/stellar_physics.json';
+import datosOficiales from '../data/processed/stellar_official.json';
 import starsUrl from '../data/processed/stars_15pc.json?url';
 import systemsUrl from '../data/processed/star_systems.json?url';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
@@ -59,7 +59,7 @@ import PantallaCompleta from './PantallaCompleta';
 import AvisoCelular from './AvisoCelular';
 import MenuVer from './MenuVer';
 import ControlesComputador from './ControlesComputador';
-import { estimarFisicaSeleccion } from './scene/stellarPhysics';
+import { fisicaOficial } from './scene/stellarPhysics';
 import FichaEstrella from './FichaEstrella';
 import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
@@ -73,13 +73,17 @@ function buildCatalogue({ catalogue, systems, planets }) {
   // NASA: preceden a la estimación fotométrica.
   const hostPhysicsById = new Map((planets?.systems || []).map(system => [system.i, hostPhysics(system.st)]));
   const stars = identifyStellarTargets([...catalogue, ...CURATED_STARS])
-    .map(star => ({ ...star, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || hostPhysicsById.get(star.i) || stellarPhysics[star.i] || null }));
+    .map(star => ({ ...star, datos: datosOficiales[star.i] || null, physics: PUBLISHED_STELLAR_PHYSICS[star.i] || hostPhysicsById.get(star.i) || fisicaOficial(datosOficiales[star.i]) }));
   const STELLAR_TARGETS = stellarTargets(stars);
   const starsById = new Map(stars.map(star => [star.i, star]));
   // Coloca las componentes de los sistemas múltiples; puede situar sobre su órbita a
   // una compañera que ya era un registro del catálogo.
   const BINARY_SYSTEMS = buildStarSystems(systems, starsById);
-  for (const system of BINARY_SYSTEMS) system.star.system = system;
+  for (const system of BINARY_SYSTEMS) {
+    system.star.system = system;
+    // Una compañera con registro propio también conoce su sistema, para la ficha.
+    for (const component of system.components) if (component.companion) component.companion.sistemaDe = system;
+  }
   // Sistemas planetarios, después de recolocar compañeras: usan la posición final de su estrella.
   const PLANETARY_SYSTEMS = buildPlanetarySystems(planets, starsById);
   for (const system of PLANETARY_SYSTEMS) (system.star.planetary ||= []).push(system);
@@ -215,7 +219,6 @@ export default function App() {
   const visitBody = (elegido, fromSearch = false, sistema = false) => {
     let body = elegido;
     if (elegido.kind === 'star' && elegido.star) {
-      elegido.star.physics ||= estimarFisicaSeleccion(elegido.star);
       const physics = elegido.star.physics;
       if (physics && !sistema) body = { kind: 'star', name: elegido.name, position: elegido.position, star: elegido.star, radiusKm: physics.radiusKm,
         source: physics.source, distanceSource: elegido.distanceSource, identifiers: elegido.identifiers };
@@ -379,6 +382,10 @@ export default function App() {
     setDireccionFicha(1);
     focusBody(planeta);
   };
+  const verComponenteDesdeFicha = (star, nombre) => {
+    setDireccionFicha(1);
+    visitBody(starBody(star, nombre), true);
+  };
   const verEstrellaDesdeFicha = () => {
     setDireccionFicha(-1);
     setEstrellaPrevia(null);
@@ -450,7 +457,7 @@ export default function App() {
       <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
         focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} />
       {binaryBody && <BinarySystem />}
-      {!binaryBody && <CompanionStars systems={BINARY_SYSTEMS} origin={origin} />}
+      {!binaryBody && <CompanionStars onElegir={(star, nombre) => visitBody(starBody(star, nombre), true)} systems={BINARY_SYSTEMS} origin={origin} />}
       {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
       {showDiscoveries && discoveries.data && <ExoplanetDiscoveries data={discoveries.data} filter={discoveryFilter} origin={origin} onSelect={visitDiscovery} />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
@@ -536,7 +543,7 @@ export default function App() {
         etiqueta={`Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
           volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerExoplanetas={() => ejecutarAccion('exoplanetas')}
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha}
             onVerSuperficie={() => { if (estrellaEnfocada) visitBody(panelBody, true); else inspectSurface(); }}>{estrellaEnfocada ? detalle : null}</FichaEstrella>}
       </FichaLateral>}
       {showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">

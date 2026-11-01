@@ -899,11 +899,9 @@ test('La salida a Exoplanetas arranca sin saltos desde la cámara, gira y termin
   }
 });
 
-test('Una estrella sin física de catálogo recibe una estimación razonable al seleccionarla', async () => {
-  const { estimarFisicaSeleccion } = await import('../src/scene/stellarPhysics.js');
-  const mintaka = estimarFisicaSeleccion({ m: -4.385, sp: 'O9.5 II' });
-  assert.ok(mintaka.temperatureK > 28000 && mintaka.temperatureK < 33000);
-  assert.ok(mintaka.radiusSolar > 5 && mintaka.radiusSolar < 40);
-  assert.equal(estimarFisicaSeleccion({ m: 1, sp: '' }), null);
-  assert.equal(estimarFisicaSeleccion({ sp: 'G2 V' }), null);
+test('La física oficial exige radio y temperatura y no calcula lo que falta', async () => {
+  const { fisicaOficial } = await import('../src/scene/stellarPhysics.js');
+  assert.equal(fisicaOficial({ temperatureK: 5000 }), null);
+  assert.equal(fisicaOficial(null), null);
+  assert.equal(fisicaOficial({ temperatureK: 5000, radiusSolar: 2 }).radiusSolar, 2);
 });

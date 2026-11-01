@@ -15,9 +15,9 @@
 .ficha-estrella-dato dd { margin: 0; color: #eef3fa; text-align: right; font-variant-numeric: tabular-nums; }
 .ficha-estrella-color { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; }
 .ficha-estrella-comparacion { margin: 14px 0 0; }
-.ficha-estrella-comparacion svg { display: block; width: 100%; max-width: 230px; height: auto; margin: 0 auto; }
-.ficha-estrella-comparacion figcaption { display: flex; justify-content: space-around; max-width: 230px; margin: 0 auto; color: #7f8b9b; font-size: 9.5px; }
-.ficha-estrella-comparacion p { margin: 6px 0 0; text-align: center; color: #b4c0ce; font-size: 11px; }
+.ficha-estrella-comparacion svg { display: block; width: 100%; max-width: 276px; height: auto; margin: 0 auto; }
+.ficha-estrella-comparacion figcaption { display: flex; justify-content: space-around; max-width: 276px; margin: 0 auto; color: #7f8b9b; font-size: 11.4px; }
+.ficha-estrella-comparacion p { margin: 6px 0 0; text-align: center; color: #b4c0ce; font-size: 13.2px; }
 .ficha-estrella section { margin-top: 18px; }
 .ficha-estrella h3 { margin: 0 0 8px; color: #7f8b9b; font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
 .ficha-estrella-planetas { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }

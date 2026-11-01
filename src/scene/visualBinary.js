@@ -129,3 +129,12 @@ export function buildStarSystems(data, starsById) {
   });
 }
 export const FRAME_LIMIT_AU = 2500;
+
+// Registro de una compañera sin estrella propia en el catálogo, para poder fijarla y ver su ficha.
+export function estrellaDeComponente(system, c) {
+  if (c.companion) return c.companion;
+  const { star, position } = system;
+  return c.estrella ||= { i: `${star.i}-${c.name}`, n: `${star.n} ${c.name}`, sp: c.pair.sp, d: star.d, rgb: c.color,
+    m: Number.isFinite(c.pair.v) ? c.pair.v - 5 * Math.log10(star.d / 10) : undefined,
+    x: position[0] + c.offsetPc[0], y: position[1] + c.offsetPc[1], z: position[2] + c.offsetPc[2], physics: null, datos: null, sistemaDe: system };
+}

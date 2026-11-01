@@ -11,15 +11,14 @@ export default function FichaLateral({ clave, direccion = 1, etiqueta, onCerrar,
   const [saliente, setSaliente] = useState(null);
   const anterior = useRef({ clave, children });
   useEffect(() => {
-    if (anterior.current.clave !== clave) {
-      setSaliente({ clave: anterior.current.clave, children: anterior.current.children });
-      const fin = setTimeout(() => setSaliente(null), 300);
-      anterior.current = { clave, children };
-      return () => clearTimeout(fin);
-    }
+    if (anterior.current.clave !== clave) setSaliente({ clave: anterior.current.clave, children: anterior.current.children });
     anterior.current = { clave, children };
-    return undefined;
   }, [clave, children]);
+  useEffect(() => {
+    if (!saliente) return undefined;
+    const fin = setTimeout(() => setSaliente(null), 300);
+    return () => clearTimeout(fin);
+  }, [saliente]);
   useEffect(() => {
     const tecla = event => { if (event.key === 'Escape') onCerrar(); };
     window.addEventListener('keydown', tecla);

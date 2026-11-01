@@ -18,15 +18,15 @@ function distanciaComparada(ua) {
   return razon < 1 ? `${numero(1 / razon, 2)} veces más cerca que ${cuerpo} del Sol` : `${numero(razon, 2)} veces más lejos que ${cuerpo} del Sol`;
 }
 // Tamaño comparado con la Tierra y Júpiter, a la misma escala.
-function ComparacionPlaneta({ radio, color }) {
+function ComparacionPlaneta({ nombre, radio, color }) {
   const escala = 30 / Math.max(radio, JUPITER_RADIOS_TIERRA);
-  const circulos = [['Tierra', 1, '#6ea8d8'], ['Este planeta', radio, color], ['Júpiter', JUPITER_RADIOS_TIERRA, '#d9b48a']];
+  const circulos = [['Tierra', 1, '#6ea8d8'], [nombre, radio, color], ['Júpiter', JUPITER_RADIOS_TIERRA, '#d9b48a']];
   const texto = radio >= 1 ? `${numero(radio)} veces el radio de la Tierra` : `${numero(1 / radio)} veces más pequeño que la Tierra`;
   return <figure className="ficha-estrella-comparacion">
     <svg viewBox="0 0 200 70" role="img" aria-label={texto}>
       {circulos.map(([nombre, valor, relleno], i) => <circle key={nombre} cx={[30, 90, 160][i]} cy={35} r={Math.max(1.2, valor * escala)} fill={relleno} />)}
     </svg>
-    <figcaption className="tres"><span>Tierra</span><span>Este planeta</span><span>Júpiter</span></figcaption>
+    <figcaption className="tres"><span>Tierra</span><span>{nombre}</span><span>Júpiter</span></figcaption>
     <p>{texto}</p>
   </figure>;
 }
@@ -40,7 +40,7 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver,
     <h2 className="marca-hoshi">{planeta.n}</h2>
     <p className="ficha-estrella-tipo">{tipo}</p>
     <p className="ficha-estrella-relato">{relato}</p>
-    <ComparacionPlaneta radio={planeta.r} color={`rgb(${planeta.color.map(v => Math.round(v * 255)).join(', ')})`} />
+    <ComparacionPlaneta nombre={planeta.n} radio={planeta.r} color={`rgb(${planeta.color.map(v => Math.round(v * 255)).join(', ')})`} />
     <dl>
       <Dato etiqueta="Radio" valor={`${numero(planeta.r)} Tierras`} />
       {planeta.m > 0 && <Dato etiqueta="Masa" valor={`${numero(planeta.m)} Tierras`} />}
@@ -58,6 +58,6 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver,
         </li>)}
       </ul>
     </section>}
-    <p className="ficha-estrella-fuente">Órbitas y tamaños a escala · <a href={'https://exoplanetarchive.ipac.caltech.edu/'} target="_blank" rel="noreferrer">NASA Exoplanet Archive</a></p>
+    <p className="ficha-estrella-fuente">Órbitas, tamaños y periodos a escala real, calculados con los parámetros publicados en el <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank" rel="noreferrer">NASA Exoplanet Archive</a>.</p>
   </>;
 }

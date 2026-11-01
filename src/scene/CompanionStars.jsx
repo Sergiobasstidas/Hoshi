@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { AdditiveBlending } from 'three';
 import { smoothRange } from './scale';
-import { barycentricOrbitsPc, companionOrbitPc } from './visualBinary';
+import { barycentricOrbitsPc, companionOrbitPc, estrellaDeComponente } from './visualBinary';
 
 // Componentes de sistemas múltiples (ORB6 y WDS). Al acercarse, cada compañera deja de
 // coincidir con el punto del catálogo. Los puntos son marcadores: su tamaño indica
@@ -12,7 +12,7 @@ const MAX_ACTIVE = 6;
 // Distancias de aparición en múltiplos de la separación de cada componente.
 const MARKER_RANGE = [250, 600], LINE_RANGE = [60, 300], LABEL_RANGE = [45, 110];
 
-function CompanionSystem({ system, origin }) {
+function CompanionSystem({ system, origin, onElegir }) {
   const lines = useRef(), material = useRef(), points = useRef(), labels = useRef([]);
   const position = useMemo(() => system.position.map((v, i) => v - origin[i]), [system, origin]);
   // Las compañeras que ya son un registro del catálogo se dibujan con el campo estelar.
@@ -45,7 +45,10 @@ function CompanionSystem({ system, origin }) {
       const distance = range(component);
       attributes.alpha[i] = 1 - smoothRange(distance, ...MARKER_RANGE);
       const label = labels.current[i];
-      if (label) label.style.opacity = 1 - smoothRange(distance, ...LABEL_RANGE);
+      if (label) {
+        label.style.opacity = 1 - smoothRange(distance, ...LABEL_RANGE);
+        label.style.pointerEvents = label.style.opacity > 0.5 ? 'auto' : 'none';
+      }
     });
     if (points.current) points.current.geometry.attributes.alpha.needsUpdate = true;
     if (material.current) material.current.uniforms.pixelRatio.value = gl.getPixelRatio();
@@ -94,12 +97,13 @@ function CompanionSystem({ system, origin }) {
           }`} />
     </points>}
     {drawn.map((component, i) => <Html key={component.name} position={component.offsetPc} zIndexRange={[18, 10]} style={{ pointerEvents: 'none' }}>
-      <span ref={element => { labels.current[i] = element; }} className="companion-label" style={{ opacity: 0 }}>{component.label}</span>
+      <span ref={element => { labels.current[i] = element; }} className="companion-label" style={{ opacity: 0 }} title="Doble clic: fijarla"
+        onDoubleClick={() => onElegir?.(estrellaDeComponente(system, component), `${system.star.n} ${component.name}`)}>{component.label}</span>
     </Html>)}
   </group>;
 }
 
-export default function CompanionStars({ systems, origin }) {
+export default function CompanionStars({ systems, origin, onElegir }) {
   const [active, setActive] = useState([]);
   const key = useRef('');
   useFrame(({ camera }) => {
@@ -114,5 +118,5 @@ export default function CompanionStars({ systems, origin }) {
     const nextKey = next.map(system => system.id).join(',');
     if (nextKey !== key.current) { key.current = nextKey; setActive(next); }
   });
-  return active.map(system => <CompanionSystem key={system.id} system={system} origin={origin} />);
+  return active.map(system => <CompanionSystem key={system.id} system={system} origin={origin} onElegir={onElegir} />);
 }

@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { temperatureColor } from './scene/stellarPhysics';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { indiceBusqueda } from './indiceBusqueda';
+import { estrellaDeComponente } from './scene/visualBinary';
 import { Dato } from './FichaLateral';
 
 const CONSTELACIONES = { And: 'Andrómeda', Ant: 'Antlia', Aps: 'Ave del Paraíso', Aqr: 'Acuario', Aql: 'Águila', Ara: 'Altar', Ari: 'Aries', Aur: 'Auriga', Boo: 'Boyero', Cae: 'Cincel', Cam: 'Jirafa', Cnc: 'Cáncer', CVn: 'Lebreles', CMa: 'Can Mayor', CMi: 'Can Menor', Cap: 'Capricornio', Car: 'Quilla', Cas: 'Casiopea', Cen: 'Centauro', Cep: 'Cefeo', Cet: 'Ballena', Cha: 'Camaleón', Cir: 'Compás', Col: 'Paloma', Com: 'Cabellera de Berenice', CrA: 'Corona Austral', CrB: 'Corona Boreal', Crv: 'Cuervo', Crt: 'Copa', Cru: 'Cruz del Sur', Cyg: 'Cisne', Del: 'Delfín', Dor: 'Dorado', Dra: 'Dragón', Equ: 'Caballito', Eri: 'Erídano', For: 'Horno', Gem: 'Géminis', Gru: 'Grulla', Her: 'Hércules', Hor: 'Reloj', Hya: 'Hidra', Hyi: 'Hidra Macho', Ind: 'Indio', Lac: 'Lagarto', Leo: 'Leo', LMi: 'León Menor', Lep: 'Liebre', Lib: 'Libra', Lup: 'Lobo', Lyn: 'Lince', Lyr: 'Lira', Men: 'Mesa', Mic: 'Microscopio', Mon: 'Unicornio', Mus: 'Mosca', Nor: 'Escuadra', Oct: 'Octante', Oph: 'Ofiuco', Ori: 'Orión', Pav: 'Pavo', Peg: 'Pegaso', Per: 'Perseo', Phe: 'Fénix', Pic: 'Pintor', Psc: 'Piscis', PsA: 'Pez Austral', Pup: 'Popa', Pyx: 'Brújula', Ret: 'Retículo', Sge: 'Flecha', Sgr: 'Sagitario', Sco: 'Escorpio', Scl: 'Escultor', Sct: 'Escudo', Ser: 'Serpiente', Sex: 'Sextante', Tau: 'Tauro', Tel: 'Telescopio', Tri: 'Triángulo', TrA: 'Triángulo Austral', Tuc: 'Tucán', UMa: 'Osa Mayor', UMi: 'Osa Menor', Vel: 'Vela', Vir: 'Virgo', Vol: 'Pez Volador', Vul: 'Zorra' };
@@ -26,6 +27,17 @@ function tipoEstelar(espectro) {
   return { nombre: gigante && letra !== 'D' ? tipo[0].replace(/^(Estrella|Enana)/, 'Gigante') : tipo[0], texto: tipo[1] };
 }
 
+// Las demás estrellas de su sistema; una compañera sin registro propio se completa con el dato del par.
+function componentesDelSistema(star, nombre) {
+  const sistema = star.system || star.sistemaDe;
+  if (!sistema) return [];
+  const primaria = sistema.star;
+  return [{ star: primaria, nombre: primaria.n || 'Estrella principal' }, ...sistema.components.map(c => ({
+    nombre: c.companion?.n || `${primaria.n} ${c.name}`,
+    star: estrellaDeComponente(sistema, c),
+  }))].filter(miembro => miembro.star !== star && miembro.nombre !== nombre);
+}
+
 // Magnitud aparente desde su magnitud absoluta y distancia, comparada con estrellas conocidas.
 const REFERENCIAS = [['Sirio', -1.46], ['Vega', 0.03], ['Polaris', 1.98], ['Megrez', 3.3], ['Alcor', 3.99]];
 function brilloDesdeLaTierra(star, nombre) {
@@ -46,9 +58,6 @@ function colorLegible(temperatura) {
   const mezcla = Math.max(0, (0.72 - luminancia) / (1 - luminancia));
   return `rgb(${rgb.map(v => Math.round((v + (1 - v) * mezcla) * 255)).join(', ')})`;
 }
-
-const temperaturaDesdeColor = indice => Number.isFinite(indice) && indice > -0.4 && indice < 2
-  ? 4600 * (1 / (0.92 * indice + 1.7) + 1 / (0.92 * indice + 0.62)) : null;
 
 // Resumen de Wikipedia: en español y, si no hay, en inglés. Un nombre puede ser también de un
 // personaje o un lugar, así que se exige que el texto hable de una estrella.
@@ -100,7 +109,7 @@ function DiscoEstrella({ id, cx, r, color }) {
   const lado = r * 2.36;
   return <g>
     <filter id={`${id}-tinte`} colorInterpolationFilters="sRGB">
-      <feColorMatrix type="matrix" values={[cr, cg, cb].map(c => `${0.6 * c} ${c} 0 0 ${0.18 * c}`).join('  ') + '  0 0 0 1 0'} />
+      <feColorMatrix type="matrix" values={[cr, cg, cb].map(c => `${0.8 * c} ${1.2 * c} 0 0 ${0.24 * c}`).join('  ') + '  0 0 0 1 0'} />
     </filter>
     <clipPath id={`${id}-disco`}><circle cx={cx} cy={38} r={r} /></clipPath>
     <circle cx={cx} cy={38} r={r} fill={`rgb(${color.map(v => Math.round(v * 255)).join(', ')})`} />
@@ -125,34 +134,45 @@ function ComparacionSol({ radio, temperatura }) {
 }
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerExoplanetas, children }) {
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, children }) {
   const resumen = useResumen(nombre);
   const constelacion = useConstelacion(star.i);
-  const { physics, system, planetary } = star;
-  const temperatura = physics?.temperatureK ?? temperaturaDesdeColor(star.c);
+  const { physics, planetary } = star;
+  const datos = star.datos;
+  const temperatura = physics?.temperatureK ?? datos?.temperatureK;
+  const radio = physics?.radiusSolar ?? datos?.radiusSolar;
+  const masa = planetary?.[0]?.st?.m ?? datos?.massSolar;
+  const espectro = star.sp || datos?.espectro;
+  const fuentes = Object.entries({ temperatura: datos?.fuentes.temperatureK, radio: datos?.fuentes.radiusSolar, masa: datos?.fuentes.massSolar, luminosidad: datos?.fuentes.luminositySolar }).filter(([, fuente]) => fuente);
+  const miembros = componentesDelSistema(star, nombre);
   const color = temperatura ? `rgb(${temperatureColor(temperatura).map(v => Math.round(v * 255)).join(', ')})` : '#fff';
-  const luminosidad = physics?.luminositySolar ?? (Number.isFinite(star.m) ? 10 ** (0.4 * (4.83 - star.m)) : null);
+  const luminosidad = physics?.luminositySolar ?? datos?.luminositySolar;
   const anosLuz = star.d / LIGHT_YEAR_PC;
-  const tipo = tipoEstelar(star.sp);
+  const tipo = tipoEstelar(espectro);
   const planetas = (planetary || []).flatMap(sistema => sistema.planets);
   const referencia = brilloDesdeLaTierra(star, nombre);
   return <>
       <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{nombre}</h2>
-      {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${star.sp.replace(/\.+\s*$/, '').trim()}`}</p>}
+      {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${espectro.replace(/\.+\s*$/, '').trim()}`}</p>}
       {tipo && <p className="ficha-estrella-relato">{tipo.texto}</p>}
-      {physics?.radiusSolar > 0 && <ComparacionSol radio={physics.radiusSolar} temperatura={temperatura || 5772} />}
+      {radio > 0 && <ComparacionSol radio={radio} temperatura={temperatura || 5772} />}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
           <i className="ficha-estrella-color" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
         </Dato>}
-        {physics?.radiusSolar > 0 && <Dato etiqueta="Radio" valor={`${numero(physics.radiusSolar)} R☉`} />}
-        {planetary?.[0]?.st?.m > 0 && <Dato etiqueta="Masa" valor={`${numero(planetary[0].st.m)} M☉`} />}
+        {radio > 0 && <Dato etiqueta="Radio" valor={`${numero(radio)} R☉`} />}
+        {masa > 0 && <Dato etiqueta="Masa" valor={`${numero(masa)} M☉`} />}
         {luminosidad > 0 && <Dato etiqueta="Luminosidad" valor={`${numero(luminosidad)} L☉`} />}
         {referencia && <Dato etiqueta="Desde la Tierra" valor={referencia} />}
         <Dato etiqueta="Distancia al Sol" valor={`${numero(anosLuz, anosLuz < 100 ? 3 : 2)} años luz`} />
         {constelacion && <Dato etiqueta="Constelación" valor={constelacion} />}
       </dl>
-      {system?.components?.length > 1 && <p className="ficha-estrella-relato">No está sola: forma un sistema múltiple de {system.components.length} estrellas ligadas por su gravedad.</p>}
+      {miembros.length > 0 && <section>
+        <h3>Sistema</h3>
+        <ul className="ficha-estrella-planetas">
+          {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{miembro.nombre}</button></li>)}
+        </ul>
+      </section>}
       {planetas.length > 0 && <section>
         <h3>{planetas.length === 1 ? 'Un planeta conocido' : `${planetas.length} planetas conocidos`}</h3>
         <ul className="ficha-estrella-planetas">
@@ -160,14 +180,13 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
             {planeta.body ? <button onClick={() => onVerPlaneta(planeta.body)}>{planeta.n}</button> : <span>{planeta.n}</span>}
           </li>)}
         </ul>
-        <button className="ficha-estrella-enlace" onClick={onVerExoplanetas}>✦ Ver en Exoplanetas</button>
       </section>}
       {resumen && <section className="ficha-estrella-wikipedia">
         <p>{resumen.texto}</p>
       </section>}
-      {physics?.derivada && <p className="ficha-estrella-fuente">Radio estimado por su brillo y su temperatura.</p>}
       {onVerSuperficie && physics && <button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button>}
-      {(children || resumen) && <details className="ficha-estrella-tecnico"><summary>Datos técnicos y fuentes</summary>{children}
+      {(children || resumen || fuentes.length > 0) && <details className="ficha-estrella-tecnico"><summary>Datos técnicos y fuentes</summary>{children}
+        {fuentes.length > 0 && <div>{fuentes.map(([dato, fuente]) => `${dato[0].toUpperCase()}${dato.slice(1)}: ${fuente}`).join(' · ')}</div>}
         {/* La licencia CC BY-SA del resumen exige citar su origen; va aquí, sin ocupar la ficha. */}
         {resumen && <div>Texto: <a href={resumen.enlace} target="_blank" rel="noreferrer">Wikipedia</a> (CC BY-SA)</div>}
       </details>}
