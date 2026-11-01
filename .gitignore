@@ -41,6 +41,7 @@ data/catalog/star_identity.json
 data/raw/simbad/*
 !data/raw/simbad/FUENTES.md
 
+# Notas de trabajo locales: solo la documentación pública de docs/ se versiona
 /HOSHI_*.md
 /PENDIENTES.md
 /docs/*

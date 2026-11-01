@@ -175,10 +175,11 @@ export default function App() {
   const exoplanetBody = view.body?.kind === 'exoplanet' ? view.body : null;
   const hostStar = stellarBody?.star || exoplanetBody?.star;
   const localPlanets = (hostStar?.planetary || []).flatMap(system => system.planets.filter(planet => planet.body).map(planet => planet.body));
+  // Estrellas de una binaria anfitriona a las que se puede viajar por separado.
   // Lunas del planeta enfocado o de la luna enfocada (Júpiter y Saturno), para el selector.
   const { bodies: moonBodies } = useMoons();
+  const { probes: probeBodies } = useProbes();
   const localMoons = moonBodies.filter(body => body.planet === moonHost(view.body));
-  // Estrellas de una binaria anfitriona a las que se puede viajar por separado.
   const localStars = (hostStar?.planetary || []).flatMap(system => (system.binary?.components || []).filter(component => component.body).map(component => component.body));
   const hostName = exoplanetBody && (hostStar.n || exoplanetBody.system.name);
   const origin = binaryBody?.position || stellarBody?.position || exoplanetBody?.position || SOLAR_ORIGIN;
@@ -287,7 +288,6 @@ export default function App() {
     const id = discoveries.data.systems.i[index];
     if (id >= 0) visitSearchResult({ id, aliases: [discoveries.data.systems.n[index]] });
   };
-  const { probes: probeBodies } = useProbes();
   const labels = useMemo(() => [
     { kind: 'moon', text: `Luna · ${(Math.round(MOON.distanceKm / 100) * 100).toLocaleString('es-CL')} km de la Tierra`, position: MOON.position, width:230, body:MOON },
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
@@ -398,9 +398,9 @@ export default function App() {
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
+      {view.id === 'heliosphere' && !showPulsars && showHeliosphere && <FichaHeliosfera />}
       {showDiscoveries && <PanelDescubrimientos data={discoveries.data} status={discoveries.status} filter={discoveryFilter}
         onFilter={setDiscoveryFilter} onClose={() => setShowDiscoveries(false)} />}
-      {view.id === 'heliosphere' && !showPulsars && showHeliosphere && <FichaHeliosfera />}
       {showPulsars && <aside className="pulsar-legend">
         <strong>Los 14 púlsares del mapa de Voyager</strong>
         <span>Conexiones desde el Sol · distancias estimadas · posiciones de catálogo</span>
