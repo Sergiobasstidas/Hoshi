@@ -33,7 +33,11 @@ async function tic(hips) {
     const request = JSON.stringify({ service: 'Mast.Catalogs.Filtered.Tic', format: 'json', pagesize: 500, page: 1,
       params: { columns: 'ID,HIP,GAIA,Teff,rad,mass,lum', filters: [{ paramName: 'HIP', values: grupo.map(String) }] } });
     const r = await fetch('https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(45000), method: 'POST', body: new URLSearchParams({ request }) });
-    for (const f of (await r.json()).data || []) filas.set(Number(f.HIP), f);
+    // Un HIP puede tener varias filas: siempre la misma, primero las que traen radio y luego el ID menor.
+    for (const f of (await r.json()).data || []) {
+      const previa = filas.get(Number(f.HIP));
+      if (!previa || (f.rad && !previa.rad) || (Boolean(f.rad) === Boolean(previa.rad) && Number(f.ID) < Number(previa.ID))) filas.set(Number(f.HIP), f);
+    }
   }
   return filas;
 }
@@ -67,7 +71,7 @@ async function ticPorGaia(ids) {
 async function gaia(ids) {
   const filas = new Map();
   for (const grupo of en(ids, 200)) {
-    const lista = await tap('https://gea.esac.esa.int/tap-server/tap/sync', `SELECT source_id,teff_gspphot,radius_flame,mass_flame,lum_flame FROM gaiadr3.astrophysical_parameters WHERE source_id IN (${grupo.join(',')})`);
+    const lista = await tap('https://gaia.ari.uni-heidelberg.de/tap/sync', `SELECT a.source_id,a.teff_gspphot,a.radius_flame,a.radius_gspphot,a.mass_flame,a.lum_flame,g.ruwe,g.phot_g_mean_mag FROM gaiadr3.astrophysical_parameters AS a JOIN gaiadr3.gaia_source AS g ON g.source_id = a.source_id WHERE a.source_id IN (${grupo.join(',')})`);
     for (const f of lista) filas.set(f.source_id, f);
   }
   return filas;
@@ -87,7 +91,9 @@ async function simbad(hips) {
 }
 const radioMedido = (fila, distanciaPc) => fila.unidad === 'km' ? positivo(fila.diametro / 2 / 695700)
   : fila.unidad === 'mas' ? positivo(0.1075 * fila.diametro * distanciaPc) : null;
-const FUENTE = { nasa: 'NASA Exoplanet Archive', tic: 'TESS Input Catalog v8.2 (MAST)', gaia: 'Gaia DR3', simbad: 'SIMBAD' };
+// GSP-Phot falla en estrellas calientes y muy brillantes, en binarias sin resolver y con mala astrometría.
+const radioGspPhotFiable = (g, espectro = '') => Number(g.phot_g_mean_mag) >= 4 && Number(g.ruwe) <= 1.4 && !/\+/.test(espectro) && !/(^|\s)\(?(O|B[0-3])/.test(espectro);
+const FUENTE = { nasa: 'NASA Exoplanet Archive', tic: 'TESS Input Catalog v8.2 (MAST)', gaia: 'Gaia DR3', simbad: 'SIMBAD', gspphot: 'Gaia DR3 (radius_gspphot)' };
 const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).filter(s => s.n && s.n !== 'Sol');
 const busqueda = new Map(JSON.parse(fs.readFileSync('public/data/star-search.json', 'utf8')));
 const hipDe = star => { const a = (busqueda.get(star.i) || []).find(alias => /^HIP \d+$/.test(alias)); return a ? Number(a.slice(4)) : null; };
@@ -108,6 +114,7 @@ for (const star of stars) {
     ['tic', t && { temperatureK: positivo(t.Teff), radiusSolar: positivo(t.rad), massSolar: positivo(t.mass), luminositySolar: positivo(t.lum) }],
     ['gaia', g && { temperatureK: positivo(g.teff_gspphot), radiusSolar: positivo(g.radius_flame), massSolar: positivo(g.mass_flame), luminositySolar: positivo(g.lum_flame) }],
     ['simbad', s && { temperatureK: positivo(s.teff), espectro: s.sp_type || null, radiusSolar: radioMedido(s, star.d) }],
+    ['gspphot', g && radioGspPhotFiable(g, `${s?.sp_type || ''} ${star.sp || ''}`) && { radiusSolar: positivo(g.radius_gspphot) }],
   ];
   const fila = { fuentes: {} };
   for (const campo of ['temperatureK', 'radiusSolar', 'massSolar', 'luminositySolar', 'espectro']) {
