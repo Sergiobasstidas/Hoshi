@@ -52,3 +52,20 @@ export function estimateStellarPhysics(record) {
 export function stellarStopDistance(physics) {
   return physics ? physics.radiusPc * 1.15 : null;
 }
+
+// Temperatura típica por clase espectral (primer valor: subtipo 0; segundo: subtipo 9).
+const TEMPERATURA_ESPECTRAL = { O: [50000, 31000], B: [30000, 10500], A: [9700, 7400], F: [7200, 6000], G: [5900, 5300], K: [5200, 3900], M: [3800, 2500] };
+// Estimación para una estrella seleccionada que el catálogo dejó sin física (por ejemplo, clase O
+// o sistema sin resolver): temperatura por su espectro y radio por su luminosidad y temperatura.
+export function estimarFisicaSeleccion(star) {
+  const tipo = star?.sp?.trim().match(/^([OBAFGKM])(\d(?:\.\d)?)?/);
+  if (!tipo || !Number.isFinite(star.m)) return null;
+  const [caliente, fria] = TEMPERATURA_ESPECTRAL[tipo[1]];
+  const temperatureK = caliente + (fria - caliente) * Number(tipo[2] ?? 5) / 9;
+  const solarBolometric = 4.81 + bolometricCorrection(SOLAR_TEMPERATURE_K);
+  const luminositySolar = 10 ** (0.4 * (solarBolometric - star.m - bolometricCorrection(temperatureK)));
+  const radiusSolar = radiusFromLuminosity(luminositySolar, temperatureK);
+  if (!(radiusSolar >= 0.01 && radiusSolar <= 2000)) return null;
+  return { temperatureK, luminositySolar, radiusSolar, radiusKm: radiusSolar * SUN_RADIUS_KM, radiusPc: radiusSolar * SUN_RADIUS_KM * KM_TO_PC,
+    status: 'estimated', derivada: true };
+}

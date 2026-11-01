@@ -1,25 +1,39 @@
 import { useMemo, useState } from 'react';
-import { buildSearchIndex, searchStars } from './scene/starSearch';
-import { addCuratedSearchRows } from './scene/curatedStars';
-let cached;
-export default function StarSearch({ onSelect }) {
+import { buildSearchIndex, normalizeStarQuery, searchStars } from './scene/starSearch';
+import { indiceBusqueda } from './indiceBusqueda';
+import { useEsComputador } from './esComputador';
+const SIN_DESTINOS=[];
+// En el computador el buscador también reemplaza a «Viajar a…»: suma planetas, lunas y estrellas de destino.
+export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTINOS }) {
+  const computador=useEsComputador();
   const [index,setIndex]=useState(null), [query,setQuery]=useState(''), [open,setOpen]=useState(false);
   const [active,setActive]=useState(0), [error,setError]=useState(false);
-  const results=useMemo(()=>searchStars(index || [],query),[index,query]);
+  const estrellas=useMemo(()=>searchStars(index || [],query),[index,query]);
+  const nombresDestinos=(computador?destinos:SIN_DESTINOS).map(body=>body.name).join('|');
+  const cuerpos=useMemo(()=>{
+    if(!computador||normalizeStarQuery(query).length<2)return [];
+    const unicos=[...new Map(destinos.map(body=>[body.optionValue||body.name,body])).values()];
+    return searchStars(buildSearchIndex(unicos.map((body,i)=>[`cuerpo-${i}`,[body.name]])),query)
+      .map(result=>({...result,body:unicos[Number(result.id.slice(7))]}));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- la lista se recrea en cada render; basta con sus nombres.
+  },[computador,nombresDestinos,query]);
+  const results=useMemo(()=>{
+    const nombres=new Set(cuerpos.map(result=>normalizeStarQuery(result.aliases[0])));
+    return [...cuerpos,...estrellas.filter(result=>!nombres.has(normalizeStarQuery(result.aliases[0])))]
+      .sort((a,b)=>a.score-b.score).slice(0,8);
+  },[cuerpos,estrellas]);
   const load=async()=>{
     setOpen(true);setError(false);
     try {
-      cached ||= fetch('/data/star-search.json').then(r=>{if(!r.ok)throw Error('index');return r.json();})
-        .then(addCuratedSearchRows).then(buildSearchIndex).catch(e=>{cached=null;throw e;});
-      setIndex(await cached);
+      setIndex(await indiceBusqueda());
     } catch {setError(true);}
   };
-  const select=result=>{onSelect(result);setQuery(result.aliases[0]);setOpen(false);};
+  const select=result=>{if(result.body)onSelectBody(result.body);else onSelect(result);setQuery(result.aliases[0]);setOpen(false);};
   return <div className="star-search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}}>
     <label htmlFor="star-search-input" className="solo-lector">Buscar estrella</label>
     <input id="star-search-input" role="combobox" aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
-      placeholder="Buscar: Sirio, Vega, HIP…" value={query} onFocus={load}
+      placeholder={computador?'¿A dónde vamos? Sirio, Júpiter, TRAPPIST-1…':'Buscar: Sirio, Vega, HIP…'} value={query} onFocus={load}
       onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}
       onKeyDown={e=>{
         if(e.key==='Escape'){setOpen(false);e.stopPropagation();}

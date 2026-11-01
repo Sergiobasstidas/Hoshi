@@ -1,0 +1,52 @@
+/* Controles del computador: buscador al centro arriba y, a la derecha, el grupo de botones más
+   Exoplanetas (ControlesComputador.jsx). El límite es el mismo de esComputador.js; por debajo
+   sigue la disposición anterior y la del celular. */
+.controles-computador { display: none; }
+@media (min-width: 901px) and (min-height: 501px) {
+  .scene-overlay .scale-navigation, .scene-overlay .body-selector { display: none; }
+
+  .scene-overlay .star-search { top: 28px; right: auto; left: 44%; width: min(340px, 28vw); transform: translateX(-50%); }
+  .scene-overlay .star-search input { padding: 9px 16px; border-color: #7f9aa952; border-radius: 999px; background: #080d15d9; text-overflow: ellipsis; }
+  .scene-overlay .star-search input:focus { outline: none; border-color: #aac8dca6; }
+  .scene-overlay .search-dropdown { margin-top: 6px; border-radius: 10px; }
+
+  .controles-computador { position: absolute; top: 28px; right: 28px; z-index: 36; display: flex; align-items: stretch; gap: 8px; font-size: 11px; pointer-events: auto; }
+  .controles-computador button { font: inherit; cursor: pointer; }
+  .controles-computador button:focus-visible { outline: 1px solid #aac8dc; outline-offset: 1px; }
+
+  .controles-grupo { position: relative; display: flex; gap: 2px; padding: 3px; border: 1px solid #7f9aa952; border-radius: 9px; background: #04080ed9; }
+  .controles-grupo > button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 0; border-radius: 6px; background: transparent; color: #9fb2c0; white-space: nowrap; transition: color .2s, background .2s; }
+  .controles-grupo > button:hover { color: #e6ebf3; }
+  .controles-grupo > button.abierto { color: #e6ebf3; background: #e6ebf31a; }
+  .controles-grupo > button svg { width: 13px; height: 13px; flex: none; }
+  .controles-punto { width: 6px; height: 6px; border-radius: 50%; background: #636e7e; }
+  .controles-grupo > button.encendido { color: #e6ebf3; background: #8fd3ff1a; }
+  .controles-grupo > button.encendido .controles-punto { background: #8fd3ff; box-shadow: 0 0 6px #8fd3ff; }
+  .controles-grupo > button.encendido svg { color: #8fd3ff; filter: drop-shadow(0 0 3px #8fd3ff); }
+  .controles-flecha { font-size: 9px; opacity: .7; transition: transform .2s; }
+  .abierto .controles-flecha { transform: rotate(180deg); }
+
+  .controles-exoplanetas { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border: 1px solid #f2c46b8c; border-radius: 9px; background: #04080ed9; color: #f2c46b; white-space: nowrap; transition: color .2s, border-color .2s; }
+  .controles-exoplanetas:hover { color: #ffe2a6; border-color: #f2c46b; }
+  .controles-exoplanetas.encendido { color: #ffe2a6; box-shadow: inset 0 -2px 0 #f2c46b; }
+
+  .controles-ver { position: absolute; top: calc(100% + 6px); right: 0; width: 260px; display: grid; gap: 1px; padding: 8px; border: 1px solid #aac8dca6; border-radius: 10px; background: #060a10f0; box-shadow: 0 12px 36px #00000080; }
+  .controles-ver h3 { margin: 6px 8px 4px; color: #7c8796; font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  .controles-fila { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 5px; background: transparent; color: #9fb2c0; text-align: left; }
+  .controles-fila > span { margin-right: auto; }
+  .controles-fila:hover { color: #e6ebf3; background: #e6ebf30f; }
+  .controles-fila small { color: #7c8796; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; }
+  .controles-fila.actual { color: #e6ebf3; background: #8fd3ff1a; }
+  .controles-fila.actual::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #8fd3ff; box-shadow: 0 0 6px #8fd3ff; }
+  .controles-interruptor { position: relative; width: 26px; height: 14px; border-radius: 999px; background: #1b2633; transition: background .2s; }
+  .controles-interruptor::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: #7c8796; transition: left .2s, background .2s; }
+  [aria-checked="true"] .controles-interruptor { background: #456a80; }
+  [aria-checked="true"] .controles-interruptor::after { left: 14px; background: #8fd3ff; }
+}
+@media (min-width: 1201px) {
+  .scene-overlay .star-search { width: min(340px, 24vw); }
+}
+@media (min-width: 1201px) and (min-height: 501px) and (pointer: fine) {
+  .controles-computador { zoom: 1.3; }
+}
+@media (prefers-reduced-motion: reduce) { .controles-flecha, .controles-interruptor, .controles-interruptor::after { transition: none; } }

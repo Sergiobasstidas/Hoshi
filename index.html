@@ -16,14 +16,17 @@
   </head>
   <body> 
     <div id="boot-loader" role="status" aria-live="polite">
-      <div class="boot-marca">HOSHI</div>
-      <div class="boot-consola"></div>
-      <div class="boot-track"><span></span></div>
+      <div class="boot-grupo">
+        <div class="boot-marca">H O S H I</div>
+        <div class="boot-consola"></div>
+        <div class="boot-track"><span></span></div>
+      </div>
     </div>
-    <style>body{margin:0;background:#020305}#boot-loader{position:fixed;inset:0;z-index:9999;background:#020305;color:#b8cadb;display:grid;place-content:center;justify-items:center;text-align:center;font:16px system-ui;transition:opacity .6s ease}#boot-loader.fin{opacity:0;pointer-events:none}.boot-marca{font-size:22px;letter-spacing:8px;margin-bottom:22px}.boot-consola{width:min(460px,86vw);min-height:6.4em;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;font:14px/1.5 ui-monospace,Menlo,monospace;text-align:center}.boot-consola div{transition:color .5s}.boot-consola b{margin-right:.6em;font-weight:400}.boot-consola .hecha{color:#5f7486}.boot-consola .hecha b{color:#8fe0b0}.boot-puntos::after{content:'';animation:boot-puntos 2.4s steps(1) infinite}@keyframes boot-puntos{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}.boot-track{width:220px;height:2px;background:#20303d;margin:24px auto;overflow:hidden}.boot-track span{display:block;width:0;height:100%;background:#91bed2;box-shadow:0 0 8px #91bed255;transition:width 1.2s ease-out}@media(prefers-reduced-motion:reduce){.boot-puntos::after{animation:none}.boot-puntos::after{content:'...'}}</style>
+    <style>body{margin:0;background:#020305}#boot-loader{position:fixed;inset:0;z-index:9999;background:#020305;color:#b8cadb;text-align:center;font:16px system-ui;transition:opacity .6s ease}#boot-loader.fin{opacity:0;pointer-events:none}.boot-grupo{position:absolute;top:36%;left:0;right:0;display:grid;justify-items:center;transition:transform .25s ease}.boot-marca{margin-bottom:36px;font-family:'Comfortaa',-apple-system,sans-serif;font-weight:300;font-size:29.5px;letter-spacing:.15em;color:#b7c9d5;text-shadow:0 0 6px currentColor,0 0 18px currentColor}.boot-consola{width:min(460px,86vw);height:0;overflow:hidden;transition:height .25s ease;display:flex;flex-direction:column;gap:2px;font:14px/1.5 ui-monospace,Menlo,monospace;text-align:center}.boot-consola div{transition:color .5s}.boot-consola b{margin-right:.6em;font-weight:400}.boot-consola .hecha{color:#5f7486}.boot-consola .hecha b{color:#8fe0b0}.boot-puntos::after{content:'';animation:boot-puntos 2.4s steps(1) infinite}@keyframes boot-puntos{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}.boot-track{width:220px;height:2px;background:#20303d;margin:24px auto;overflow:hidden}.boot-track span{display:block;width:0;height:100%;background:#91bed2;box-shadow:0 0 8px #91bed255;transition:width 1.2s ease-out}@media(prefers-reduced-motion:reduce){.boot-puntos::after{animation:none}.boot-puntos::after{content:'...'}}</style>
     <script>
       // Pantalla de carga en forma de consola: cada mensaje dura entre 2 y 3,5 s al azar y queda
-      // marcado con ✓; se ven 4 líneas. El último se mantiene hasta que la escena avisa que todo
+      // marcado con ✓. Las líneas crecen hacia abajo bajo el título, sin hueco reservado, y la
+      // barra baja con ellas; si el grupo no cabe, sube lo justo. El último se mantiene hasta que la escena avisa que todo
       // cargó (window.hoshiCargaLista, desde App.jsx); solo entonces se retira la pantalla.
       // La barra crece con el avance real (window.hoshiProgreso, src/progresoCarga.js), sin
       // adelantarse a los mensajes.
@@ -32,7 +35,7 @@
         var mensajes = ['Cargando catálogos AT-HYG y Gaia DR3', 'Cargando catálogo NASA Exoplanet Archive',
           'Calibrando distancias por paralaje (Hipparcos y Gaia)', 'Sincronizando órbitas planetarias al ' + hoy];
         var pantalla = document.getElementById('boot-loader'), consola = pantalla.querySelector('.boot-consola');
-        var barra = pantalla.querySelector('.boot-track span');
+        var barra = pantalla.querySelector('.boot-track span'), grupo = pantalla.querySelector('.boot-grupo');
         var listo = false, enUltimo = false, real = 0, paso = 0, mostrado = 0;
         // Nunca retrocede (aparecer una textura nueva puede bajar la fracción), no se adelanta al
         // mensaje en curso y solo llega al 100 % en el último, cuando la escena avisa que todo cargó.
@@ -40,9 +43,17 @@
           mostrado = Math.max(mostrado, Math.min(listo ? 1 : Math.min(real, 0.97), (paso + 1) / mensajes.length));
           barra.style.width = 100 * mostrado + '%';
         }
-        function retirar() { pintar(); setTimeout(function () { pantalla.classList.add('fin'); }, 800); setTimeout(function () { pantalla.remove(); }, 1450); }
+        function retirar() { pintar(); setTimeout(function () { pantalla.classList.add('fin'); }, 800); setTimeout(function () { window.removeEventListener('resize', acomodar); pantalla.remove(); }, 1450); }
         window.hoshiProgreso = function (avance) { real = avance; pintar(); };
         window.hoshiCargaLista = function () { listo = true; pintar(); if (enUltimo) retirar(); };
+        function acomodar() {
+          // Sin ventana visible no hay medidas: la altura queda libre y se ajusta al volver.
+          if (!consola.scrollHeight) { consola.style.height = 'auto'; return; }
+          var alto = grupo.offsetHeight - consola.offsetHeight + consola.scrollHeight;
+          consola.style.height = consola.scrollHeight + 'px';
+          grupo.style.transform = 'translateY(' + -Math.max(0, grupo.offsetTop + alto + 24 - pantalla.clientHeight) + 'px)';
+        }
+        window.addEventListener('resize', acomodar);
         function mostrar(i) {
           paso = i; pintar();
           var previa = consola.lastElementChild;
@@ -50,7 +61,7 @@
           var linea = document.createElement('div');
           linea.innerHTML = '<b>›</b>' + mensajes[i] + '<span class="boot-puntos"></span>';
           consola.appendChild(linea);
-          while (consola.children.length > 4) consola.firstElementChild.remove();
+          acomodar();
           if (i === mensajes.length - 1) { enUltimo = true; if (listo) setTimeout(retirar, 2000); return; }
           setTimeout(function () { mostrar(i + 1); }, 2000 + Math.random() * 1500);
         }
