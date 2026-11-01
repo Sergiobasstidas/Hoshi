@@ -53,6 +53,7 @@ test('filtros y recuentos por pestaña', () => {
   assert.deepEqual([...filterSystems(data, { ...all, estado: 'confirmados' }).keys()], [0]);
   const tess = { ...all, mision: 'tess' };
   assert.deepEqual(filterSystems(data, tess).get(0), [1]);
+  assert.deepEqual([...filterSystems(data, { ...all, mision: ['tess', 'kepler'] }).keys()].sort(), [...new Set([...filterSystems(data, tess).keys(), ...filterSystems(data, { ...all, mision: 'kepler' }).keys()])].sort());
   const counts = countTabs(data, tess);
   // La fila de misión cuenta sin su propio filtro; las demás, con él.
   assert.deepEqual(counts.mision, { todas: 3, kepler: 1, tess: 2 });

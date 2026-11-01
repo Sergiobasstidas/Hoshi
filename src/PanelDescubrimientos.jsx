@@ -24,12 +24,13 @@ function MissionIcon({ index }) {
   </svg>;
 }
 
-function Tabs({ label, options, value, onChange, counts }) {
-  return <div className="descubrimientos-fila" role="radiogroup" aria-label={label}>
+function Tabs({ label, options, value, onChange, counts, multiple = false }) {
+  const activa = id => Array.isArray(value) ? value.includes(id) : value === id;
+  return <div className="descubrimientos-fila" role={multiple ? 'group' : 'radiogroup'} aria-label={label}>
     <span className="descubrimientos-rotulo">{label}</span>
     <div className="descubrimientos-pestanas">
-      {options.map(option => <button key={option.id} role="radio" aria-checked={value === option.id} title={option.detalle}
-        className={value === option.id ? 'activa' : ''} disabled={counts && !counts[option.id] && value !== option.id}
+      {options.map(option => <button key={option.id} role={multiple ? 'checkbox' : 'radio'} aria-checked={activa(option.id)} title={option.detalle}
+        className={activa(option.id) ? 'activa' : ''} disabled={counts && !counts[option.id] && !activa(option.id)}
         onClick={() => onChange(option.id)}>
         {option.icon}<span>{option.nombre}</span>{counts && <small>{number(counts[option.id])}</small>}
       </button>)}
@@ -41,10 +42,16 @@ export default function PanelDescubrimientos({ data, status, filter, onFilter, o
   const counts = useMemo(() => data ? countTabs(data, filter) : null, [data, filter]);
   const systems = useMemo(() => data ? filterSystems(data, filter).size : 0, [data, filter]);
   const set = key => value => onFilter(current => ({ ...current, [key]: value }));
+  // Tipo y misión admiten varias opciones; «Todos» limpia el grupo.
+  const alternar = (key, todo) => id => onFilter(current => {
+    if (id === todo) return { ...current, [key]: todo };
+    const elegidas = Array.isArray(current[key]) ? current[key] : [];
+    const nuevas = elegidas.includes(id) ? elegidas.filter(otra => otra !== id) : [...elegidas, id];
+    return { ...current, [key]: nuevas.length ? nuevas : todo };
+  });
   return <aside className="descubrimientos-panel" aria-label="Descubrimientos de exoplanetas">
     <header>
       <div>
-        <span className="eyebrow">Descubrimientos</span>
         <strong>Exoplanetas</strong>
         {data && <span className="descubrimientos-resumen">{number(counts.estado[filter.estado])} {counts.estado[filter.estado] === 1 ? 'planeta' : 'planetas'} en {number(systems)} {systems === 1 ? 'sistema' : 'sistemas'}</span>}
       </div>
@@ -55,10 +62,10 @@ export default function PanelDescubrimientos({ data, status, filter, onFilter, o
     {data && <>
       <Tabs label="Estado" value={filter.estado} onChange={set('estado')} counts={counts.estado}
         options={STATUS} />
-      <Tabs label="Tipo de planeta" value={filter.tipo} onChange={set('tipo')} counts={counts.tipo}
+      <Tabs label="Tipo de planeta" multiple value={filter.tipo} onChange={alternar('tipo', 'todos')} counts={counts.tipo}
         options={[{ id: 'todos', nombre: 'Todos', icon: <PlanetIcon type={{ id: 'todos' }} /> },
           ...PLANET_TYPES.slice(0, 4).map(type => ({ ...type, icon: <PlanetIcon type={type} /> }))]} />
-      <Tabs label="Misión" value={filter.mision} onChange={set('mision')} counts={counts.mision}
+      <Tabs label="Misión" multiple value={filter.mision} onChange={alternar('mision', 'todas')} counts={counts.mision}
         options={[{ id: 'todas', nombre: 'Todas', icon: <MissionIcon index={null} /> },
           ...MISSIONS.map((mission, index) => ({ ...mission, icon: <MissionIcon index={index} /> }))]} />
       <Tabs label="Color" value={filter.color} onChange={set('color')} options={COLOR_MODES} />

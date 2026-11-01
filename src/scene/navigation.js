@@ -3,6 +3,11 @@ import { BODY_CAMERA_NEAR_PC, MAX_VIEW_DISTANCE_PC, LIGHT_YEAR_PC } from './scal
 import { PULSARS } from './pulsarData.js';
 import { JOURNEY_SECONDS, JOURNEY_ACCELERATION, journeyDistance, journeyProgress } from './starJourney.js';
 
+// Distancia mínima de salida con pivote, unas 0,1 UA: desde más cerca el arranque sería todo vacío.
+const PIVOTE_MINIMO_PC = 5e-7;
+// Por debajo de unas 1.000 UA del Sol la salida no gira.
+const GIRO_MINIMO_PC = 1000 / 206265;
+
 export function beginJourney(camera, view, origin) {
   const target = new Vector3(...view.target).sub(new Vector3(...origin));
   camera.position.fromArray(view.journey.start).sub(new Vector3(...origin));
@@ -11,6 +16,31 @@ export function beginJourney(camera, view, origin) {
   const startDirection = offset.clone().normalize();
   if (!startDirection.lengthSq()) startDirection.set(0, 0, 1);
   const endDirection = view.direction ? new Vector3(...view.direction).normalize() : startDirection;
+  // Con `pivote`, la salida se mide desde ese punto y no desde el objetivo: arranca lenta aunque
+  // el objetivo esté a miles de años luz de la cámara, en vez de cruzarlos en el primer tramo.
+  if (view.pivote) {
+    const pivote = new Vector3(...view.pivote).sub(new Vector3(...origin));
+    const desde = camera.position.clone().sub(pivote);
+    const hasta = target.clone().add(new Vector3(...view.direction).normalize().multiplyScalar(view.distance)).sub(pivote);
+    // Giro lento hacia un solo lado: lo que falta para el plano final y, si es poco, una vuelta
+    // más. Avanza con la distancia al Sol en escala logarítmica: casi nulo dentro de la heliosfera,
+    // donde sin perspectiva de las estrellas solo marearía, y mayor ya lejos.
+    const rotation = camera.quaternion.clone();
+    camera.up.fromArray(view.up).normalize();
+    camera.lookAt(target);
+    const relativa = camera.quaternion.clone().invert().multiply(rotation);
+    let giro = (2 * Math.atan2(relativa.z, relativa.w) + 4 * Math.PI) % (2 * Math.PI);
+    if (giro < Math.PI / 2) giro += 2 * Math.PI;
+    camera.quaternion.copy(rotation);
+    const salida = desde.lengthSq() ? desde.clone().normalize() : hasta.clone().normalize();
+    return {
+      elapsed: 0, target, pivote, startDirection: salida,
+      arc: new Quaternion().setFromUnitVectors(salida, hasta.clone().normalize()),
+      startDistance: Math.max(desde.length(), PIVOTE_MINIMO_PC), endDistance: hasta.length(),
+      rotation, duration: view.journey.duration ?? JOURNEY_SECONDS, startFov: camera.fov, giro: view.giros ? giro : 0,
+      giroDesde: Math.max(Math.log10(GIRO_MINIMO_PC), Math.log10(Math.max(desde.length(), PIVOTE_MINIMO_PC))), giroHasta: Math.log10(hasta.length()),
+    };
+  }
   return {
     elapsed: 0, target, startDirection,
     arc: new Quaternion().setFromUnitVectors(startDirection, endDirection),
@@ -30,16 +60,24 @@ export function advanceJourney(camera, transition, view, endFov, delta) {
   // Con `turnBy`, el giro alrededor del destino termina cuando el avance llega a esa
   // fracción: el destino aparece ya con su encuadre final en vez de abrirse al llegar.
   const turn = view.turnBy ? MathUtils.smoothstep(ease / view.turnBy, 0, 1) : ease;
+  let distance = null;
   if (!transition.headingOnly) {
-    const distance = journeyDistance(transition.startDistance, view.distance, t);
+    distance = journeyDistance(transition.startDistance, transition.endDistance ?? view.distance, t);
     const arc = new Quaternion().slerp(transition.arc, turn);
-    camera.position.copy(transition.startDirection).applyQuaternion(arc).multiplyScalar(distance).add(transition.target);
+    camera.position.copy(transition.startDirection).applyQuaternion(arc).multiplyScalar(distance).add(transition.pivote || transition.target);
   }
   if (transition.endUp) camera.up.copy(transition.startUp).lerp(transition.endUp, turn).normalize();
   camera.lookAt(transition.target);
+  if (transition.giro) {
+    // Si el viaje apenas cambia de escala, el giro sigue al tiempo.
+    const avance = transition.giroHasta - transition.giroDesde > 1
+      ? MathUtils.smoothstep(Math.log10(distance), transition.giroDesde, transition.giroHasta) : ease;
+    transition.giroRestante = t === 1 ? 0 : transition.giro * (1 - avance);
+    camera.rotateZ(transition.giroRestante);
+  }
   const endRotation = camera.quaternion.clone();
   camera.quaternion.slerpQuaternions(transition.rotation, endRotation,
-    transition.headingOnly ? ease : MathUtils.smoothstep(t, 0, JOURNEY_ACCELERATION));
+    transition.headingOnly ? ease : MathUtils.smoothstep(t, 0, transition.pivote ? 0.45 : JOURNEY_ACCELERATION));
   camera.fov = MathUtils.lerp(transition.startFov, endFov, ease);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();

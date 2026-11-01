@@ -474,11 +474,12 @@ test('No hay discontinuidad en el antiguo apagón de 120.000 UA', () => {
   }
 });
 
-test('La aparición inicial se retrasa pero las estrellas aumentan su brillo hacia un año luz', () => {
-  assert.equal(starExposure(0.01 * LIGHT_YEAR_PC), 0.13);
+test('Las estrellas aparecen a pocas UA del Sol sin superar su brillo hacia un año luz', () => {
+  assert.ok(starExposure(0.01 * LIGHT_YEAR_PC) > 0.4);
   assert.ok(starExposure(LIGHT_YEAR_PC) >= 0.4 && starExposure(LIGHT_YEAR_PC) < 0.55);
-  assert.ok(starExposure(0.1) < starExposure(LIGHT_YEAR_PC));
+  assert.equal(starExposure(0.1), starExposure(LIGHT_YEAR_PC));
   assert.equal(starExposure(5 * AU_TO_PC), 0.13);
+  assert.equal(starExposure(30 * AU_TO_PC), 0.53);
 });
 
 test('El círculo inclinado de referencia conserva las distancias declaradas en parsecs', () => {
@@ -542,11 +543,13 @@ test('Oort desaparece entre 8,5 y 16 años luz y el alejamiento llega a doscient
   assert.ok(Math.abs(MAX_VIEW_DISTANCE_PC / LIGHT_YEAR_PC - 200000) < 1e-8);
 });
 
-test('El realce del fondo conserva la vista cercana y sigue la desaparición de Oort', () => {
-  for (const pc of [0, 5 * AU_TO_PC, LIGHT_YEAR_PC, 1.05, 4]) assert.equal(backgroundGain(pc), 1);
-  assert.ok(backgroundGain(8) > 1 && backgroundGain(8) < backgroundGain(12));
-  assert.equal(backgroundGain(12), 2.1);
-  assert.equal(backgroundGain(MAX_VIEW_DISTANCE_PC), 2.1);
+test('El realce del fondo conserva la vista cercana y alcanza su brillo final antes de un parsec', () => {
+  for (const pc of [0, 5 * AU_TO_PC, 10 * AU_TO_PC]) assert.equal(backgroundGain(pc), 1);
+  assert.equal(backgroundGain(30 * AU_TO_PC), 1.4);
+  assert.ok(backgroundGain(0.3) > 1.4 && backgroundGain(0.3) < backgroundGain(1));
+  assert.ok(Math.abs(backgroundGain(1) - 2.1) < 1e-9);
+  assert.ok(Math.abs(backgroundGain(12) - 2.1) < 1e-9);
+  assert.ok(Math.abs(backgroundGain(MAX_VIEW_DISTANCE_PC) - 2.1) < 1e-9);
 });
 
 test('La velocidad de vuelo es utilizable cerca del origen y abarca distancias estelares', () => {
@@ -856,4 +859,51 @@ test('La heliopausa pasa por los cruces de las Voyager y se orienta al viento in
     assert.ok(dot(shape.heliopauseNormal(d), d) > 0);
   }
   assert.ok(Math.abs(Math.hypot(...shape.HELIOSPHERE_VIEW.direction) - 1) < 1e-12);
+});
+
+test('La salida a Exoplanetas arranca sin saltos desde la cámara, gira y termina derecha en su encuadre', async () => {
+  const { PerspectiveCamera, Vector3 } = await import('three');
+  const { beginJourney, advanceJourney } = await import('../src/scene/navigation.js');
+  const { DEFAULT_DISCOVERY_VIEW: vista } = await import('../src/scene/discoveryViews.js');
+  for (const inicio of [[1 * AU_TO_PC, 0, 0], [3, 2, 1], [-20000, 3000, 9000]]) {
+    const camera = new PerspectiveCamera();
+    camera.up.set(0, 0, 1);
+    const view = { ...vista, journey: { start: inicio, rotation: [0, 0, 0, 1], duration: 8 } };
+    const transition = beginJourney(camera, view, [0, 0, 0]);
+    assert.ok(transition.giro >= Math.PI / 2 && transition.giro <= 2.5 * Math.PI);
+    advanceJourney(camera, transition, view, 50, 0.05);
+    const movido = camera.position.distanceTo(new Vector3(...inicio));
+    assert.ok(movido < Math.max(new Vector3(...inicio).length() * 0.01, 1e-5), `saltó ${movido} pc`);
+    // Con la mirada ya fijada en el objetivo, el giro restante solo baja, y a cualquier ritmo de cuadros.
+    let anterior = Infinity, recorrido = 0;
+    const mirada = new PerspectiveCamera();
+    while (!advanceJourney(camera, transition, view, 50, 0.05)) {
+      const restante = transition.giroRestante;
+      assert.ok(restante <= anterior);
+      if (camera.position.length() < 900 * AU_TO_PC && new Vector3(...inicio).length() < 900 * AU_TO_PC) assert.equal(restante, transition.giro);
+      if (Number.isFinite(anterior)) recorrido += anterior - restante;
+      anterior = restante;
+      if (transition.elapsed / transition.duration > 0.5) {
+        mirada.up.copy(camera.up); mirada.position.copy(camera.position); mirada.lookAt(transition.target);
+        const relativa = mirada.quaternion.clone().invert().multiply(camera.quaternion);
+        const plegar = angulo => { const a = ((angulo % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); return Math.min(a, 2 * Math.PI - a); };
+        assert.ok(Math.abs(plegar(2 * Math.atan2(relativa.z, relativa.w)) - plegar(restante)) < 1e-3);
+      }
+    }
+    assert.ok(recorrido <= transition.giro + 1e-9);
+    const final = new Vector3(...vista.target).add(new Vector3(...vista.direction).multiplyScalar(vista.distance));
+    assert.ok(camera.position.distanceTo(final) < 1e-6 * vista.distance);
+    const derecha = new PerspectiveCamera();
+    derecha.position.copy(camera.position); derecha.up.copy(camera.up); derecha.lookAt(new Vector3(...vista.target));
+    assert.ok(Math.abs(camera.quaternion.dot(derecha.quaternion)) > 0.999999);
+  }
+});
+
+test('Una estrella sin física de catálogo recibe una estimación razonable al seleccionarla', async () => {
+  const { estimarFisicaSeleccion } = await import('../src/scene/stellarPhysics.js');
+  const mintaka = estimarFisicaSeleccion({ m: -4.385, sp: 'O9.5 II' });
+  assert.ok(mintaka.temperatureK > 28000 && mintaka.temperatureK < 33000);
+  assert.ok(mintaka.radiusSolar > 5 && mintaka.radiusSolar < 40);
+  assert.equal(estimarFisicaSeleccion({ m: 1, sp: '' }), null);
+  assert.equal(estimarFisicaSeleccion({ sp: 'G2 V' }), null);
 });

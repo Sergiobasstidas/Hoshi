@@ -72,6 +72,23 @@ function tintOf(data, index, list, mode) {
 const lightYears = value => value < 100 ? value.toLocaleString('es-CL', { maximumFractionDigits: 1 })
   : Math.round(value).toLocaleString('es-CL', { maximumSignificantDigits: 3 });
 
+// Ficha de un sistema: al pasar el puntero o, fijada con un clic, hasta hacer clic en otra parte.
+function FichaSistema({ data, index, list, origin, fijada, onSelect }) {
+  const info = describeSystem(data, index, list);
+  return <Html position={[0, 1, 2].map(axis => data.systems.p[index * 3 + axis] - origin[axis])} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
+    <div className={`descubrimiento-ficha${fijada ? ' fijada' : ''}`}>
+      <span className="descubrimiento-mira" aria-hidden="true" />
+      <strong>{info.name}</strong>
+      <span>{lightYears(info.distancePc / LIGHT_YEAR_PC)} años luz del Sol</span>
+      <span>{[info.confirmed && `${info.confirmed} ${info.confirmed === 1 ? 'planeta confirmado' : 'planetas confirmados'}`,
+        info.candidates && `${info.candidates} ${info.candidates === 1 ? 'candidato' : 'candidatos'}`].filter(Boolean).join(' · ')}</span>
+      <span className="descubrimiento-tipos">{info.types.map(type => <em key={type.id}><i style={{ background: type.color }} />{type.n} {type.nombre.toLowerCase()}</em>)}</span>
+      <span>{info.missions.length === 1 ? info.missions[0] : `${info.missions.slice(0, 2).join(', ')}${info.missions.length > 2 ? '…' : ''}`}</span>
+      {info.inHoshi && <button className="descubrimiento-accion" onClick={() => onSelect(index)}>Viajar al sistema</button>}
+    </div>
+  </Html>;
+}
+
 export default function ExoplanetDiscoveries({ data, filter, origin, onSelect }) {
   const { camera, gl, size } = useThree();
   const material = useRef(), sunLabel = useRef();
@@ -113,6 +130,7 @@ export default function ExoplanetDiscoveries({ data, filter, origin, onSelect })
 
   // Selección en pantalla: el destello más cercano al puntero a menos de 14 px.
   const [hovered, setHovered] = useState(null);
+  const [fijado, setFijado] = useState(null);
   const pending = useRef(false), press = useRef(null), refresh = useRef(null);
   useEffect(() => {
     const element = gl.domElement;
@@ -150,25 +168,30 @@ export default function ExoplanetDiscoveries({ data, filter, origin, onSelect })
     const up = event => {
       const start = press.current; press.current = null;
       if (!start || Math.hypot(event.clientX - start[0], event.clientY - start[1]) > 5) return;
-      const index = nearest(event);
-      if (index !== null) onSelect(index);
+      setFijado(nearest(event));
+    };
+    // Un clic fuera de la escena y de la ficha también la suelta.
+    const fuera = event => {
+      if (event.target !== element && !event.target.closest?.('.descubrimiento-ficha')) setFijado(null);
     };
     const leave = () => { refresh.current = null; element.style.cursor = ''; setHovered(null); };
     element.addEventListener('pointermove', move);
     element.addEventListener('pointerdown', down);
     element.addEventListener('pointerup', up);
     element.addEventListener('pointerleave', leave);
+    document.addEventListener('pointerdown', fuera);
     return () => {
       element.removeEventListener('pointermove', move);
       element.removeEventListener('pointerdown', down);
       element.removeEventListener('pointerup', up);
       element.removeEventListener('pointerleave', leave);
+      document.removeEventListener('pointerdown', fuera);
       element.style.cursor = '';
       refresh.current = null;
     };
-  }, [gl, camera, visible, onSelect]);
-  const hoveredList = hovered !== null ? matches.get(hovered) : null;
-  const info = hoveredList ? describeSystem(data, hovered, hoveredList) : null;
+  }, [gl, camera, visible]);
+  const hoveredList = hovered !== null && hovered !== fijado ? matches.get(hovered) : null;
+  const fijadoList = fijado !== null ? matches.get(fijado) : null;
 
   return <group>
     <points key={visible.indices.length} frustumCulled={false} renderOrder={5}>
@@ -185,17 +208,7 @@ export default function ExoplanetDiscoveries({ data, filter, origin, onSelect })
     <Html position={origin.map(v => -v)} zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}>
       <div ref={sunLabel} className="descubrimientos-sol"><i />Sol</div>
     </Html>
-    {info && <Html position={[0, 1, 2].map(axis => data.systems.p[hovered * 3 + axis] - origin[axis])} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
-      <div className="descubrimiento-ficha">
-        <span className="descubrimiento-mira" aria-hidden="true" />
-        <strong>{info.name}</strong>
-        <span>{lightYears(info.distancePc / LIGHT_YEAR_PC)} años luz del Sol</span>
-        <span>{[info.confirmed && `${info.confirmed} ${info.confirmed === 1 ? 'planeta confirmado' : 'planetas confirmados'}`,
-          info.candidates && `${info.candidates} ${info.candidates === 1 ? 'candidato' : 'candidatos'}`].filter(Boolean).join(' · ')}</span>
-        <span className="descubrimiento-tipos">{info.types.map(type => <em key={type.id}><i style={{ background: type.color }} />{type.n} {type.nombre.toLowerCase()}</em>)}</span>
-        <span>{info.missions.length === 1 ? info.missions[0] : `${info.missions.slice(0, 2).join(', ')}${info.missions.length > 2 ? '…' : ''}`}</span>
-        <span className="descubrimiento-accion">{info.inHoshi ? 'Clic: viajar al sistema' : 'Posición del archivo de la NASA · sin estrella en Hoshi'}</span>
-      </div>
-    </Html>}
+    {fijadoList && <FichaSistema data={data} index={fijado} list={fijadoList} origin={origin} fijada onSelect={onSelect} />}
+    {hoveredList && <FichaSistema data={data} index={hovered} list={hoveredList} origin={origin} onSelect={onSelect} />}
   </group>;
 }

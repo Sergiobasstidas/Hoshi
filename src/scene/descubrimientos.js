@@ -75,11 +75,13 @@ export const MISSION_COLORS = ['#ffd36b', '#ffa45c', '#7fb6ff', '#d59bff', '#7ff
 
 // Prueba de un planeta del archivo (columnas s, t, f, c) contra los filtros. Un filtro
 // puede omitirse con `skip` para contar las pestañas de esa fila con las otras dos activas.
+// Tipo y misión aceptan varias opciones a la vez, como lista.
+const aceptada = (valor, id) => Array.isArray(valor) ? valor.includes(id) : valor === id;
 export function planetMatches(data, k, filter, skip) {
   const { planets, facilities } = data;
   if (skip !== 'estado' && filter.estado !== 'todos' && planets.c[k] !== (filter.estado === 'candidatos' ? 1 : 0)) return false;
-  if (skip !== 'tipo' && filter.tipo !== 'todos' && PLANET_TYPES[planets.t[k]].id !== filter.tipo) return false;
-  if (skip !== 'mision' && filter.mision !== 'todas' && MISSIONS[facilities[planets.f[k]].g].id !== filter.mision) return false;
+  if (skip !== 'tipo' && filter.tipo !== 'todos' && !aceptada(filter.tipo, PLANET_TYPES[planets.t[k]].id)) return false;
+  if (skip !== 'mision' && filter.mision !== 'todas' && !aceptada(filter.mision, MISSIONS[facilities[planets.f[k]].g].id)) return false;
   return true;
 }
 
