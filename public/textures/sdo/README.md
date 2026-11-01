@@ -16,6 +16,6 @@ Se descargan con `node scripts/sdo/descargar_sdo.mjs`, que se niega a repetir la
 | HMIB.jpg | HMI | magnetograma: blanco y negro, polaridades opuestas |
 | HMIIF.jpg | HMI | luz visible aplanada (sin oscurecimiento del borde) |
 
-Imágenes sin modificar. `0131.mp4` es una copia reducida de `latest_1024_0131.mp4` (768 px, H.264, sin audio, CRF 30); el original pesa ≈ 70 MB y el servidor no permite usarlo desde otra web. La composición 304/211/171 (304 Å en rojo, 211 Å en verde, 171 Å en azul) no se publica en imagen fija: la arma `src/scene/sdoSolar.js` con el brillo de cada canal.
+Imágenes sin modificar. Cada filtro tiene además su vídeo de las últimas 48 h, `<canal>.mp4`, salvo 211 Å: es una copia reducida de `latest_1024_<canal>.mp4` (1024 px, H.264, sin audio, 10 cuadros por segundo, inicio rápido, unos 5 MB; `sdo.json` guarda la tasa de bits de cada uno). Los originales pesan decenas de MB y el servidor no permite usarlos desde otra web. La composición 304/211/171 (304 Å en rojo, 211 Å en verde, 171 Å en azul) no se publica en imagen fija: la arma `src/scene/sdoSolar.js` con el brillo de cada canal.
 
 Solo muestran la cara del Sol que mira a la Tierra; en la aplicación, la cara oculta es su reflejo.

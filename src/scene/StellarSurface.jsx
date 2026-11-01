@@ -383,22 +383,14 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   // Los filtros son del Sol: las demás estrellas se ven siempre en luz visible, con el color de su temperatura.
   const filtroSolar = useFiltroEstelar();
   const filtro = solar ? filtroSolar : FILTRO_POR_DEFECTO;
-  // Filtro que se ve: el pedido no lo reemplaza hasta tener su imagen lista, y entra con un fundido.
+  // Filtro que se ve: el pedido no lo reemplaza hasta tener su imagen lista y haber terminado el fundido en curso.
   const mostrado = useRef(filtro);
   useFrame(({ clock, camera }, delta) => {
     if (!surface.current || !corona.current) return;
     const shared = surface.current.uniforms, halo = corona.current.uniforms;
     const pedido = solar ? filtroPorId(filtro).canal : null;
     const textura = pedido ? sdoTexture(pedido) : null;
-    if (filtro !== mostrado.current && (!textura || textura.ready)) {
-      if (textura && shared.sdo.value > 0.5) {
-        shared.sdoMapAnterior.value = shared.sdoMap.value;
-        shared.sdoFlatAnterior.value = shared.sdoFlat.value;
-        shared.sdoVideoAnterior.value = shared.sdoVideo.value;
-        shared.sdoFundido.value = 0;
-      }
-      mostrado.current = filtro;
-    }
+    if (filtro !== mostrado.current && shared.sdoFundido.value >= 1 && (!textura || (textura.ready && textura.texture.version > 0))) mostrado.current = filtro;
     shared.sdoFundido.value = Math.min(1, shared.sdoFundido.value + delta / 0.4);
     const filtroVisible = mostrado.current;
     // Mapa real de la cromosfera: el vídeo en cuanto se reproduce; antes, la imagen fija.
@@ -424,13 +416,22 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     if (solar) playSdoVideo(pedido, Boolean(textura));
     if (image) {
       const { flat, tint } = SDO_CHANNELS[canal];
-      shared.sdoMap.value = image.texture;
-      shared.sdoFlat.value = flat ? 1 : 0;
-      shared.sdoVideo.value = image.playing ? 1 : 0;
+      // Todo cambio de textura entra con un fundido: de un filtro a otro y de la imagen fija al vídeo.
+      if (shared.sdoMap.value !== image.texture && image.texture.version > 0 && shared.sdoFundido.value >= 1) {
+        if (shared.sdo.value > 0.5) {
+          shared.sdoMapAnterior.value = shared.sdoMap.value;
+          shared.sdoFlatAnterior.value = shared.sdoFlat.value;
+          shared.sdoVideoAnterior.value = shared.sdoVideo.value;
+          shared.sdoFundido.value = 0;
+        }
+        shared.sdoMap.value = image.texture;
+        shared.sdoFlat.value = flat ? 1 : 0;
+        shared.sdoVideo.value = image.texture.isVideoTexture ? 1 : 0;
+      }
       if (tint) halo.sdoTint.value.setRGB(...tint, THREE.SRGBColorSpace);
       halo.sdoTintMix.value = tint && image.ready ? shared.sdo.value : 0;
     } else halo.sdoTintMix.value = 0;
-    shared.sdo.value += ((image?.ready ? 1 : 0) - shared.sdo.value) * step;
+    shared.sdo.value += ((image?.ready && shared.sdoMap.value ? 1 : 0) - shared.sdo.value) * step;
     if (image && group.current && sdoFrame.current !== `${canal}${fecha}`) {
       sdoFrame.current = `${canal}${fecha}`;
       const frame = sdoImageFrame(fecha ? new Date(fecha) : EPHEMERIS_DATE, canal);

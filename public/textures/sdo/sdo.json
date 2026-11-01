@@ -1,73 +1,145 @@
 {
-  "descarga": "2026-10-19T23:55:24.046Z",
+  "descarga": "2026-11-01T02:16:17.632Z",
   "fuente": "https://sdo.gsfc.nasa.gov/assets/img/latest/",
   "credito": "Courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.",
   "canales": {
     "211193171": {
       "archivo": "211193171.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_211193171.jpg",
-      "fecha": "2026-10-19T23:41:08.000Z",
-      "bytes": 721212,
-      "sha256": "f5cc05f0cc230953b93594b6fd823b2bfaa388d2d2545f280e6a26869d78b3ca"
+      "fecha": "2026-11-01T02:11:08.000Z",
+      "bytes": 699248,
+      "sha256": "7b9e5d35116bd81e52a0e7c70dcdfa1a6416411ec5688e48bac3dd7f64d51121"
     },
     "0131": {
       "archivo": "0131.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0131.jpg",
-      "fecha": "2026-10-19T23:51:05.000Z",
-      "bytes": 1060110,
-      "sha256": "8470db31a3c5bd655a81017345390438c0ff756f732faa4456846a60700929b8"
+      "fecha": "2026-11-01T02:11:06.000Z",
+      "bytes": 1057275,
+      "sha256": "00022ddd5a2e7d1cc30b879768b826395932c8badf75286144c8ee80ed32d064"
     },
     "0171": {
       "archivo": "0171.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0171.jpg",
-      "fecha": "2026-10-19T23:52:05.000Z",
-      "bytes": 674966,
-      "sha256": "72820d246a4f420551e021f44d832dc248cdab7c58a8b7e2459f435034d51fb1"
+      "fecha": "2026-11-01T02:12:06.000Z",
+      "bytes": 651962,
+      "sha256": "e27aac7f535cb251b89e985e732fbb025394e3c425247fbe9e5e318dea6696d9"
     },
     "0193": {
       "archivo": "0193.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0193.jpg",
-      "fecha": "2026-10-19T23:53:05.000Z",
-      "bytes": 496616,
-      "sha256": "0d3b5502a3e861ae31b5238f0ea8be23f515a417a5813905e56eb015b68f5214"
+      "fecha": "2026-11-01T02:13:07.000Z",
+      "bytes": 471059,
+      "sha256": "4815695524afc83fc29bbabdc4f1eff2ef00c45dca4ddd2a7e194126a1a62a8a"
     },
     "0211": {
       "archivo": "0211.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0211.jpg",
-      "fecha": "2026-10-19T23:45:06.000Z",
-      "bytes": 522415,
-      "sha256": "53e66d9399c654fcc74611ae75ff60e630183616756218c6dc17bc5b270f7d28"
+      "fecha": "2026-11-01T02:05:10.000Z",
+      "bytes": 533005,
+      "sha256": "e24c271873f6c7531dbf24755833e0a765152d867dcc7e9baa1fade2639eef49"
     },
     "0304": {
       "archivo": "0304.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_0304.jpg",
-      "fecha": "2026-10-19T23:44:05.000Z",
-      "bytes": 904112,
-      "sha256": "8eaf6f32f786b41b529f29575a4de6a56d8b270879315c14f5a49ff3bd89d80b"
+      "fecha": "2026-11-01T02:14:05.000Z",
+      "bytes": 879653,
+      "sha256": "f6df9d6b242cb54e9ffd01d5cea1ca1a582ce0bb38cbedaac55cba4117e1a75f"
     },
     "HMIB": {
       "archivo": "HMIB.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIB.jpg",
-      "fecha": "2026-10-19T23:40:14.000Z",
-      "bytes": 1665000,
-      "sha256": "5480819ecae6dba92f5fdb0f9e4bb93478dd8202e286067d92242ee0d8cebcf8"
+      "fecha": "2026-11-01T02:10:14.000Z",
+      "bytes": 1672906,
+      "sha256": "8346c06f3b2daa5ad0456df900849610205eb09fdb4bf7a2a1a2223feff05bf6"
     },
     "HMIIF": {
       "archivo": "HMIIF.jpg",
       "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIIF.jpg",
-      "fecha": "2026-10-19T23:40:09.000Z",
-      "bytes": 1404980,
-      "sha256": "5c7b8dc58a13aceeef9176c10e38346bca80f1b4132a17fb3969b9cfc298ab93"
+      "fecha": "2026-11-01T02:10:09.000Z",
+      "bytes": 1411596,
+      "sha256": "58d06be5b4bc01a3364ae3d8af8d8ef32f47fcf3626fdb8194952fa6869ff6d2"
     }
   },
-  "video": {
-    "canal": "0131",
-    "archivo": "0131.mp4",
-    "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_0131.mp4",
-    "fecha": "2026-10-19T23:31:24.000Z",
-    "horas": 48,
-    "ancho": 768,
-    "bytes": 892539,
-    "sha256": "42cb59749a885f6df4ea2840f1b70e208a34abe16348258785e89dc5dfc2e5a4"
+  "videos": {
+    "211193171": {
+      "archivo": "211193171.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_211193171.mp4",
+      "fecha": "2026-10-31T23:43:03.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 2732394,
+      "bytes": 4966348,
+      "sha256": "ea9e6824e9ada8569f6bf6e009451c3157ad4450474d6f326dcf9a6cdc7aa53a"
+    },
+    "304211171": {
+      "archivo": "304211171.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_304211171.mp4",
+      "fecha": "2026-10-31T23:43:35.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 5542857,
+      "bytes": 5183133,
+      "sha256": "5a196ad7d90b56b0d30d7413427bcacacab0a7316361537d78e7b6e1ccfa1d74"
+    },
+    "0131": {
+      "archivo": "0131.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_0131.mp4",
+      "fecha": "2026-10-31T23:31:24.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 1874396,
+      "bytes": 4948314,
+      "sha256": "f66a5e01504f19a74d930ab9bbaab0def6a7816650cb9a0d65332075e45e3246"
+    },
+    "0171": {
+      "archivo": "0171.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_0171.mp4",
+      "fecha": "2026-10-31T23:32:16.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 1865384,
+      "bytes": 4868988,
+      "sha256": "e95266b36f1acd31c9cc3880e5d76bee75802866c6cb1c80851d1fe16db3b13a"
+    },
+    "0193": {
+      "archivo": "0193.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_0193.mp4",
+      "fecha": "2026-10-31T23:33:00.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 1869879,
+      "bytes": 4863684,
+      "sha256": "45bf39cb27d174dfed4addbebfcf1ab98709fa8b5faf6ebccc59430490d1c492"
+    },
+    "0304": {
+      "archivo": "0304.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_0304.mp4",
+      "fecha": "2026-10-31T23:34:21.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 1856459,
+      "bytes": 4885882,
+      "sha256": "5f6d074e5abc7ee4dc400322841d887fceaab8c1f50b066d3fcaefbc6e52dd64"
+    },
+    "HMIB": {
+      "archivo": "HMIB.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_HMIB.mp4",
+      "fecha": "2026-10-31T23:38:09.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 2771428,
+      "bytes": 4921772,
+      "sha256": "99a9a8b080a0782c64c7ac76344146548dacf05750d83b400cc6739ecd55a0ff"
+    },
+    "HMIIF": {
+      "archivo": "HMIIF.mp4",
+      "url": "https://sdo.gsfc.nasa.gov/assets/img/latest/mpeg/latest_1024_HMIIF.mp4",
+      "fecha": "2026-10-31T23:41:28.000Z",
+      "horas": 48,
+      "ancho": 1024,
+      "bitrate": 2761565,
+      "bytes": 4596407,
+      "sha256": "96f652206e341c4c52fdbda412e2d97119eceee858daacd9652a48b1bdb0842e"
+    }
   }
 }

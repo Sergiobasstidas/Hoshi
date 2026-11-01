@@ -1,7 +1,7 @@
 // Descarga las últimas imágenes del Solar Dynamics Observatory (SDO) que usan los filtros
 // del Sol y anota su fecha en public/textures/sdo/sdo.json. El SDO pide no pedir las
 // imágenes «latest» más de una vez cada 15 minutos: el script se niega antes de ese plazo.
-// También baja el vídeo de 48 h en 131 Å y, con ffmpeg, guarda una copia más liviana.
+// También baja el vídeo de 48 h de cada filtro y, con ffmpeg, guarda una copia más liviana.
 // Uso: node scripts/sdo/descargar_sdo.mjs
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -20,8 +20,11 @@ const MIN_INTERVAL_MS = 15 * 60 * 1000;
 // oscurecimiento del borde lo repone el sombreador según el ángulo de la cámara). La composición 304/211/171 no se publica en imagen fija: la arma
 // sdoSolar.js con 0304, 0211 y 0171.
 const CHANNELS = ['0131', '0171', '0193', '0211', '0304', '211193171', 'HMIB', 'HMIIF'];
-// Vídeo de las últimas 48 h en 131 Å (1024 px, ≈ 70 MB) y copia reducida para la web.
-const VIDEO = { canal: '0131', url: `${BASE}mpeg/latest_1024_0131.mp4`, archivo: '0131.mp4', ancho: 768 };
+// Vídeos de las últimas 48 h de cada filtro (1024 px). Se recomprimen sin cambiar la resolución y
+// con la mitad de los cuadros, para que cada uno reciba más datos: dos pasadas de ffmpeg aprovechan casi todo el tope.
+const VIDEOS = ['0131', '0171', '0193', '0304', '211193171', '304211171', 'HMIB', 'HMIIF'];
+const CUADROS_POR_SEGUNDO = 10;
+const TOPE_BYTES = 5e6;
 
 const previous = await readFile(join(OUT, 'sdo.json'), 'utf8').then(JSON.parse).catch(() => null);
 if (previous && Date.now() - Date.parse(previous.descarga) < MIN_INTERVAL_MS) {
@@ -43,24 +46,32 @@ for (const channel of CHANNELS) {
   console.log(`${channel}: ${bytes.length} bytes, ${fecha}`);
 }
 
-// Copia del vídeo: 768 px, H.264 sin audio, inicio rápido. El SDO no permite usarlo desde
+// Copia del vídeo: 1024 px, H.264 sin audio, inicio rápido. El SDO no permite usarlo desde
 // otra web (sin CORS), por eso se sirve desde public/.
+meta.videos = {};
 try {
   execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' });
   const work = await mkdtemp(join(tmpdir(), 'sdo-'));
-  const response = await fetch(VIDEO.url);
-  if (!response.ok) throw new Error(`${VIDEO.url}: HTTP ${response.status}`);
-  const original = join(work, 'original.mp4');
-  await writeFile(original, Buffer.from(await response.arrayBuffer()));
-  const output = join(OUT, VIDEO.archivo);
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', original, '-an', '-vf', `scale=${VIDEO.ancho}:-2:flags=lanczos`,
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '30', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', output]);
-  const bytes = await readFile(output);
-  meta.video = { canal: VIDEO.canal, archivo: VIDEO.archivo, url: VIDEO.url, fecha: new Date(response.headers.get('last-modified') || Date.now()).toISOString(),
-    horas: 48, ancho: VIDEO.ancho, bytes: (await stat(output)).size, sha256: createHash('sha256').update(bytes).digest('hex') };
+  for (const canal of VIDEOS) {
+    const url = `${BASE}mpeg/latest_1024_${canal}.mp4`;
+    const response = await fetch(url);
+    if (!response.ok) { console.warn(`${url}: HTTP ${response.status}; el filtro usará la imagen fija.`); continue; }
+    const original = join(work, 'original.mp4');
+    await writeFile(original, Buffer.from(await response.arrayBuffer()));
+    const archivo = `${canal}.mp4`, output = join(OUT, archivo);
+    const segundos = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', original], { encoding: 'utf8' }));
+    const bitrate = Math.floor(TOPE_BYTES * 0.97 * 8 / segundos);
+    const pasada = (numero, salida) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', original, '-an', '-vf', `fps=${CUADROS_POR_SEGUNDO}`, '-c:v', 'libx264', '-preset', 'slow', '-b:v', String(bitrate),
+      '-pass', String(numero), '-passlogfile', join(work, 'pasada'), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', ...salida]);
+    pasada(1, ['-f', 'null', '/dev/null']);
+    pasada(2, [output]);
+    const bytes = await readFile(output);
+    meta.videos[canal] = { archivo, url, fecha: new Date(response.headers.get('last-modified') || Date.now()).toISOString(),
+      horas: 48, ancho: 1024, bitrate, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+    console.log(`vídeo ${canal}: ${bytes.length} bytes, ${Math.round(bitrate / 1000)} kbps`);
+  }
   await rm(work, { recursive: true, force: true });
-  console.log(`vídeo 0131: ${meta.video.bytes} bytes`);
 } catch (error) {
-  console.warn(`Sin vídeo de 131 Å (${error.message}); el filtro usará la imagen fija.`);
+  console.warn(`Sin vídeos (${error.message}); los filtros usarán la imagen fija.`);
 }
 await writeFile(join(OUT, 'sdo.json'), `${JSON.stringify(meta, null, 2)}\n`);
