@@ -7,7 +7,7 @@ import { GRANULE_LIFETIME_S, MAX_ACTIVE_REGIONS, SUNSPOT, TIME_ACCELERATION, act
 import PlasmaLoops from './PlasmaLoops';
 import { playSolarChromosphere, solarChromosphereMap } from './solarChromosphereMap';
 import simplex3d from './shaders/simplex3d.glsl?raw';
-import { filtroPorId, useFiltroEstelar } from './filtroEstelar';
+import { FILTRO_POR_DEFECTO, filtroPorId, useFiltroEstelar } from './filtroEstelar';
 import { SDO_CHANNELS, playSdoVideo, sdoChannelDate, sdoImageFrame, sdoTexture } from './sdoSolar';
 import { EPHEMERIS_DATE } from './solarEphemeris';
 
@@ -133,7 +133,7 @@ const surfaceFragment = `
     // Filamentos radiales de la penumbra alrededor del centro de la mancha.
     vec3 east = normalize(cross(p, vec3(0.0, 1.0, 0.0)));
     float angle = atan(dot(delta, cross(p, east)), dot(delta, east));
-    float filaments = snoise(vec3(cos(angle), sin(angle), id.z * 9.0) * 7.0 + vec3(0.0, 0.0, r / penumbraRadius));
+    float filaments = snoise(vec3(cos(angle), sin(angle), id.z * 9.0) * 7.0 + vec3(0.0, 0.0, r / max(penumbraRadius, 0.0001)));
     float spotIntensity = mix(1.0, ${SUNSPOT.penumbraIntensity.toFixed(2)} + 0.1 * filaments, penumbra);
     spotIntensity = mix(spotIntensity, ${SUNSPOT.umbraIntensity.toFixed(2)} + 0.06 * snoise(y * 14.0), umbra);
 
@@ -227,9 +227,11 @@ const surfaceFragment = `
     // Un vídeo llega en sRGB sin decodificar; la imagen fija ya llega en lineal.
     observedSdo = mix(observedSdo, pow(observedSdo, vec3(2.2)), sdoVideo);
     // Imagen aplanada (HMI): se repone el oscurecimiento del borde según la cámara, medido en
-    // la imagen sin aplanar (brillo ≈ 0,53 × cos θ en sRGB; 0,813 es el centro de la aplanada).
+    // la imagen sin aplanar; el centro se lleva casi a blanco para que el disco se vea luminoso.
     float flatLevel = dot(pow(observedSdo, vec3(1.0 / 2.2)), vec3(0.299, 0.587, 0.114)) / 0.813;
-    observedSdo = mix(observedSdo, vec3(pow(clamp(0.529 * flatLevel * mu, 0.0, 1.0), 2.2)), sdoFlat);
+    // La imagen HMI es monocroma: se le da el color de la temperatura de la estrella.
+    vec3 flatTint = temperatureTint / max(max(temperatureTint.r, temperatureTint.g), temperatureTint.b);
+    observedSdo = mix(observedSdo, flatTint * pow(clamp(0.95 * flatLevel * (0.45 + 0.55 * mu), 0.0, 1.0), 2.2), sdoFlat);
     filtered = mix(filtered, observedSdo, sdo);
 
     // Sin filtro: disco sobreexpuesto, sin detalle, como al mirar la estrella directamente.
@@ -369,7 +371,9 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   const view = useRef({ time: 0, glare: 1, halpha: 0, euv: 0, real: 0 });
   // Canal y fecha de la imagen del SDO cuyos ejes ya se pasaron al sombreador.
   const sdoFrame = useRef('');
-  const filtro = useFiltroEstelar();
+  // Los filtros son del Sol: las demás estrellas se ven siempre en luz visible, con el color de su temperatura.
+  const filtroSolar = useFiltroEstelar();
+  const filtro = solar ? filtroSolar : FILTRO_POR_DEFECTO;
   useFrame(({ clock, camera }, delta) => {
     if (!surface.current || !corona.current) return;
     const shared = surface.current.uniforms, halo = corona.current.uniforms;
@@ -380,7 +384,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     shared.chromosphereReal.value = map ? 1 : 0;
     shared.chromosphereVideo.value = maps.videoReady ? 1 : 0;
     const { capa, canal } = filtroPorId(filtro);
-    playSolarChromosphere(capa === 'cromosfera');
+    if (solar) playSolarChromosphere(capa === 'cromosfera');
     view.current.real = map ? 1 : 0;
     view.current.time = shared.time.value = halo.time.value = clock.elapsedTime % 3600;
     // Transición breve entre la vista deslumbrada y la filtrada.

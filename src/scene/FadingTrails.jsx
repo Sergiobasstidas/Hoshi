@@ -5,6 +5,7 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { mergeTrails } from './fadingTrail';
+import { smoothRange } from './scale';
 
 // Estelas que se desvanecen hacia la cola (véase fadingTrail.js), todas en un solo objeto de
 // líneas con ancho en píxeles. Con mezcla aditiva, oscurecer el color equivale a hacerlo
@@ -12,10 +13,12 @@ import { mergeTrails } from './fadingTrail';
 // vértice. Cada estela aparece cuando su tamaño de referencia (`size`, en unidades de escena;
 // para una luna, su distancia al planeta) ocupa entre `fadePixels[0]` y `fadePixels[1]` píxeles
 // vistos a la distancia del grupo, y se retira si supera `fadeOutPixels` (opcional, por estela).
+// Con `fadeDistance` = [lejos, cerca] (unidades de escena, distancia de la cámara al grupo), las
+// estelas no se ven más allá de `lejos` y aparecen de forma gradual hasta `cerca`.
 // Coordenadas locales del grupo padre.
 const center = new Vector3();
 
-export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 1, width = 1.6 }) {
+export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 1, width = 1.6, fadeDistance }) {
   const line = useMemo(() => {
     const merged = mergeTrails(trails);
     const colors = new Float32Array(merged.color.length);
@@ -55,6 +58,10 @@ export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 
     const object = ref.current;
     const distance = camera.position.distanceTo(object.getWorldPosition(center));
     object.userData.uniforms.pixelsPerUnit.value = size.height / (2 * Math.tan(camera.fov * Math.PI / 360)) / distance;
+    if (fadeDistance) {
+      const factor = 1 - smoothRange(distance, fadeDistance[1], fadeDistance[0]);
+      object.userData.uniforms.trailOpacity.value = opacity * factor;
+    }
   });
   return <primitive object={line} ref={ref} />;
 }

@@ -48,6 +48,9 @@ const pointFragment = `
     #include <logdepthbuf_fragment>
   }`;
 
+// Fracción de la atenuación de canto que se aplica (antes 1).
+const EDGE_DIMMING=.55;
+
 // dim atenúa el disco sin ocultar sus rótulos (modo de descubrimientos de exoplanetas).
 export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
   const [requested,setRequested]=useState(false);
@@ -87,11 +90,12 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
     if(group.current)group.current.visible=visible;
     if(disc.current){
       disc.current.uniforms.opacity.value=alpha;
-      const face=galaxyFacing(camera.position,origin);
+      // De canto se atenúa el disco: la atenuación se redujo un 45 % (pedido de Sergio, 31/10/2026).
+      const face=1-EDGE_DIMMING*(1-galaxyFacing(camera.position,origin));
       disc.current.uniforms.face.value=face;
       // A ángulos rasantes las muestras se acumulan en menos píxeles. Comprimir
       // su exposición para evitar convertir el disco en una línea blanca.
-      points.current.uniforms.opacity.value=alpha*(.22+.78*face);
+      points.current.uniforms.opacity.value=alpha*(1-.78*EDGE_DIMMING*(1-galaxyFacing(camera.position,origin)));
       points.current.uniforms.viewportHeight.value=size.height*gl.getPixelRatio();
     }
     for(const label of [sunLabel.current,centerLabel.current])if(label){

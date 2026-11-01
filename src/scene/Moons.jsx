@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, Color, Matrix4, Quaternion, SRGBColorSpace, Vector3 } from 'three';
-import { KM_TO_PC, PLANETS, smoothRange } from './scale';
+import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange } from './scale';
 import { EPHEMERIS_DATE, planetPosition } from './solarEphemeris';
 import { julianDay, moonOffsetKm, orbitalPeriodDays } from './moonEphemeris';
 import { sampleTrail } from './fadingTrail';
@@ -33,6 +33,9 @@ const hidden = new Matrix4().makeScale(0, 0, 0);
 const TRAIL_SPAN = 0.9, TRAIL_POINTS = 140;
 // Color (el beige de NASA Eyes, pedido por Sergio) y desvanecimiento son estilo; las pequeñas, más tenues.
 const TRAIL_FADE = [12, 50], TRAIL_COLOR = new Color('#d9c59a'), MINOR_TRAIL_COLOR = new Color('#a8987a');
+// Las órbitas no se ven de lejos (pedido de Sergio, 31/10/2026): aparecen de forma gradual al
+// acercarse al planeta, desde 2,5 UA de la cámara, y están completas a 1 UA.
+const TRAIL_DISTANCE = [2.5 * AU_TO_PC, 1 * AU_TO_PC];
 const vector = new Vector3(), view = new Vector3();
 
 function MoonGroup({ planet, moons, origin }) {
@@ -182,7 +185,7 @@ function MoonGroup({ planet, moons, origin }) {
       <sphereGeometry args={[1, 48, 32]} />
       <meshLambertMaterial toneMapped={false} />
     </mesh>)}
-    <FadingTrails trails={trails} fadePixels={TRAIL_FADE} opacity={1} width={1.6} />
+    <FadingTrails trails={trails} fadePixels={TRAIL_FADE} opacity={1} width={1.6} fadeDistance={TRAIL_DISTANCE} />
     <points ref={points} frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[attributes.position, 3]} />

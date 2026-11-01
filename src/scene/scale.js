@@ -39,8 +39,9 @@ export function lightDayRulerOpacity(distancePc, widthPx, availablePx) {
 // Nunca llega a cero: atravesar Oort no apaga el catálogo.
 export function starExposure(distancePc) {
   const logDistance = Math.log10(Math.max(distancePc, 1e-8));
-  // Retrasar la aparición inicial y limitar el brillo lejano para no saturar el centro.
-  return 0.13 + 0.40 * smoothRange(logDistance, -2.5, 0)
+  // Las estrellas aparecen pronto al alejarse del Sol (de 10 a 30 UA, pedido de Sergio,
+  // 31/10/2026) con el mismo brillo final; se limita el brillo lejano para no saturar el centro.
+  return 0.13 + 0.40 * smoothRange(logDistance, -4.31, -3.84)
     + 0.15 * smoothRange(logDistance, 0, 2.5);
 }
 
@@ -52,9 +53,9 @@ export function skyExposure(distancePc, named) {
   return Math.max(starExposure(distancePc), named ? SOLAR_SKY_EXPOSURE.named : SOLAR_SKY_EXPOSURE.background);
 }
 
-// Conservar la vista cercana; mostrar el fondo sin nombre conforme Oort se desvanece.
+// El fondo sin nombre empieza a ganar brillo de 10 a 30 UA y llega al final hacia unos 3 años luz.
 export function backgroundGain(distancePc) {
-  return 1 + 1.1 * smoothRange(distancePc, 4, 12);
+  return 1 + 0.4 * smoothRange(distancePc, 10 * AU_TO_PC, 30 * AU_TO_PC) + 0.7 * smoothRange(distancePc, 0.01, 1);
 }
 
 // Representación visual comprimida de magnitud absoluta, no de radio
@@ -137,7 +138,7 @@ export const VIEWS = [
   { id: 'solar', label: 'Sistema solar', distance: 5 * AU_TO_PC },
   // A 7 años luz del Sol, para ver la nube de Oort entera (pedido de Sergio, 15/10/2026).
   { id: 'oort', label: 'Nube de Oort', distance: 7 * LIGHT_YEAR_PC },
-  { id: 'stars', label: 'Vecindario', distance: 65 },
+  { id: 'stars', label: 'Estrellas cercanas', distance: 65 },
 ];
 
 // Posiciones ilustrativas heredadas; no son datos de seguimiento actual.
