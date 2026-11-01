@@ -24,8 +24,6 @@
 .ficha-estrella-planetas button, .ficha-estrella-planetas span { display: block; padding: 3px 8px; border: 1px solid #ffffff1f; border-radius: 999px; background: transparent; color: #c6d1de; font: inherit; font-size: 10.5px; }
 .ficha-estrella-planetas button { cursor: pointer; }
 .ficha-estrella-planetas button:hover, .ficha-estrella-planetas button:focus-visible { color: #fff; border-color: #8fd3ff; outline: none; }
-.ficha-estrella-enlace { margin-top: 8px; padding: 0; border: 0; background: none; color: #f2c46b; font: inherit; font-size: 11px; cursor: pointer; }
-.ficha-estrella-enlace:hover, .ficha-estrella-enlace:focus-visible { color: #ffe2a6; outline: none; }
 .ficha-estrella-accion { display: block; width: 100%; margin-top: 18px; padding: 9px; border: 1px solid #8fd3ff66; border-radius: 8px; background: #8fd3ff14; color: #e6f4ff; font: inherit; letter-spacing: .04em; cursor: pointer; transition: background .2s, border-color .2s; }
 .ficha-estrella-accion:hover, .ficha-estrella-accion:focus-visible { background: #8fd3ff2b; border-color: #8fd3ff; outline: none; }
 

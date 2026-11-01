@@ -4,11 +4,11 @@
 .zona-ficha-titulo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .zona-ficha-titulo em { font-style: normal; }
 .zona-ficha.con-planeta { border-top: 0; }
-.zona-ficha.con-planeta::before, .zona-ficha.con-planeta::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, rgba(154,242,212,.12), rgba(154,242,212,.85) 30%, rgba(154,242,212,.85) 70%, rgba(154,242,212,.12)); box-shadow: 0 0 8px rgba(154,242,212,.5); }
+.zona-ficha.con-planeta::before, .zona-ficha.con-planeta::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, rgba(154,242,212,.12), rgba(154,242,212,1) 30%, rgba(154,242,212,1) 70%, rgba(154,242,212,.12)); box-shadow: 0 0 10px rgba(154,242,212,.7); }
 .zona-ficha.con-planeta::before { top: 0; }
 .zona-ficha.con-planeta::after { bottom: 0; }
-.zona-ficha.con-planeta .zona-ficha-titulo > span { color: #9af2d4; font-size: 12px; text-shadow: 0 0 10px rgba(154,242,212,.55), 0 0 2px rgba(154,242,212,.4); }
-.zona-ficha.con-planeta .zona-ficha-titulo em { color: #9af2d4; font-size: 10.5px; text-shadow: 0 0 8px rgba(154,242,212,.35); }
+.zona-ficha.con-planeta .zona-ficha-titulo > span { color: #9af2d4; font-size: 12px; font-weight: 500; text-shadow: 0 0 12px rgba(154,242,212,.75), 0 0 2px rgba(154,242,212,.5); }
+.zona-ficha.con-planeta .zona-ficha-titulo em { color: #9af2d4; font-size: 10.5px; text-shadow: 0 0 10px rgba(154,242,212,.5); }
 .mapa-zona { display: block; box-sizing: border-box; width: 100%; height: auto; margin-top: 4px; padding-left: 14px; }
 .mapa-zona-valor { fill: #8a94a3; font-size: 11px; }
 .mapa-zona-planeta { fill: #7d8794; }

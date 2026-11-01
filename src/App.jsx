@@ -174,7 +174,6 @@ export default function App() {
   const releaseAim = useCallback(() => setAimTarget(null), []);
   // El botón «Sol» queda encendido mientras la cámara sigue apuntando al Sol tras pulsarlo.
   const [solApuntado, setSolApuntado] = useState(false);
-  const [estrellaPrevia, setEstrellaPrevia] = useState(null);
   // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
   const [estrellaVista, setEstrellaVista] = useState(null);
   const esComputador = useEsComputador();
@@ -387,7 +386,6 @@ export default function App() {
   const cerrarFicha = () => { setEstrellaVista(null); setShowBodyPanel(false); releaseAim(); };
   // Pasar de la estrella a uno de sus planetas y volver, como páginas de la misma ficha.
   const verPlanetaDesdeFicha = planeta => {
-    setEstrellaPrevia(planeta.star.i);
     setDireccionFicha(1);
     focusBody(planeta);
   };
@@ -397,7 +395,6 @@ export default function App() {
   };
   const verEstrellaDesdeFicha = () => {
     setDireccionFicha(-1);
-    setEstrellaPrevia(null);
     visitBody(starBody(hostStar, hostName));
     setShowBodyPanel(true);
   };
@@ -550,7 +547,7 @@ export default function App() {
       {(fichaPlaneta || estrellaFicha) && <FichaLateral clave={fichaPlaneta ? `planeta:${nombreFicha}` : `estrella:${estrellaFicha.i}`} direccion={direccionFicha}
         etiqueta={`Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
-          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
+          onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
           : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}

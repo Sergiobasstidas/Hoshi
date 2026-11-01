@@ -32,11 +32,14 @@ const FRAGMENTO = /* glsl */`
     if (dentro <= 0.0) discard;
     float conservadora = suave((radio - interior) / (borde * 0.6)) * suave((exteriorConservador - radio) / (borde * 0.6));
     float arco = radio > interior && radio < exteriorConservador ? sin(3.14159265 * (radio - interior) / (exteriorConservador - interior)) : 0.0;
-    float perfil = dentro * mix(0.38, 0.8 + 0.2 * arco, conservadora);
-    float alto = grosor * (0.55 + 0.45 * perfil);
-    float capa = 1.0 - smoothstep(alto * 0.55, alto, abs(altura));
+    float perfil = dentro * mix(0.38, 0.9 + 0.1 * arco, conservadora);
+    // Mismo grosor en todo el radio: así todas las capas suman igual y no se forman escalones.
+    float capa = 1.0 - smoothstep(grosor * 0.55, grosor, abs(altura));
     if (capa <= 0.0) discard;
-    gl_FragColor = vec4(mix(colorBorde, colorCentro, conservadora * (0.45 + 0.55 * arco)), perfil * capa * opacidad);
+    vec3 color = mix(colorBorde, colorCentro, conservadora * (0.8 + 0.2 * arco));
+    // Un poco de ruido por píxel: con opacidades tan bajas, 8 bits dejarían bandas.
+    float ruido = fract(sin(dot(gl_FragCoord.xy + altura * 4096.0, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;
+    gl_FragColor = vec4(color, max(0.0, perfil * capa * opacidad + ruido / (255.0 * max(color.g, 0.1))));
   }
 `;
 // Planos apilados en una sola geometría: un cuadrado por capa, a lo alto de la franja.

@@ -1,5 +1,5 @@
 import { temperatureColor } from './scene/stellarPhysics';
-import { anoEnBorde, enZonaHabitable, luzEnBorde, numeroZona, planetasDentro, zonaDeEstrella } from './scene/zonaHabitable';
+import { anoEnBorde, distanciaComparada, enZonaHabitable, luzEnBorde, numeroZona, planetasDentro, zonaDeEstrella } from './scene/zonaHabitable';
 import './mapaZona.css';
 
 const ANCHO = 520, EJE = 38, ESTRELLA_X = 14, BORDE_DERECHO = 506, SEPARACION_LETRAS = 12;
@@ -25,7 +25,7 @@ function Mapa({ zona, planetas, temperatura }) {
     <circle cx={ESTRELLA_X} cy={EJE} r={4.5} fill={color} />
     <line x1={ESTRELLA_X} x2={BORDE_DERECHO + 8} y1={EJE} y2={EJE} stroke="rgba(255,255,255,.12)" />
     <rect x={x(zona.optimistaInterior)} y={EJE - 12} width={x(zona.optimistaExterior) - x(zona.optimistaInterior)} height={24} rx={3} fill="rgba(29,107,94,.35)" />
-    <rect x={interior} y={EJE - 12} width={exterior - interior} height={24} rx={3} fill="rgba(154,242,212,.22)" stroke="rgba(154,242,212,.55)" />
+    <rect x={interior} y={EJE - 12} width={exterior - interior} height={24} rx={3} fill="rgba(154,242,212,.28)" stroke="rgba(154,242,212,.55)" />
     <text x={interior} y={18} textAnchor={juntos ? 'end' : 'middle'} className="mapa-zona-valor">{numeroZona(zona.interior)}</text>
     <text x={exterior} y={18} textAnchor={juntos ? 'start' : 'middle'} className="mapa-zona-valor">{numeroZona(zona.exterior)} UA</text>
     {puntos.map(({ planeta, cx, conLetra }) => {
@@ -40,7 +40,7 @@ function Mapa({ zona, planetas, temperatura }) {
 }
 
 // Zona habitable en la ficha: se pulsa para mirarla de frente. El realce queda para los sistemas con un planeta dentro.
-export default function MapaZonaHabitable({ star, fichas, planetas, temperatura, masa, onMostrar }) {
+export default function MapaZonaHabitable({ star, fichas, planetas, temperatura, masa, comparar = false, onMostrar }) {
   const zona = zonaDeEstrella(star, fichas);
   if (!zona) return null;
   const dentro = planetas.filter(planeta => enZonaHabitable(zona, planeta.a)).length;
@@ -51,6 +51,7 @@ export default function MapaZonaHabitable({ star, fichas, planetas, temperatura,
     <Mapa zona={zona} planetas={planetas} temperatura={temperatura} />
     <span className="zona-ficha-datos">
       <span><span>Distancia a la estrella</span><b>{numeroZona(zona.interior)} a {numeroZona(zona.exterior)} UA</b></span>
+      {comparar && <span><span>Comparación</span><b>{distanciaComparada((zona.interior + zona.exterior) / 2)}</b></span>}
       <span><span>Luz que llega</span><b>{luzEnBorde(zona.exterior, zona)} % a {luzEnBorde(zona.interior, zona)} % de la Tierra</b></span>
       {anoInterior && <span><span>Un año ahí dura</span><b>{unidad ? `${anoInterior.valor} a ${anoExterior.valor} ${anoExterior.unidad}` : `${anoInterior.valor} ${anoInterior.unidad} a ${anoExterior.valor} ${anoExterior.unidad}`}</b></span>}
       <small>1 UA es la distancia de la Tierra al Sol</small>

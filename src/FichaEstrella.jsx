@@ -143,7 +143,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {movimiento > 0 && <Dato etiqueta="Movimiento propio" valor={`${numero(movimiento)} mas/año`} />}
         {(hd || hip || mas.gaia) && <Dato etiqueta="Catálogos" valor={[hd, hip].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
       </dl>
-      <MapaZonaHabitable star={star} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} onMostrar={onZona} />
+      <MapaZonaHabitable star={star} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} comparar onMostrar={onZona} />
       {miembros.length > 0 && <section>
         <h3>Sistema</h3>
         <ul className="ficha-estrella-planetas">

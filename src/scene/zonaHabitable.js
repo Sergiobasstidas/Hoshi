@@ -44,3 +44,12 @@ export function encuadreDeSistema(star, fichas) {
   if (!(radio > 0)) return null;
   return { distance: radio * DISTANCIA_POR_RADIO * AU_TO_PC, direction: sistema.viewDirection, up: sistema.viewUp };
 }
+// Una distancia comparada con la órbita del planeta solar más cercano a ella.
+const ORBITAS_SOLARES = [['Mercurio', 0.387], ['Venus', 0.723], ['la Tierra', 1], ['Marte', 1.524], ['Júpiter', 5.2], ['Saturno', 9.58], ['Urano', 19.2], ['Neptuno', 30.1]];
+const veces = valor => valor.toLocaleString('es-CL', { maximumSignificantDigits: 2 });
+export function distanciaComparada(ua) {
+  const [cuerpo, orbita] = ORBITAS_SOLARES.reduce((a, b) => Math.abs(Math.log(b[1] / ua)) < Math.abs(Math.log(a[1] / ua)) ? b : a);
+  const razon = ua / orbita;
+  if (razon > 0.85 && razon < 1.18) return `Casi la misma que ${cuerpo} al Sol`;
+  return razon < 1 ? `${veces(1 / razon)} veces más cerca que ${cuerpo} del Sol` : `${veces(razon)} veces más lejos que ${cuerpo} del Sol`;
+}

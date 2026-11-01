@@ -1,10 +1,10 @@
 import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
+import { distanciaComparada } from './scene/zonaHabitable';
 import { useFichas } from './useFichas';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 const JUPITER_RADIOS_TIERRA = 11.2;
-const ORBITAS_SOLARES = [['Mercurio', 0.387], ['Venus', 0.723], ['la Tierra', 1], ['Marte', 1.524], ['Júpiter', 5.2], ['Saturno', 9.58], ['Urano', 19.2], ['Neptuno', 30.1]];
 
 function clasePlaneta(radio) {
   if (radio < 1.25) return ['Planeta rocoso', 'Un mundo de roca, de un tamaño parecido al nuestro. Son los más difíciles de encontrar: apenas ensombrecen a su estrella cuando pasan frente a ella.'];
@@ -13,12 +13,6 @@ function clasePlaneta(radio) {
   return ['Gigante gaseoso', 'Una inmensa esfera de hidrógeno y helio, sin una superficie donde posarse. Dentro de un planeta así cabrían cientos o miles de Tierras.'];
 }
 const duracionAno = dias => dias < 2 ? `${numero(dias * 24)} horas` : dias < 730 ? `${numero(dias)} días` : `${numero(dias / 365.25)} años`;
-function distanciaComparada(ua) {
-  const [cuerpo, orbita] = ORBITAS_SOLARES.reduce((a, b) => Math.abs(Math.log(b[1] / ua)) < Math.abs(Math.log(a[1] / ua)) ? b : a);
-  const razon = ua / orbita;
-  if (razon > 0.85 && razon < 1.18) return `Casi la misma que ${cuerpo} al Sol`;
-  return razon < 1 ? `${numero(1 / razon, 2)} veces más cerca que ${cuerpo} del Sol` : `${numero(razon, 2)} veces más lejos que ${cuerpo} del Sol`;
-}
 // Tamaño comparado con la Tierra y Júpiter, a la misma escala.
 function ComparacionPlaneta({ nombre, radio, color }) {
   const escala = 30 / Math.max(radio, JUPITER_RADIOS_TIERRA);
@@ -36,7 +30,7 @@ function ComparacionPlaneta({ nombre, radio, color }) {
 const conError = (valor, error) => `${numero(valor)}${error ? ` ± ${numero(error, 2)}` : ''}`;
 const LECTURA_DENSIDAD = densidad => densidad > 3.5 ? 'Rocoso' : densidad > 1.5 ? 'Con mucha agua o hielo, o atmósfera' : 'Gaseoso';
 
-export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver, onVerEstrella, onVerPlaneta, onZona }) {
+export default function FichaPlaneta({ planeta, sistema, nombreEstrella, onVerEstrella, onVerPlaneta, onZona }) {
   const fichas = useFichas();
   const mas = fichas?.planetas[planeta.n] || {};
   const masaMinima = mas.tipoMasa && /sin/i.test(mas.tipoMasa);
@@ -44,7 +38,7 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver,
   const hermanos = sistema.planets.filter(otro => otro.n !== planeta.n);
   const excentrica = planeta.e >= 0.3;
   return <>
-    {volver && <button className="ficha-estrella-volver" onClick={onVerEstrella}>‹ {nombreEstrella}</button>}
+    <button className="ficha-estrella-volver" onClick={onVerEstrella}>‹ {nombreEstrella}</button>
     <h2 className="marca-hoshi">{planeta.n}</h2>
     <p className="ficha-estrella-tipo">{tipo}</p>
     <p className="ficha-estrella-relato">{relato}</p>
@@ -64,7 +58,6 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver,
     </dl>
     <MapaZonaHabitable star={sistema.star} fichas={fichas} planetas={sistema.planets} temperatura={sistema.st?.teff ?? sistema.star.physics?.temperatureK} masa={sistema.st?.m} onMostrar={onZona} />
     {planeta.a > 0 && <p className="ficha-estrella-relato">{distanciaComparada(planeta.a)}.{excentrica ? ' Su órbita es muy alargada: pasa de acercarse mucho a su estrella a alejarse de ella.' : ''}</p>}
-    {!volver && <button className="ficha-estrella-enlace" onClick={onVerEstrella}>Ver su estrella: {nombreEstrella}</button>}
     {hermanos.length > 0 && <section>
       <h3>{hermanos.length === 1 ? 'Otro planeta del sistema' : `Otros ${hermanos.length} planetas del sistema`}</h3>
       <ul className="ficha-estrella-planetas">
