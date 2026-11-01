@@ -140,11 +140,6 @@
 .dial-arco,.dial-arco-distancia{stroke-width:2.7;}
 .dial-arco-distancia{stroke:url(#degradado-distancia);}
 .marca-hoshi{font-size:16.8px;}
-.creditos-hoshi{pointer-events:auto;}
-.creditos-hoshi summary{cursor:pointer;list-style:none;}
-.creditos-hoshi summary::-webkit-details-marker{display:none;}
-.creditos-contenido{max-width:300px;padding:12px;background:#0a1019ed;border:1px solid #405e7544;color:#9fb7c5;font-size:11px;line-height:1.6;pointer-events:auto;}
-.creditos-contenido a{color:#9fcbd5;}
 @media(max-width:700px){.visores-vuelo{left:50%;transform-origin:bottom center;transform:translateX(-50%) scale(.92);bottom:36px;}.marca-hoshi{font-size:14.4px;}}
 @media(max-width:420px){.visores-vuelo{transform:translateX(-50%) scale(.8);}}
 @media(max-height:650px) and (min-width:701px){.visores-vuelo{transform:scale(.86);bottom:20px;}}

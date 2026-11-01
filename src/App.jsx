@@ -487,16 +487,7 @@ export default function App() {
       <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight} onDesactivar={toggleFlight}
         onCambiar={valor=>{setSpeed(valor);setVelocidadSolicitada({valor});}} />
       </div>
-      <details className="distance-panel creditos-hoshi">
-        <summary className="eyebrow marca-hoshi" aria-label="Hoshi: ver créditos">H O S H I</summary>
-        <div className="creditos-contenido">
-          <p>© 2026 Sergio Bastidas</p>
-          <p>Vía Láctea: ESA/Gaia/DPAC · Stefan Payne-Wardenaar.</p>
-          <p>Adaptación con volumen de una representación galáctica.</p>
-          <a href="https://www.cosmos.esa.int/web/gaia/milky-way" target="_blank" rel="noreferrer">Fuente original</a>
-          {' · '}<a href="https://creativecommons.org/licenses/by-sa/3.0/igo/" target="_blank" rel="noreferrer">CC BY-SA 3.0 IGO</a>
-        </div>
-      </details>
+      <div className="distance-panel logo-hoshi"><div className="eyebrow marca-hoshi">H O S H I</div></div>
       <nav className="scale-navigation" aria-label="Explorar escalas">
         <MenuVer acciones={acciones.filter(accion => !accion.fija)} onElegir={ejecutarAccion} />
         {acciones.filter(accion => accion.fija && !accion.oculta).map(accion => <button key={accion.id} data-accion={accion.id} aria-pressed={accion.activa} title={accion.titulo} onClick={() => ejecutarAccion(accion.id)}>{accion.texto}</button>)}

@@ -1,6 +1,6 @@
 /* Panel de la estrella: columna a todo el alto a la izquierda, que se funde con la escena. Solo
    el logo queda por encima; el tramo del fundido deja pasar el puntero hacia la escena. */
-.scene-overlay .creditos-hoshi { z-index: 80; }
+.scene-overlay .logo-hoshi { z-index: 80; }
 .ficha-estrella { position: absolute; inset: 0 auto 0 0; z-index: 70; width: 414px; pointer-events: none;
   background: linear-gradient(90deg, #02040afd 0%, #02040afa 74%, #02040a00 100%); color: #c6d1de; font-size: 12px; line-height: 1.6; }
 .ficha-estrella-contenido { position: absolute; top: 74px; bottom: 0; left: 0; box-sizing: border-box; width: 345px; padding: 14px 12px 28px 36px; overflow-y: auto; -webkit-mask-image: linear-gradient(180deg, #0000, #000 16px); mask-image: linear-gradient(180deg, #0000, #000 16px); pointer-events: auto; scrollbar-width: thin; scrollbar-color: #ffffff26 transparent; }
