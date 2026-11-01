@@ -3,9 +3,9 @@ import { colorLegible, temperatureColor } from './scene/stellarPhysics';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { indiceBusqueda } from './indiceBusqueda';
 import { estrellaDeComponente } from './scene/visualBinary';
-import { Dato, FilaZona } from './FichaLateral';
+import { Dato } from './FichaLateral';
+import MapaZonaHabitable from './MapaZona';
 import { useFichas } from './useFichas';
-import { comparacionSolar, enZonaHabitable, rangoZona, zonaDeEstrella } from './scene/zonaHabitable';
 
 const CONSTELACIONES = { And: 'Andrómeda', Ant: 'Antlia', Aps: 'Ave del Paraíso', Aqr: 'Acuario', Aql: 'Águila', Ara: 'Altar', Ari: 'Aries', Aur: 'Auriga', Boo: 'Boyero', Cae: 'Cincel', Cam: 'Jirafa', Cnc: 'Cáncer', CVn: 'Lebreles', CMa: 'Can Mayor', CMi: 'Can Menor', Cap: 'Capricornio', Car: 'Quilla', Cas: 'Casiopea', Cen: 'Centauro', Cep: 'Cefeo', Cet: 'Ballena', Cha: 'Camaleón', Cir: 'Compás', Col: 'Paloma', Com: 'Cabellera de Berenice', CrA: 'Corona Austral', CrB: 'Corona Boreal', Crv: 'Cuervo', Crt: 'Copa', Cru: 'Cruz del Sur', Cyg: 'Cisne', Del: 'Delfín', Dor: 'Dorado', Dra: 'Dragón', Equ: 'Caballito', Eri: 'Erídano', For: 'Horno', Gem: 'Géminis', Gru: 'Grulla', Her: 'Hércules', Hor: 'Reloj', Hya: 'Hidra', Hyi: 'Hidra Macho', Ind: 'Indio', Lac: 'Lagarto', Leo: 'Leo', LMi: 'León Menor', Lep: 'Liebre', Lib: 'Libra', Lup: 'Lobo', Lyn: 'Lince', Lyr: 'Lira', Men: 'Mesa', Mic: 'Microscopio', Mon: 'Unicornio', Mus: 'Mosca', Nor: 'Escuadra', Oct: 'Octante', Oph: 'Ofiuco', Ori: 'Orión', Pav: 'Pavo', Peg: 'Pegaso', Per: 'Perseo', Phe: 'Fénix', Pic: 'Pintor', Psc: 'Piscis', PsA: 'Pez Austral', Pup: 'Popa', Pyx: 'Brújula', Ret: 'Retículo', Sge: 'Flecha', Sgr: 'Sagitario', Sco: 'Escorpio', Scl: 'Escultor', Sct: 'Escudo', Ser: 'Serpiente', Sex: 'Sextante', Tau: 'Tauro', Tel: 'Telescopio', Tri: 'Triángulo', TrA: 'Triángulo Austral', Tuc: 'Tucán', UMa: 'Osa Mayor', UMi: 'Osa Menor', Vel: 'Vela', Vir: 'Virgo', Vol: 'Pez Volador', Vul: 'Zorra' };
 
@@ -81,7 +81,7 @@ function DiscoEstrella({ id, cx, r, color }) {
 }
 
 // Tamaño comparado con el Sol: el mayor de los dos ocupa el recuadro; el menor nunca desaparece.
-function ComparacionSol({ radio, temperatura }) {
+function ComparacionSol({ nombre, radio, temperatura }) {
   const id = useId().replace(/:/g, '');
   const mayor = Math.max(radio, 1), escala = 34 / mayor;
   const estrella = Math.max(1.5, radio * escala), sol = Math.max(1.5, escala);
@@ -91,17 +91,16 @@ function ComparacionSol({ radio, temperatura }) {
       <DiscoEstrella id={`${id}-e`} cx={46} r={estrella} color={temperatureColor(temperatura)} />
       <DiscoEstrella id={`${id}-s`} cx={126} r={sol} color={temperatureColor(5772)} />
     </svg>
-    <figcaption><span>Esta estrella</span><span>Sol</span></figcaption>
+    <figcaption><span>{nombre}</span><span>Sol</span></figcaption>
     <p>{texto}</p>
   </figure>;
 }
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, zonaActiva, onZona }) {
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona }) {
   const { constelacion, hd, hip } = useConstelacion(star.i);
   const fichas = useFichas();
   const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
-  const zona = zonaDeEstrella(star, fichas);
   const movimiento = mas.pmRa !== undefined && mas.pmDec !== undefined ? Math.hypot(mas.pmRa, mas.pmDec) : null;
   const metales = mas.metalicidad;
   const { physics, planetary } = star;
@@ -118,12 +117,11 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   const tipo = tipoEstelar(espectro);
   const planetas = (planetary || []).flatMap(sistema => sistema.planets);
   const vista = comoSeVe(star);
-  const dentro = planetas.filter(planeta => enZonaHabitable(zona, planeta.a)).length;
   return <>
       <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{nombre}</h2>
       {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${espectro.replace(/\.+\s*$/, '').trim()}`}</p>}
       {(tipo || vista) && <p className="ficha-estrella-relato">{[tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
-      {radio > 0 && <ComparacionSol radio={radio} temperatura={temperatura || 5772} />}
+      {radio > 0 && <ComparacionSol nombre={nombre} radio={radio} temperatura={temperatura || 5772} />}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
           <i className="ficha-estrella-color" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
@@ -144,9 +142,8 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {mas.radial !== undefined && <Dato etiqueta="Velocidad radial" valor={`${mas.radial < 0 ? 'Se acerca' : 'Se aleja'} a ${numero(Math.abs(mas.radial))} km/s`} />}
         {movimiento > 0 && <Dato etiqueta="Movimiento propio" valor={`${numero(movimiento)} mas/año`} />}
         {(hd || hip || mas.gaia) && <Dato etiqueta="Catálogos" valor={[hd, hip].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
-        {zona && !dentro && <Dato etiqueta="Zona habitable" valor={rangoZona(zona)} secundario={comparacionSolar(zona)} />}
       </dl>
-      {dentro > 0 && <FilaZona zona={zona} activa={zonaActiva} onMostrar={onZona} nota={`${comparacionSolar(zona)}. ${dentro === 1 ? 'Un planeta conocido dentro' : `${dentro} planetas conocidos dentro`}`} />}
+      <MapaZonaHabitable star={star} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} onMostrar={onZona} />
       {miembros.length > 0 && <section>
         <h3>Sistema</h3>
         <ul className="ficha-estrella-planetas">

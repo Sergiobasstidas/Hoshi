@@ -1,0 +1,22 @@
+/* Zona habitable de la ficha: título, mapa a escala y sublista de datos. */
+.zona-ficha { position: relative; display: block; width: 100%; padding: 8px 0 9px; border: 0; border-top: 1px solid #ffffff12; background: none; color: #7f8b9b; font: inherit; font-size: 10.5px; text-align: left; cursor: pointer; pointer-events: auto; }
+.zona-ficha:focus-visible { outline: 1px solid #aac8dc; outline-offset: 2px; }
+.zona-ficha-titulo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.zona-ficha-titulo em { font-style: normal; }
+.zona-ficha.con-planeta { border-top: 0; }
+.zona-ficha.con-planeta::before, .zona-ficha.con-planeta::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, rgba(154,242,212,.12), rgba(154,242,212,.85) 30%, rgba(154,242,212,.85) 70%, rgba(154,242,212,.12)); box-shadow: 0 0 8px rgba(154,242,212,.5); }
+.zona-ficha.con-planeta::before { top: 0; }
+.zona-ficha.con-planeta::after { bottom: 0; }
+.zona-ficha.con-planeta .zona-ficha-titulo > span { color: #9af2d4; font-size: 12px; text-shadow: 0 0 10px rgba(154,242,212,.55), 0 0 2px rgba(154,242,212,.4); }
+.zona-ficha.con-planeta .zona-ficha-titulo em { color: #9af2d4; font-size: 10.5px; text-shadow: 0 0 8px rgba(154,242,212,.35); }
+.mapa-zona { display: block; box-sizing: border-box; width: 100%; height: auto; margin-top: 4px; padding-left: 14px; }
+.mapa-zona-valor { fill: #8a94a3; font-size: 11px; }
+.mapa-zona-planeta { fill: #7d8794; }
+.mapa-zona-planeta.dentro { fill: #c9fbe8; filter: drop-shadow(0 0 4px #9af2d4); }
+.mapa-zona-letra { fill: #6c7684; font-size: 12px; }
+.mapa-zona-letra.dentro { fill: #9af2d4; }
+.mapa-zona-fuera { fill: #7d8794; font-size: 13px; }
+.zona-ficha-datos { display: grid; gap: 3px; margin-top: 4px; padding-left: 14px; }
+.zona-ficha-datos > span { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; color: #8a94a3; }
+.zona-ficha-datos b { color: #e8edf2; font-size: 11px; font-weight: 400; text-align: right; font-variant-numeric: tabular-nums; }
+.zona-ficha-datos small { color: #6c7684; font-size: 9.5px; }

@@ -66,7 +66,7 @@ import FichaLateral from './FichaLateral';
 import { useFichas } from './useFichas';
 import { useEsComputador } from './esComputador';
 import FranjaHabitable from './scene/FranjaHabitable';
-import { zonaDeEstrella } from './scene/zonaHabitable';
+import { encuadreDeSistema, zonaDeEstrella } from './scene/zonaHabitable';
 import { cambiarOrbitas, cambiarZonaVisible, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
 import SelectorBrillo from './SelectorBrillo';
 import FichaPlaneta from './FichaPlaneta';
@@ -234,7 +234,7 @@ export default function App() {
     setShowBodyPanel(fromSearch || Boolean(body.star && body.kind === 'star'));
     setInspectedTarget(fromSearch && body.kind === 'star'
       ? {kind:'star',text:body.name,star:body.star,catalogueId:body.star.i,position:body.position} : null);
-    navigate(bodyView(body));
+    navigate({ ...bodyView(body), ...(!sistema && body.kind === 'star' && encuadreDeSistema(body.star, fichas)) });
   };
   const focusBody = body => { visitBody(body); if (body.kind === 'exoplanet' || body.kind === 'satellite' || body.name === 'Saturno') setShowBodyPanel(true); };
   // Estrella como destino: encuadra su sistema (compañeras o planetas) y, si tiene
@@ -550,8 +550,8 @@ export default function App() {
       {(fichaPlaneta || estrellaFicha) && <FichaLateral clave={fichaPlaneta ? `planeta:${nombreFicha}` : `estrella:${estrellaFicha.i}`} direccion={direccionFicha}
         etiqueta={`Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
-          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} zonaActiva={verZona} onZona={mostrarZona} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} zonaActiva={verZona} onZona={mostrarZona}
+          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
       {!estrellaVista && showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">
