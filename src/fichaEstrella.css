@@ -74,7 +74,7 @@
 .ficha-estrella-zona b { font-weight: 400; text-align: right; }
 .ficha-estrella-zona small { display: block; color: #8fb8b0; font-size: 9.5px; }
 .ficha-estrella-zona:hover, .ficha-estrella-zona:focus-visible, .ficha-estrella-zona.activa { background: #5fd4c02b; border-color: #5fd4c0; outline: none; }
-.zona-habitable-planeta { display: block; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 1.5px solid #5fd4c0; border-radius: 50%; box-shadow: 0 0 10px #5fd4c0aa; }
+.zona-habitable-planeta { display: block; box-sizing: border-box; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border: 1px solid #5fd4c0; border-radius: 50%; }
 
 /* Buscador: nunca blanco por el autocompletado, y con el brillo de la estrella elegida. */
 .star-search input:-webkit-autofill, .star-search input:-webkit-autofill:focus { -webkit-text-fill-color: #d5dbe4; box-shadow: inset 0 0 0 100px #080d15; transition: background-color 9999s; caret-color: #d5dbe4; }

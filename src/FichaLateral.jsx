@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { rangoZona } from './scene/zonaHabitable';
 import './fichaEstrella.css';
 
-// Fila de la zona habitable: se pulsa para dibujarla en el sistema.
-export function FilaZona({ zona, activa, onAlternar, nota }) {
-  return <button className={`ficha-estrella-zona${activa ? ' activa' : ''}`} aria-pressed={activa} onClick={onAlternar}>
+// Recuadro de la zona habitable, para los sistemas con un planeta dentro: se pulsa para mirarla de frente.
+export function FilaZona({ zona, activa, onMostrar, nota }) {
+  return <button className={`ficha-estrella-zona${activa ? ' activa' : ''}`} onClick={onMostrar}>
     <span>Zona habitable</span>
-    <b>{zona.interior.toLocaleString('es-CL', { maximumSignificantDigits: 2 })}–{zona.exterior.toLocaleString('es-CL', { maximumSignificantDigits: 2 })} UA<small>{nota}</small>
+    <b>{rangoZona(zona)}<small>{nota}</small>
       {activa && <small>Claro: zona segura · Oscuro: límite posible</small>}</b>
   </button>;
 }

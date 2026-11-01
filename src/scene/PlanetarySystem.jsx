@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import { AdditiveBlending, Color, SRGBColorSpace, Vector3 } from 'three';
 import { AU_TO_PC, smoothRange } from './scale';
 import { planetOrbitPc } from './exoplanetOrbit';
+import { useOrbitas } from './guiasOrbitales';
 import OrbitLine from './OrbitLine';
 
 // Planetas de las anfitrionas del catálogo (NASA Exoplanet Archive). Órbitas y radios a
@@ -57,6 +58,7 @@ function PlanetSphere({ planet }) {
 function ActiveSystem({ system, origin, onSelect }) {
   const lines = useRef(), material = useRef(), points = useRef(), labels = useRef([]);
   const starLines = useRef(), starLabels = useRef([]);
+  const orbitas = useOrbitas();
   const position = useMemo(() => system.position.map((v, i) => v - origin[i]), [system, origin]);
   // Las dos estrellas de un sistema circumbinario, cada una en su órbita en torno al
   // centro de masas (el punto del catálogo). Las esferas las dibuja StarField.
@@ -106,7 +108,7 @@ function ActiveSystem({ system, origin, onSelect }) {
     <group ref={lines}>
       {orbits.map((orbit, i) => <OrbitLine key={system.planets[i].n} points={orbit} />)}
     </group>
-    {pair && <group ref={starLines}>
+    {pair && <group ref={starLines} visible={orbitas}>
       {pair.map(component => <line key={component.name} frustumCulled={false}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[component.orbit, 3]} /></bufferGeometry>
         <lineBasicMaterial color={`rgb(${component.color.map(v => Math.round(v * 255)).join(',')})`} transparent opacity={0} depthWrite={false} />

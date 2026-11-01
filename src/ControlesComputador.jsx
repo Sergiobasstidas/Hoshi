@@ -51,6 +51,9 @@ export default function ControlesComputador({ acciones, vistaId, solApuntado, on
         <button className="controles-fila" role="switch" aria-checked={heliosferaVisible} title={accion('heliosfera').titulo} onClick={() => onElegir('heliosfera')}>
           <span>Heliosfera</span><i className="controles-interruptor" aria-hidden="true" />
         </button>
+        {['orbitas', 'zona-habitable'].map(id => <button key={id} className="controles-fila" role="switch" aria-checked={accion(id).activa} title={accion(id).titulo} onClick={() => onElegir(id)}>
+          <span>{accion(id).texto}</span><i className="controles-interruptor" aria-hidden="true" />
+        </button>)}
         <button className="controles-fila" role="switch" aria-checked={pulsares.activa} onClick={() => onElegir('pulsares')}>
           <span>{pulsares.texto}</span><i className="controles-interruptor" aria-hidden="true" />
         </button>

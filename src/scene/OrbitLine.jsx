@@ -3,6 +3,7 @@ import { AdditiveBlending } from 'three';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { useOrbitas } from './guiasOrbitales';
 
 // Línea de órbita de planetas en azul oscuro. Es un estilo de presentación: ni el ancho ni
 // el brillo representan nada físico. Dos variantes:
@@ -47,6 +48,7 @@ export default function OrbitLine({ points, ref, variant = 'halo' }) {
     object.frustumCulled = false;
     return object;
   }, [points, variant]);
+  const visibles = useOrbitas();
   useEffect(() => () => { line.geometry.dispose(); line.material.dispose(); }, [line]);
-  return <primitive object={line} ref={ref} />;
+  return <primitive object={line} ref={ref} material-visible={visibles} />;
 }

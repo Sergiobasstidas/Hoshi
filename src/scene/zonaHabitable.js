@@ -17,6 +17,7 @@ export function zonaHabitable(temperaturaK, luminosidadSolar) {
 }
 export const zonaDeEstrella = (star, fichas) => zonaHabitable(star?.physics?.temperatureK ?? star?.datos?.temperatureK,
   star?.physics?.luminositySolar ?? star?.datos?.luminositySolar ?? fichas?.anfitrionas[star?.planetary?.[0]?.name]?.luminosidad);
+export const rangoZona = zona => `${zona.interior.toLocaleString('es-CL', { maximumSignificantDigits: 2 })}–${zona.exterior.toLocaleString('es-CL', { maximumSignificantDigits: 2 })} UA`;
 export const enZonaHabitable = (zona, ua) => Boolean(zona && ua >= zona.interior && ua <= zona.exterior);
 const orbitaCercana = ua => ORBITAS.reduce((a, b) => Math.abs(Math.log(b[1] / ua)) < Math.abs(Math.log(a[1] / ua)) ? b : a)[0];
 export function comparacionSolar(zona) {

@@ -66,6 +66,7 @@ import FichaLateral from './FichaLateral';
 import { useFichas } from './useFichas';
 import FranjaHabitable from './scene/FranjaHabitable';
 import { zonaDeEstrella } from './scene/zonaHabitable';
+import { cambiarOrbitas, cambiarZonaVisible, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
 import SelectorBrillo from './SelectorBrillo';
 import FichaPlaneta from './FichaPlaneta';
 import { ARRIVAL_FRAME_FACTOR, buildPlanetarySystems, hostPhysics } from './scene/exoplanetOrbit.js';
@@ -175,7 +176,7 @@ export default function App() {
   const [estrellaPrevia, setEstrellaPrevia] = useState(null);
   // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
   const [estrellaVista, setEstrellaVista] = useState(null);
-  const [zonaDe, setZonaDe] = useState(null);
+  const verOrbitas = useOrbitas(), verZona = useZonaVisible();
   const fichas = useFichas();
   const [direccionFicha, setDireccionFicha] = useState(1);
   const overlayRef = useRef();
@@ -356,6 +357,8 @@ export default function App() {
     { id: 'exoplanetas', texto: 'Exoplanetas', activa: showDiscoveries, fija: true },
     { id: 'vuelo-libre', texto: 'Vuelo libre', textoLista: freeFlight ? 'Salir del vuelo libre' : 'Vuelo libre', activa: freeFlight, fija: true },
     { id: 'volver-sol', texto: 'Volver al Sol', fija: true },
+    { id: 'orbitas', texto: 'Órbitas', activa: verOrbitas, titulo: 'Muestra u oculta las órbitas' },
+    { id: 'zona-habitable', texto: 'Zona habitable', activa: verZona, titulo: 'Muestra u oculta la zona habitable de la estrella elegida' },
     { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
       titulo: 'Muestra u oculta la heliosfera' },
     // El filtro solo afecta al Sol: aparece únicamente al estar en él.
@@ -373,6 +376,8 @@ export default function App() {
     else if (id === 'exoplanetas') { if (showDiscoveries) setShowDiscoveries(false); else frameDiscoveries(DEFAULT_DISCOVERY_VIEW); }
     else if (id === 'vuelo-libre') toggleFlight();
     else if (id === 'volver-sol') aimAtSun();
+    else if (id === 'orbitas') cambiarOrbitas(!verOrbitas);
+    else if (id === 'zona-habitable') cambiarZonaVisible(!verZona);
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
@@ -420,10 +425,8 @@ export default function App() {
         </>;
   // La zona habitable se dibuja para la estrella de la ficha abierta; si no cabría en pantalla, la cámara se aleja.
   const estrellaZona = exoplanetBody && showBodyPanel ? exoplanetBody.star : estrellaVista?.star ?? (showBodyPanel ? stellarBody?.star : null);
-  const zonaActiva = Boolean(estrellaZona) && zonaDe === estrellaZona.i;
-  const alternarZona = () => {
-    if (zonaActiva) { setZonaDe(null); return; }
-    setZonaDe(estrellaZona.i);
+  const mostrarZona = () => {
+    cambiarZonaVisible(true);
     const zona = zonaDeEstrella(estrellaZona, fichas), camara = cameraRef.current;
     if (!zona || !camara) return;
     // Sin haber viajado a la estrella la franja sería invisible: primero se va hacia ella.
@@ -466,7 +469,7 @@ export default function App() {
         focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} />
       {binaryBody && <BinarySystem />}
       {!binaryBody && <CompanionStars onElegir={(star, nombre) => visitBody(starBody(star, nombre), true)} systems={BINARY_SYSTEMS} origin={origin} />}
-      {zonaActiva && <FranjaHabitable star={estrellaZona} origin={origin} fichas={fichas} />}
+      {verZona && estrellaZona && <FranjaHabitable key={estrellaZona.i} star={estrellaZona} origin={origin} fichas={fichas} />}
       {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
       {showDiscoveries && discoveries.data && <ExoplanetDiscoveries data={discoveries.data} filter={discoveryFilter} origin={origin} onSelect={visitDiscovery} />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
@@ -553,8 +556,8 @@ export default function App() {
       {(fichaPlaneta || estrellaFicha) && <FichaLateral clave={fichaPlaneta ? `planeta:${nombreFicha}` : `estrella:${estrellaFicha.i}`} direccion={direccionFicha}
         etiqueta={`Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
-          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} zonaActiva={zonaActiva} onZona={alternarZona} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} zonaActiva={zonaActiva} onZona={alternarZona}
+          volver={estrellaPrevia === hostStar.i} onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} zonaActiva={verZona} onZona={mostrarZona} />
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} zonaActiva={verZona} onZona={mostrarZona}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
       {!estrellaVista && showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">

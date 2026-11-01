@@ -5,7 +5,7 @@ import { indiceBusqueda } from './indiceBusqueda';
 import { estrellaDeComponente } from './scene/visualBinary';
 import { Dato, FilaZona } from './FichaLateral';
 import { useFichas } from './useFichas';
-import { comparacionSolar, enZonaHabitable, zonaDeEstrella } from './scene/zonaHabitable';
+import { comparacionSolar, enZonaHabitable, rangoZona, zonaDeEstrella } from './scene/zonaHabitable';
 
 const CONSTELACIONES = { And: 'Andrómeda', Ant: 'Antlia', Aps: 'Ave del Paraíso', Aqr: 'Acuario', Aql: 'Águila', Ara: 'Altar', Ari: 'Aries', Aur: 'Auriga', Boo: 'Boyero', Cae: 'Cincel', Cam: 'Jirafa', Cnc: 'Cáncer', CVn: 'Lebreles', CMa: 'Can Mayor', CMi: 'Can Menor', Cap: 'Capricornio', Car: 'Quilla', Cas: 'Casiopea', Cen: 'Centauro', Cep: 'Cefeo', Cet: 'Ballena', Cha: 'Camaleón', Cir: 'Compás', Col: 'Paloma', Com: 'Cabellera de Berenice', CrA: 'Corona Austral', CrB: 'Corona Boreal', Crv: 'Cuervo', Crt: 'Copa', Cru: 'Cruz del Sur', Cyg: 'Cisne', Del: 'Delfín', Dor: 'Dorado', Dra: 'Dragón', Equ: 'Caballito', Eri: 'Erídano', For: 'Horno', Gem: 'Géminis', Gru: 'Grulla', Her: 'Hércules', Hor: 'Reloj', Hya: 'Hidra', Hyi: 'Hidra Macho', Ind: 'Indio', Lac: 'Lagarto', Leo: 'Leo', LMi: 'León Menor', Lep: 'Liebre', Lib: 'Libra', Lup: 'Lobo', Lyn: 'Lince', Lyr: 'Lira', Men: 'Mesa', Mic: 'Microscopio', Mon: 'Unicornio', Mus: 'Mosca', Nor: 'Escuadra', Oct: 'Octante', Oph: 'Ofiuco', Ori: 'Orión', Pav: 'Pavo', Peg: 'Pegaso', Per: 'Perseo', Phe: 'Fénix', Pic: 'Pintor', Psc: 'Piscis', PsA: 'Pez Austral', Pup: 'Popa', Pyx: 'Brújula', Ret: 'Retículo', Sge: 'Flecha', Sgr: 'Sagitario', Sco: 'Escorpio', Scl: 'Escultor', Sct: 'Escudo', Ser: 'Serpiente', Sex: 'Sextante', Tau: 'Tauro', Tel: 'Telescopio', Tri: 'Triángulo', TrA: 'Triángulo Austral', Tuc: 'Tucán', UMa: 'Osa Mayor', UMi: 'Osa Menor', Vel: 'Vela', Vir: 'Virgo', Vol: 'Pez Volador', Vul: 'Zorra' };
 
@@ -144,8 +144,9 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {mas.radial !== undefined && <Dato etiqueta="Velocidad radial" valor={`${mas.radial < 0 ? 'Se acerca' : 'Se aleja'} a ${numero(Math.abs(mas.radial))} km/s`} />}
         {movimiento > 0 && <Dato etiqueta="Movimiento propio" valor={`${numero(movimiento)} mas/año`} />}
         {(hd || hip || mas.gaia) && <Dato etiqueta="Catálogos" valor={[hd, hip].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
+        {zona && !dentro && <Dato etiqueta="Zona habitable" valor={rangoZona(zona)} secundario={comparacionSolar(zona)} />}
       </dl>
-      {dentro > 0 && <FilaZona zona={zona} activa={zonaActiva} onAlternar={onZona} nota={`${comparacionSolar(zona)}. ${dentro === 1 ? 'Un planeta conocido dentro' : `${dentro} planetas conocidos dentro`}`} />}
+      {dentro > 0 && <FilaZona zona={zona} activa={zonaActiva} onMostrar={onZona} nota={`${comparacionSolar(zona)}. ${dentro === 1 ? 'Un planeta conocido dentro' : `${dentro} planetas conocidos dentro`}`} />}
       {miembros.length > 0 && <section>
         <h3>Sistema</h3>
         <ul className="ficha-estrella-planetas">

@@ -1,6 +1,6 @@
 import { Dato, FilaZona } from './FichaLateral';
 import { useFichas } from './useFichas';
-import { comparacionSolar, enZonaHabitable, zonaDeEstrella } from './scene/zonaHabitable';
+import { comparacionSolar, enZonaHabitable, rangoZona, zonaDeEstrella } from './scene/zonaHabitable';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 const JUPITER_RADIOS_TIERRA = 11.2;
@@ -63,8 +63,9 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, volver,
       {mas.transito > 0 && <Dato etiqueta="Tránsito" valor={`${numero(mas.transito)} horas`} secundario={mas.profundidad > 0 ? `Oscurece su estrella un ${numero(mas.profundidad, 2)} %` : undefined} />}
       {mas.metodo && <Dato etiqueta="Descubrimiento" valor={`${mas.metodo}${mas.ano ? `, ${mas.ano}` : ''}`} secundario={mas.telescopio} />}
       {planeta.teq > 0 && <Dato etiqueta="Temperatura" valor={`${Math.round(planeta.teq).toLocaleString('es-CL')} K`} secundario={`${Math.round(planeta.teq - 273.15).toLocaleString('es-CL')} °C`} />}
+      {zona && !sistema.planets.some(otro => enZonaHabitable(zona, otro.a)) && <Dato etiqueta="Zona habitable" valor={rangoZona(zona)} secundario={comparacionSolar(zona)} />}
     </dl>
-    {sistema.planets.some(otro => enZonaHabitable(zona, otro.a)) && <FilaZona zona={zona} activa={zonaActiva} onAlternar={onZona} nota={dentro ? 'Este planeta está dentro' : comparacionSolar(zona)} />}
+    {sistema.planets.some(otro => enZonaHabitable(zona, otro.a)) && <FilaZona zona={zona} activa={zonaActiva} onMostrar={onZona} nota={dentro ? 'Este planeta está dentro' : comparacionSolar(zona)} />}
     {planeta.a > 0 && <p className="ficha-estrella-relato">{distanciaComparada(planeta.a)}.{excentrica ? ' Su órbita es muy alargada: pasa de acercarse mucho a su estrella a alejarse de ella.' : ''}</p>}
     {!volver && <button className="ficha-estrella-enlace" onClick={onVerEstrella}>Ver su estrella: {nombreEstrella}</button>}
     {hermanos.length > 0 && <section>
