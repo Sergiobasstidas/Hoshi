@@ -3,16 +3,16 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { AU_TO_PC, LIGHT_YEAR_PC, SUN_RADIUS_PC, backgroundGain, skyExposure, smoothRange } from './scale';
 import { STAR_STOP_PC } from './starHeading';
-import { buildStellarAppearance, catalogueColor } from './stellarAppearance';
+import { buildStellarAppearance } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
 import StellarSurface from './StellarSurface';
 
 const vertexShader = `
-  attribute vec3 starColor;
   attribute float luminosity;
   attribute float individualLuminosity;
   attribute float markerSize;
   attribute vec3 vividColor;
+  attribute float absoluteMagnitude;
   uniform float named;
   uniform float exposure;
   uniform float pixelRatio;
@@ -39,7 +39,10 @@ const vertexShader = `
     float individualSize = mix(1.0, markerSize, individualMix);
     float inspectionSize = inspect * (physicalRadius > 0.0 ? 0.0 : 90.0) * (1.0 - smoothstep(${STAR_STOP_PC}, ${5000 * AU_TO_PC}, length(mvPosition.xyz)));
     gl_PointSize = (1.15 * mix(backgroundSize, namedSize, named) * distantSize * sizeReduction * individualSize + inspectionSize) * pixelRatio;
-    vColor = mix(starColor, vividColor, individualMix);
+    // Como el ojo: las estrellas brillantes muestran su color y las débiles se ven blanquecinas.
+    // Depende solo de su magnitud aparente vista desde la cámara.
+    float apparentMagnitude = absoluteMagnitude + 5.0 * (log(max(distanceToEye, 1e-6) / 10.0) / log(10.0));
+    vColor = mix(vividColor, vec3(0.92), smoothstep(1.0, 3.0, apparentMagnitude));
     vAlpha = exposure * mix(luminosity, individualLuminosity, individualMix)
       * mix(0.36, mix(1.0, 0.65, farView), named);
     // Los puntos de fondo densos y sin resolver también requieren reducir energía:
@@ -60,7 +63,6 @@ const fragmentShader = `
   varying float vAlpha;
   varying float vHalo;
   uniform float named;
-  uniform float individualMix;
   #include <logdepthbuf_pars_fragment>
   void main() {
     vec2 p = gl_PointCoord * 2.0 - 1.0;
@@ -69,7 +71,7 @@ const fragmentShader = `
     float core = exp(-r2 * mix(6.0, 65.0, named));
     float halo = exp(-r2 * 12.0) * 0.35 * named * vHalo;
     float edge = 1.0 - smoothstep(0.65, 1.0, r2);
-    float whitening = mix(mix(0.18, 0.88, named), mix(0.02, 0.12, named), individualMix);
+    float whitening = mix(0.02, 0.12, named);
     vec3 color = mix(vColor, vec3(1.0), core * whitening);
     gl_FragColor = vec4(color, (core + halo) * edge * vAlpha);
     #include <logdepthbuf_fragment>
@@ -80,13 +82,11 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
   const materialRef = useRef();
   const attributes = useMemo(() => {
     const position = new Float32Array(stars.length * 3);
-    const color = new Float32Array(stars.length * 3);
     stars.forEach((star, i) => {
       // Restar en doble precisión en CPU antes de transferir a Float32 en GPU.
       position.set(anchor ? [0, 0, 0] : [star.x - origin[0], star.y - origin[1], star.z - origin[2]], i * 3);
-      color.set(catalogueColor(star.rgb), i * 3);
     });
-    return { position, color, ...buildStellarAppearance(stars) };
+    return { position, ...buildStellarAppearance(stars) };
   }, [stars, origin, anchor]);
   const uniforms = useMemo(() => ({ named: { value: named ? 1 : 0 },
     exposure: { value: 0.13 }, pixelRatio: { value: 1 }, distantSize: { value: 1 },
@@ -106,10 +106,10 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
     <points frustumCulled={false} position={anchor}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[attributes.position, 3]} />
-        <bufferAttribute attach="attributes-starColor" args={[attributes.color, 3]} />
         <bufferAttribute attach="attributes-luminosity" args={[attributes.luminosity, 1]} />
         <bufferAttribute attach="attributes-individualLuminosity" args={[attributes.individualLuminosity, 1]} />
         <bufferAttribute attach="attributes-markerSize" args={[attributes.markerSize, 1]} />
+        <bufferAttribute attach="attributes-absoluteMagnitude" args={[attributes.absoluteMagnitude, 1]} />
         <bufferAttribute attach="attributes-vividColor" args={[attributes.vividColor, 3]} />
       </bufferGeometry>
       <shaderMaterial ref={materialRef} uniforms={uniforms} vertexShader={vertexShader}

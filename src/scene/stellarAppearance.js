@@ -24,11 +24,14 @@ export function buildStellarAppearance(stars) {
   const individualLuminosity = new Float32Array(stars.length);
   const markerSize = new Float32Array(stars.length);
   const vividColor = new Float32Array(stars.length * 3);
+  const absoluteMagnitude = new Float32Array(stars.length);
   let area = 0, oldEnergy = 0;
   stars.forEach((star, i) => {
     luminosity[i] = Math.max(0.65, Math.min(1.15, 1 - magnitude(star.m) * 0.018));
     individualLuminosity[i] = stellarVisualWeight(star.m);
     markerSize[i] = stellarMarkerSize(star.m);
+    // Sin magnitud conocida se trata como una estrella débil, sin color.
+    absoluteMagnitude[i] = Number.isFinite(star.m) ? star.m : 99;
     vividColor.set(vividStellarColor(star.rgb), i * 3);
     area += markerSize[i] ** 2;
     oldEnergy += luminosity[i];
@@ -43,5 +46,5 @@ export function buildStellarAppearance(stars) {
   // Compensar el área de las estrellas mayores para evitar saturar el centro.
   const energyScale = newEnergy ? oldEnergy / newEnergy : 1;
   for (let i = 0; i < stars.length; i++) individualLuminosity[i] *= energyScale;
-  return { luminosity, individualLuminosity, markerSize, vividColor };
+  return { luminosity, individualLuminosity, markerSize, vividColor, absoluteMagnitude };
 }
