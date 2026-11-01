@@ -81,7 +81,8 @@
 .aviso-celular-caja { max-width: 320px; padding: 16px 18px; text-align: center; background: #0a1019f2; border: 1px solid #405e7566; border-radius: 6px; color: #9fb7c5; font-size: 14px; line-height: 1.6; }
 .aviso-celular-caja strong { display: block; margin-bottom: 10px; color: #d6e4ee; font-family: 'Comfortaa', -apple-system, sans-serif; font-size: 19px; font-weight: 300; line-height: 1.35; text-shadow: 0 0 10px #b7c9d566; }
 .aviso-celular-caja p { margin: 0; }
-.aviso-celular-caja button { margin-top: 14px; padding: 7px 16px; border: 1px solid #ffffff30; border-radius: 4px; background: #16252de0; color: #c9e3ed; font: inherit; font-size: 14px; cursor: pointer; }
+.aviso-celular-caja button { margin-top: 14px; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; }
+.aviso-celular-caja button:hover, .aviso-celular-caja button:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
 
 /* Computador: lista «Ver» que se despliega hacia la izquierda de su botón (MenuVer.jsx). Las
    opciones aparecen en cascada desde el botón y, si no caben, pasan a una segunda fila. */
