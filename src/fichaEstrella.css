@@ -27,7 +27,7 @@
 .ficha-estrella-accion { display: inline-block; margin-top: 14px; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; pointer-events: auto; }
 .ficha-estrella-accion:hover, .ficha-estrella-accion:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
 
-@media (min-width: 1201px) and (pointer: fine) {
+@media (min-width: 901px) and (pointer: fine) {
   .ficha-estrella { zoom: var(--zoom-ui, 1.3); width: calc(var(--ancho-ficha, 345px) + 69px); }
   .ficha-estrella-contenido { width: var(--ancho-ficha, 345px); }
   .ficha-estrella-cerrar { left: calc(var(--ancho-ficha, 345px) - 53px); }
@@ -68,18 +68,13 @@
 @media (min-width: 901px) and (min-height: 501px) {
   .scene-overlay:has(.ficha-estrella) .star-search { left: 50vw; width: min(300px, calc(100vw - 708px)); }
 }
-@media (min-width: 901px) and (max-width: 1200px) and (min-height: 501px) {
-  .ficha-estrella { width: 340px; }
-  .ficha-estrella-contenido { width: 300px; padding-left: 28px; }
-  .ficha-estrella-cerrar { left: 262px; }
-}
 .ficha-estrella-dato small { display: block; color: #7f8b9b; font-size: 9.5px; }
 .zona-habitable-planeta { display: block; box-sizing: border-box; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border: 1px solid #5fd4c0; border-radius: 50%; }
 
 /* Buscador: nunca blanco por el autocompletado, y con el brillo de la estrella elegida. */
 .star-search input:-webkit-autofill, .star-search input:-webkit-autofill:focus { -webkit-text-fill-color: #d5dbe4; box-shadow: inset 0 0 0 100px #080d15; transition: background-color 9999s; caret-color: #d5dbe4; }
 .scene-overlay .star-search input.con-estrella { color: var(--color-estrella); border-color: var(--color-estrella); box-shadow: 0 0 10px -2px var(--color-estrella); text-shadow: 0 0 6px var(--color-estrella); }
-@media (min-width: 1201px) and (min-height: 501px) and (pointer: fine) {
+@media (min-width: 901px) and (min-height: 501px) and (pointer: fine) {
   /* Centrado en el espacio entre la ficha (su ancho + 69 px de fundido) y el grupo de la derecha (346 px). */
   .scene-overlay:has(.ficha-estrella) .star-search { left: calc((100vw / var(--zoom-ui, 1.3) + var(--ancho-ficha, 345px) - 277px) / 2); width: min(300px, calc(100vw / var(--zoom-ui, 1.3) - var(--ancho-ficha, 345px) - 440px)); }
 }

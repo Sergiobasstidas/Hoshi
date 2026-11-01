@@ -47,10 +47,10 @@
   [aria-checked="true"] .controles-interruptor { background: #456a80; }
   [aria-checked="true"] .controles-interruptor::after { left: 14px; background: #8fd3ff; }
 }
-@media (min-width: 1201px) {
+@media (min-width: 901px) and (pointer: fine) {
   .scene-overlay .star-search { width: min(340px, calc(100vw / var(--zoom-ui, 1.3) - 717px)); }
 }
-@media (min-width: 1201px) and (min-height: 501px) and (pointer: fine) {
+@media (min-width: 901px) and (min-height: 501px) and (pointer: fine) {
   .controles-computador { zoom: var(--zoom-ui, 1.3); }
 }
 @media (prefers-reduced-motion: reduce) { .controles-fila.actual.cargando::before { animation: none; } .controles-flecha, .controles-interruptor, .controles-interruptor::after { transition: none; } }

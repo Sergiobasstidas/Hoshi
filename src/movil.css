@@ -108,12 +108,14 @@
 
 /* Computador: controles y textos con el zoom proporcional a la ventana (escalaInterfaz.js).
    No se aplica a los nombres de la escena, que se colocan en píxeles desde la cámara. */
-@media (min-width: 1201px) and (pointer: fine) {
+@media (min-width: 901px) and (pointer: fine) {
   :root { --zoom-ui: 1.3; }
   .distance-panel, .scale-navigation, .body-selector, .star-search, .visores-vuelo, .scene-footer,
   .body-panel, .aim-panel, .pulsar-legend, .credito-sdo, .barra-distancia, .galaxy-loading { zoom: var(--zoom-ui); }
-  /* Visores un 22 % más chicos que antes (1,15 → 0,9), para que no dominen la esquina. */
-  .visores-vuelo { left: 4px; bottom: 4px; transform: scale(.9); }
+  /* El logo sigue la ventana tal cual; el resto crece más despacio (escalaInterfaz.js). */
+  .logo-hoshi { zoom: var(--zoom-logo, 1.3); }
+  /* Visores más chicos que el resto, para que no dominen la esquina. */
+  .visores-vuelo { left: 4px; bottom: 4px; transform: scale(var(--escala-dial, .9)); }
   .dial-ayuda { display: none; }
 }
 
