@@ -39,15 +39,16 @@ const vertexShader = `
     float individualSize = mix(1.0, markerSize, individualMix);
     float inspectionSize = inspect * (physicalRadius > 0.0 ? 0.0 : 90.0) * (1.0 - smoothstep(${STAR_STOP_PC}, ${5000 * AU_TO_PC}, length(mvPosition.xyz)));
     gl_PointSize = (1.15 * mix(backgroundSize, namedSize, named) * distantSize * sizeReduction * individualSize + inspectionSize) * pixelRatio;
-    // Como el ojo: las estrellas brillantes muestran su color y las débiles se ven blanquecinas.
-    // Depende solo de su magnitud aparente vista desde la cámara.
-    float apparentMagnitude = absoluteMagnitude + 5.0 * (log(max(distanceToEye, 1e-6) / 10.0) / log(10.0));
-    vColor = mix(vividColor, vec3(0.92), smoothstep(1.0, 3.0, apparentMagnitude));
     vAlpha = exposure * mix(luminosity, individualLuminosity, individualMix)
       * mix(0.36, mix(1.0, 0.65, farView), named);
     // Los puntos de fondo densos y sin resolver también requieren reducir energía:
     // reducirlos a menos de un píxel deja su muestra central demasiado brillante.
     vAlpha *= mix(mix(1.0, 0.25, farView), 1.0, named);
+    // Como el ojo: muestra su color lo que se ve brillante, ya sea por su brillo real desde la cámara
+    // o por el que tiene en pantalla; lo que apenas se ve tiende a blanco.
+    float apparentMagnitude = absoluteMagnitude + 5.0 * (log(max(distanceToEye, 1e-6) / 10.0) / log(10.0));
+    float saturation = max(1.0 - smoothstep(1.0, 3.0, apparentMagnitude), smoothstep(0.22, 0.5, vAlpha));
+    vColor = mix(vec3(0.92), vividColor, saturation);
     // Atenuar el marcador al resolverse el disco estelar real. No dibujar
     // un punto grande sobre una fotosfera con textura.
     if (physicalRadius > 0.0) {
