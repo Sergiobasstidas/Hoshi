@@ -2,7 +2,7 @@
 // NASA Exoplanet Archive, TESS Input Catalog v8.2 (MAST), Gaia DR3 y SIMBAD. Por cada dato vale la primera fuente
 // que lo tenga. Se ejecuta a mano y escribe data/processed/stellar_official.json.
 import fs from 'node:fs';
-import { ESTRELLAS_CURADAS } from './catalog/estrellas_curadas.js';
+import { ESTRELLAS_CURADAS, ESTRELLAS_CURADAS_POR_ID } from './catalog/estrellas_curadas.js';
 
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync';
 const en = (lista, n) => Array.from({ length: Math.ceil(lista.length / n) }, (_, i) => lista.slice(i * n, i * n + n));
@@ -94,13 +94,13 @@ const radioMedido = (fila, distanciaPc) => fila.unidad === 'km' ? positivo(fila.
 // GSP-Phot falla en estrellas calientes y muy brillantes, en binarias sin resolver y con mala astrometría.
 const radioGspPhotFiable = (g, espectro = '') => Number(g.phot_g_mean_mag) >= 4 && Number(g.ruwe) <= 1.4 && !/\+/.test(espectro) && !/(^|\s)\(?(O|B[0-3])/.test(espectro);
 const FUENTE = { nasa: 'NASA Exoplanet Archive', tic: 'TESS Input Catalog v8.2 (MAST)', gaia: 'Gaia DR3', simbad: 'SIMBAD', gspphot: 'Gaia DR3 (radius_gspphot)' };
-const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).filter(s => s.n && s.n !== 'Sol');
+const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).filter(s => (s.n && s.n !== 'Sol') || ESTRELLAS_CURADAS_POR_ID[s.i]);
 const busqueda = new Map(JSON.parse(fs.readFileSync('public/data/star-search.json', 'utf8')));
 const hipDe = star => { const a = (busqueda.get(star.i) || []).find(alias => /^HIP \d+$/.test(alias)); return a ? Number(a.slice(4)) : null; };
 const hips = [...new Set(stars.map(hipDe).filter(Boolean))];
 const [nasa, ticFilas, simbadFilas] = [await exoplanetArchive(), await tic(hips), await simbad(hips)];
 const nombresDe = stars.map(star => [star.i, [...(busqueda.get(star.i) || []).filter(alias => /^(HIP|HD|HR|Gl|GJ) /.test(alias)).map(alias => alias.replace(/^Gl /, 'GJ ').replace(/([A-Z])$/, ' $1')),
-  ...(busqueda.get(star.i) || []).filter(alias => /^(HIP|HD|HR|Gl|GJ) /.test(alias)).map(alias => alias.replace(/^Gl /, 'GJ ')), `NAME ${star.n}`, star.n].filter(nombre => /^[\x20-\x7e]+$/.test(nombre))]);
+  ...(busqueda.get(star.i) || []).filter(alias => /^(HIP|HD|HR|Gl|GJ) /.test(alias)).map(alias => alias.replace(/^Gl /, 'GJ ')), ...(star.n ? [`NAME ${star.n}`, star.n] : [])].filter(nombre => /^[\x20-\x7e]+$/.test(nombre))]);
 const gaiaDe = await gaiaPorNombres(nombresDe);
 const ticGaia = await ticPorGaia([...new Set(gaiaDe.values())]);
 const gaiaFilas = await gaia([...new Set([...gaiaDe.values(), ...[...ticFilas.values()].map(f => f.GAIA).filter(Boolean).map(String)])]);
@@ -120,7 +120,7 @@ for (const star of stars) {
   for (const campo of ['temperatureK', 'radiusSolar', 'massSolar', 'luminositySolar', 'espectro']) {
     for (const [fuente, capa] of capas) if (capa?.[campo]) { fila[campo] = capa[campo]; fila.fuentes[campo] = FUENTE[fuente]; break; }
   }
-  for (const [campo, [valor, ref]] of Object.entries(ESTRELLAS_CURADAS[star.n] || {})) { fila[campo] = valor; fila.fuentes[campo] = ref; }
+  for (const [campo, [valor, ref]] of Object.entries(ESTRELLAS_CURADAS[star.n] || ESTRELLAS_CURADAS_POR_ID[star.i] || {})) { fila[campo] = valor; fila.fuentes[campo] = ref; }
   if (Object.keys(fila.fuentes).length) datos[star.i] = fila;
 }
 fs.writeFileSync('data/processed/stellar_official.json', JSON.stringify(datos) + '\n');

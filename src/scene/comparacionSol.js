@@ -7,7 +7,7 @@ export const UA_POR_RADIO_SOLAR = 695700 / 149597870.7;
 export const SOL = { id: 'sol', nombre: 'Sol', radiusSolar: 1, temperatureK: 5772, fuente: 'IAU 2015 (radio solar nominal)' };
 // Estrellas de la lista sin buscar, por su nombre del catálogo.
 // De mayor a menor: hipergigantes, supergigantes, gigantes, estrellas como el Sol y enanas.
-const DESTACADAS = ['VY Canis Majoris', 'VV Cephei A', 'Betelgeuse', 'Antares', 'Deneb', 'La Superba', 'Mirach', 'Rigel', 'Canopus', 'Aldebaran',
+const DESTACADAS = ['VV Cephei A', 'Betelgeuse', 'Antares', 'La Superba', 'Deneb', 'Mirach', 'Rigel', 'Canopus', 'Aldebaran',
   'Alnilam', 'Kochab', 'Arcturus', 'Cygnus X-1', 'Capella', 'Pollux', 'Spica', 'Vega', 'Sirius', 'Rigil Kentaurus', 'Toliman', "Barnard's Star", 'Proxima Centauri'];
 // Nombres en español de las conocidas; el resto, como en el catálogo.
 const NOMBRES = { Sirius: 'Sirio A', Arcturus: 'Arturo', Aldebaran: 'Aldebarán', Procyon: 'Proción', 'Proxima Centauri': 'Próxima Centauri',
@@ -24,7 +24,7 @@ export const useComparacionSol = () => useSyncExternalStore(oyente => { oyentes.
 
 // Estrellas con radio y temperatura publicados.
 export function definirCandidatas(stars) {
-  // Las que no tienen nombre propio en el catálogo traen el suyo en los datos curados (VY Canis Majoris).
+  // Las que no tienen nombre propio en el catálogo traen el suyo en los datos curados (VV Cephei A).
   const candidatas = stars.filter(star => (star.n || star.datos?.nombre) && star.n !== 'Sol' && star.datos?.radiusSolar && (star.datos.temperatureK || star.physics?.temperatureK))
     .map(star => ({ id: star.i, catalogo: [star.n || star.datos.nombre, star.datos.alias].filter(Boolean).join(' '), nombre: nombreEnEspanol(star.n || star.datos.nombre), radiusSolar: star.datos.radiusSolar,
       temperatureK: star.datos.temperatureK || star.physics.temperatureK, fuente: star.datos.fuentes?.radiusSolar }))
