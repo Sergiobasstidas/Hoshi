@@ -1,22 +1,35 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex, normalizeStarQuery, searchStars } from './scene/starSearch';
-import { indiceBusqueda } from './indiceBusqueda';
+import { buscaNumeroDeCatalogo, indiceBusqueda, indiceNumeros } from './indiceBusqueda';
 import { useEsComputador } from './esComputador';
 const SIN_DESTINOS=[];
-// En el computador el buscador también reemplaza a «Viajar a…»: suma planetas, lunas y estrellas de destino.
+// El buscador también suma planetas, lunas y estrellas de destino, en el computador y en el celular. Los números
+// de Gaia DR3 y TIC se cargan aparte, solo cuando la búsqueda parece uno.
 export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTINOS, elegida }) {
   const computador=useEsComputador();
   const [index,setIndex]=useState(null), [query,setQuery]=useState(''), [open,setOpen]=useState(false);
   const [active,setActive]=useState(0), [error,setError]=useState(false);
-  const estrellas=useMemo(()=>searchStars(index || [],query),[index,query]);
-  const nombresDestinos=(computador?destinos:SIN_DESTINOS).map(body=>body.name).join('|');
+  const [numeros,setNumeros]=useState(null);
+  const pideNumero=buscaNumeroDeCatalogo(normalizeStarQuery(query));
+  useEffect(()=>{if(pideNumero&&!numeros)indiceNumeros().then(setNumeros,()=>{});},[pideNumero,numeros]);
+  const estrellas=useMemo(()=>{
+    const directas=searchStars(index || [],query);
+    if(!pideNumero||!numeros||!index)return directas;
+    // Un número de Gaia o TIC se muestra con los nombres de la estrella, no solo con el número.
+    const porId=new Map(index.map(item=>[item.id,item]));
+    const vistos=new Set(directas.map(result=>result.id));
+    const porNumero=searchStars(numeros,query).filter(result=>!vistos.has(result.id)&&porId.has(result.id))
+      .map(result=>({...porId.get(result.id),score:result.score,matched:result.matched}));
+    return [...directas,...porNumero].sort((a,b)=>a.score-b.score).slice(0,8);
+  },[index,numeros,pideNumero,query]);
+  const nombresDestinos=destinos.map(body=>body.name).join('|');
   const cuerpos=useMemo(()=>{
-    if(!computador||normalizeStarQuery(query).length<2)return [];
+    if(normalizeStarQuery(query).length<2)return [];
     const unicos=[...new Map(destinos.map(body=>[body.optionValue||body.name,body])).values()];
     return searchStars(buildSearchIndex(unicos.map((body,i)=>[`cuerpo-${i}`,[body.name]])),query)
       .map(result=>({...result,body:unicos[Number(result.id.slice(7))]}));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- la lista se recrea en cada render; basta con sus nombres.
-  },[computador,nombresDestinos,query]);
+  },[nombresDestinos,query]);
   const results=useMemo(()=>{
     const nombres=new Set(cuerpos.map(result=>normalizeStarQuery(result.aliases[0])));
     return [...cuerpos,...estrellas.filter(result=>!nombres.has(normalizeStarQuery(result.aliases[0])))]

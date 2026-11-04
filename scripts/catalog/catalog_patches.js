@@ -1,9 +1,11 @@
 // scripts/catalog/catalog_patches.js
 // Parches que scripts/process_stars.js aplica al catálogo base sin modificar AT-HYG:
-// distancias corregidas con Gaia DR3 y anfitrionas de exoplanetas añadidas.
+// distancias corregidas con Gaia DR3, distancias curadas de supergigantes (distancias_curadas.js) y
+// anfitrionas de exoplanetas añadidas.
 // Los generan build_distance_corrections.js y build_added_hosts.js en data/catalog/.
 
 import fs from 'node:fs';
+import { DISTANCIAS_CURADAS } from './distancias_curadas.js';
 
 const CORRECTIONS_JSON = './data/catalog/distance_corrections.json';
 const ADDED_HOSTS_JSON = './data/catalog/added_hosts.json';
@@ -37,5 +39,7 @@ export function applyPatches(stars, { corrections = [], added = [] } = {}) {
 
 export function loadPatches() {
   const read = (file, key) => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8'))[key] : [];
-  return { corrections: read(CORRECTIONS_JSON, 'correcciones'), added: read(ADDED_HOSTS_JSON, 'stars') };
+  // Las distancias curadas reemplazan a cualquier otra de la misma estrella.
+  const curadas = new Set(DISTANCIAS_CURADAS.map(c => c.i));
+  return { corrections: [...read(CORRECTIONS_JSON, 'correcciones').filter(c => !curadas.has(c.i)), ...DISTANCIAS_CURADAS], added: read(ADDED_HOSTS_JSON, 'stars') };
 }

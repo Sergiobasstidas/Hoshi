@@ -1,6 +1,7 @@
 // Datos físicos de las estrellas con nombre desde catálogos oficiales, sin calcular nada:
-// NASA Exoplanet Archive, TESS Input Catalog v8.2 (MAST), Gaia DR3 y SIMBAD. Por cada dato vale la primera fuente
-// que lo tenga. Se ejecuta a mano y escribe data/processed/stellar_official.json.
+// diámetros medidos del JMDC, NASA Exoplanet Archive, TESS Input Catalog v8.2 (MAST), Gaia DR3 y SIMBAD. Por cada
+// dato vale la primera fuente que lo tenga (regla de radios: lo medido antes que los catálogos). Se ejecuta a mano
+// y escribe data/processed/stellar_official.json.
 import fs from 'node:fs';
 import { ESTRELLAS_CURADAS, ESTRELLAS_CURADAS_POR_ID } from './catalog/estrellas_curadas.js';
 
@@ -96,6 +97,12 @@ const radioGspPhotFiable = (g, espectro = '') => Number(g.phot_g_mean_mag) >= 4 
 const FUENTE = { nasa: 'NASA Exoplanet Archive', tic: 'TESS Input Catalog v8.2 (MAST)', gaia: 'Gaia DR3', simbad: 'SIMBAD', gspphot: 'Gaia DR3 (radius_gspphot)' };
 const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).filter(s => (s.n && s.n !== 'Sol') || ESTRELLAS_CURADAS_POR_ID[s.i]);
 const busqueda = new Map(JSON.parse(fs.readFileSync('public/data/star-search.json', 'utf8')));
+// Diámetros medidos del JMDC (scripts/catalog/build_jmdc.js), por número HD.
+const jmdc = new Map(JSON.parse(fs.readFileSync('data/catalog/jmdc_diametros.json', 'utf8')).estrellas.map(e => [e.hd, e]));
+const hdDe = star => { const a = (busqueda.get(star.i) || []).find(alias => /^HD \d+$/.test(alias)); return a ? Number(a.slice(3)) : null; };
+// Radio medido = diámetro angular × distancia del catálogo; no en binarias, donde la medida mezcla dos estrellas.
+const radioJmdc = (medida, distanciaPc, espectro = '') => medida && distanciaPc > 0 && !/\+/.test(espectro)
+  ? { radiusSolar: 0.1075 * medida.ld * distanciaPc, fuente: `JMDC (Duvert 2016), ${medida.bibcode}; diámetro ${medida.ld} ± ${medida.error} mas (${medida.metodo}) × distancia del catálogo, ${distanciaPc.toFixed(1)} pc` } : null;
 const hipDe = star => { const a = (busqueda.get(star.i) || []).find(alias => /^HIP \d+$/.test(alias)); return a ? Number(a.slice(4)) : null; };
 const hips = [...new Set(stars.map(hipDe).filter(Boolean))];
 const [nasa, ticFilas, simbadFilas] = [await exoplanetArchive(), await tic(hips), await simbad(hips)];
@@ -109,7 +116,13 @@ for (const star of stars) {
   const hip = hipDe(star), idGaia = gaiaDe.get(star.i), conRadio = fila => fila?.rad ? fila : null;
   const t = conRadio(ticFilas.get(hip)) || ticGaia.get(idGaia) || ticFilas.get(hip);
   const g = gaiaFilas.get(idGaia) || (t && gaiaFilas.get(String(t.GAIA))), s = simbadFilas.get(hip);
+  const medido = radioJmdc(jmdc.get(hdDe(star)), star.d, `${s?.sp_type || ''} ${star.sp || ''}`);
+  // Un diámetro que da más del doble o menos de la mitad del radio de catálogo suele ser otra estrella
+  // mal enlazada o una medida antigua dudosa: se deja el de catálogo y se avisa para revisarlo.
+  const catalogo = t?.rad || g?.radius_flame || nasa.get(hip)?.radiusSolar;
+  if (medido && catalogo && (medido.radiusSolar / catalogo > 2 || medido.radiusSolar / catalogo < 0.5)) { console.warn(`JMDC dudoso: ${star.n} ${medido.radiusSolar.toFixed(1)} frente a ${Number(catalogo).toFixed(1)} R☉`); medido.radiusSolar = null; }
   const capas = [
+    ['jmdc', medido?.radiusSolar && { radiusSolar: medido.radiusSolar }],
     ['nasa', nasa.get(hip)],
     ['tic', t && { temperatureK: positivo(t.Teff), radiusSolar: positivo(t.rad), massSolar: positivo(t.mass), luminositySolar: positivo(t.lum) }],
     ['gaia', g && { temperatureK: positivo(g.teff_gspphot), radiusSolar: positivo(g.radius_flame), massSolar: positivo(g.mass_flame), luminositySolar: positivo(g.lum_flame) }],
@@ -118,7 +131,7 @@ for (const star of stars) {
   ];
   const fila = { fuentes: {} };
   for (const campo of ['temperatureK', 'radiusSolar', 'massSolar', 'luminositySolar', 'espectro']) {
-    for (const [fuente, capa] of capas) if (capa?.[campo]) { fila[campo] = capa[campo]; fila.fuentes[campo] = FUENTE[fuente]; break; }
+    for (const [fuente, capa] of capas) if (capa?.[campo]) { fila[campo] = capa[campo]; fila.fuentes[campo] = fuente === 'jmdc' ? medido.fuente : FUENTE[fuente]; break; }
   }
   for (const [campo, [valor, ref]] of Object.entries(ESTRELLAS_CURADAS[star.n] || ESTRELLAS_CURADAS_POR_ID[star.i] || {})) { fila[campo] = valor; fila.fuentes[campo] = ref; }
   if (Object.keys(fila.fuentes).length) datos[star.i] = fila;
