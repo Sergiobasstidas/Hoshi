@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { FILTROS_ESTELARES, cambiarFiltroEstelar, filtroPorId, useFiltroEstelar } from './scene/filtroEstelar';
 import { precargarImagenes, sdoTexture } from './scene/sdoSolar';
+import { elegirComparacion, useComparacionSol } from './scene/comparacionSol';
+import ComparadorTamano from './ComparadorTamano';
 import './filtrosSol.css';
 
 // Filtros del Sol a la vista mientras es el foco. En el computador van en el panel de los controles,
@@ -8,6 +10,10 @@ import './filtrosSol.css';
 export default function FiltrosSol({ enPanel = false }) {
   const actual = useFiltroEstelar();
   const [cargando, setCargando] = useState(false);
+  const { elegida } = useComparacionSol();
+  const [pestana, setPestana] = useState(elegida ? 'comparar' : 'filtros');
+  // Elegir un filtro devuelve el Sol a su lugar.
+  const elegirFiltro = id => { elegirComparacion(null); cambiarFiltroEstelar(id); };
   useEffect(precargarImagenes, []);
   // Indicador en el botón elegido mientras su imagen o su vídeo no están listos.
   useEffect(() => {
@@ -19,10 +25,14 @@ export default function FiltrosSol({ enPanel = false }) {
   }, [actual]);
   if (enPanel) {
     const { banda, canal, nombre, texto } = filtroPorId(actual);
-    return <div className="controles-panel" role="radiogroup" aria-label="Filtro del Sol">
+    return <div className="controles-panel">
+      <div className="panel-sol-pestanas" role="tablist" aria-label="Panel del Sol">
+        {[['filtros', 'Filtros'], ['comparar', 'Comparar tamaño']].map(([id, texto]) => <button key={id} role="tab" aria-selected={pestana === id} onClick={() => setPestana(id)}>{texto}</button>)}
+      </div>
+      {pestana === 'comparar' ? <ComparadorTamano /> : <div role="radiogroup" aria-label="Filtro del Sol">
       <h3>Filtros del Sol</h3>
       {FILTROS_ESTELARES.map(filtro => <button key={filtro.id} role="radio" aria-checked={filtro.id === actual}
-        className={`controles-fila${filtro.id === actual ? ' actual' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => cambiarFiltroEstelar(filtro.id)}>
+        className={`controles-fila${filtro.id === actual ? ' actual' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => elegirFiltro(filtro.id)}>
         <span>{filtro.nombre}</span>{filtro.banda && <small>{filtro.banda}</small>}
       </button>)}
       <div className="controles-explicacion" role="status">
@@ -30,12 +40,17 @@ export default function FiltrosSol({ enPanel = false }) {
         <p>{texto}</p>
         {canal && <p>La cara oculta es un reflejo en espejo de la visible, no una observación</p>}
       </div>
+      </div>}
     </div>;
   }
-  return <div className="filtros-sol" role="radiogroup" aria-label="Filtro del Sol">
+  return <>
+  <div className="filtros-sol" role="radiogroup" aria-label="Filtro del Sol">
+    <button className={pestana === 'comparar' ? 'encendido' : ''} aria-expanded={pestana === 'comparar'} onClick={() => setPestana(valor => valor === 'comparar' ? 'filtros' : 'comparar')}>Comparar tamaño</button>
     {FILTROS_ESTELARES.map(filtro => <button key={filtro.id} role="radio" aria-checked={filtro.id === actual}
-      className={`${filtro.id === actual ? 'encendido' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => cambiarFiltroEstelar(filtro.id)}>
+      className={`${filtro.id === actual ? 'encendido' : ''}${filtro.id === actual && cargando ? ' cargando' : ''}`} onClick={() => elegirFiltro(filtro.id)}>
       {filtro.id === actual && <span aria-hidden="true" />}{filtro.nombre}{filtro.banda && <small>{filtro.banda}</small>}
     </button>)}
-  </div>;
+  </div>
+  {pestana === 'comparar' && <div className="filtros-sol-movil"><ComparadorTamano /></div>}
+  </>;
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { temperatureColor } from './stellarPhysics';
@@ -341,38 +341,51 @@ const coronaFragment = `
 
 // Un único modelo animado: se escala por radio y se tiñe por temperatura.
 // Malla unitaria trasladada con doble precisión en CPU; radio nunca ampliado por píxeles.
-// `solar`: es el Sol, el único con imágenes reales del SDO.
-export default function StellarSurface({ position, radiusPc, temperatureK, solar = false }) {
-  const uniforms = useMemo(() => {
-    const tint = temperature => {
-      const [r, g, b] = temperatureColor(temperature);
-      return new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
-    };
+// `solar`: es el Sol, el único con imágenes reales del SDO. `granulacionSolar`: una estrella en el lugar
+// del Sol para comparar tamaños; su superficie se ve con el detalle del Sol y sin manchas inventadas.
+export default function StellarSurface({ position, radiusPc, temperatureK, solar = false, granulacionSolar = false }) {
+  const surface = useRef();
+  const corona = useRef();
+  // Propiedades que dependen de la estrella; los uniformes se crean una vez y solo cambian sus valores,
+  // en el mismo cuadro, para que pasar de una estrella a otra no recompile nada ni muestre estados intermedios.
+  const propias = useMemo(() => {
     const { convection, spots } = surfaceActivity(temperatureK);
-    const granules = granulesPerRadius(temperatureK, radiusPc / SUN_RADIUS_PC);
-    const active = activeRegions(temperatureK, radiusPc / SUN_RADIUS_PC);
-    const regions = Array.from({ length: MAX_ACTIVE_REGIONS }, (_, i) => active[i]
-      ? new THREE.Vector4(...active[i].direction, active[i].umbraRadius) : new THREE.Vector4(0, 1, 0, 0));
-    // Las estructuras magnéticas se escalan como los gránulos; aproximación sin dato por estrella.
-    const structure = Math.max(0.08, Math.min(3, granules / SOLAR_GRANULES));
-    const shared = { time: { value: 0 }, glare: { value: 1 }, halpha: { value: 0 }, euv: { value: 0 }, structure: { value: structure },
-      convection: { value: convection }, temperatureTint: { value: tint(temperatureK) } };
+    const granules = granulesPerRadius(temperatureK, granulacionSolar ? 1 : radiusPc / SUN_RADIUS_PC);
+    const active = granulacionSolar ? [] : activeRegions(temperatureK, radiusPc / SUN_RADIUS_PC);
+    return { convection, spots: granulacionSolar ? 0 : spots, granules, active, temperatureK };
+  }, [temperatureK, radiusPc, granulacionSolar]);
+  const [uniforms] = useState(() => {
+    const shared = { time: { value: 0 }, glare: { value: 1 }, halpha: { value: 0 }, euv: { value: 0 }, structure: { value: 1 },
+      convection: { value: 1 }, temperatureTint: { value: new THREE.Color() } };
     return {
-      surface: { ...shared, spots: { value: spots }, limb: { value: limbDarkening(temperatureK) },
-        granules: { value: granules }, regions: { value: regions },
+      surface: { ...shared, spots: { value: 0 }, limb: { value: 0.6 },
+        granules: { value: SOLAR_GRANULES }, regions: { value: Array.from({ length: MAX_ACTIVE_REGIONS }, () => new THREE.Vector4(0, 1, 0, 0)) },
         chromosphereMap: { value: null }, chromosphereReal: { value: 0 }, chromosphereVideo: { value: 0 },
         magnet: { value: 0 }, sdo: { value: 0 }, sdoMap: { value: null }, sdoMapAnterior: { value: null }, sdoFundido: { value: 1 }, sdoFlatAnterior: { value: 0 }, sdoVideoAnterior: { value: 0 }, sdoRadius: { value: 0.8 }, sdoFlat: { value: 0 }, sdoVideo: { value: 0 },
         sdoToward: { value: new THREE.Vector3(0, 0, 1) }, sdoUp: { value: new THREE.Vector3(0, 1, 0) }, sdoRight: { value: new THREE.Vector3(1, 0, 0) },
-        // Los gránulos grandes evolucionan más despacio; aproximación, no medida por estrella.
-        boil: { value: BOIL_RATE * Math.max(0.15, Math.min(2, Math.sqrt(granules / SOLAR_GRANULES))) },
-        umbraTint: { value: tint(temperatureK - SUNSPOT.umbraCoolingK) } },
+        boil: { value: BOIL_RATE }, umbraTint: { value: new THREE.Color() } },
       corona: { ...shared, extent: { value: CORONA_RADII }, sdoTint: { value: new THREE.Color() }, sdoTintMix: { value: 0 },
         calmRight: { value: new THREE.Vector3(1, 0, 0) }, calmUp: { value: new THREE.Vector3(0, 1, 0) } },
-      active,
     };
-  }, [temperatureK, radiusPc]);
-  const surface = useRef();
-  const corona = useRef();
+  });
+  useLayoutEffect(() => {
+    const superficie = surface.current?.uniforms;
+    if (!superficie) return;
+    const { convection, spots, granules, active } = propias;
+    const tint = (color, temperature) => color.setRGB(...temperatureColor(temperature), THREE.SRGBColorSpace);
+    superficie.convection.value = convection;
+    superficie.spots.value = spots;
+    superficie.granules.value = granules;
+    superficie.limb.value = limbDarkening(temperatureK);
+    // Las estructuras magnéticas se escalan como los gránulos; aproximación sin dato por estrella.
+    superficie.structure.value = Math.max(0.08, Math.min(3, granules / SOLAR_GRANULES));
+    // Los gránulos grandes evolucionan más despacio; aproximación, no medida por estrella.
+    superficie.boil.value = BOIL_RATE * Math.max(0.15, Math.min(2, Math.sqrt(granules / SOLAR_GRANULES)));
+    superficie.regions.value.forEach((region, i) => (active[i] ? region.set(...active[i].direction, active[i].umbraRadius) : region.set(0, 1, 0, 0)));
+    tint(superficie.temperatureTint.value, temperatureK);
+    tint(superficie.umbraTint.value, temperatureK - SUNSPOT.umbraCoolingK);
+  }, [propias, temperatureK]);
+  const modoPrevio = useRef(solar);
   const group = useRef();
   // Orientación de la cámara respecto de la estrella, seguida a velocidad limitada.
   const calm = useRef(null);
@@ -404,7 +417,11 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     view.current.real = map ? 1 : 0;
     view.current.time = shared.time.value = halo.time.value = clock.elapsedTime % 3600;
     // Transición breve entre la vista deslumbrada y la filtrada.
-    const step = Math.min(1, delta * 4);
+    // Al pasar del Sol a otra estrella (o al revés) el aspecto cambia de golpe, sin fundidos del filtro.
+    const salto = modoPrevio.current !== solar;
+    modoPrevio.current = solar;
+    const step = salto ? 1 : Math.min(1, delta * 4);
+    if (salto) shared.sdoFundido.value = 1;
     [['glare', filtroVisible === 'ninguno'], ['halpha', capa === 'cromosfera'], ['euv', capa === 'corona']].forEach(([name, on]) => {
       shared[name].value += ((on ? 1 : 0) - shared[name].value) * step;
       view.current[name] = halo[name].value = shared[name].value;
@@ -457,7 +474,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
       <sphereGeometry args={[1, 128, 96]} />
       <shaderMaterial ref={surface} uniforms={uniforms.surface} vertexShader={surfaceVertex} fragmentShader={surfaceFragment} toneMapped={false} />
     </mesh>
-    <PlasmaLoops regions={uniforms.active} tint={uniforms.surface.temperatureTint.value} view={view} />
+    <PlasmaLoops regions={propias.active} tint={uniforms.surface.temperatureTint.value} view={view} />
     <mesh raycast={() => null}>
       <sphereGeometry args={[CORONA_RADII, 48, 32]} />
       <shaderMaterial ref={corona} uniforms={uniforms.corona} vertexShader={coronaVertex} fragmentShader={coronaFragment}

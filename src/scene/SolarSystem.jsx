@@ -1,6 +1,6 @@
-import { Suspense, useCallback, useMemo, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { Billboard, Html, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange, SUN_RADIUS_PC, solarDistance } from './scale';
 import { PLANET_TEXTURES, bodyAxes } from './planetTextures';
@@ -15,6 +15,7 @@ import SaturnRings from './SaturnRings';
 import MoonTrail from './MoonTrail';
 import ProbeTrails from './ProbeTrails';
 import ProbeComets from './ProbeComets';
+import { CONTORNO_SOLAR_HASTA, UA_POR_RADIO_SOLAR, useComparacionSol, DURACION_CAMBIO_S } from './comparacionSol';
 
 function PlanetSurface({ url }) {
   const gl = useThree(state => state.gl);
@@ -49,15 +50,24 @@ function PhysicalBody({ position, radiusPc, color, texture }) {
   </mesh>;
 }
 
-function Planet({ planet, origin }) {
+function Planet({ planet, origin, tragada }) {
   const orbitRef = useRef();
   const points = useMemo(() => planetOrbit(planet.name), [planet]);
+  // Órbita dentro de la estrella que ocupa el lugar del Sol: punteada, más tenue y por encima de ella.
+  useEffect(() => {
+    const line = orbitRef.current;
+    if (!line) return;
+    if (tragada) line.computeLineDistances();
+    Object.assign(line.material, { dashed: tragada, dashSize: planet.au * AU_TO_PC * 0.06, gapSize: planet.au * AU_TO_PC * 0.06, depthTest: !tragada });
+    line.material.needsUpdate = true;
+    line.renderOrder = tragada ? 10 : 0;
+  }, [tragada, planet]);
   useFrame(({ camera, size }) => {
     const distance = solarDistance(camera.position, origin);
     const radiusPixels = planet.au * AU_TO_PC / distance
       * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
     // Las órbitas se apagan junto con el cinturón de Kuiper al alejarse.
-    const opacity = smoothRange(radiusPixels, 8, 35) * kuiperFadeOut(distance);
+    const opacity = smoothRange(radiusPixels, 8, 35) * kuiperFadeOut(distance) * (tragada ? 0.6 : 1);
     orbitRef.current.visible = opacity > 0.005;
     orbitRef.current.material.opacity = opacity;
   });
@@ -68,15 +78,64 @@ function Planet({ planet, origin }) {
   </group>;
 }
 
+// Contorno del Sol, siempre de frente, para comparar con estrellas de su tamaño o más chicas.
+function ContornoSolar() {
+  const circulo = useMemo(() => new THREE.BufferGeometry().setFromPoints(Array.from({ length: 160 }, (_, i) => {
+    const angulo = i / 160 * Math.PI * 2;
+    return new THREE.Vector3(Math.cos(angulo) * SUN_RADIUS_PC, Math.sin(angulo) * SUN_RADIUS_PC, 0);
+  })), []);
+  useEffect(() => () => circulo.dispose(), [circulo]);
+  return <Billboard>
+    <lineLoop geometry={circulo} renderOrder={12}>
+      <lineBasicMaterial color="#ffd9a0" transparent opacity={0.55} depthTest={false} depthWrite={false} toneMapped={false} />
+    </lineLoop>
+    <mesh renderOrder={11} raycast={() => null}>
+      <ringGeometry args={[SUN_RADIUS_PC * 0.985, SUN_RADIUS_PC * 1.03, 160]} />
+      <meshBasicMaterial color="#ffd9a0" transparent opacity={0.1} depthTest={false} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+    </mesh>
+    <Html position={[0, SUN_RADIUS_PC * 1.1, 0]} center zIndexRange={[18, 10]} style={{ pointerEvents: 'none' }}>
+      <span className="contorno-solar">Sol · 1 R☉</span>
+    </Html>
+  </Billboard>;
+}
+
 // `probeRoutes`: rutas completas de las sondas desde el lanzamiento (ProbeTrails.jsx), guardadas
 // para un botón futuro; por defecto se ven solo las colas de cometa (ProbeComets.jsx).
 export default function SolarSystem({ origin, probeRoutes = false }) {
+  // Otra estrella puede ocupar el lugar del Sol, a su tamaño publicado, para comparar con las órbitas.
+  const { mostrada: elegida } = useComparacionSol();
+  const destino = { radio: elegida?.radiusSolar ?? 1, temperatura: elegida?.temperatureK ?? SOLAR_TEMPERATURE_K };
+  // Al cambiar de estrella, radio y color pasan de uno a otro en DURACION_CAMBIO_S. El radio avanza parejo
+  // (no en escala logarítmica): así el disco crece en pantalla a ritmo constante y no de golpe al final.
+  const [estrella, setEstrella] = useState(destino);
+  const transicion = useRef(null);
+  useFrame(({ clock }) => {
+    let actual = transicion.current;
+    if (!actual || actual.hasta.radio !== destino.radio || actual.hasta.temperatura !== destino.temperatura) {
+      if (estrella.radio === destino.radio && estrella.temperatura === destino.temperatura) return;
+      actual = transicion.current = { desde: estrella, hasta: destino, inicio: clock.elapsedTime };
+    }
+    // Avance por tiempo transcurrido, con una curva de coseno: arranca y frena sin tirones y su rapidez
+    // máxima es menor que la de smootherstep, así el crecimiento se ve más parejo en la misma duración.
+    const x = Math.min(1, (clock.elapsedTime - actual.inicio) / DURACION_CAMBIO_S);
+    const t = (1 - Math.cos(Math.PI * x)) / 2;
+    const { desde, hasta } = actual;
+    setEstrella({ radio: desde.radio + (hasta.radio - desde.radio) * t,
+      temperatura: desde.temperatura + (hasta.temperatura - desde.temperatura) * t });
+    if (t >= 1) transicion.current = null;
+  });
+  const enCambio = estrella.radio !== destino.radio || estrella.temperatura !== destino.temperatura;
+  const esSol = !elegida && !enCambio;
+  const radioUa = esSol ? 0 : estrella.radio * UA_POR_RADIO_SOLAR;
   return <>
     {/* Sombreado legible; intensidad ilustrativa, radios y dirección solar geométricos. */}
     <ambientLight intensity={0.35} />
     <pointLight position={[0, 0, 0]} intensity={2} decay={0} />
-    <StellarSurface position={[0, 0, 0]} radiusPc={SUN_RADIUS_PC} temperatureK={SOLAR_TEMPERATURE_K} solar />
-    {PLANETS.map(planet => <Planet key={planet.name} planet={planet} origin={origin} />)}
+    {/* La misma malla y material para el Sol y la estrella que lo reemplaza: cambiar no recompila nada. */}
+    <StellarSurface position={[0, 0, 0]} radiusPc={estrella.radio * SUN_RADIUS_PC} temperatureK={estrella.temperatura}
+      solar={esSol} granulacionSolar={!esSol} />
+    {elegida && elegida.radiusSolar <= CONTORNO_SOLAR_HASTA && <ContornoSolar />}
+    {PLANETS.map(planet => <Planet key={planet.name} planet={planet} origin={origin} tragada={planet.au < radioUa} />)}
     <PhysicalBody position={MOON.position} radiusPc={MOON.radiusKm * KM_TO_PC} color={MOON.color} texture={PLANET_TEXTURES.Luna} />
     <ProbeComets origin={origin} />
     {probeRoutes && <ProbeTrails origin={origin} />}

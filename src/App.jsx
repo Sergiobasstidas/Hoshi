@@ -65,6 +65,7 @@ import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
 import { useFichas } from './useFichas';
 import { useEsComputador } from './esComputador';
+import { CONTORNO_SOLAR_HASTA, DURACION_CAMBIO_S, UA_POR_RADIO_SOLAR, alcance, definirCandidatas, elegirComparacion, estadoComparacion, mostrarComparacion, suscribirComparacion } from './scene/comparacionSol';
 import FranjaHabitable from './scene/FranjaHabitable';
 import { encuadreDeSistema, zonaDeEstrella } from './scene/zonaHabitable';
 import { cambiarOrbitas, cambiarZonaVisible, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
@@ -110,6 +111,10 @@ const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
 const distanceTitle = name => `Distancia ${name === 'Sol' || name === 'centro galáctico' ? 'al' : name === 'Tierra' || name === 'Luna' ? 'a la' : 'a'} ${name}`;
 // Vista al cargar: la cámara a 7° sobre la eclíptica, mirando la Tierra con el Sol 25° a la
 // izquierda; se calcula desde la dirección del Sol en la fecha, así se ve igual cualquier día.
+// Cuánto más lejos queda la cámara al comparar con una estrella mayor que el Sol (1 = encuadre justo).
+const ALEJAMIENTO_COMPARACION = 1.7;
+// Si el radio nuevo difiere menos que este factor del radio de la estrella encuadrada, la cámara no se mueve.
+const RANGO_SIN_MOVER = 1.5;
 const START_DIRECTION = (() => {
   const up = new THREE.Vector3(...ECLIPTIC_UP), sunward = new THREE.Vector3(...EARTH.position).negate().normalize();
   const sunHorizontal = sunward.addScaledVector(up, -sunward.dot(up)).normalize();
@@ -351,6 +356,59 @@ export default function App() {
   // resto va en la lista «Ir a»; en el celular todo va en la lista.
   // El Sol es el foco al llegar a él o tras apuntarle con el botón «Sol».
   const solEnFoco = view.body?.name === 'Sol' || (view.id === 'solar-aim' && !freeFlight);
+  // Comparar tamaños: otra estrella en el lugar del Sol. Al llegar, la cámara encuadra la estrella y
+  // la primera órbita que queda fuera; al volver, reencuadra el Sol. Salir del Sol la deshace.
+  // App no se vuelve a dibujar con cada cambio de la comparación (es costoso): la sigue con una suscripción.
+  const vigente = useRef({});
+  useEffect(() => { vigente.current = { solEnFoco, navigate }; });
+  useEffect(() => definirCandidatas(stars), [stars]);
+  // Si la nueva es más grande, la cámara se aleja primero y la estrella cambia al llegar; si es más
+  // chica, cambia primero y la cámara se acerca después. Así nunca se queda dentro de la nueva.
+  const estrellaPendiente = useRef(undefined);
+  const encuadreComparacion = useRef(null);
+  useEffect(() => {
+    if (traveling || estrellaPendiente.current === undefined) return;
+    mostrarComparacion(estrellaPendiente.current);
+    estrellaPendiente.current = undefined;
+  }, [traveling]);
+  useEffect(() => {
+    let previa = estadoComparacion().elegida;
+    return suscribirComparacion(() => {
+      const { elegida, mostrada } = estadoComparacion();
+      if (previa === elegida) return;
+      previa = elegida;
+      const { solEnFoco: enSol, navigate: ir } = vigente.current;
+      const sol = SOLAR_BODIES[0];
+      estrellaPendiente.current = undefined;
+      if (!elegida) {
+        encuadreComparacion.current = null;
+        mostrarComparacion(null);
+        if (enSol) setTimeout(() => vigente.current.navigate(bodyView(sol), { duration: 2.5, comparacion: true }), DURACION_CAMBIO_S * 1000);
+        return;
+      }
+      const { ua, primeraFuera } = alcance(elegida.radiusSolar);
+      // Hasta unos 10 R☉ se encuadra el contorno del Sol; las más grandes, con la primera órbita que queda fuera.
+      const encuadre = elegida.radiusSolar <= CONTORNO_SOLAR_HASTA ? Math.max(elegida.radiusSolar, 1) * UA_POR_RADIO_SOLAR * 1.6 : Math.max(ua * 1.3, primeraFuera?.au ?? 0);
+      const distancia = encuadre * 2.4 * (elegida.radiusSolar > 1 ? ALEJAMIENTO_COMPARACION : 1) * AU_TO_PC;
+      // Entre estrellas de tamaño parecido la cámara se queda quieta y solo cambia la estrella. Se compara con
+      // la estrella del encuadre actual, no con la anterior, para que varios cambios chicos no se acumulen.
+      const encuadrada = encuadreComparacion.current, radio = elegida.radiusSolar;
+      if (enSol && encuadrada && Math.max(radio / encuadrada, encuadrada / radio) <= RANGO_SIN_MOVER) { mostrarComparacion(elegida); return; }
+      encuadreComparacion.current = radio;
+      const crece = elegida.radiusSolar > (mostrada?.radiusSolar ?? 1);
+      if (!crece || !enSol) mostrarComparacion(elegida);
+      else estrellaPendiente.current = elegida;
+      // Desde 35° sobre la eclíptica, para que se vean las órbitas que quedan dentro de la estrella.
+      const arriba = new THREE.Vector3(...ECLIPTIC_UP).normalize();
+      const lado = new THREE.Vector3(1, 0, 0).projectOnPlane(arriba).normalize();
+      const direccion = lado.multiplyScalar(Math.cos(0.61)).addScaledVector(arriba, Math.sin(0.61)).toArray();
+      const destino = { ...bodyView(sol), distance: distancia, direction: direccion, up: ECLIPTIC_UP }, opciones = { duration: 2.5, comparacion: true };
+      // Si se achica, primero se encoge la estrella y después se acerca la cámara.
+      if (crece || !enSol) ir(destino, opciones);
+      else setTimeout(() => vigente.current.navigate(destino, opciones), DURACION_CAMBIO_S * 1000);
+    });
+  }, []);
+  useEffect(() => { if (estadoComparacion().elegida && (!solEnFoco || freeFlight)) elegirComparacion(null); }, [solEnFoco, freeFlight]);
   const acciones = [
     ...SCALE_VIEWS.map(option => ({ id: option.id, texto: option.label })),
     { id: 'via-lactea', texto: 'Vía Láctea', activa: view.id === 'galaxy' },
@@ -587,7 +645,7 @@ export default function App() {
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <AvisoCelular />
       <PantallaCompleta />
-      {traveling && <p className="subtitulo-escena visible" role="status">{TACTIL ? 'Toca la escena para detener el viaje' : 'Clic en la escena o Esc: detener el viaje'}</p>}
+      {traveling && !view.journey?.comparacion && <p className="subtitulo-escena visible" role="status">{TACTIL ? 'Toca la escena para detener el viaje' : 'Clic en la escena o Esc: detener el viaje'}</p>}
       <footer className="scene-footer">
         <span>© 2026 Sergio Bastidas</span>
       </footer>
