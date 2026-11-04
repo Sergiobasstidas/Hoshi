@@ -29,7 +29,7 @@ test('la granulación reproduce la escala solar y crece en las gigantes', async 
   // Una gigante fría tiene gránulos mucho mayores respecto a su radio (d ∝ T·R²/M).
   assert.ok(granulesPerRadius(4300, 25) < granulesPerRadius(5772, 1) / 5);
   assert.equal(approximateMassSolar(4300, 25), 1.5);
-  assert.ok(granulesPerRadius(NaN, NaN) > 0 && granulesPerRadius(3000, 2000) >= 6);
+  assert.ok(granulesPerRadius(NaN, NaN) > 0 && granulesPerRadius(3000, 2000) >= 2);
 });
 
 test('las regiones activas son deterministas y respetan los rangos solares', async () => {
@@ -50,4 +50,12 @@ test('las regiones activas son deterministas y respetan los rangos solares', asy
   }
   // Una estrella caliente sin envoltura convectiva no tiene regiones activas.
   assert.equal(activeRegions(9900, 1.7).length, 0);
+});
+
+test('la granulación cambia con el tipo de estrella', async () => {
+  const { granulationLook, showsSunspots } = await import('../src/scene/stellarSurfaceModel.js');
+  const sol = granulationLook(5772, 1), enanaM = granulationLook(3200, 0.2), supergigante = granulationLook(3600, 764);
+  assert.ok(Math.abs(sol.contrast - 1) < 1e-9 && sol.lane === 0.13);
+  assert.ok(enanaM.contrast < 0.6 && supergigante.contrast > 1 && supergigante.lane > 0.4);
+  assert.ok(showsSunspots(1) && !showsSunspots(764));
 });

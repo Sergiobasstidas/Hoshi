@@ -1,0 +1,7 @@
+/* Cúmulos «Halo suave»: nombre fino y un resplandor leve, sin líneas. */
+.cumulo-nombre { padding: 2px 6px; border: 0; background: none; color: #b9cdea; font: inherit; font-size: 10px; font-weight: 300; letter-spacing: .12em;
+  text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 6px #000; cursor: pointer; transition: color .2s; }
+.cumulo-nombre:hover, .cumulo-nombre:focus-visible, .cumulo-nombre.activo { color: #eaf2ff; outline: none; }
+.ficha-cumulo .ficha-cumulo-miembros { margin: 4px 0 0; padding: 0; list-style: none; columns: 2; font-size: 12px; color: #c4cfdd; }
+.ficha-cumulo .enlace-ficha { padding: 2px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ficha-cumulo .enlace-ficha:hover { color: #eaf2ff; }

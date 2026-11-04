@@ -4,6 +4,7 @@ import { OrbitControls, useProgress } from '@react-three/drei';
 import { progresoCarga } from './progresoCarga';
 import * as THREE from 'three';
 import datosOficiales from '../data/processed/stellar_official.json';
+import textosFichas from '../data/processed/textos_fichas.json';
 import starsUrl from '../data/processed/stars_15pc.json?url';
 import systemsUrl from '../data/processed/star_systems.json?url';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
@@ -64,12 +65,15 @@ import { colorLegible, fisicaOficial } from './scene/stellarPhysics';
 import FichaEstrella from './FichaEstrella';
 import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
+import FichaCumulo from './FichaCumulo';
+import Cumulos from './scene/Cumulos';
+import { encuadreDeCumulo, useCumulos } from './scene/datosCumulos';
 import { useFichas } from './useFichas';
 import { useEsComputador } from './esComputador';
 import { CONTORNO_SOLAR_HASTA, DURACION_CAMBIO_S, UA_POR_RADIO_SOLAR, alcance, definirCandidatas, elegirComparacion, estadoComparacion, mostrarComparacion, suscribirComparacion } from './scene/comparacionSol';
 import FranjaHabitable from './scene/FranjaHabitable';
 import { encuadreDeSistema, zonaDeEstrella } from './scene/zonaHabitable';
-import { cambiarOrbitas, cambiarZonaVisible, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
+import { cambiarCumulos, cambiarOrbitas, cambiarZonaVisible, useCumulosVisibles, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
 import SelectorBrillo from './SelectorBrillo';
 import FichaPlaneta from './FichaPlaneta';
 import { ARRIVAL_FRAME_FACTOR, buildPlanetarySystems, hostPhysics } from './scene/exoplanetOrbit.js';
@@ -183,7 +187,11 @@ export default function App() {
   // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
   const [estrellaVista, setEstrellaVista] = useState(null);
   const esComputador = useEsComputador();
-  const verOrbitas = useOrbitas(), verZona = useZonaVisible();
+  const verOrbitas = useOrbitas(), verZona = useZonaVisible(), verCumulos = useCumulosVisibles();
+  const datosCumulos = useCumulos(verCumulos);
+  // Cúmulo elegido: encuadrado, con su ficha; sus miembros brillan algo más y el resto se atenúa un poco.
+  const [cumulo, setCumulo] = useState(null);
+  const miembrosCumulo = useMemo(() => cumulo ? new Set(cumulo.ids) : null, [cumulo]);
   const fichas = useFichas();
   const [direccionFicha, setDireccionFicha] = useState(1);
   const overlayRef = useRef();
@@ -216,6 +224,7 @@ export default function App() {
     releaseAim();
     setSolApuntado(false);
     setEstrellaVista(null);
+    setCumulo(null);
     setFreeFlight(false);
     setTraveling(true);
     setVelocidadSolicitada(null);
@@ -419,6 +428,7 @@ export default function App() {
     { id: 'volver-sol', texto: 'Volver al Sol', fija: true },
     { id: 'orbitas', texto: 'Órbitas', activa: verOrbitas, titulo: 'Muestra u oculta las órbitas' },
     { id: 'zona-habitable', texto: 'Zona habitable', activa: verZona, titulo: 'Muestra u oculta la zona habitable de la estrella elegida' },
+    { id: 'cumulos', texto: 'Cúmulos', activa: verCumulos, titulo: 'Muestra u oculta los cúmulos de estrellas' },
     { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
       titulo: 'Muestra u oculta la heliosfera' },
     // El filtro solo afecta al Sol: aparece únicamente al estar en él.
@@ -439,10 +449,16 @@ export default function App() {
     else if (id === 'ir-al-sol') focusBody(SOLAR_BODIES[0]);
     else if (id === 'orbitas') cambiarOrbitas(!verOrbitas);
     else if (id === 'zona-habitable') cambiarZonaVisible(!verZona);
+    else if (id === 'cumulos') { if (verCumulos) setCumulo(null); cambiarCumulos(!verCumulos); }
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
   const cerrarFicha = () => { setEstrellaVista(null); setShowBodyPanel(false); releaseAim(); };
+  const elegirCumulo = elegido => {
+    setShowPulsars(false); setShowDiscoveries(false); setShowBodyPanel(false); setInspectedTarget(null);
+    navigate({ id: 'cumulo', target: [elegido.x, elegido.y, elegido.z], ...encuadreDeCumulo(elegido, starsById, cameraRef.current?.fov) });
+    setCumulo(elegido);
+  };
   // Pasar de la estrella a uno de sus planetas y volver, como páginas de la misma ficha.
   const verPlanetaDesdeFicha = planeta => {
     setDireccionFicha(1);
@@ -460,6 +476,7 @@ export default function App() {
   const orbitTarget = (view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
   // Datos del cuerpo enfocado, en su recuadro o dentro de la ficha de estrella.
   const detalle = showBodyPanel && panelBody && <>
+        {textosFichas.sistemaSolar[panelBody.name] && <div className="body-panel-texto">{textosFichas.sistemaSolar[panelBody.name]}</div>}
         {panelBody.name === 'Sol' && <div>Superficie simulada con medidas solares de granulación, manchas y oscurecimiento del borde, escaladas a la temperatura y el radio; tiempo acelerado 60 veces</div>}
         {panelBody.kind === 'system' ? <>
           <div>WC7 + O5.5 · modelo orbital estático</div>
@@ -525,7 +542,9 @@ export default function App() {
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />
       {showPulsars && <PulsarMap origin={origin} />}
       <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
-        focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} />
+        focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} resaltadas={miembrosCumulo} />
+      {verCumulos && datosCumulos && !binaryBody && !showPulsars && <Cumulos datos={datosCumulos} origin={origin}
+        elegido={cumulo} onElegir={elegirCumulo} />}
       {binaryBody && <BinarySystem />}
       {!binaryBody && <CompanionStars onElegir={(star, nombre) => visitBody(starBody(star, nombre), true)} systems={BINARY_SYSTEMS} origin={origin} />}
       {verZona && estrellaZona && <FranjaHabitable key={estrellaZona.i} star={estrellaZona} origin={origin} fichas={fichas} />}
@@ -609,6 +628,9 @@ export default function App() {
           onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
           : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
+      </FichaLateral>}
+      {cumulo && datosCumulos && !(fichaPlaneta || estrellaFicha) && <FichaLateral clave={`cumulo:${cumulo.id}`} direccion={1} etiqueta={`Información de ${cumulo.nombre}`} onCerrar={() => setCumulo(null)}>
+        <FichaCumulo cumulo={cumulo} estrellaDe={starsById} fuente={datosCumulos.fuente} fuenteBrillantes={datosCumulos.fuenteBrillantes} onVerEstrella={star => visitSearchResult({ id: star.i, aliases: [star.n] })} />
       </FichaLateral>}
       {!estrellaVista && showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">
             <button className="panel-close" aria-label="Cerrar información" onClick={() => setShowBodyPanel(false)}>×</button>

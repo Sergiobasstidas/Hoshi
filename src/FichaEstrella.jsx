@@ -2,22 +2,23 @@ import { useEffect, useId, useState } from 'react';
 import { colorLegible, temperatureColor } from './scene/stellarPhysics';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { indiceBusqueda } from './indiceBusqueda';
+import { CONSTELACIONES } from './constelaciones';
+import textos from '../data/processed/textos_fichas.json';
 import { estrellaDeComponente } from './scene/visualBinary';
 import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
 import { useFichas } from './useFichas';
 
-const CONSTELACIONES = { And: 'Andrómeda', Ant: 'Antlia', Aps: 'Ave del Paraíso', Aqr: 'Acuario', Aql: 'Águila', Ara: 'Altar', Ari: 'Aries', Aur: 'Auriga', Boo: 'Boyero', Cae: 'Cincel', Cam: 'Jirafa', Cnc: 'Cáncer', CVn: 'Lebreles', CMa: 'Can Mayor', CMi: 'Can Menor', Cap: 'Capricornio', Car: 'Quilla', Cas: 'Casiopea', Cen: 'Centauro', Cep: 'Cefeo', Cet: 'Ballena', Cha: 'Camaleón', Cir: 'Compás', Col: 'Paloma', Com: 'Cabellera de Berenice', CrA: 'Corona Austral', CrB: 'Corona Boreal', Crv: 'Cuervo', Crt: 'Copa', Cru: 'Cruz del Sur', Cyg: 'Cisne', Del: 'Delfín', Dor: 'Dorado', Dra: 'Dragón', Equ: 'Caballito', Eri: 'Erídano', For: 'Horno', Gem: 'Géminis', Gru: 'Grulla', Her: 'Hércules', Hor: 'Reloj', Hya: 'Hidra', Hyi: 'Hidra Macho', Ind: 'Indio', Lac: 'Lagarto', Leo: 'Leo', LMi: 'León Menor', Lep: 'Liebre', Lib: 'Libra', Lup: 'Lobo', Lyn: 'Lince', Lyr: 'Lira', Men: 'Mesa', Mic: 'Microscopio', Mon: 'Unicornio', Mus: 'Mosca', Nor: 'Escuadra', Oct: 'Octante', Oph: 'Ofiuco', Ori: 'Orión', Pav: 'Pavo', Peg: 'Pegaso', Per: 'Perseo', Phe: 'Fénix', Pic: 'Pintor', Psc: 'Piscis', PsA: 'Pez Austral', Pup: 'Popa', Pyx: 'Brújula', Ret: 'Retículo', Sge: 'Flecha', Sgr: 'Sagitario', Sco: 'Escorpio', Scl: 'Escultor', Sct: 'Escudo', Ser: 'Serpiente', Sex: 'Sextante', Tau: 'Tauro', Tel: 'Telescopio', Tri: 'Triángulo', TrA: 'Triángulo Austral', Tuc: 'Tucán', UMa: 'Osa Mayor', UMi: 'Osa Menor', Vel: 'Vela', Vir: 'Virgo', Vol: 'Pez Volador', Vul: 'Zorra' };
 
 const TIPOS = {
-  O: ['Estrella azul', 'Una de las más raras y furiosas de la galaxia: arde tan deprisa que vivirá apenas millones de años, un suspiro en la historia del cosmos.'],
-  B: ['Estrella azul', 'Caliente y luminosa, gasta su combustible a un ritmo que el Sol tardaría miles de veces más en igualar. Su brillo se ve a través de medio brazo galáctico.'],
-  A: ['Estrella blanca', 'Más caliente y joven que el Sol, gira con rapidez y brilla con una luz blanca y limpia, como Sirio o Vega en el cielo nocturno.'],
-  F: ['Estrella blanca amarillenta', 'Un poco mayor y más caliente que el Sol. Si tuviera un planeta como la Tierra, su cielo sería algo más blanco y más intenso que el nuestro.'],
-  G: ['Estrella amarilla', 'Es de la misma familia que el Sol. Su lenta y estable combustión, durante miles de millones de años, es justo la clase de paciencia que permitió la vida en la Tierra.'],
-  K: ['Enana naranja', 'Más fría y modesta que el Sol, pero también más longeva: seguirá encendida mucho después de que nuestra estrella se apague.'],
-  M: ['Enana roja', 'La clase más común de la galaxia y la más paciente: quema su hidrógeno tan despacio que vivirá billones de años, mucho más que la edad actual del universo.'],
-  D: ['Enana blanca', 'El rescoldo de una estrella que ya murió: tanta masa como un sol comprimida en el tamaño de un planeta, enfriándose poco a poco durante eones.'],
+  O: ['Estrella azul', 'Las estrellas de tipo O son las más calientes y masivas, y también las más escasas. Consumen su combustible en pocos millones de años y terminan como supernovas.'],
+  B: ['Estrella azul', 'Las estrellas de tipo B son calientes y luminosas, con varias veces la masa del Sol. Viven decenas o cientos de millones de años, mucho menos que el Sol.'],
+  A: ['Estrella blanca', 'Las estrellas de tipo A son más calientes y masivas que el Sol, y suelen girar rápido. Sirio y Vega son de este tipo.'],
+  F: ['Estrella blanca amarillenta', 'Las estrellas de tipo F son algo más calientes y masivas que el Sol, y viven algo menos que él.'],
+  G: ['Estrella amarilla', 'Las estrellas de tipo G son como el Sol: brillan de forma estable durante unos diez mil millones de años.'],
+  K: ['Enana naranja', 'Las estrellas de tipo K son algo más frías y pequeñas que el Sol, y viven más que él, varias decenas de miles de millones de años.'],
+  M: ['Enana roja', 'Las enanas rojas son las estrellas más comunes de la galaxia. Son pequeñas y frías, y gastan su hidrógeno tan despacio que viven mucho más que la edad actual del universo.'],
+  D: ['Enana blanca', 'Una enana blanca es el núcleo que queda cuando una estrella como el Sol agota su combustible: una masa parecida a la del Sol en un tamaño parecido al de la Tierra, que se enfría poco a poco.'],
 };
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 
@@ -59,7 +60,10 @@ function useConstelacion(id) {
       const fila = indice.find(item => item.id === id);
       const sigla = fila?.aliases.map(alias => alias.match(/ ([A-Z][A-Za-z]{2})$/)?.[1]).find(valor => CONSTELACIONES[valor]);
       const designacion = prefijo => fila?.aliases.find(alias => alias.startsWith(`${prefijo} `));
-      if (activo) setResultado({ id, constelacion: sigla ? CONSTELACIONES[sigla] : null, hd: designacion('HD'), hip: designacion('HIP') });
+      // Nombre de estrella variable del GCVS vía SIMBAD («VY CMa», «V1234 Sgr»), si tiene.
+      const variable = fila?.aliases.find(alias => /^(V\d+|[A-Z]{1,2}) [A-Z][A-Za-z]{2}$/.test(alias));
+      if (activo) setResultado({ id, constelacion: sigla ? CONSTELACIONES[sigla] : null, hd: designacion('HD'), hip: designacion('HIP'),
+        hr: designacion('HR'), gliese: designacion('Gl') || designacion('GJ'), variable });
     }).catch(() => {});
     return () => { activo = false; };
   }, [id]);
@@ -98,7 +102,7 @@ function ComparacionSol({ nombre, radio, temperatura }) {
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
 export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona }) {
-  const { constelacion, hd, hip } = useConstelacion(star.i);
+  const { constelacion, hd, hip, hr, gliese, variable } = useConstelacion(star.i);
   const fichas = useFichas();
   const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
   const movimiento = mas.pmRa !== undefined && mas.pmDec !== undefined ? Math.hypot(mas.pmRa, mas.pmDec) : null;
@@ -120,7 +124,8 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   return <>
       <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{nombre}</h2>
       {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${espectro.replace(/\.+\s*$/, '').trim()}`}</p>}
-      {(tipo || vista) && <p className="ficha-estrella-relato">{[tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
+      {/* Texto propio de la estrella si lo tiene; si no, el de su tipo. */}
+      {(textos.estrellas[star.n] || tipo || vista) && <p className="ficha-estrella-relato">{[textos.estrellas[star.n] || tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
       {radio > 0 && <ComparacionSol nombre={nombre} radio={radio} temperatura={temperatura || 5772} />}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
@@ -141,7 +146,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {mas.rotacion > 0 && <Dato etiqueta="Rotación" valor={`${numero(mas.rotacion)} días`} secundario="Sol: ~25" />}
         {mas.radial !== undefined && <Dato etiqueta="Velocidad radial" valor={`${mas.radial < 0 ? 'Se acerca' : 'Se aleja'} a ${numero(Math.abs(mas.radial))} km/s`} />}
         {movimiento > 0 && <Dato etiqueta="Movimiento propio" valor={`${numero(movimiento)} mas/año`} />}
-        {(hd || hip || mas.gaia) && <Dato etiqueta="Catálogos" valor={[hd, hip].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
+        {(hd || hip || mas.gaia || variable) && <Dato etiqueta="Catálogos" valor={[variable, hd, hip, hr, gliese].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
       </dl>
       <MapaZonaHabitable star={star} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} comparar onMostrar={onZona} />
       {miembros.length > 0 && <section>

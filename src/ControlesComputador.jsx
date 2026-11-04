@@ -94,7 +94,7 @@ export default function ControlesComputador({ acciones, vistaId, solApuntado, so
     </div>}
     {abierto === 'mostrar' && <div className="controles-panel" id="controles-panel">
       <h3>Mostrar</h3>
-      {[['heliosfera', 'Heliosfera', heliosferaVisible], ['orbitas', accion('orbitas').texto, accion('orbitas').activa], ['zona-habitable', accion('zona-habitable').texto, accion('zona-habitable').activa], ['pulsares', pulsares.texto, pulsares.activa]].map(([id, texto, activa]) =>
+      {[['heliosfera', 'Heliosfera', heliosferaVisible], ['orbitas', accion('orbitas').texto, accion('orbitas').activa], ['zona-habitable', accion('zona-habitable').texto, accion('zona-habitable').activa], ['cumulos', accion('cumulos').texto, accion('cumulos').activa], ['pulsares', pulsares.texto, pulsares.activa]].map(([id, texto, activa]) =>
         <button key={id} className="controles-fila" role="switch" aria-checked={activa} title={accion(id).titulo} onClick={() => onElegir(id)}>
           <span>{texto}</span><i className="controles-interruptor" aria-hidden="true" />
         </button>)}

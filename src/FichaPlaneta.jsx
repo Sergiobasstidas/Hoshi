@@ -2,15 +2,16 @@ import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
 import { distanciaComparada } from './scene/zonaHabitable';
 import { useFichas } from './useFichas';
+import textos from '../data/processed/textos_fichas.json';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 const JUPITER_RADIOS_TIERRA = 11.2;
 
 function clasePlaneta(radio) {
-  if (radio < 1.25) return ['Planeta rocoso', 'Un mundo de roca, de un tamaño parecido al nuestro. Son los más difíciles de encontrar: apenas ensombrecen a su estrella cuando pasan frente a ella.'];
-  if (radio < 2) return ['Supertierra', 'Más grande que la Tierra y más pequeño que Neptuno: una clase de mundo que no existe en nuestro sistema solar, y sin embargo es de las más comunes de la galaxia.'];
-  if (radio < 6) return ['Tipo Neptuno', 'Un mundo envuelto en una atmósfera espesa de gases, con un interior que aún no podemos ver. Si estuviera en nuestro cielo, sería un gigante entre los planetas interiores.'];
-  return ['Gigante gaseoso', 'Una inmensa esfera de hidrógeno y helio, sin una superficie donde posarse. Dentro de un planeta así cabrían cientos o miles de Tierras.'];
+  if (radio < 1.25) return ['Planeta rocoso', 'Un planeta de tamaño parecido al de la Tierra, probablemente de roca y metal. Son los más difíciles de detectar, porque apenas oscurecen a su estrella al pasar frente a ella.'];
+  if (radio < 2) return ['Supertierra', 'Un planeta más grande que la Tierra y más pequeño que Neptuno. En el sistema solar no hay ninguno así, pero en la galaxia son de los más comunes.'];
+  if (radio < 6) return ['Tipo Neptuno', 'Un planeta con una atmósfera espesa de hidrógeno y helio sobre un interior de roca y hielo, como Neptuno o Urano.'];
+  return ['Gigante gaseoso', 'Un planeta de hidrógeno y helio, sin superficie sólida, como Júpiter o Saturno.'];
 }
 const duracionAno = dias => dias < 2 ? `${numero(dias * 24)} horas` : dias < 730 ? `${numero(dias)} días` : `${numero(dias / 365.25)} años`;
 // Tamaño comparado con la Tierra y Júpiter, a la misma escala.
@@ -41,7 +42,7 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, onVerEs
     <button className="ficha-estrella-volver" onClick={onVerEstrella}>‹ {nombreEstrella}</button>
     <h2 className="marca-hoshi">{planeta.n}</h2>
     <p className="ficha-estrella-tipo">{tipo}</p>
-    <p className="ficha-estrella-relato">{relato}</p>
+    <p className="ficha-estrella-relato">{textos.planetas[planeta.n] || relato}</p>
     <ComparacionPlaneta nombre={planeta.n} radio={planeta.r} color={`rgb(${planeta.color.map(v => Math.round(v * 255)).join(', ')})`} />
     <dl>
       <Dato etiqueta="Radio" valor={`${conError(planeta.r, mas.errorRadio)} Tierras`} />

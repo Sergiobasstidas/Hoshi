@@ -1,4 +1,4 @@
-// Interruptores de las órbitas y de la zona habitable; cada preferencia queda guardada.
+// Interruptores de las órbitas, la zona habitable y los cúmulos; cada preferencia queda guardada.
 import { useSyncExternalStore } from 'react';
 
 function interruptor(clave) {
@@ -15,3 +15,4 @@ function interruptor(clave) {
 }
 export const [useOrbitas, cambiarOrbitas] = interruptor('hoshi-orbitas');
 export const [useZonaVisible, cambiarZonaVisible] = interruptor('hoshi-zona-habitable');
+export const [useCumulosVisibles, cambiarCumulos] = interruptor('hoshi-cumulos');

@@ -38,8 +38,25 @@ export function granulesPerRadius(temperatureK, radiusSolar) {
   const radius = Number.isFinite(radiusSolar) && radiusSolar > 0 ? radiusSolar : 1;
   const t = validTemperature(temperatureK) / SOLAR_TEMPERATURE_K;
   const relativeSize = t * radius / approximateMassSolar(temperatureK, radius);
-  return clamp(SOLAR_RADIUS_MM / SOLAR_GRANULE_MM / relativeSize, 6, 4000);
+  // Tope inferior de unas pocas celdas por radio: las supergigantes rojas como Betelgeuse muestran
+  // apenas un puñado de celdas de convección en todo el disco (imagen interferométrica de Haubois et al. 2009, A&A 508, 923).
+  return clamp(SOLAR_RADIUS_MM / SOLAR_GRANULE_MM / relativeSize, 2, 4000);
 }
+
+// Aspecto de la granulación según el tipo de estrella, relativo al Sol (1). Aproximación de
+// presentación a partir de simulaciones 3D de atmósferas (Magic et al. 2013, arXiv:1302.2621):
+// el contraste crece con la temperatura entre las enanas M y las F; las enanas M tienen celdas
+// pequeñas y de poco contraste, y las gigantes frías, celdas enormes con carriles anchos.
+export function granulationLook(temperatureK, radiusSolar = 1) {
+  const temperature = validTemperature(temperatureK);
+  const radius = Number.isFinite(radiusSolar) && radiusSolar > 0 ? radiusSolar : 1;
+  const giant = smooth(3, 15, radius) * (1 - smooth(5500, 7000, temperature));
+  const dwarf = 0.35 + 0.65 * smooth(3000, 5772, temperature) + 0.25 * smooth(5772, 6800, temperature);
+  return { contrast: dwarf + (1.1 - dwarf) * giant, lane: 0.13 + 0.4 * giant };
+}
+
+// Manchas como las solares solo en estrellas de secuencia principal: en las gigantes no se ven así.
+export const showsSunspots = radiusSolar => !(Number.isFinite(radiusSolar) && radiusSolar > 3);
 
 // Las estrellas frías tienen envoltura convectiva y muestran granulación y manchas;
 // por encima de unos 7.000–10.000 K la envoltura es radiativa y el disco es casi liso.
