@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { ZOOM_DECAY_PER_S, ZOOM_PER_NOTCH, stepZoom } from './inerciaCamara.js';
+import { ZOOM_DECAY_PER_S, ZOOM_PER_NOTCH, amortiguamientoGiro, stepZoom } from './inerciaCamara.js';
 
 // Acercamiento con inercia para la vista orbital, como en NASA Eyes: cada giro de la rueda
 // da un impulso a la velocidad de acercamiento, que luego frena poco a poco. OrbitControls
@@ -25,6 +25,7 @@ export default function ZoomSuave({ controlsRef }) {
   }, [gl, controlsRef]);
   useFrame((_, delta) => {
     const controls = controlsRef.current;
+    if (controls) controls.dampingFactor = amortiguamientoGiro(Math.min(delta, 0.1));
     if (!controls || Math.abs(velocity.current) < 1e-4) { velocity.current = 0; return; }
     const step = stepZoom(velocity.current, Math.min(delta, 0.1));
     velocity.current = step.velocity;

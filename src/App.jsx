@@ -49,6 +49,7 @@ import { moonHost, useMoons } from './scene/moonBodies';
 import { probeHighlight, useProbes } from './scene/probeTrajectories';
 import ExoplanetDiscoveries from './scene/ExoplanetDiscoveries';
 import ZoomSuave from './scene/ZoomSuave';
+import { GIRO_AMORTIGUAMIENTO } from './scene/inerciaCamara.js';
 import PanelDescubrimientos from './PanelDescubrimientos';
 import { useDescubrimientos } from './scene/useDescubrimientos.js';
 import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS } from './scene/descubrimientos.js';
@@ -353,7 +354,7 @@ export default function App() {
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
   // Botones de escalas y modos: en el computador quedan a la vista vuelo libre, Sol y filtro, y el
-  // resto va en la lista «Ir a»; en el celular todo va en la lista.
+  // resto va en la lista «Viajar a»; en el celular todo va en la lista.
   // El Sol es el foco al llegar a él o tras apuntarle con el botón «Sol».
   const solEnFoco = view.body?.name === 'Sol' || (view.id === 'solar-aim' && !freeFlight);
   // Comparar tamaños: otra estrella en el lugar del Sol. Al llegar, la cámara encuadra la estrella y
@@ -516,7 +517,7 @@ export default function App() {
       <color attach="background" args={['#020305']} />
       {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}
-        enablePan={false} enableDamping dampingFactor={0.06} rotateSpeed={0.45} zoomSpeed={1.35}
+        enablePan={false} enableDamping dampingFactor={GIRO_AMORTIGUAMIENTO} rotateSpeed={0.45} zoomSpeed={1.35}
         onStart={() => { transitionRef.current = null; setSolApuntado(false); }} />}
       {!freeFlight && !traveling && <ZoomSuave controlsRef={controlsRef} />}
       <CameraNavigation view={view} showPulsars={showPulsars} transitionRef={transitionRef} origin={origin} onComplete={arriveFree => { setTraveling(false); setFreeFlight(arriveFree); document.activeElement?.blur(); }} />
@@ -553,8 +554,8 @@ export default function App() {
       <ControlesComputador acciones={acciones} vistaId={view.id} solApuntado={solApuntado} solEnFoco={solEnFoco} onElegir={ejecutarAccion} />
       {/* En el celular los mismos botones se agrupan en una lista desplegable. */}
       <label className="menu-explorar">
-        <select aria-label="Ir a" value="" onChange={event => ejecutarAccion(event.target.value)}>
-          <option value="" disabled>Ir a</option>
+        <select aria-label="Viajar a" value="" onChange={event => ejecutarAccion(event.target.value)}>
+          <option value="" disabled>Viajar a</option>
           {acciones.filter(accion => !accion.oculta).map(accion => <option key={accion.id} value={accion.id}>{accion.activa && accion.id !== 'vuelo-libre' ? '✓ ' : ''}{accion.textoLista || accion.texto}</option>)}
         </select>
       </label>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Lista «Ir a» del computador: las escalas y modos se despliegan hacia la izquierda del botón,
+// Lista «Viajar a» del computador: las escalas y modos se despliegan hacia la izquierda del botón,
 // en fila, para no tapar la escala lateral que está debajo.
 export default function MenuVer({ acciones, onElegir }) {
   const [abierto, setAbierto] = useState(false);
@@ -20,7 +20,7 @@ export default function MenuVer({ acciones, onElegir }) {
         onClick={() => { setAbierto(false); onElegir(accion.id); }}>{accion.texto}</button>)}
     </div>
     <button className="menu-ver-boton" aria-expanded={abierto} aria-controls="menu-ver-opciones" onClick={() => setAbierto(valor => !valor)}>
-      Ir a <span aria-hidden="true">‹</span>
+      Viajar a <span aria-hidden="true">‹</span>
     </button>
   </div>;
 }

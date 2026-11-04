@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import FiltrosSol from './FiltrosSol';
 import './controlesComputador.css';
 
-// Distancia de cámara de cada escala, tal como se muestra junto a su nombre en «Ir a».
+// Distancia de cámara de cada escala, tal como se muestra junto a su nombre en «Viajar a».
 const DISTANCIAS = { 'Sistema solar': '5 UA', Kuiper: '110 UA', Heliosfera: '1.150 UA', 'Nube de Oort': '7 al', 'Estrellas cercanas': '65 pc', 'Vía Láctea': 'galaxia' };
 
 const CLIC_MAXIMO_PX = 5, ESPERA_DOBLE_CLIC_MS = 250;
@@ -12,7 +12,7 @@ function IconoSol() {
     <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>;
 }
 
-// Controles de arriba a la derecha en el computador: Vuelo libre, Sol, Ir a y Mostrar en una cápsula, y
+// Controles de arriba a la derecha en el computador: Vuelo libre, Sol, Viajar a y Mostrar en una cápsula, y
 // Exoplanetas aparte. Las acciones son las mismas de la lista del celular (ejecutarAccion).
 export default function ControlesComputador({ acciones, vistaId, solApuntado, solEnFoco, onElegir }) {
   const [abierto, setAbierto] = useState(null);
@@ -76,7 +76,7 @@ export default function ControlesComputador({ acciones, vistaId, solApuntado, so
       <button className={solApuntado ? 'encendido' : ''} title="Clic: apuntar al Sol · Doble clic: ir al Sol" aria-label="Volver al Sol" aria-pressed={solApuntado} onClick={pulsarSol} onDoubleClick={irAlSol}>
         <IconoSol />Sol
       </button>
-      {[['ir', 'Ir a'], ['mostrar', 'Mostrar']].map(([id, texto]) => <button key={id} ref={abierto === id ? boton : undefined} className={abierto === id ? 'abierto' : ''} aria-expanded={abierto === id} aria-controls="controles-panel" onClick={() => setAbierto(valor => valor === id ? null : id)}>
+      {[['ir', 'Viajar a'], ['mostrar', 'Mostrar']].map(([id, texto]) => <button key={id} ref={abierto === id ? boton : undefined} className={abierto === id ? 'abierto' : ''} aria-expanded={abierto === id} aria-controls="controles-panel" onClick={() => setAbierto(valor => valor === id ? null : id)}>
         {texto} <span className="controles-flecha" aria-hidden="true">▾</span>
       </button>)}
     </div>
