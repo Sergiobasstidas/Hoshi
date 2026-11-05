@@ -1,4 +1,6 @@
 import { AU_TO_PC, KM_TO_PC } from './scale.js';
+import EPHEMERIS from './planetEphemeris.json' with { type: 'json' };
+import { planetPositionKm } from './planetEphemerisCore.js';
 
 // Elementos keplerianos medios y sus tasas por siglo juliano, válidos de 1800 a 2050.
 // JPL, «Approximate Positions of the Planets», tabla 1, consultada el 13/10/2026:
@@ -90,10 +92,32 @@ export function moonOffset(date = EPHEMERIS_DATE) {
   return [x, y * Math.cos(OBLIQUITY) - z * Math.sin(OBLIQUITY), y * Math.sin(OBLIQUITY) + z * Math.cos(OBLIQUITY)];
 }
 
-// La Tierra se separa del baricentro Tierra-Luna (hasta ≈ 4.700 km) en sentido opuesto a la Luna.
-export function planetPosition(name, date = EPHEMERIS_DATE) {
+// Posición en la elipse de los elementos medios (pc). La de la Tierra es la del baricentro Tierra-Luna.
+export function keplerPosition(name, date = EPHEMERIS_DATE) {
   const elements = orbitalElements(name, date);
-  const position = ellipsePoint(elements, eccentricAnomaly(elements.meanAnomalyDeg * RAD, elements.e));
+  return ellipsePoint(elements, eccentricAnomaly(elements.meanAnomalyDeg * RAD, elements.e));
+}
+
+const julianDay = date => date.getTime() / 86400000 + 2440587.5;
+// Posición real de JPL Horizons: la elipse de los elementos medios más la diferencia con Horizons,
+// ajustada con polinomios de Chebyshev por tramos (planetEphemeris.json, scripts/planets/build_planets.js).
+// Error frente a Horizons bajo 450 km dentro del intervalo de cada planeta (bajo 120 km de Mercurio a
+// Marte; en Júpiter y Saturno queda el vaivén de días del planeta en torno al centro de masas con
+// sus lunas) (1970 o 2000 hasta 2060
+// más medio período); fuera de él queda solo la elipse.
+// La Tierra se separa del baricentro Tierra-Luna (hasta ≈ 4.700 km) en sentido opuesto a la Luna.
+// ¿Cubre el ajuste de Horizons esta fecha? Fuera de él la posición es solo la de la elipse.
+export function horizonsCovers(name, date = EPHEMERIS_DATE) {
+  const fit = EPHEMERIS.planets[name], jd = julianDay(date);
+  return Boolean(fit) && jd >= fit.startJd && jd <= fit.startJd + fit.segments * fit.segmentDays;
+}
+
+export function planetPosition(name, date = EPHEMERIS_DATE) {
+  const position = keplerPosition(name, date);
+  const fit = EPHEMERIS.planets[name], jd = julianDay(date);
+  if (horizonsCovers(name, date)) {
+    planetPositionKm(fit, jd).forEach((km, i) => { position[i] += km * KM_TO_PC; });
+  }
   if (name !== 'Tierra') return position;
   const moon = moonOffset(date);
   return position.map((value, i) => value - moon[i] / (1 + EARTH_MOON_MASS_RATIO));
@@ -104,10 +128,26 @@ export function moonPosition(date = EPHEMERIS_DATE) {
   return earth.map((value, i) => value + moon[i]);
 }
 
-// Elipse cerrada con el Sol en un foco: la órbita osculadora de esa fecha.
-export function planetOrbit(name, date = EPHEMERIS_DATE, segments = 1024) {
-  const elements = orbitalElements(name, date);
+// Período sidéreo aproximado en días, por la tercera ley de Kepler con el semieje medio.
+export const orbitalPeriodDays = (name, date = EPHEMERIS_DATE) => 365.256363 * orbitalElements(name, date).a ** 1.5;
+
+// Órbita: la trayectoria real durante un período completo centrado en la fecha (Horizons), no una
+// elipse fija. Por las perturbaciones no cierra exactamente; la diferencia es de pocos miles de km.
+// 4.096 tramos en los planetas exteriores (a 30 UA, la cuerda se aparta ≈ 1.300 km de la curva) y
+// 1.024 en los interiores: con más, de canto, los tramos se superponen y la línea se ve más brillante.
+const ORBIT_SEGMENTS = { Mercurio: 1024, Venus: 1024, Tierra: 1024, Marte: 1024 };
+export function planetOrbit(name, date = EPHEMERIS_DATE, segments = ORBIT_SEGMENTS[name] ?? 4096) {
+  const period = orbitalPeriodDays(name, date) * 86400000;
   const points = new Float32Array((segments + 1) * 3);
-  for (let i = 0; i <= segments; i++) points.set(ellipsePoint(elements, i / segments * Math.PI * 2), i * 3);
+  for (let i = 0; i <= segments; i++) {
+    const position = planetPosition(name, new Date(date.getTime() + (i / segments - 0.5) * period));
+    points.set(name === 'Tierra' ? keplerOrbitCorrection(position, i, segments, date, period) : position, i * 3);
+  }
   return points;
+}
+
+// La órbita de la Tierra se dibuja con el baricentro Tierra-Luna: sin el vaivén mensual de ± 4.700 km.
+function keplerOrbitCorrection(position, i, segments, date, period) {
+  const moon = moonOffset(new Date(date.getTime() + (i / segments - 0.5) * period));
+  return position.map((value, k) => value + moon[k] / (1 + EARTH_MOON_MASS_RATIO));
 }

@@ -6,6 +6,7 @@ import { SOLAR_BODIES } from './solarBodies';
 import { BINARY_STATE } from './binaryOrbit';
 import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
+import { probeHidden, probeLit } from './probeTrajectories';
 import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
 import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
@@ -156,7 +157,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         alpha = smoothRange(radiusPixels, 20, 50) * kuiperFadeOut(pc);
       } else if (label.kind === 'probe') {
         // Aparece al alejarse más allá del cinturón de Kuiper; se retira con la estela.
-        alpha = smoothRange(pc / AU_TO_PC, 20, 45) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
+        alpha = probeHidden(label.code) ? 0 : smoothRange(pc / AU_TO_PC, 20, 45) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
       } else if (label.kind === 'star') {
         alpha = nameOpacity;
         if (aimTarget === label) alpha = 0.9;
@@ -202,10 +203,13 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
           el.style.setProperty('--ring-y', `${point.y - box.y}px`);
           el.style.setProperty('--ring-alpha', smoothRange(labelDistance / AU_TO_PC, 0.008, 0.012));
         }
-        // Hexágono sobre la sonda, en la cabeza de su estela (ProbeTrails.jsx).
+        // Hexágono sobre la sonda, en la cabeza de su cola (ProbeComets.jsx); a pocos km se retira
+        // y queda su modelo (ProbeModels.jsx). Se aclara con su ruta al pasar el ratón por ella.
         if (label.kind === 'probe') {
           el.style.setProperty('--ring-x', `${point.x - box.x}px`);
           el.style.setProperty('--ring-y', `${point.y - box.y}px`);
+          el.style.setProperty('--ring-alpha', smoothRange(labelDistance / KM_TO_PC, 1.5, 4));
+          el.classList.toggle('resaltada', probeLit(label.code));
         }
       }
     });

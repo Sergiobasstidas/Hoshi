@@ -15,6 +15,10 @@ import SaturnRings from './SaturnRings';
 import MoonTrail from './MoonTrail';
 import ProbeTrails from './ProbeTrails';
 import ProbeComets from './ProbeComets';
+import ProbeModels from './ProbeModels';
+import SondaEntonces from './SondaEntonces';
+import { useRutasSondas } from './guiasOrbitales';
+import { ARC_AU, flybyGhosts } from './probeFlybys';
 import { CONTORNO_SOLAR_HASTA, UA_POR_RADIO_SOLAR, useComparacionSol, DURACION_CAMBIO_S } from './comparacionSol';
 
 function PlanetSurface({ url }) {
@@ -50,9 +54,17 @@ function PhysicalBody({ position, radiusPc, color, texture }) {
   </mesh>;
 }
 
+const orbitEndsFade = count => Float32Array.from({ length: count * 3 }, (_, k) => {
+  const edge = Math.min(Math.floor(k / 3), count - 1 - Math.floor(k / 3)) / (count - 1) / 0.005;
+  return Math.min(1, edge) ** 2 * (3 - 2 * Math.min(1, edge));
+});
+
 function Planet({ planet, origin, tragada }) {
   const orbitRef = useRef();
   const points = useMemo(() => planetOrbit(planet.name), [planet]);
+  // La trayectoria real de un período no cierra (en Neptuno quedan ≈ 0,1 UA entre los extremos, por
+  // el vaivén del Sol): sus extremos, del lado opuesto al planeta, se apagan en el último 0,5 % (menos de 2° de la vuelta), sin hueco visible de lejos.
+  const fade = useMemo(() => orbitEndsFade(points.length / 3), [points]);
   // Órbita dentro de la estrella que ocupa el lugar del Sol: punteada, más tenue y por encima de ella.
   useEffect(() => {
     const line = orbitRef.current;
@@ -67,12 +79,18 @@ function Planet({ planet, origin, tragada }) {
     const radiusPixels = planet.au * AU_TO_PC / distance
       * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
     // Las órbitas se apagan junto con el cinturón de Kuiper al alejarse.
-    const opacity = smoothRange(radiusPixels, 8, 35) * kuiperFadeOut(distance) * (tragada ? 0.6 : 1);
+    // Junto al planeta de un sobrevuelo se ve el arco de su órbita de entonces (ProbeTrails.jsx).
+    let ghost = 0;
+    for (const position of flybyGhosts.get(planet.name) ?? []) {
+      const toGhost = Math.hypot(camera.position.x + origin[0] - position[0], camera.position.y + origin[1] - position[1], camera.position.z + origin[2] - position[2]);
+      ghost = Math.max(ghost, 1 - smoothRange(toGhost, ARC_AU[0] * AU_TO_PC, ARC_AU[1] * AU_TO_PC));
+    }
+    const opacity = smoothRange(radiusPixels, 8, 35) * kuiperFadeOut(distance) * (tragada ? 0.6 : 1) * (1 - ghost);
     orbitRef.current.visible = opacity > 0.005;
     orbitRef.current.material.opacity = opacity;
   });
   return <group>
-    <OrbitLine ref={orbitRef} points={points} variant="fina" />
+    <OrbitLine ref={orbitRef} points={points} colors={fade} variant="fina" />
     <PhysicalBody position={planetPosition(planet.name)} radiusPc={planet.radiusKm * KM_TO_PC}
       color={planet.color} texture={PLANET_TEXTURES[planet.name]} />
   </group>;
@@ -99,9 +117,12 @@ function ContornoSolar() {
   </Billboard>;
 }
 
-// `probeRoutes`: rutas completas de las sondas desde el lanzamiento (ProbeTrails.jsx), guardadas
-// para un botón futuro; por defecto se ven solo las colas de cometa (ProbeComets.jsx).
-export default function SolarSystem({ origin, probeRoutes = false }) {
+// Las rutas completas de las sondas (ProbeTrails.jsx) se encienden con «Rutas de sondas» en
+// «Mostrar»; por defecto se ven solo las colas de cometa (ProbeComets.jsx) y la ruta de la sonda
+// elegida (`probeSelected`, su código). `onSelect` viaja a una sonda o a un planeta de entonces.
+// `probeThen`: la sonda en la etapa elegida de la línea de tiempo (SondaEntonces.jsx).
+export default function SolarSystem({ origin, probeSelected = null, onSelect, probeThen = null }) {
+  const probeRoutes = useRutasSondas();
   // Otra estrella puede ocupar el lugar del Sol, a su tamaño publicado, para comparar con las órbitas.
   const { mostrada: elegida } = useComparacionSol();
   const destino = { radio: elegida?.radiusSolar ?? 1, temperatura: elegida?.temperatureK ?? SOLAR_TEMPERATURE_K };
@@ -138,7 +159,10 @@ export default function SolarSystem({ origin, probeRoutes = false }) {
     {PLANETS.map(planet => <Planet key={planet.name} planet={planet} origin={origin} tragada={planet.au < radioUa} />)}
     <PhysicalBody position={MOON.position} radiusPc={MOON.radiusKm * KM_TO_PC} color={MOON.color} texture={PLANET_TEXTURES.Luna} />
     <ProbeComets origin={origin} />
-    {probeRoutes && <ProbeTrails origin={origin} />}
+    {(probeRoutes || probeSelected) && <ProbeTrails origin={origin} codes={probeRoutes ? null : [probeSelected]}
+      selected={probeSelected} onSelect={onSelect} />}
+    <ProbeModels origin={origin} extra={probeThen ? [probeThen] : []} />
+    <SondaEntonces origin={origin} then={probeThen} />
     <MoonTrail />
     <Moons origin={origin} />
     <SaturnRings origin={origin} />

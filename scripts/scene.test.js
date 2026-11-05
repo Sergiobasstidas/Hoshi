@@ -1,9 +1,10 @@
+import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Vector3, PerspectiveCamera } from 'three';
 import { AU_KM, KM_TO_PC, BODY_CAMERA_NEAR_PC, SCENE_FAR_PC, SUN_RADIUS_PC, solarDistance, MAX_FLIGHT_SPEED_PC } from '../src/scene/scale.js';
 import { SOLAR_BODIES, MOON, MOON_DISTANCE_KM, bodyView } from '../src/scene/solarBodies.js';
-import { EPHEMERIS_DATE, moonOffset, moonPosition, orbitalElements, planetOrbit, planetPosition } from '../src/scene/solarEphemeris.js';
+import { EPHEMERIS_DATE, horizonsCovers, moonOffset, moonPosition, orbitalElements, planetOrbit, planetPosition } from '../src/scene/solarEphemeris.js';
 import { encodedDepth } from '../src/scene/depthPrecision.js';
 import { readFileSync } from 'node:fs';
 import { WR140_ID, identifyStellarTargets, stellarTargets } from '../src/scene/stellarTargets.js';
@@ -635,49 +636,63 @@ const HORIZONS_2026_10_14 = {
 };
 
 test('Los planetas están donde los sitúa JPL Horizons en la fecha pedida', () => {
+  // La referencia es a las 00:00 TDB; la escena toma la hora de la fecha como tiempo dinámico.
   const date = new Date(Date.UTC(2026, 9, 14));
   for (const planet of PLANETS) {
     const expected = new Vector3(...HORIZONS_2026_10_14[planet.name]);
     const actual = new Vector3(...planetPosition(planet.name, date)).divideScalar(AU_TO_PC);
-    // Los elementos aproximados de JPL difieren de la efeméride completa en minutos de arco.
-    assert.ok(actual.angleTo(expected) * 180 / Math.PI < 0.1, planet.name);
-    assert.ok(Math.abs(actual.length() - expected.length()) / expected.length() < 2e-3, planet.name);
+    assert.ok(actual.distanceTo(expected) * AU_KM < 450, `${planet.name}: ${(actual.distanceTo(expected) * AU_KM).toFixed(0)} km`);
   }
 });
 
-test('Las órbitas son elipses con el Sol en un foco y pasan por su planeta', () => {
+// Muestras de Horizons en instantes que no caen en la malla del ajuste (scripts/planets/control.json).
+const CONTROL = JSON.parse(fs.readFileSync(new URL('./planets/control.json', import.meta.url), 'utf8')).planets;
+
+test('Las posiciones de los planetas reproducen Horizons fuera de las muestras del ajuste', () => {
+  for (const planet of PLANETS) {
+    let worst = 0, count = 0;
+    for (const [jd, ...au] of CONTROL[planet.name]) {
+      const date = new Date((jd - 2440587.5) * 86400000);
+      if (!horizonsCovers(planet.name, date)) continue;
+      // La muestra de la Tierra es el baricentro Tierra-Luna: se le suma la parte de la Luna.
+      const moon = planet.name === 'Tierra' ? moonOffset(date).map(value => value / (1 + 81.30056)) : [0, 0, 0];
+      const position = planetPosition(planet.name, date).map((value, i) => (value + moon[i]) / AU_TO_PC);
+      worst = Math.max(worst, Math.hypot(...position.map((value, i) => value - au[i])) * AU_KM);
+      count++;
+    }
+    assert.ok(count > 300, planet.name);
+    // Bajo 120 km de Mercurio a Marte; en Júpiter y Saturno el ajuste suave no sigue el vaivén de días
+    // del planeta en torno al centro de masas con sus lunas (hasta ≈ 300 km en Saturno, por Titán).
+    assert.ok(worst < (['Júpiter', 'Saturno'].includes(planet.name) ? 450 : 250), `${planet.name}: ${worst.toFixed(0)} km`);
+  }
+});
+
+test('Las órbitas son la trayectoria real de un período y pasan por su planeta', () => {
   const date = new Date(Date.UTC(2026, 9, 14));
   for (const planet of PLANETS) {
-    const { a, e, inclinationDeg, nodeDeg } = orbitalElements(planet.name, date);
+    const { a, e, inclinationDeg } = orbitalElements(planet.name, date);
     assert.ok(Math.abs(inclinationDeg - planet.inclinationDeg) < 0.01 && e > 0 && e < 0.21);
-    const orbit = planetOrbit(planet.name, date, 720);
-    const radii = [], points = [];
-    for (let i = 0; i < orbit.length; i += 3) {
-      points.push(new Vector3(orbit[i], orbit[i + 1], orbit[i + 2]).divideScalar(AU_TO_PC));
-      radii.push(points.at(-1).length());
-    }
-    assert.ok(Math.abs(Math.min(...radii) - a * (1 - e)) < a * 1e-5);
-    assert.ok(Math.abs(Math.max(...radii) - a * (1 + e)) < a * 1e-5);
-    assert.ok(points[0].distanceTo(points.at(-1)) < a * 1e-6);
-    // Plano: normal a i de la eclíptica y línea de nodos en Ω.
-    const normal = points[0].clone().cross(points[180]).normalize();
-    const pole = new Vector3(...ECLIPTIC_UP);
-    assert.ok(Math.abs(normal.angleTo(pole) * 180 / Math.PI - Math.abs(inclinationDeg)) < 1e-3);
-    if (Math.abs(inclinationDeg) > 0.1) {
-      const node = pole.clone().cross(normal).normalize();
-      const longitude = Math.atan2(node.dot(new Vector3(0, Math.cos(23.43928 * Math.PI / 180), Math.sin(23.43928 * Math.PI / 180))), node.x) * 180 / Math.PI;
-      assert.ok(Math.abs(((longitude - nodeDeg) % 360 + 540) % 360 - 180) < 1e-3);
-    }
+    const orbit = planetOrbit(planet.name, date, 4096);
+    const points = [];
+    for (let i = 0; i < orbit.length; i += 3) points.push(new Vector3(orbit[i], orbit[i + 1], orbit[i + 2]).divideScalar(AU_TO_PC));
+    const radii = points.map(point => point.length());
+    // Perihelio y afelio como los de los elementos medios, salvo perturbaciones (≈ 0,2 % en Saturno).
+    assert.ok(Math.abs(Math.min(...radii) - a * (1 - e)) < a * 3e-3, planet.name);
+    assert.ok(Math.abs(Math.max(...radii) - a * (1 + e)) < a * 3e-3, planet.name);
+    // No cierra exactamente (el Sol se mueve): queda menos del 0,1 % de la vuelta entre los extremos.
+    assert.ok(points[0].distanceTo(points.at(-1)) < 2 * Math.PI * a * 1e-3, planet.name);
+    // Plano a la inclinación de los elementos medios.
+    const normal = points[0].clone().cross(points[1024]).normalize();
+    assert.ok(Math.abs(normal.angleTo(new Vector3(...ECLIPTIC_UP)) * 180 / Math.PI - Math.abs(inclinationDeg)) < 0.02, planet.name);
+    // El punto central es el planeta en la fecha, salvo el redondeo de 32 bits (la Tierra: su baricentro
+    // con la Luna, a < 5.000 km).
     const body = new Vector3(...planetPosition(planet.name, date)).divideScalar(AU_TO_PC);
-    // La Tierra se aparta del plano hasta unos cientos de km por su giro en torno al baricentro con la Luna.
-    assert.ok(Math.abs(body.dot(normal)) < a * (planet.name === 'Tierra' ? 4e-5 : 1e-6));
-    assert.ok(Math.min(...points.map(point => point.distanceTo(body))) < a * 0.01);
-    // La Tierra pasa por el perihelio a comienzos de enero: en octubre se acerca al Sol.
+    assert.ok(points[2048].distanceTo(body) * AU_KM < (planet.name === 'Tierra' ? 5000 : a * AU_KM * 2e-7), planet.name);
     if (planet.name === 'Tierra') assert.ok(body.length() > 0.99 && body.length() < 1.0);
   }
   // Cuerpos, etiquetas y destinos usan la posición de la fecha en que se carga el módulo.
   for (const planet of PLANETS) assert.deepEqual(SOLAR_BODIES.find(b => b.name === planet.name).position, planetPosition(planet.name, EPHEMERIS_DATE));
-  // Un período sidéreo después, la Tierra vuelve al mismo punto.
+  // Un año sidéreo después, la Tierra vuelve casi al mismo punto (la Luna la mueve hasta ≈ 9.000 km).
   const later = new Date(Date.UTC(2026, 9, 14) + 365.25636 * 86400000);
   assert.ok(new Vector3(...planetPosition('Tierra', later)).distanceTo(new Vector3(...planetPosition('Tierra', date))) < 1e-3 * AU_TO_PC);
 });

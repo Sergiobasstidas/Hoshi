@@ -37,18 +37,22 @@ const withProfile = profile => shader => {
 };
 
 // El objeto devuelto por `ref` es la línea: `material.opacity` y `visible` se ajustan fuera.
-export default function OrbitLine({ points, ref, variant = 'halo' }) {
+// `color` cambia el azul de las órbitas; `visible` (opcional) reemplaza al interruptor «Órbitas».
+// `colors` (opcional, rgb por punto) multiplica el color: con la mezcla aditiva, más oscuro es más tenue.
+export default function OrbitLine({ points, ref, variant = 'halo', color = ORBIT_LINE_COLOR, visible, colors }) {
   const line = useMemo(() => {
     const style = STYLES[variant];
-    const material = new LineMaterial({ color: ORBIT_LINE_COLOR, linewidth: style.width, transparent: true, opacity: 0,
-      depthWrite: false, toneMapped: false, blending: AdditiveBlending });
+    const material = new LineMaterial({ color, linewidth: style.width, transparent: true, opacity: 0,
+      depthWrite: false, toneMapped: false, blending: AdditiveBlending, vertexColors: Boolean(colors) });
     material.onBeforeCompile = withProfile(style.profile);
-    material.customProgramCacheKey = () => `orbita-${variant}`;
-    const object = new Line2(new LineGeometry().setPositions(points), material);
+    material.customProgramCacheKey = () => `orbita-${variant}${colors ? '-colores' : ''}`;
+    const geometry = new LineGeometry().setPositions(points);
+    if (colors) geometry.setColors(colors);
+    const object = new Line2(geometry, material);
     object.frustumCulled = false;
     return object;
-  }, [points, variant]);
+  }, [points, variant, color, colors]);
   const visibles = useOrbitas();
   useEffect(() => () => { line.geometry.dispose(); line.material.dispose(); }, [line]);
-  return <primitive object={line} ref={ref} material-visible={visibles} />;
+  return <primitive object={line} ref={ref} material-visible={visible ?? visibles} />;
 }

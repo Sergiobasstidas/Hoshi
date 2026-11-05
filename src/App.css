@@ -165,11 +165,23 @@
    de la fecha y el nombre en letra normal, en gris tenue como su cola; al pasar el ratón, ambos se
    aclaran a la vez que la cola (ProbeComets.jsx). */
 .scene-label.probe .label-text { font-size: calc(14px * var(--escala-nombres, 1)); letter-spacing: .02em; color: inherit; transition: color .2s ease; }
-.scene-label.probe:hover { color: #e6e9ee !important; }
-.scene-label.probe:hover .label-text { transform: none; color: #e6e9ee; }
+.scene-label.probe:hover, .scene-label.probe.resaltada { color: #e6e9ee !important; }
+/* Distancia a la Tierra en días luz, más fina que el nombre. */
+.scene-label.probe .label-detalle { font-size: .82em; font-weight: 300; letter-spacing: .01em; opacity: .8; }
+.scene-label.probe:hover .label-text, .scene-label.probe.resaltada .label-text { transform: none; color: #e6e9ee; }
 .scene-label.probe::before { content: ''; position: absolute; left: var(--ring-x, 0); top: var(--ring-y, 0); width: 14px; height: 16px; transform: translate(-50%, -50%); background: currentColor; pointer-events: none;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat; }
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: var(--ring-alpha, 1); }
+/* Planeta de entonces en un sobrevuelo (ProbeTrails.jsx): punto en su color y «Júpiter · 1979» en
+   letra fina a su derecha, junto al borde de la esfera cuando ya se ve. */
+.sobrevuelo { position: absolute; left: 0; top: 0; transform: translate(0, -50%); padding: 0 0 0 calc(var(--borde, 0px) + 9px); border: 0; background: none;
+  font-family: inherit; font-size: calc(10px * var(--escala-nombres, 1)); font-weight: 300; line-height: 1; letter-spacing: .04em; white-space: nowrap; cursor: pointer; pointer-events: auto; }
+.sobrevuelo::before { content: ''; position: absolute; left: -2.5px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: currentColor; opacity: var(--punto, 1); }
+.sobrevuelo span { opacity: .85; }
+/* Sentido del recorrido sobre la curva del sobrevuelo: un ángulo fino en el gris de las sondas. */
+.sentido-sobrevuelo { position: absolute; left: 0; top: 0; width: 10px; height: 10px; overflow: visible; fill: none; stroke: #c9ccd2; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+.sobrevuelo:hover span { opacity: 1; }
 /* Pantalla completa: abajo a la derecha, entre la escala lateral y el pie, como en un reproductor de vídeo. */
 .pantalla-completa { position: absolute; right: 30px; bottom: 92px; z-index: 22; width: 32px; height: 32px; padding: 6px; display: grid; place-items: center;
   pointer-events: auto; cursor: pointer; color: #9fb2c0; background: rgba(4, 8, 14, .55); border: 1px solid rgba(127, 154, 169, .35); border-radius: 6px; transition: color .2s, border-color .2s; }
@@ -178,3 +190,12 @@
 @media (max-width: 700px) { .pantalla-completa { right: 14px; bottom: 84px; } }
 @media (orientation: landscape) and (max-height: 500px) { .pantalla-completa { right: 14px; bottom: 10px; } }
 .body-panel-texto{margin:2px 0 6px;color:#b4c0ce;line-height:1.45;}
+
+/* Sonda «entonces» en la etapa elegida de la línea de tiempo (SondaEntonces.jsx): el hexágono de las
+   sondas en el color de la etapa y su nombre con el año, en letra fina. */
+.sonda-entonces { position: absolute; left: 0; top: 0; transform: translate(14px, -50%); color: #c6d1de; font-size: calc(12px * var(--escala-nombres, 1)); font-weight: 300; letter-spacing: .02em; white-space: nowrap; }
+.sonda-entonces::before { content: ''; position: absolute; left: -14px; top: 50%; width: 14px; height: 16px; transform: translate(-50%, -50%); background: currentColor; opacity: var(--hexagono, 1);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 16'%3E%3Cpath d='M7 1.2 12.6 4.6v6.8L7 14.8 1.4 11.4V4.6z' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat; }
+/* Punto tenue en la ruta en la fecha bajo el ratón en el gráfico de la línea de tiempo. */
+.cursor-ruta { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: #e6e9ee; box-shadow: 0 0 6px #e6e9ee88; transition: opacity .15s; }

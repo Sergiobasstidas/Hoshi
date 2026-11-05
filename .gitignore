@@ -56,3 +56,5 @@ data/raw/simbad/*
 # Fuentes de lunas y anillos: descargas de JPL, PDS y Wikipedia; sus URL están en los generadores.
 data/moons/fuentes/
 data/rings/fuentes/
+# Vectores de Horizons de los planetas (≈ 25 MB): se descargan con scripts/planets/fetch_planets.mjs.
+data/planets/fuentes/

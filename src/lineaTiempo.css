@@ -1,0 +1,51 @@
+/* Línea de tiempo de la sonda elegida (LineaTiempoSonda.jsx): solo líneas y texto finos, sin
+   recuadros. En el computador ocupa el espacio entre los visores y «Modo de visión» (lo mide el
+   componente); en el teléfono, todo el ancho sobre los visores, desplazable a lo ancho. */
+.linea-tiempo { position: absolute; left: 520px; right: 330px; bottom: 22px; z-index: 24; color: #9fb2c0; font-size: 12.5px; pointer-events: none; }
+.linea-cabecera { display: flex; align-items: baseline; justify-content: space-between; padding: 0 54px 6px; color: #e6ebf3; font-size: 14px; letter-spacing: .04em; }
+.linea-cerrar, .linea-ficha-cerrar { pointer-events: auto; border: 0; background: none; color: #8a97a6; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 6px; }
+.linea-cerrar:hover, .linea-ficha-cerrar:hover { color: #fff; }
+.linea-desplazable { position: relative; overflow-x: auto; overflow-y: hidden; pointer-events: auto; scrollbar-width: none; }
+.linea-desplazable::-webkit-scrollbar { display: none; }
+.linea-lienzo { position: relative; height: 222px; }
+.linea-lienzo svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.linea-grafico-titulo { fill: #9aa6b5; font-size: 12px; letter-spacing: .05em; }
+.linea-marca { stroke: #ffffff12; stroke-width: 1; }
+.linea-marca-texto { fill: #8a97a6; font-size: 11px; }
+.linea-rapidez { fill: none; stroke: #e6ebf3; stroke-width: 1.8; stroke-linejoin: round; opacity: .9; }
+.linea-escape { fill: none; stroke: #8fd3ff; stroke-width: 1.3; stroke-dasharray: 6 5; opacity: .7; }
+.linea-cursor { stroke: #ffffff40; stroke-width: 1; }
+.linea-cursor-texto { fill: #e6ebf3; font-size: 12px; }
+.linea-eje { stroke: #ffffff66; stroke-width: 1.3; }
+.linea-corte { fill: #9aa6b5; font-size: 15px; }
+.linea-punto-grafico { stroke: #04080e; stroke-width: 1; }
+.linea-etapa { position: absolute; width: 32px; height: 32px; margin: -16px 0 0 -16px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.linea-etapa::before { content: ''; position: absolute; left: 10px; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: var(--color); box-shadow: 0 0 0 2px #04080ecc; transition: transform .15s; }
+.linea-etapa:hover::before, .linea-etapa.elegida::before { transform: scale(1.35); }
+.linea-etapa-nombre, .linea-etapa-anio { position: absolute; left: 16px; transform: translateX(-50%); white-space: nowrap; }
+.linea-etapa-nombre { bottom: 26px; color: #dfe6ef; font-size: 13px; }
+.linea-etapa.alterna .linea-etapa-nombre { bottom: 43px; }
+.linea-etapa-anio { top: 27px; color: #9aa6b5; font-size: 12px; font-variant-numeric: tabular-nums; }
+.linea-etapa:hover .linea-etapa-nombre, .linea-etapa.elegida .linea-etapa-nombre { color: #fff; }
+.linea-flecha { position: absolute; bottom: 44px; pointer-events: auto; border: 0; background: none; color: #9aa6b5; font-size: 26px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+.linea-flecha:hover { color: #fff; }
+.linea-flecha.anterior { left: -2px; }
+.linea-flecha.siguiente { right: -2px; }
+/* Ficha de la etapa, en la columna lateral (FichaEtapa en LineaTiempoSonda.jsx): el nombre de la etapa
+   en el color de su punto, con ‹ › para recorrerlas. */
+.ficha-etapa-nombre { display: flex; justify-content: space-between; align-items: baseline; color: var(--color); font-size: 13px; }
+.ficha-etapa-pasos { display: flex; gap: 2px; }
+.ficha-etapa-pasos button { border: 0; background: none; color: #9aa6b5; font: inherit; font-size: 18px; line-height: 1; padding: 0 6px; cursor: pointer; }
+.ficha-etapa-pasos button:hover:not(:disabled) { color: #fff; }
+.ficha-etapa-pasos button:disabled { opacity: .3; cursor: default; }
+.ficha-etapa-fecha { margin: 2px 0 0; color: #9aa6b5; font-size: 11.5px; }
+/* Con la línea abierta, el aviso de viaje pasa arriba para no tapar la línea ni su ficha. */
+.hoshi.con-linea .subtitulo-escena { bottom: auto; top: 92px; }
+@media (max-width: 700px) {
+  .linea-tiempo { left: 0; right: 76px; bottom: 150px; font-size: 12px; }
+  .linea-flecha { display: none; }
+}
+/* Animación del paso: un botón fino ▶ / ❚❚ y la fecha que avanza. */
+.ficha-etapa-animacion { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; color: #9aa6b5; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.ficha-etapa-animacion button { flex: none; width: 26px; height: 26px; padding: 0; border: 1px solid var(--color); border-radius: 50%; background: none; color: var(--color); font-size: 10px; line-height: 1; cursor: pointer; }
+.ficha-etapa-animacion button:hover { color: #fff; border-color: #fff; }

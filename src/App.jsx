@@ -19,7 +19,7 @@ import FreeFlight from './scene/FreeFlight';
 import StarAim from './scene/StarAim.jsx';
 import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
-import { EPHEMERIS_DATE } from './scene/solarEphemeris';
+import { EPHEMERIS_DATE, planetPosition } from './scene/solarEphemeris';
 import { PLANET_TEXTURES, PLANET_TEXTURE_SOURCE, PLANET_TEXTURE_LICENSE } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
 import BinarySystem from './scene/BinarySystem';
@@ -47,7 +47,11 @@ import PlanetarySystems from './scene/PlanetarySystem';
 import MoonLabels from './MoonLabels';
 import { FichaAnillos, FichaLuna } from './FichaLuna';
 import { moonHost, useMoons } from './scene/moonBodies';
-import { probeHighlight, useProbes } from './scene/probeTrajectories';
+import { julianDay, lightDaysText, probeFocus, probeHighlight, probePositionAu, probeSamples, useProbes } from './scene/probeTrajectories';
+import { FLYBY_PLANETS, composeRoute, flybyBody, useFlybys } from './scene/probeFlybys';
+import { stageJd, useProbeStages } from './scene/probeStages';
+import LineaTiempoSonda, { FichaEtapa } from './LineaTiempoSonda';
+import { WINDOW_DAYS, flybyKey, playFlyby, playback } from './scene/flybyPlayback';
 import ExoplanetDiscoveries from './scene/ExoplanetDiscoveries';
 import ZoomSuave from './scene/ZoomSuave';
 import { GIRO_AMORTIGUAMIENTO } from './scene/inerciaCamara.js';
@@ -73,7 +77,7 @@ import { useEsComputador } from './esComputador';
 import { CONTORNO_SOLAR_HASTA, DURACION_CAMBIO_S, UA_POR_RADIO_SOLAR, alcance, definirCandidatas, elegirComparacion, estadoComparacion, mostrarComparacion, suscribirComparacion } from './scene/comparacionSol';
 import FranjaHabitable from './scene/FranjaHabitable';
 import { encuadreDeSistema, zonaDeEstrella } from './scene/zonaHabitable';
-import { cambiarCumulos, cambiarOrbitas, cambiarZonaVisible, useCumulosVisibles, useOrbitas, useZonaVisible } from './scene/guiasOrbitales';
+import { cambiarCumulos, cambiarOrbitas, cambiarRutasSondas, cambiarZonaVisible, useCumulosVisibles, useOrbitas, useRutasSondas, useZonaVisible } from './scene/guiasOrbitales';
 import SelectorBrillo from './SelectorBrillo';
 import FichaPlaneta from './FichaPlaneta';
 import { ARRIVAL_FRAME_FACTOR, buildPlanetarySystems, hostPhysics } from './scene/exoplanetOrbit.js';
@@ -187,7 +191,7 @@ export default function App() {
   // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
   const [estrellaVista, setEstrellaVista] = useState(null);
   const esComputador = useEsComputador();
-  const verOrbitas = useOrbitas(), verZona = useZonaVisible(), verCumulos = useCumulosVisibles();
+  const verOrbitas = useOrbitas(), verZona = useZonaVisible(), verCumulos = useCumulosVisibles(), verRutas = useRutasSondas();
   const datosCumulos = useCumulos(verCumulos);
   // Cúmulo elegido: encuadrado, con su ficha; sus miembros brillan algo más y el resto se atenúa un poco.
   const [cumulo, setCumulo] = useState(null);
@@ -214,6 +218,30 @@ export default function App() {
   const localMoons = moonBodies.filter(body => body.planet === moonHost(view.body));
   const localStars = (hostStar?.planetary || []).flatMap(system => (system.binary?.components || []).filter(component => component.body).map(component => component.body));
   const hostName = exoplanetBody && (hostStar.n || exoplanetBody.system.name);
+  // Sonda elegida (o de cuyo sobrevuelo se ve el planeta de entonces): su ruta se ve aunque «Rutas de sondas» esté apagado.
+  const sondaElegida = ['probe', 'flyby', 'hito'].includes(view.body?.kind) ? view.body.code : null;
+  useEffect(() => { probeFocus.selected = sondaElegida; }, [sondaElegida]);
+  // Línea de tiempo de la sonda elegida: se cierra con × o Esc y vuelve al elegir de nuevo una sonda.
+  const [lineaCerrada, setLineaCerrada] = useState(null);
+  const sondaLinea = sondaElegida !== null && lineaCerrada !== sondaElegida ? probeBodies.find(body => body.code === sondaElegida) : null;
+  const { probes: etapas } = useProbeStages();
+  const { flybys: sobrevuelos } = useFlybys();
+  const datosLinea = sondaLinea && etapas.find(item => item.code === sondaLinea.code);
+  // Etapa elegida en la línea de tiempo (su ficha va en la columna lateral izquierda).
+  const [etapa, setEtapa] = useState(null);
+  const etapaElegida = datosLinea && etapa?.code === sondaLinea.code ? etapa.index : null;
+  const elegirEtapa = useCallback(index => setEtapa(index === null ? null : { code: sondaElegida, index }), [sondaElegida]);
+  // La sonda «entonces» en la etapa elegida (SondaEntonces.jsx), con la antena hacia la Tierra de esa fecha.
+  const sondaEntonces = useMemo(() => {
+    const at = datosLinea && view.body?.probeAt;
+    if (!at) return null;
+    const date = new Date((at.jd - 2440587.5) * 86400000);
+    const earth = planetPosition('Tierra', date);
+    const toward = earth.map((value, i) => value - at.position[i]);
+    const length = Math.hypot(...toward);
+    return { key: 'entonces', code: sondaLinea.code, name: `${sondaLinea.name} · ${date.getUTCFullYear()}`, position: at.position,
+      color: view.body.color ?? '#c6d1de', towardEarth: toward.map(value => value / length) };
+  }, [datosLinea, sondaLinea, view.body]);
   const origin = binaryBody?.position || stellarBody?.position || exoplanetBody?.position || SOLAR_ORIGIN;
   const navigate = (destination, options = {}) => {
     const camera = cameraRef.current;
@@ -250,7 +278,62 @@ export default function App() {
       ? {kind:'star',text:body.name,star:body.star,catalogueId:body.star.i,position:body.position} : null);
     navigate({ ...bodyView(body), ...(!sistema && body.kind === 'star' && encuadreDeSistema(body.star, fichas)) });
   };
-  const focusBody = body => { visitBody(body); if (body.kind === 'exoplanet' || body.kind === 'satellite' || body.name === 'Saturno') setShowBodyPanel(true); };
+  // Destino de una etapa de la línea de tiempo: el planeta de entonces en un sobrevuelo, la sonda hoy
+  // y, en las demás, el punto de la ruta en esa fecha (el lanzamiento, junto a la Tierra).
+  // Animación de un paso: la cámara se aleja hasta que entra el movimiento del planeta y de la sonda
+  // en toda la ventana, mirando de frente al plano del movimiento, y al llegar empieza a correr el tiempo.
+  const pasoPendiente = useRef(null);
+  const reproducirPaso = (probe, stage) => {
+    const actual = playback();
+    if (actual.key === flybyKey(probe.code, stage.planet) && actual.t !== null) { playFlyby(actual.key, actual.closestJd); return; }
+    const flyby = sobrevuelos.find(item => item.code === probe.code && Math.abs(item.closestJd - stage.closestJd) < 0.01);
+    if (!flyby) return;
+    const { ghosts } = composeRoute(probe.trail, probeSamples(probe.data).jd, probe.data, [flyby]);
+    const ghost = ghosts[0];
+    if (!ghost) return;
+    let reach = 0;
+    for (let k = -1; k <= 1; k += 0.05) {
+      const t = stage.closestJd + k * WINDOW_DAYS;
+      for (const point of [ghost.planetAt(t), ghost.probeAt(t)]) reach = Math.max(reach, Math.hypot(...point.map((value, a) => value - ghost.planetPc[a])));
+    }
+    const motion = ghost.planetAt(stage.closestJd + WINDOW_DAYS).map((value, a) => value - ghost.planetAt(stage.closestJd - WINDOW_DAYS)[a]);
+    const swing = ghost.probeAt(stage.closestJd + WINDOW_DAYS).map((value, a) => value - ghost.probeAt(stage.closestJd - WINDOW_DAYS)[a]);
+    let normal = [motion[1] * swing[2] - motion[2] * swing[1], motion[2] * swing[0] - motion[0] * swing[2], motion[0] * swing[1] - motion[1] * swing[0]];
+    if (Math.hypot(...normal) < 1e-30) normal = ECLIPTIC_UP;
+    const length = Math.hypot(...normal);
+    const planet = PLANETS.find(item => item.name === FLYBY_PLANETS[flyby.planet]);
+    const body = flybyBody(flyby, planet, ghost.planetPc, new Date((flyby.closestJd - 2440587.5) * 86400000).getUTCFullYear());
+    focusBody({ ...body, companionViewDistance: reach * 2.4, viewDirection: normal.map(value => value / length) });
+    pasoPendiente.current = { key: flybyKey(probe.code, stage.planet), closestJd: stage.closestJd };
+  };
+  useEffect(() => {
+    if (!pasoPendiente.current || traveling) return;
+    playFlyby(pasoPendiente.current.key, pasoPendiente.current.closestJd);
+    pasoPendiente.current = null;
+  }, [traveling]);
+  const irAEtapa = (probe, stage) => {
+    if (stage.kind === 'hoy') { focusBody(probe); return; }
+    const flyby = stage.kind === 'sobrevuelo' && sobrevuelos.find(item => item.code === probe.code && Math.abs(item.closestJd - stage.closestJd) < 0.01);
+    if (flyby) {
+      const planet = PLANETS.find(item => item.name === FLYBY_PLANETS[flyby.planet]);
+      // El planeta de entonces, el mismo de la ruta (composeRoute): la sonda queda sobre ella.
+      const { ghosts } = composeRoute(probe.trail, probeSamples(probe.data).jd, probe.data, [flyby]);
+      focusBody(flybyBody(flyby, planet, ghosts[0]?.planetPc ?? flyby.planetAu.map(value => value * AU_TO_PC), new Date((flyby.closestJd - 2440587.5) * 86400000).getUTCFullYear()));
+      return;
+    }
+    const jd = stage.kind === 'lanzamiento' ? julianDay(new Date(stage.utc)) + 2 : stageJd(stage);
+    const name = { lanzamiento: 'Lanzamiento', heliopausa: 'Heliopausa', 'fin del contacto': 'Fin del contacto' }[stage.kind] ?? stage.planet;
+    const position = probePositionAu(probe.data, jd).map(value => value * AU_TO_PC);
+    // Se llega de lado respecto de la dirección al Sol: la ruta se ve de costado, con el punto en el centro.
+    const radial = position.map(value => value / Math.hypot(...position));
+    const side = [radial[1] * ECLIPTIC_UP[2] - radial[2] * ECLIPTIC_UP[1], radial[2] * ECLIPTIC_UP[0] - radial[0] * ECLIPTIC_UP[2], radial[0] * ECLIPTIC_UP[1] - radial[1] * ECLIPTIC_UP[0]];
+    const sideLength = Math.hypot(...side) || 1;
+    const direction = side.map((value, i) => value / sideLength * 0.8 + ECLIPTIC_UP[i] * 0.45 + radial[i] * 0.2);
+    focusBody({ kind: 'hito', viewDirection: direction.map(value => value / Math.hypot(...direction)), code: probe.code, name: `${probe.name} · ${name}`, radiusKm: 0.001, position, probeAt: { jd, position },
+      color: { lanzamiento: '#8dc9ef', heliopausa: '#c9a5e8', 'fin del contacto': '#9aa6b5' }[stage.kind],
+      companionViewDistance: (stage.kind === 'lanzamiento' ? 0.05 : 3) * AU_TO_PC });
+  };
+  const focusBody = body => { if (body.kind === 'probe') setLineaCerrada(null); visitBody(body); if (body.kind === 'exoplanet' || body.kind === 'satellite' || body.name === 'Saturno') setShowBodyPanel(true); };
   // Estrella como destino: encuadra su sistema (compañeras o planetas) y, si tiene
   // planetas, llega mirando el plano orbital abierto en vez de canto.
   const starBody = (star, name, identifiers) => ({
@@ -347,7 +430,7 @@ export default function App() {
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
     ...PLANETS.map(p => ({ kind: 'planet', au: p.au, text: p.name,
       position: SOLAR_BODIES.find(b => b.name === p.name).position, width: 145, color: p.color, body: SOLAR_BODIES.find(b => b.name === p.name) })),
-    ...probeBodies.map(p => ({ kind: 'probe', code: p.code, text: p.name, position: p.position, width: 120, color: p.color })),
+    ...probeBodies.map(p => ({ kind: 'probe', code: p.code, text: p.name, detail: lightDaysText(p.earthAu), position: p.position, width: 215, color: p.color, body: p })),
     { kind: 'oort', text: 'Nube de Oort', position: [-OORT_OUTER_PC * 0.8, 0, 0], width: 125 },
     { kind: 'kuiper', text: 'Cinturón de Kuiper · 30–50 UA', position: orbitalPosition({au:45,inclinationDeg:0,ascendingNodeDeg:0},2.6), width: 225 },
     ...(showHeliosphere ? HELIOSPHERE_LABELS : []),
@@ -427,6 +510,7 @@ export default function App() {
     { id: 'vuelo-libre', texto: 'Vuelo libre', textoLista: freeFlight ? 'Salir del vuelo libre' : 'Vuelo libre', activa: freeFlight, fija: true },
     { id: 'volver-sol', texto: 'Volver al Sol', fija: true },
     { id: 'orbitas', texto: 'Órbitas', activa: verOrbitas, titulo: 'Muestra u oculta las órbitas' },
+    { id: 'rutas-sondas', texto: 'Rutas de sondas', activa: verRutas, titulo: 'Muestra u oculta la ruta completa de las Voyager y las Pioneer desde su lanzamiento' },
     { id: 'zona-habitable', texto: 'Zona habitable', activa: verZona, titulo: 'Muestra u oculta la zona habitable de la estrella elegida' },
     { id: 'cumulos', texto: 'Cúmulos', activa: verCumulos, titulo: 'Muestra u oculta los cúmulos de estrellas' },
     { id: 'heliosfera', texto: showHeliosphere ? 'Ocultar heliosfera' : 'Mostrar heliosfera', activa: !showHeliosphere,
@@ -448,6 +532,7 @@ export default function App() {
     else if (id === 'volver-sol') aimAtSun();
     else if (id === 'ir-al-sol') focusBody(SOLAR_BODIES[0]);
     else if (id === 'orbitas') cambiarOrbitas(!verOrbitas);
+    else if (id === 'rutas-sondas') cambiarRutasSondas(!verRutas);
     else if (id === 'zona-habitable') cambiarZonaVisible(!verZona);
     else if (id === 'cumulos') { if (verCumulos) setCumulo(null); cambiarCumulos(!verCumulos); }
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
@@ -487,7 +572,7 @@ export default function App() {
         </> : <div>{panelBody.radiusKm ? `Radio ${stellarBody ? stellarBody.star.physics?.status === 'published' ? 'publicado' : 'estimado' : exoplanetBody ? exoplanetBody.planet.s.includes('r') ? 'estimado por masa' : 'medido' : panelBody.radiusLabel || 'medio'}: ${panelBody.radiusKm.toLocaleString('es-CL', { maximumFractionDigits: stellarBody ? 0 : 4 })} km` : 'Radio no disponible · marcador de posición'}</div>}
         {panelBody.kind === 'satellite' && <FichaLuna body={panelBody} />}
         {panelBody.name === 'Saturno' && <FichaAnillos />}
-                {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000){panelBody.eccentricity !== undefined && ` · excentricidad ${panelBody.eccentricity.toLocaleString('es-CL', { maximumFractionDigits: 4 })} · posición del ${EPHEMERIS_DATE.toLocaleDateString('es-CL')} (elementos de JPL)`}</div>}
+                {panelBody.inclinationDeg !== undefined && <div>Inclinación orbital: {panelBody.inclinationDeg.toLocaleString('es-CL', { maximumFractionDigits: 3 })}° respecto de la eclíptica (J2000){panelBody.eccentricity !== undefined && ` · excentricidad ${panelBody.eccentricity.toLocaleString('es-CL', { maximumFractionDigits: 4 })} · posición del ${EPHEMERIS_DATE.toLocaleDateString('es-CL')} (JPL Horizons)`}</div>}
         <p>{panelBody.kind === 'system' ? 'Separación y órbitas a escala. Puntos de identificación; diámetros y brillo ilustrativos.'
           : panelBody.name === 'Sol' ? 'Radio solar a escala · 5.772 K · textura y orientación ilustrativas'
           : bodyTexture ? `Esfera a escala real · ${bodyTexture.description.toLowerCase()} · orientación ilustrativa`
@@ -526,7 +611,7 @@ export default function App() {
   const estrellaFicha = estrellaVista ? estrellaVista.star : estrellaEnfocada?.star;
   const temperaturaFicha = estrellaFicha?.physics?.temperatureK ?? estrellaFicha?.datos?.temperatureK;
   const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text : panelBody?.name;
-  return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}`}
+  return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
     onPointerDown={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} gl={{ antialias: true, logarithmicDepthBuffer: true }}>
@@ -553,12 +638,12 @@ export default function App() {
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
       {/* Conservar el escenario de partida al cambiar el origen local a una estrella. */}
       <group position={origin.map(v=>-v)}>
-        <OortCloud origin={origin} /><SolarSystem origin={origin} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} hidden={!showHeliosphere} />
+        <OortCloud origin={origin} /><SolarSystem origin={origin} probeSelected={sondaElegida} onSelect={focusBody} probeThen={sondaEntonces} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} hidden={!showHeliosphere} />
       </group>
       <VisualGuides overlayRef={overlayRef} labels={labels} focusedBody={panelBody} origin={origin} binary={Boolean(binaryBody)} aimTarget={aimTarget} distanceTarget={distanceTarget?.position} />
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
-      <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS]}
+      <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
         elegida={estrellaFicha && temperaturaFicha ? { nombre: nombreFicha, color: colorLegible(temperaturaFicha) } : null} />
       <BarraDistancia onViajar={viajarDesdeBarra} onSeguir={seguirBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
@@ -579,6 +664,13 @@ export default function App() {
         </select>
       </label>
       <SelectorBrillo viajando={traveling} />
+      {datosLinea && <LineaTiempoSonda key={sondaLinea.code} probe={sondaLinea} data={datosLinea} selected={etapaElegida} onSelect={elegirEtapa}
+        onIr={stage => irAEtapa(sondaLinea, stage)} onCerrar={() => setLineaCerrada(sondaLinea.code)} />}
+      {etapaElegida !== null && !(fichaPlaneta || estrellaFicha || cumulo) && <FichaLateral clave={`etapa:${sondaLinea.code}:${etapaElegida}`}
+        direccion={1} etiqueta={`Etapa de ${sondaLinea.name}`} onCerrar={() => setEtapa(null)}>
+        <FichaEtapa probe={sondaLinea} stages={datosLinea.stages} index={etapaElegida} onReproducir={stage => reproducirPaso(sondaLinea, stage)}
+          onElegir={index => { elegirEtapa(index); irAEtapa(sondaLinea, datosLinea.stages[index]); }} />
+      </FichaLateral>}
       {solEnFoco && !esComputador && <FiltrosSol />}
       {solEnFoco && !esComputador && <CreditoSDO filtro={filtroEstelar} />}
       {catalogueStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando el catálogo de estrellas…</div>}
@@ -601,7 +693,7 @@ export default function App() {
       <label className="body-selector">Acercarse a
         <select aria-label="Acercarse a un cuerpo" value={focusedBody?.optionValue || focusedBody?.name || ''} onChange={event => {
           const name = event.target.value;
-          const body = localMoons.find(b => b.optionValue === name) || localPlanets.find(b => b.name === name) || localStars.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
+          const body = localMoons.find(b => b.optionValue === name) || probeBodies.find(b => b.optionValue === name) || localPlanets.find(b => b.name === name) || localStars.find(b => b.name === name) || (exoplanetBody && name === hostName ? starBody(hostStar, hostName) : NAVIGATION_TARGETS.find(b => b.name === name));
           if (body) focusBody(body);
         }}>
           <option value="" disabled>Viajar a…</option>
@@ -617,6 +709,9 @@ export default function App() {
             {localMoons.map(body => <option key={body.optionValue} value={body.optionValue}>{body.name}</option>)}
           </optgroup>}
           {NAVIGATION_TARGETS.map(body => <option key={body.name} value={body.name}>{body.name}</option>)}
+          {probeBodies.length > 0 && <optgroup label="Sondas">
+            {probeBodies.map(body => <option key={body.optionValue} value={body.optionValue}>{body.name}</option>)}
+          </optgroup>}
         </select>
       </label>
       {aimTarget && aimTarget.kind !== 'sun' && <>
@@ -645,8 +740,9 @@ export default function App() {
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); aimAtStar(label); }
             }} title="Clic: ver su ficha · Doble clic: viajar a ella">{label.text}</button>
+            : label.kind === 'probe' ? <button className="label-text" onClick={() => focusBody(label.body)} title={`Acercarse a ${label.body.name}`}>{label.text}<span className="label-detalle"> · {label.detail}</span></button>
             : label.body ? <button className="label-text" onClick={() => focusBody(label.body)} title={`Acercarse a ${label.body.name}`}>{label.text}</button>
-            : <span className="label-text">{label.text}</span>}
+            : <span className="label-text">{label.text}{label.detail && <span className="label-detalle"> · {label.detail}</span>}</span>}
         </span>)}
       </div>
       {binaryBody && <div className="binary-guides" data-binary-guides>
