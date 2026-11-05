@@ -10,6 +10,7 @@ import systemsUrl from '../data/processed/star_systems.json?url';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
 import SolarSystem from './scene/SolarSystem';
+import { Reposo } from './scene/reposo';
 import OortCloud from './scene/OortCloud';
 import Heliosphere from './scene/Heliosphere';
 import { HELIOSPHERE_LABELS, HELIOSPHERE_VIEW } from './scene/heliosphereShape';
@@ -614,7 +615,8 @@ export default function App() {
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
     onPointerDown={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
-      dpr={[1, 1.5]} gl={{ antialias: true, logarithmicDepthBuffer: true }}>
+      dpr={[1, 1.5]} frameloop="demand" gl={{ antialias: true, logarithmicDepthBuffer: true }}>
+      <Reposo />
       <SceneReady catalogueReady={catalogueStatus !== 'loading'} />
       <color attach="background" args={['#020305']} />
       {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}

@@ -9,7 +9,12 @@ import { playSolarChromosphere, solarChromosphereMap } from './solarChromosphere
 import simplex3d from './shaders/simplex3d.glsl?raw';
 import { FILTRO_POR_DEFECTO, filtroPorId, useFiltroEstelar } from './filtroEstelar';
 import { SDO_CHANNELS, playSdoVideo, sdoChannelDate, sdoImageFrame, sdoTexture } from './sdoSolar';
+import { mantenerActivo } from './reposo';
 import { EPHEMERIS_DATE } from './solarEphemeris';
+
+// La superficie se anima sola: se sigue dibujando mientras su radio ocupe más de estos píxeles.
+const PIXELES_ANIMADA = 6;
+const centro = new THREE.Vector3();
 
 // Alcance del deslumbramiento que rodea al disco sin filtro. Representa la luz que desborda
 // al mirar la estrella directamente, no una corona medida, y no amplía el radio físico.
@@ -406,8 +411,13 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   const filtro = solar ? filtroSolar : FILTRO_POR_DEFECTO;
   // Filtro que se ve: el pedido no lo reemplaza hasta tener su imagen lista y haber terminado el fundido en curso.
   const mostrado = useRef(filtro);
-  useFrame(({ clock, camera }, delta) => {
+  useFrame(({ clock, camera, size }, delta) => {
     if (!surface.current || !corona.current) return;
+    if (group.current) {
+      const distancia = camera.position.distanceTo(group.current.getWorldPosition(centro));
+      const pixeles = radiusPc / Math.max(distancia, 1e-12) * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
+      if (pixeles > PIXELES_ANIMADA) mantenerActivo();
+    }
     const shared = surface.current.uniforms, halo = corona.current.uniforms;
     const pedido = solar ? filtroPorId(filtro).canal : null;
     const textura = pedido ? sdoTexture(pedido) : null;

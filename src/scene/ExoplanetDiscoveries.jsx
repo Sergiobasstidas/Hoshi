@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { temperatureColor } from './stellarPhysics.js';
 import { LIGHT_YEAR_PC } from './scale.js';
+import { mantenerActivo } from './reposo';
 import { MISSION_COLORS, PLANET_TYPES, describeSystem, dominantType, filterSystems } from './descubrimientos.js';
 
 // Destello de cuatro puntas por sistema planetario, como en Eyes on Exoplanets: núcleo
@@ -113,6 +114,7 @@ export default function ExoplanetDiscoveries({ data, filter, origin, onSelect })
     if (!material.current) return;
     const u = material.current.uniforms;
     u.time.value = clock.elapsedTime;
+    mantenerActivo();
     u.pixelRatio.value = gl.getPixelRatio();
     // De lejos los destellos se agolpan (el campo de Kepler, el bulbo): menores y más
     // tenues para que no se fundan en una mancha blanca.

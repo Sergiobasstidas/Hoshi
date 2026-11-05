@@ -35,7 +35,7 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
     let lastTick = performance.now();
     state.advance = () => {
       const now = performance.now();
-      const delta = (now - lastTick) / 1000;
+      const delta = Math.min(now - lastTick, 100) / 1000;
       const start = camera.position.clone();
       const speed = state.target ? approachSpeed(state.speed, camera.position.distanceTo(state.target), state.stopDistance) : state.speed;
       advanceFlight(camera, state.keys, speed, delta);
