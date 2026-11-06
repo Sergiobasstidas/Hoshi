@@ -312,6 +312,11 @@ test('La línea de tiempo ordena las etapas, comprime el crucero y tiene texto p
     assert.ok(axis.at(startJd + stepDays * (speed.length - 1)) <= 1 && axis.at(startJd + stepDays) > 0);
     for (const stage of probe.stages) assert.ok(stageText(probe.code, stage).length > 40, `${probe.name}: ${stage.kind} ${stage.planet ?? ''}`);
     assert.ok(Number.isFinite(stageJd(probe.stages[0])));
+    // `jdAt` deshace `at`: el cursor de la línea marca la fecha continua, sin saltar de muestra en muestra.
+    for (const jd of [stageJd(probe.stages[0]) + 100, startJd + stepDays * 777.3, stageJd(probe.stages.at(-1)) - 3]) {
+      assert.ok(Math.abs(axis.jdAt(axis.at(jd)) - jd) < 1e-4, `${probe.name} ${jd}`);
+    }
+    assert.ok(Math.abs(axis.jdAt(1) - stageJd(probe.stages.at(-1))) < 1e-6);
   }
   // Voyager 2: el tramo de 1977–1989 ocupa más de la mitad del eje, y el crucero lleva un corte.
   const voyager2 = stages.probes.find(item => item.name === 'Voyager 2');

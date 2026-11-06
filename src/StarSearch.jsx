@@ -1,15 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildSearchIndex, normalizeStarQuery, searchStars } from './scene/starSearch';
 import { buscaNumeroDeCatalogo, indiceBusqueda, indiceNumeros } from './indiceBusqueda';
 import { useEsComputador } from './esComputador';
 const SIN_DESTINOS=[];
 // El buscador también suma planetas, lunas y estrellas de destino, en el computador y en el celular. Los números
 // de Gaia DR3 y TIC se cargan aparte, solo cuando la búsqueda parece uno.
-export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTINOS, elegida }) {
+// `seleccion`: clave de lo elegido en la escena (App.jsx). El nombre que dejó una búsqueda se borra cuando
+// eso cambia: al soltarlo (Esc, ×), al elegir otra cosa o al viajar a otro lado.
+export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTINOS, elegida, seleccion }) {
   const computador=useEsComputador();
   const [index,setIndex]=useState(null), [query,setQuery]=useState(''), [open,setOpen]=useState(false);
   const [active,setActive]=useState(0), [error,setError]=useState(false);
   const [numeros,setNumeros]=useState(null);
+  // Lo elegido justo después de la búsqueda; se toma un instante después, cuando la escena ya cambió.
+  const [propia,setPropia]=useState(null);
+  const seleccionActual=useRef(seleccion);
+  useEffect(()=>{seleccionActual.current=seleccion;},[seleccion]);
+  if(propia!==null&&seleccion!==propia){setPropia(null);setQuery('');}
   const pideNumero=buscaNumeroDeCatalogo(normalizeStarQuery(query));
   useEffect(()=>{if(pideNumero&&!numeros)indiceNumeros().then(setNumeros,()=>{});},[pideNumero,numeros]);
   const estrellas=useMemo(()=>{
@@ -41,14 +48,15 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
       setIndex(await indiceBusqueda());
     } catch {setError(true);}
   };
-  const select=result=>{if(result.body)onSelectBody(result.body);else onSelect(result);setQuery(result.aliases[0]);setOpen(false);};
+  const select=result=>{if(result.body)onSelectBody(result.body);else onSelect(result);setQuery(result.aliases[0]);setOpen(false);setPropia(null);
+    setTimeout(()=>setPropia(seleccionActual.current),100);};
   return <div className="star-search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}}>
     <label htmlFor="star-search-input" className="solo-lector">Buscar estrella</label>
     <input id="star-search-input" role="combobox" autoComplete="off" className={elegida&&query===elegida.nombre?'con-estrella':undefined}
       style={elegida&&query===elegida.nombre?{'--color-estrella':elegida.color}:undefined} aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
       placeholder={computador?'¿A dónde vamos? Sirio, Júpiter, TRAPPIST-1…':'Buscar: Sirio, Vega, HIP…'} value={query} onFocus={load}
-      onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}
+      onChange={e=>{setPropia(null);setQuery(e.target.value);setActive(0);setOpen(true);}}
       onKeyDown={e=>{
         if(e.key==='Escape'){setOpen(false);e.stopPropagation();}
         if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setOpen(true);setActive(i=>Math.max(0,Math.min(results.length-1,i+(e.key==='ArrowDown'?1:-1))));}

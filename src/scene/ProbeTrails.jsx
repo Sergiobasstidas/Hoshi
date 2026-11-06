@@ -7,7 +7,7 @@ import { AU_TO_PC, KM_TO_PC, LIGHT_YEAR_PC, PLANETS, smoothRange, solarDistance 
 import OrbitLine from './OrbitLine';
 import { PROBE_COLOR, markRouteClick, markRouteMissed, probeHidden, probeHighlight, probeLit, probeSamples, useProbes } from './probeTrajectories';
 import { advanceFlyby, flybyKey, playback } from './flybyPlayback';
-import { ARC_AU, FLYBY_PLANETS, addFlybyGhost, composeRoute, flybyArcPc, flybyArrows, flybyBody, flybyCurvePc, pick, thinIndices, useFlybys } from './probeFlybys';
+import { ARC_AU, FLYBY_PLANETS, addFlybyGhost, composeRoute, routeChunks, flybyArcPc, flybyArrows, flybyBody, flybyCurvePc, pick, thinIndices, useFlybys } from './probeFlybys';
 
 // Rutas completas de Voyager 1 y 2 y Pioneer 10 y 11: su trayectoria real de Horizons desde el
 // lanzamiento hasta la posición de la fecha, con los tramos densos de los pasos por planetas.
@@ -36,35 +36,41 @@ const NEAR_FLYBY_AU = 0.05;
 // hasta las muestras completas (de hasta un minuto en los sobrevuelos).
 const LEVELS_KM = [300000, 30000, 3000, 300];
 const LEVEL_PIXELS = 3;
-const DEPTH_FADE = [8, 32];
+// Fundido por profundidad, con la cámara cerca de la ruta (a D de ella): lo que está a más de
+// max(DEPTH_FADE[0]·D, DEPTH_MIN_AU[0]) de la cámara se atenúa hasta apagarse a
+// max(DEPTH_FADE[1]·D, DEPTH_MIN_AU[1]). En perspectiva, decenas de UA de ruta que se alejan se
+// comprimirían hacia su punto de fuga y, con la mezcla aditiva, formarían un extremo brillante. Se
+// calcula en el sombreador con la distancia de cada vértice a la cámara: es continuo, sin saltos.
+const DEPTH_FADE = [8, 32], DEPTH_MIN_AU = [1, 10];
 
-// La ruta: una sola línea en el marco heliocéntrico, con el detalle de los sobrevuelos (composeRoute).
-// `anchor`: el punto de la ruta más cercano a la cámara y su distancia D (pc, doble precisión).
-function Route({ points, probe, origin, active, handlers, anchor }) {
+// La ruta: una sola línea en el marco heliocéntrico, con el detalle de los sobrevuelos (composeRoute),
+// en tramos: el crucero con puntos fijos y cada sobrevuelo con niveles de detalle según la cámara se
+// acerque a su planeta (la forma de un tramo solo cambia cuando la cámara está cerca de él).
+// `anchor`: punto de la ruta cercano a la cámara (pc, doble precisión) que sirve de origen a la geometría.
+function Route({ chunks, probe, origin, active, handlers, anchor, fade }) {
+  return <>{chunks.map((chunk, i) => <RouteChunk key={i} chunk={chunk} probe={probe} origin={origin} active={active}
+    handlers={handlers} anchor={anchor} fade={fade} />)}</>;
+}
+
+function RouteChunk({ chunk, probe, origin, active, handlers, anchor, fade }) {
   const lines = useRef([]), lit = useRef(0);
-  const levels = useMemo(() => LEVELS_KM.map(km => thinIndices(points, km * KM_TO_PC)), [points]);
+  const levels = useMemo(() => (chunk.planetPc ? LEVELS_KM : LEVELS_KM.slice(0, 1)).map(km => thinIndices(chunk.points, km * KM_TO_PC)), [chunk]);
   // Coordenadas que recibe la tarjeta gráfica (32 bits): respecto del punto de referencia cercano a la
-  // cámara (o absolutas si la cámara está lejos de la ruta). Así, junto a una sonda a 170 UA o al paso
-  // por un planeta, la línea no tiembla y llega hasta ella.
+  // cámara (o absolutas si la cámara está lejos de la ruta). Así, junto a una sonda a 170 UA, la línea
+  // no tiembla y llega hasta ella.
   const origin3 = anchor?.near ? anchor.point : null;
   const located = useMemo(() => levels.map(kept => {
-    const picked = pick(points, kept);
+    const picked = pick(chunk.points, kept);
     return origin3 ? Float32Array.from(picked, (value, k) => value - origin3[k % 3]) : Float32Array.from(picked);
-  }), [levels, points, origin3]);
-  // Con la cámara cerca de la ruta (a D de ella), lo que está a más de DEPTH_FADE[0]·D se atenúa hasta
-  // apagarse a DEPTH_FADE[1]·D: en perspectiva, decenas de UA de ruta que se alejan de la cámara se
-  // comprimen hacia su punto de fuga y, con la mezcla aditiva, formarían un extremo brillante.
-  const depthColors = useMemo(() => levels.map(kept => origin3 ? Float32Array.from(kept.flatMap(k => {
-    const d = Math.hypot(points[k * 3] - origin3[0], points[k * 3 + 1] - origin3[1], points[k * 3 + 2] - origin3[2]);
-    const value = 1 - smoothRange(d, DEPTH_FADE[0] * anchor.distance, DEPTH_FADE[1] * anchor.distance);
-    return [value, value, value];
-  })) : null), [levels, points, origin3, anchor]);
+  }), [levels, chunk, origin3]);
   useFrame(({ camera, size }, delta) => {
     const focal = size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
-    // Nivel de detalle según la distancia de la cámara al punto más cercano de la ruta.
-    const distance = anchor?.distance ?? Infinity;
     let level = 0;
-    while (level < LEVELS_KM.length - 1 && LEVELS_KM[level] * KM_TO_PC / distance * focal > LEVEL_PIXELS) level++;
+    if (chunk.planetPc) {
+      const distance = Math.hypot(camera.position.x + origin[0] - chunk.planetPc[0], camera.position.y + origin[1] - chunk.planetPc[1],
+        camera.position.z + origin[2] - chunk.planetPc[2]);
+      while (level < levels.length - 1 && LEVELS_KM[level] * KM_TO_PC / distance * focal > LEVEL_PIXELS) level++;
+    }
     lines.current.forEach((line, i) => { if (line && i !== level) line.visible = false; });
     const object = lines.current[level];
     if (!object) return;
@@ -75,10 +81,11 @@ function Route({ points, probe, origin, active, handlers, anchor }) {
     object.visible = opacity > 0.005;
     object.material.opacity = Math.min(1, opacity * (1 + 1.6 * lit.current));
     object.material.color.copy(BASE_COLOR).lerp(HOVER_COLOR, lit.current);
+    if (object.material.userData.depthFade) object.material.userData.depthFade.value = fade.current;
   });
   useEffect(() => { lines.current.forEach(line => { if (line) line.raycast = hitTest; }); }, [located]);
-  const routes = located.map((positions, i) => <OrbitLine key={i} ref={line => { lines.current[i] = line; }} points={positions} colors={depthColors[i]}
-    variant="fina" color={PROBE_COLOR} visible />);
+  const routes = located.map((positions, i) => <OrbitLine key={i} ref={line => { lines.current[i] = line; }} points={positions}
+    variant="fina" color={PROBE_COLOR} visible depthFade />);
   return <group {...handlers}>{origin3 ? <group position={origin3}>{routes}</group> : routes}</group>;
 }
 
@@ -190,8 +197,11 @@ function ProbeRoute({ probe, origin, flybys, selected, onSelect, onAim }) {
   const gl = useThree(state => state.gl);
   const route = useMemo(() => {
     const own = flybys.filter(flyby => flyby.code === probe.code);
-    return composeRoute(probe.trail, probeSamples(probe.data).jd, probe.data, own);
+    const composed = composeRoute(probe.trail, probeSamples(probe.data).jd, probe.data, own);
+    return { ...composed, chunks: routeChunks(composed.points, composed.windows) };
   }, [probe, flybys]);
+  // Fundido por profundidad (continuo): [desde, hasta] en pc, según la distancia D de la cámara a la ruta.
+  const fade = useRef([1e9, 2e9]);
   // Punto de la ruta más cercano a la cámara y su distancia: elige el nivel de detalle y, a menos de
   // ANCHOR_AU, sirve de origen a la geometría. Se rehace al acercarse o alejarse el doble, o si el punto
   // más cercano se desplaza más que esa distancia.
@@ -205,6 +215,9 @@ function ProbeRoute({ probe, origin, flybys, selected, onSelect, onAim }) {
       if (d < bestDistance) { bestDistance = d; best = i; }
     }
     bestDistance = Math.max(Math.sqrt(bestDistance), 1e-13);
+    fade.current = bestDistance < ANCHOR_AU * AU_TO_PC
+      ? [Math.max(DEPTH_FADE[0] * bestDistance, DEPTH_MIN_AU[0] * AU_TO_PC), Math.max(DEPTH_FADE[1] * bestDistance, DEPTH_MIN_AU[1] * AU_TO_PC)]
+      : [1e9, 2e9];
     const near = bestDistance < ANCHOR_AU * AU_TO_PC;
     const current = anchorRef.current;
     const moved = current ? Math.hypot(current.point[0] - points[best], current.point[1] - points[best + 1], current.point[2] - points[best + 2]) : Infinity;
@@ -229,7 +242,7 @@ function ProbeRoute({ probe, origin, flybys, selected, onSelect, onAim }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [probe.code]);
   return <>
-    <Route points={route.points} probe={probe} origin={origin} active={active} handlers={handlers} anchor={anchor} />
+    <Route chunks={route.chunks} probe={probe} origin={origin} active={active} handlers={handlers} anchor={anchor} fade={fade} />
     {route.ghosts.map(ghost => <FlybyPlanet key={ghost.flyby.planet} ghost={ghost} probeName={probe.name}
       origin={origin} active={active} onSelect={onSelect} />)}
   </>;

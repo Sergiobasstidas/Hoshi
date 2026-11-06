@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { AU_TO_PC, KM_TO_PC, smoothRange } from './scale';
-import { probeCursor, probePositionAu, useProbes } from './probeTrajectories';
+import { probeCursor, probePositionAu, useCursorActivo, useProbes } from './probeTrajectories';
 import { useFlybyPlayback } from './flybyPlayback';
 
 // La sonda «entonces»: en la etapa elegida de la línea de tiempo (LineaTiempoSonda.jsx), un hexágono
@@ -13,6 +13,7 @@ export default function SondaEntonces({ origin, then }) {
   const label = useRef();
   // Durante la animación de un paso, la sonda que se mueve reemplaza a la del máximo acercamiento.
   const animando = useFlybyPlayback().t !== null;
+  const recorriendo = useCursorActivo();
   useFrame(({ camera }) => {
     if (!label.current || !then) return;
     const km = Math.hypot(camera.position.x + origin[0] - then.position[0], camera.position.y + origin[1] - then.position[1],
@@ -21,7 +22,7 @@ export default function SondaEntonces({ origin, then }) {
     label.current.style.setProperty('--hexagono', smoothRange(km, 1.5, 4));
   });
   return <>
-    {then && !animando && <group position={then.position}>
+    {then && !animando && !recorriendo && <group position={then.position}>
       <Html zIndexRange={[19, 11]} style={{ pointerEvents: 'none' }}>
         <span ref={label} className="sonda-entonces" style={{ color: then.color }}>{then.name}</span>
       </Html>
@@ -30,9 +31,11 @@ export default function SondaEntonces({ origin, then }) {
   </>;
 }
 
+// Sonda en la fecha bajo el ratón en el gráfico de la línea de tiempo: el mismo hexágono que la sonda,
+// con su nombre y el año; mientras está, la sonda «entonces» de la etapa se oculta.
 function CursorRuta() {
   const { probes } = useProbes();
-  const group = useRef(), dot = useRef();
+  const group = useRef(), dot = useRef(), text = useRef();
   const byCode = useMemo(() => new Map(probes.map(probe => [probe.code, probe])), [probes]);
   useFrame(() => {
     const probe = byCode.get(probeCursor.code);
@@ -40,8 +43,12 @@ function CursorRuta() {
     if (dot.current) dot.current.style.opacity = visible ? 1 : 0;
     if (!visible || !group.current) return;
     group.current.position.fromArray(probePositionAu(probe.data, probeCursor.jd).map(value => value * AU_TO_PC));
+    group.current.updateMatrixWorld();
+    if (text.current) text.current.textContent = `${probe.name} · ${new Date((probeCursor.jd - 2440587.5) * 86400000).getUTCFullYear()}`;
   });
   return <group ref={group}>
-    <Html zIndexRange={[19, 11]} style={{ pointerEvents: 'none' }}><span ref={dot} className="cursor-ruta" style={{ opacity: 0 }} /></Html>
+    <Html zIndexRange={[20, 12]} style={{ pointerEvents: 'none' }}>
+      <span ref={dot} className="sonda-entonces cursor-ruta" style={{ opacity: 0 }}><span ref={text} /></span>
+    </Html>
   </group>;
 }

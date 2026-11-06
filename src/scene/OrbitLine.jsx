@@ -30,28 +30,43 @@ const STYLES = {
 // Con el plano cercano de la escena (1e-14 pc), el recorte original deja tramos que cruzan
 // el plano de la cámara con un extremo a millones de píxeles, y la banda pierde su ancho.
 // Se recorta a 1/500 de la profundidad del extremo visible: lo descartado cae fuera de pantalla.
-const withProfile = profile => shader => {
+// Con `fade` (uniforme vec2 en pc), cada vértice se atenúa según su distancia a la cámara: completo
+// hasta fade.x, apagado desde fade.y (rutas de las sondas, ProbeTrails.jsx).
+const withProfile = (profile, fade) => shader => {
   shader.vertexShader = shader.vertexShader.replace('float nearEstimate = - 0.5 * b / a;',
     'float nearEstimate = min( - 0.5 * b / a, start.z * 0.002 );');
+  if (fade) {
+    shader.uniforms.depthFade = fade;
+    shader.vertexShader = shader.vertexShader
+      .replace('void main() {', 'uniform vec2 depthFade;\nvarying float vDepthFade;\nvoid main() {')
+      .replace('vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );',
+        'vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );\n\t\t\tvDepthFade = 1.0 - smoothstep( depthFade.x, depthFade.y, length( ( position.y < 0.5 ) ? start.xyz : end.xyz ) );');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('void main() {', 'varying float vDepthFade;\nvoid main() {')
+      .replace('float alpha = opacity;', 'float alpha = opacity * vDepthFade;');
+  }
   shader.fragmentShader = shader.fragmentShader.replace('gl_FragColor = vec4( diffuseColor.rgb, alpha );', profile);
 };
 
 // El objeto devuelto por `ref` es la línea: `material.opacity` y `visible` se ajustan fuera.
 // `color` cambia el azul de las órbitas; `visible` (opcional) reemplaza al interruptor «Órbitas».
 // `colors` (opcional, rgb por punto) multiplica el color: con la mezcla aditiva, más oscuro es más tenue.
-export default function OrbitLine({ points, ref, variant = 'halo', color = ORBIT_LINE_COLOR, visible, colors }) {
+// `depthFade` (opcional): atenuación por distancia a la cámara; su uniforme queda en material.userData.depthFade.
+export default function OrbitLine({ points, ref, variant = 'halo', color = ORBIT_LINE_COLOR, visible, colors, depthFade = false }) {
   const line = useMemo(() => {
     const style = STYLES[variant];
     const material = new LineMaterial({ color, linewidth: style.width, transparent: true, opacity: 0,
       depthWrite: false, toneMapped: false, blending: AdditiveBlending, vertexColors: Boolean(colors) });
-    material.onBeforeCompile = withProfile(style.profile);
-    material.customProgramCacheKey = () => `orbita-${variant}${colors ? '-colores' : ''}`;
+    const fade = depthFade ? { value: [1e9, 2e9] } : null;
+    if (fade) material.userData.depthFade = fade;
+    material.onBeforeCompile = withProfile(style.profile, fade);
+    material.customProgramCacheKey = () => `orbita-${variant}${colors ? '-colores' : ''}${depthFade ? '-fundido' : ''}`;
     const geometry = new LineGeometry().setPositions(points);
     if (colors) geometry.setColors(colors);
     const object = new Line2(geometry, material);
     object.frustumCulled = false;
     return object;
-  }, [points, variant, color, colors]);
+  }, [points, variant, color, colors, depthFade]);
   const visibles = useOrbitas();
   useEffect(() => () => { line.geometry.dispose(); line.material.dispose(); }, [line]);
   return <primitive object={line} ref={ref} material-visible={visible ?? visibles} />;

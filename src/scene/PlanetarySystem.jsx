@@ -63,7 +63,7 @@ function ActiveSystem({ system, origin, onSelect }) {
   // Las dos estrellas de un sistema circumbinario, cada una en su órbita en torno al
   // centro de masas (el punto del catálogo). Las esferas las dibuja StarField.
   const pair = system.binary?.components || null;
-  const orbits = useMemo(() => system.planets.map(planet => planetOrbitPc(planet, system.sky)), [system]);
+  const orbits = useMemo(() => system.planets.map(planet => planetOrbitPc(planet, system.sky, 1024, planet.offsetPc)), [system]);
   const attributes = useMemo(() => ({
     position: new Float32Array(system.planets.flatMap(planet => planet.offsetPc)),
     color: new Float32Array(system.planets.flatMap(planet => planet.color)),

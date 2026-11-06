@@ -21,6 +21,14 @@ export const zonaDeEstrella = (star, fichas) => zonaHabitable(star?.physics?.tem
 export const enZonaHabitable = (zona, ua) => Boolean(zona && ua >= zona.interior && ua <= zona.exterior);
 export const numeroZona = ua => ua.toLocaleString('es-CL', { maximumSignificantDigits: 2 });
 export const planetasDentro = cuantos => `${cuantos} ${cuantos === 1 ? 'planeta' : 'planetas'} dentro`;
+// Lista con «y»: «TRAPPIST-1 e, f y g» cuando comparten el nombre de la estrella; si no, los nombres completos.
+export function listaDePlanetas(nombres, estrella) {
+  if (nombres.length === 0) return 'Ninguno de los conocidos';
+  const prefijo = nombres.every(nombre => nombre.startsWith(`${estrella} `)) ? `${estrella} ` : '';
+  const partes = nombres.map(nombre => prefijo ? nombre.slice(prefijo.length) : nombre);
+  const lista = partes.length === 1 ? partes[0] : `${partes.slice(0, -1).join(', ')} y ${partes.at(-1)}`;
+  return prefijo + lista;
+}
 // Luz en un borde, en % de la que recibe la Tierra.
 export const luzEnBorde = (ua, zona) => Math.round(zona.luminosidad / ua ** 2 * 100);
 // Tercera ley de Kepler: período de una órbita en ese borde, en días o años. Sin masa, nada.
@@ -47,6 +55,13 @@ export function encuadreDeSistema(star, fichas) {
 // Una distancia comparada con la órbita del planeta solar más cercano a ella.
 const ORBITAS_SOLARES = [['Mercurio', 0.387], ['Venus', 0.723], ['la Tierra', 1], ['Marte', 1.524], ['Júpiter', 5.2], ['Saturno', 9.58], ['Urano', 19.2], ['Neptuno', 30.1]];
 const veces = valor => valor.toLocaleString('es-CL', { maximumSignificantDigits: 2 });
+// El centro de la zona comparado con la órbita solar más parecida, con el nombre de la estrella.
+export function centroComparado(ua, estrella) {
+  const [cuerpo, orbita] = ORBITAS_SOLARES.reduce((a, b) => Math.abs(Math.log(b[1] / ua)) < Math.abs(Math.log(a[1] / ua)) ? b : a);
+  const razon = ua / orbita;
+  if (razon > 0.85 && razon < 1.18) return `Su centro está a casi la misma distancia de ${estrella} que ${cuerpo} del Sol`;
+  return `Su centro está ${veces(razon < 1 ? 1 / razon : razon)} veces más ${razon < 1 ? 'cerca' : 'lejos'} de ${estrella} que ${cuerpo} del Sol`;
+}
 export function distanciaComparada(ua) {
   const [cuerpo, orbita] = ORBITAS_SOLARES.reduce((a, b) => Math.abs(Math.log(b[1] / ua)) < Math.abs(Math.log(a[1] / ua)) ? b : a);
   const razon = ua / orbita;

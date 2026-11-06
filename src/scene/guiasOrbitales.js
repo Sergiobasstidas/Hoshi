@@ -16,6 +16,8 @@ function interruptor(clave, porDefecto = true) {
 }
 export const [useOrbitas, cambiarOrbitas] = interruptor('hoshi-orbitas');
 export const [useZonaVisible, cambiarZonaVisible] = interruptor('hoshi-zona-habitable');
-export const [useCumulosVisibles, cambiarCumulos] = interruptor('hoshi-cumulos');
+// Los cúmulos vienen apagados (pedido de Sergio, 06/11/2026); clave nueva para que valga también
+// donde quedó guardado el valor anterior.
+export const [useCumulosVisibles, cambiarCumulos] = interruptor('hoshi-cumulos-2', false);
 // Las rutas completas de las sondas vienen apagadas.
 export const [useRutasSondas, cambiarRutasSondas] = interruptor('hoshi-rutas-sondas', false);

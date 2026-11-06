@@ -994,3 +994,24 @@ test('Cada planeta queda sobre su línea de órbita (a menos del 1 % de su radio
     assert.ok(best / KM_TO_PC < planet.radiusKm * 0.01, `${planet.name}: ${(best / KM_TO_PC).toFixed(0)} km`);
   }
 });
+
+test('Los datos de la zona habitable hablan de la zona y nombran a la estrella', async () => {
+  const { listaDePlanetas, centroComparado } = await import('../src/scene/zonaHabitable.js');
+  assert.equal(listaDePlanetas(['TRAPPIST-1 e', 'TRAPPIST-1 f', 'TRAPPIST-1 g'], 'TRAPPIST-1'), 'TRAPPIST-1 e, f y g');
+  assert.equal(listaDePlanetas(['Kepler-22 b'], 'Kepler-22'), 'Kepler-22 b');
+  assert.equal(listaDePlanetas(['Próxima Centauri b', 'Ross 128 b'], 'Próxima Centauri'), 'Próxima Centauri b y Ross 128 b');
+  assert.equal(listaDePlanetas([], 'Sirio'), 'Ninguno de los conocidos');
+  assert.equal(centroComparado(0.035, 'TRAPPIST-1'), 'Su centro está 11 veces más cerca de TRAPPIST-1 que Mercurio del Sol');
+  assert.equal(centroComparado(1.05, 'Tau Ceti'), 'Su centro está a casi la misma distancia de Tau Ceti que la Tierra del Sol');
+});
+
+test('De cerca, la línea de órbita es curva junto al planeta y pasa por él', async () => {
+  const { planetOrbitLocal } = await import('../src/scene/solarEphemeris.js');
+  const { points } = planetOrbitLocal('Tierra');
+  // El punto más cercano al planeta está sobre él, y los vecinos a menos de 20.000 km (tramos finos).
+  let best = 0;
+  for (let i = 1; i < points.length / 3; i++) if (Math.hypot(points[i * 3], points[i * 3 + 1], points[i * 3 + 2]) < Math.hypot(points[best * 3], points[best * 3 + 1], points[best * 3 + 2])) best = i;
+  assert.ok(Math.hypot(points[best * 3], points[best * 3 + 1], points[best * 3 + 2]) / KM_TO_PC < 1);
+  const next = Math.hypot(points[best * 3 + 3], points[best * 3 + 4], points[best * 3 + 5]) / KM_TO_PC;
+  assert.ok(next < 20000, `${next.toFixed(0)} km`);
+});

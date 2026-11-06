@@ -6,7 +6,7 @@ import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange, SUN_RADIUS_PC, solarDistance 
 import { PLANET_TEXTURES, bodyAxes } from './planetTextures';
 import StellarSurface from './StellarSurface';
 import { MOON } from './solarBodies';
-import { EPHEMERIS_DATE, planetOrbit, planetPosition } from './solarEphemeris';
+import { EPHEMERIS_DATE, planetOrbitLocal, planetPosition } from './solarEphemeris';
 import OrbitLine from './OrbitLine';
 import { kuiperFadeOut } from './kuiper';
 import { SOLAR_TEMPERATURE_K } from './stellarPhysics';
@@ -61,7 +61,7 @@ const orbitEndsFade = count => Float32Array.from({ length: count * 3 }, (_, k) =
 
 function Planet({ planet, origin, tragada }) {
   const orbitRef = useRef();
-  const points = useMemo(() => planetOrbit(planet.name), [planet]);
+  const { center, points } = useMemo(() => planetOrbitLocal(planet.name), [planet]);
   // La trayectoria real de un período no cierra (en Neptuno quedan ≈ 0,1 UA entre los extremos, por
   // el vaivén del Sol): sus extremos, del lado opuesto al planeta, se apagan en el último 0,5 % (menos de 2° de la vuelta), sin hueco visible de lejos.
   const fade = useMemo(() => orbitEndsFade(points.length / 3), [points]);
@@ -90,7 +90,7 @@ function Planet({ planet, origin, tragada }) {
     orbitRef.current.material.opacity = opacity;
   });
   return <group>
-    <OrbitLine ref={orbitRef} points={points} colors={fade} variant="fina" />
+    <group position={center}><OrbitLine ref={orbitRef} points={points} colors={fade} variant="fina" /></group>
     <PhysicalBody position={planetPosition(planet.name)} radiusPc={planet.radiusKm * KM_TO_PC}
       color={planet.color} texture={PLANET_TEXTURES[planet.name]} />
   </group>;

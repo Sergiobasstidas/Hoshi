@@ -151,9 +151,24 @@ export function planetStateAu(planet, sky, jd = EXOPLANET_EPOCH_JD) {
   return planetOffsetAu(mean === null ? 0 : eccentricAnomaly(mean, planet.e), planet, sky);
 }
 
-export function planetOrbitPc(planet, sky, samples = 256) {
-  const points = new Float32Array((samples + 1) * 3);
-  for (let i = 0; i <= samples; i++) points.set(planetOffsetAu(i / samples * 2 * Math.PI, planet, sky).map(v => v * AU_TO_PC), i * 3);
+// Con `near` (posición del planeta, pc respecto de la estrella), el tramo de ± 2 pasos alrededor del
+// planeta se muestrea 64 veces más fino: de cerca la línea es curva y pasa por el planeta (la forma no
+// depende de la cámara).
+export function planetOrbitPc(planet, sky, samples = 1024, near = null) {
+  const step = 2 * Math.PI / samples;
+  let anomalies = Array.from({ length: samples + 1 }, (_, i) => i * step);
+  if (near) {
+    const distance = E => Math.hypot(...planetOffsetAu(E, planet, sky).map((v, i) => v * AU_TO_PC - near[i]));
+    let center = 0;
+    for (let i = 1; i < samples; i++) if (distance(i * step) < distance(center * step)) center = i;
+    const fine = Array.from({ length: 4 * 64 + 1 }, (_, k) => (center - 2) * step + k * step / 64)
+      .map(E => ((E % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
+    anomalies = [...new Set([...anomalies.filter(E => Math.abs(((E - center * step + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) > 2 * step), ...fine])]
+      .sort((a, b) => a - b);
+    anomalies.push(anomalies[0] + 2 * Math.PI);
+  }
+  const points = new Float32Array(anomalies.length * 3);
+  anomalies.forEach((E, i) => points.set(planetOffsetAu(E, planet, sky).map(v => v * AU_TO_PC), i * 3));
   return points;
 }
 

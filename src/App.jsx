@@ -152,6 +152,8 @@ function SceneReady({ catalogueReady }) {
 
 // Cámara del paso por un planeta (▶): elevación sobre el plano de la trayectoria, cuánto se corre hacia
 // el lado de la entrada y distancia al planeta, en máximos acercamientos y, como mínimo, en radios.
+// Fracción de la distancia a la sonda a la que queda el pivote tras apuntarle con un clic en su ruta.
+const APUNTE_PIVOTE = 0.02;
 const PASO_ELEVACION_DEG = 25, PASO_HACIA_ENTRADA = 0.35, PASO_DISTANCIA_ACERCAMIENTOS = 9, PASO_DISTANCIA_RADIOS = 22;
 // Píxeles que hay que arrastrar la escena para detener un viaje.
 const ARRASTRE_PX = 6;
@@ -368,11 +370,28 @@ export default function App() {
   const apuntarASonda = probe => {
     const camera = cameraRef.current;
     if (!camera) return;
+    // El pivote de la órbita no pasa a la sonda (a 100 UA o más, girar o acercarse alrededor de ella
+    // desplazaría la cámara hacia allá): queda cerca de la cámara, en la dirección de la sonda, así
+    // arrastrar casi solo gira la mirada. La cámara no se mueve.
     const posicion = camera.position.toArray().map((value, i) => value + origin[i]);
-    const distancia = Math.hypot(...posicion.map((value, i) => value - probe.position[i]));
-    navigate({ ...bodyView(probe), distance: distancia, direction: undefined }, { headingOnly: true });
+    const hacia = probe.position.map((value, i) => value - posicion[i]);
+    const largo = Math.hypot(...hacia);
+    const alcance = largo * APUNTE_PIVOTE;
+    navigate({ id: 'apunte', body: probe, target: posicion.map((value, i) => value + hacia[i] / largo * alcance), distance: alcance,
+      minDistance: Math.min(view.minDistance ?? alcance * 0.01, alcance * 0.5) }, { headingOnly: true });
   };
-  const soltarSonda = () => { clearRouteMark(); setSondaSoltada(view); setEtapa(null); stopFlyby(); };
+  const [soltadas, setSoltadas] = useState(0);
+  const soltarSonda = () => { clearRouteMark(); setSondaSoltada(view); setEtapa(null); stopFlyby(); setSoltadas(n => n + 1); };
+  // Lo elegido ahora, para que el buscador borre el nombre que dejó cuando deja de estarlo: el cuerpo de
+  // la vista (una sonda cuenta como una sola, se vea su sobrevuelo o una etapa), la sonda, la estrella o
+  // el cúmulo de la ficha, el vuelo libre (salir volando es irse) y cada vez que se suelta algo (×, Esc).
+  useEffect(() => {
+    const tecla = event => { if (event.key === 'Escape') setSoltadas(n => n + 1); };
+    window.addEventListener('keydown', tecla);
+    return () => window.removeEventListener('keydown', tecla);
+  }, []);
+  const cuerpoDeVista = ['probe', 'flyby', 'hito'].includes(view.body?.kind) ? `sonda ${view.body.code}` : view.body?.name ?? view.id;
+  const seleccionEscena = [cuerpoDeVista, freeFlight, sondaElegida, estrellaVista?.text, cumulo?.id, soltadas].join('|');
   useEffect(() => {
     if (sondaElegida === null) return undefined;
     const tecla = event => { if (event.key === 'Escape') soltarSonda(); };
@@ -588,7 +607,7 @@ export default function App() {
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
-  const cerrarFicha = () => { setEstrellaVista(null); setShowBodyPanel(false); releaseAim(); };
+  const cerrarFicha = () => { setEstrellaVista(null); setShowBodyPanel(false); releaseAim(); setSoltadas(n => n + 1); };
   const elegirCumulo = elegido => {
     setShowPulsars(false); setShowDiscoveries(false); setShowBodyPanel(false); setInspectedTarget(null);
     navigate({ id: 'cumulo', target: [elegido.x, elegido.y, elegido.z], ...encuadreDeCumulo(elegido, starsById, cameraRef.current?.fov) });
@@ -703,7 +722,7 @@ export default function App() {
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
       <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
-        elegida={estrellaFicha && temperaturaFicha ? { nombre: nombreFicha, color: colorLegible(temperaturaFicha) } : null} />
+        elegida={estrellaFicha && temperaturaFicha ? { nombre: nombreFicha, color: colorLegible(temperaturaFicha) } : null} seleccion={seleccionEscena} />
       <BarraDistancia onViajar={viajarDesdeBarra} onSeguir={seguirBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
       <DialVelocidad velocidad={speed} activo={freeFlight} viajando={traveling} onActivar={toggleFlight} onDesactivar={toggleFlight}
@@ -736,8 +755,8 @@ export default function App() {
       {catalogueStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar el catálogo de estrellas. Recarga para reintentar.</div>}
       {galaxyStatus === 'loading' && <div className="galaxy-loading" role="status">Cargando la Vía Láctea…</div>}
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
-      {fichaRegion === 'heliosphere' && <FichaHeliosfera onCerrar={() => setRegionCerrada({ region: fichaRegion, vista: view })} />}
-      {REGIONES_CON_FICHA.includes(fichaRegion) && <FichaRegion key={fichaRegion} region={fichaRegion} onCerrar={() => setRegionCerrada({ region: fichaRegion, vista: view })} />}
+      {fichaRegion === 'heliosphere' && <FichaHeliosfera onCerrar={() => { setRegionCerrada({ region: fichaRegion, vista: view }); setSoltadas(n => n + 1); }} />}
+      {REGIONES_CON_FICHA.includes(fichaRegion) && <FichaRegion key={fichaRegion} region={fichaRegion} onCerrar={() => { setRegionCerrada({ region: fichaRegion, vista: view }); setSoltadas(n => n + 1); }} />}
       {showDiscoveries && <PanelDescubrimientos data={discoveries.data} status={discoveries.status} filter={discoveryFilter}
         onFilter={setDiscoveryFilter} onClose={() => setShowDiscoveries(false)} />}
       {showPulsars && <aside className="pulsar-legend">
@@ -788,7 +807,7 @@ export default function App() {
         <FichaCumulo cumulo={cumulo} estrellaDe={starsById} fuente={datosCumulos.fuente} fuenteBrillantes={datosCumulos.fuenteBrillantes} onVerEstrella={star => visitSearchResult({ id: star.i, aliases: [star.n] })} />
       </FichaLateral>}
       {!estrellaVista && showBodyPanel && panelBody && !stellarBody && !exoplanetBody && (<aside className="body-panel">
-            <button className="panel-close" aria-label="Cerrar información" onClick={() => setShowBodyPanel(false)}>×</button>
+            <button className="panel-close" aria-label="Cerrar información" onClick={() => { setShowBodyPanel(false); setSoltadas(n => n + 1); }}>×</button>
             <strong>{panelBody.name}</strong>
             {detalle}
           </aside>)}

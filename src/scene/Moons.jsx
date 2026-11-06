@@ -30,7 +30,7 @@ const hidden = new Matrix4().makeScale(0, 0, 0);
 
 // Estela: la trayectoria real del último cuarto de vuelta, de transparente a opaca hasta la luna.
 // Se acortó el 01/11/2026 para que no se confunda con los anillos.
-const TRAIL_SPAN = 0.25, TRAIL_POINTS = 60;
+const TRAIL_SPAN = 0.25, TRAIL_POINTS = 240;
 // Color (el beige de NASA Eyes, pedido por Sergio) y desvanecimiento son estilo; las pequeñas, más tenues.
 const TRAIL_FADE = [12, 50], TRAIL_COLOR = new Color('#d9c59a'), MINOR_TRAIL_COLOR = new Color('#a8987a');
 // Las órbitas no se ven de lejos (pedido de Sergio, 31/10/2026): aparecen de forma gradual al

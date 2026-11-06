@@ -70,6 +70,7 @@ export const useFlybys = () => useSyncExternalStore(subscribe, () => state, () =
 // exactamente por la posición de Horizons; entre ellas suma el detalle del giro.
 // El planeta de entonces es P en el máximo acercamiento: la sonda queda a la distancia mínima publicada.
 // `trail`: la ruta (pc) hasta la fecha de la escena; `times`: días julianos de sus muestras.
+// `windows`: tramos de cada sobrevuelo en `points` (para el nivel de detalle, ProbeTrails.jsx).
 export function composeRoute(trail, times, probeData, flybys) {
   const { jd: dense, xyz } = probeSamplesOf(probeData);
   const count = trail.length / 3;
@@ -116,17 +117,22 @@ export function composeRoute(trail, times, probeData, flybys) {
   }
   insertions.sort((a, b) => a.first - b.first);
   const out = [];
+  // Tramos de la ruta (índices de punto, inclusivos): los de cada sobrevuelo llevan `planetPc`.
+  const windows = [];
   let k = 0;
   for (let i = 0; i < count; i++) {
     const t = i < count - 1 ? times[i] : Infinity;
     while (k < insertions.length && t > insertions[k].last) {
+      const from = Math.max(out.length / 3 - 1, 0);
       for (const point of insertions[k].points) out.push(...point.p);
+      const ghost = ghosts.find(item => item.first === insertions[k].first);
+      windows.push({ from, to: out.length / 3, planetPc: ghost?.planetPc });
       k++;
     }
     if (k < insertions.length && t >= insertions[k].first) continue;
     out.push(trail[i * 3], trail[i * 3 + 1], trail[i * 3 + 2]);
   }
-  return { points: Float64Array.from(out), ghosts };
+  return { points: Float64Array.from(out), ghosts, windows };
 }
 
 // Destino del nombre del sobrevuelo: el planeta de entonces, visto de frente al plano de la curva
@@ -191,4 +197,18 @@ export function addFlybyGhost(name, position) {
   if (!flybyGhosts.has(name)) flybyGhosts.set(name, new Set());
   flybyGhosts.get(name).add(position);
   return () => flybyGhosts.get(name).delete(position);
+}
+
+// Tramos de la ruta para dibujarla: el crucero, con puntos fijos cada RUTA_PASO_KM o en cada cambio
+// de rumbo, y cada sobrevuelo aparte, con sus niveles de detalle según la cámara se acerque a él.
+export function routeChunks(points, windows) {
+  const chunks = [];
+  let from = 0;
+  for (const window of windows) {
+    if (window.from > from) chunks.push({ from, to: window.from });
+    chunks.push({ from: window.from, to: Math.min(window.to, points.length / 3 - 1), planetPc: window.planetPc });
+    from = Math.min(window.to, points.length / 3 - 1);
+  }
+  if (points.length / 3 - 1 > from) chunks.push({ from, to: points.length / 3 - 1 });
+  return chunks.map(chunk => ({ ...chunk, points: points.slice(chunk.from * 3, (chunk.to + 1) * 3) }));
 }

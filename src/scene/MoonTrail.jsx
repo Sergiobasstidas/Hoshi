@@ -9,7 +9,7 @@ import FadingTrails from './FadingTrails';
 // y Saturno, con su color beige, pero más larga, casi la vuelta entera (0,9 del periodo sideral),
 // muestreada con la misma serie que coloca a la Luna en la fecha de carga (solarEphemeris.js).
 const SIDEREAL_MONTH_DAYS = 27.321661;
-const TRAIL_SPAN = 0.9, SAMPLES = 160;
+const TRAIL_SPAN = 0.9, SAMPLES = 640;
 const TRAIL_COLOR = new Color('#d9c59a').toArray();
 // Distancia media Tierra-Luna (km), tamaño de referencia para que la estela aparezca al acercarse.
 const MEAN_DISTANCE_PC = 384400 * KM_TO_PC;

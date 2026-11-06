@@ -137,6 +137,24 @@ export const orbitalPeriodDays = (name, date = EPHEMERIS_DATE) => 365.256363 * o
 // 4.096 tramos en los planetas exteriores (a 30 UA, la cuerda se aparta ≈ 1.300 km de la curva) y
 // 1.024 en los interiores: con más, de canto, los tramos se superponen y la línea se ve más brillante.
 const ORBIT_SEGMENTS = { Mercurio: 1024, Venus: 1024, Tierra: 1024, Marte: 1024 };
+// Para dibujar: los puntos respecto del planeta (doble precisión hasta restar), así de cerca la línea no
+// tiembla, y el tramo de ± 2 pasos alrededor del planeta 64 veces más fino, así es curva y pasa por él.
+// La forma no depende de la cámara.
+export function planetOrbitLocal(name, date = EPHEMERIS_DATE, segments = ORBIT_SEGMENTS[name] ?? 4096) {
+  const period = orbitalPeriodDays(name, date) * 86400000;
+  const center = planetPosition(name, date);
+  const fractions = [];
+  for (let i = 0; i <= segments; i++) {
+    if (Math.abs(i - segments / 2) < 2) continue;
+    fractions.push(i / segments - 0.5);
+  }
+  for (let k = -2 * 64; k <= 2 * 64; k++) fractions.push(k / segments / 64);
+  fractions.sort((a, b) => a - b);
+  const points = new Float32Array(fractions.length * 3);
+  fractions.forEach((fraction, i) => points.set(planetPosition(name, new Date(date.getTime() + fraction * period)).map((value, k) => value - center[k]), i * 3));
+  return { center, points };
+}
+
 export function planetOrbit(name, date = EPHEMERIS_DATE, segments = ORBIT_SEGMENTS[name] ?? 4096) {
   const period = orbitalPeriodDays(name, date) * 86400000;
   const points = new Float32Array((segments + 1) * 3);

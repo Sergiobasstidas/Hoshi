@@ -40,7 +40,8 @@ export const stageJd = stage => stage.closestJd ?? jdOf(stage.utc ?? stage.date)
 // Eje del tiempo comprimido por tramos: cada tramo entre etapas ocupa un ancho proporcional a la raíz
 // de su duración, así los sobrevuelos de 1979–1989 no quedan apretados frente a los treinta años de
 // crucero. Devuelve la posición (0–1) de un día juliano y los tramos comprimidos (más de 1,5 veces
-// menos espacio por año que el tramo más holgado), que se marcan con un corte.
+// menos espacio por año que el tramo más holgado), que se marcan con un corte. `jdAt` hace lo
+// inverso: el día juliano de una posición del eje.
 export function timeAxis(stages) {
   const times = stages.map(stageJd);
   const weights = times.slice(1).map((t, i) => Math.sqrt(Math.max(t - times[i], 30) / 365.25));
@@ -53,10 +54,20 @@ export function timeAxis(stages) {
     }
     return 1;
   };
+  const jdAt = position => {
+    for (let i = 0; i < weights.length; i++) {
+      const end = starts[i] + weights[i] / total;
+      if (position <= end || i === weights.length - 1) {
+        const t = Math.min(Math.max((position - starts[i]) / (end - starts[i]), 0), 1);
+        return times[i] + t * (times[i + 1] - times[i]);
+      }
+    }
+    return times[0];
+  };
   const density = weights.map((w, i) => w / total / (times[i + 1] - times[i]));
   const loosest = Math.max(...density);
   const breaks = density.map((d, i) => d < loosest / 1.5 ? (starts[i] + starts[i + 1]) / 2 : null).filter(x => x !== null);
-  return { at, positions: times.map(at), breaks };
+  return { at, jdAt, positions: times.map(at), breaks };
 }
 
 let state = { status: 'idle', probes: [] };

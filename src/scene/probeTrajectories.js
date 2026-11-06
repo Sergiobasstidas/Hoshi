@@ -54,6 +54,15 @@ export const useProbeMark = () => useSyncExternalStore(subscribeMark, () => mark
 // Fecha bajo el ratón en el gráfico de la línea de tiempo (LineaTiempoSonda.jsx): la escena marca la
 // sonda en ese punto de su ruta (SondaEntonces.jsx).
 export const probeCursor = { code: null, jd: null };
+// ¿Hay una fecha bajo el ratón? (para ocultar la sonda de la etapa mientras se recorre la línea).
+const cursorListeners = new Set();
+let cursorActive = false;
+export function setProbeCursor(code, jd) {
+  probeCursor.code = code; probeCursor.jd = jd;
+  if ((jd !== null) !== cursorActive) { cursorActive = jd !== null; cursorListeners.forEach(listener => listener()); }
+}
+export const useCursorActivo = () => useSyncExternalStore(listener => { cursorListeners.add(listener); return () => cursorListeners.delete(listener); },
+  () => cursorActive, () => false);
 export const PROBE_INFO = {
   [-31]: { name: 'Voyager 1', color: PROBE_COLOR, launch: '05/09/1977' },
   [-32]: { name: 'Voyager 2', color: PROBE_COLOR, launch: '20/08/1977' },

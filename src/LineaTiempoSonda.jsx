@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Dato } from './FichaLateral';
 import { PLANETS } from './scene/scale';
 import { escapeSpeed, stageJd, stageText, timeAxis } from './scene/probeStages';
-import { probeCursor } from './scene/probeTrajectories';
+import { setProbeCursor } from './scene/probeTrajectories';
 import { WINDOW_DAYS, flybyKey, stopFlyby, useFlybyPlayback } from './scene/flybyPlayback';
 import './lineaTiempo.css';
 
@@ -123,7 +123,7 @@ export default function LineaTiempoSonda({ probe, data, onIr, onCerrar, selected
     window.addEventListener('resize', measure);
     return () => { window.removeEventListener('resize', measure); observer.disconnect(); mutations.disconnect(); };
   }, []);
-  useEffect(() => () => { probeCursor.jd = null; }, []);
+  useEffect(() => () => setProbeCursor(null, null), []);
   useEffect(() => {
     // Esc lo cierra todo (App.jsx suelta la sonda); aquí solo se quita la etapa.
     const onKey = event => { if (event.key === 'Escape' && selected !== null) onSelect(null); };
@@ -151,11 +151,16 @@ export default function LineaTiempoSonda({ probe, data, onIr, onCerrar, selected
     onSelect(next);
     onIr(stages[next]);
   };
+  // Fecha continua bajo el ratón (no la muestra de 10 días más próxima): de cerca de la sonda, unos días
+  // de diferencia la dejan atrás en la ruta. «Hoy» es la fecha de la sonda en la escena.
   const speedAt = position => {
     const { startJd, stepDays, speed, au } = data.series;
-    let best = 0;
-    for (let i = 0; i < speed.length; i++) if (Math.abs(axis.at(startJd + i * stepDays) - position) < Math.abs(axis.at(startJd + best * stepDays) - position)) best = i;
-    return { x: x(axis.at(startJd + best * stepDays)), speed: speed[best], escape: escapeSpeed(Math.max(au[best], 0.3)), jd: startJd + best * stepDays };
+    // El último tramo termina en la fecha de la sonda en la escena (hoy), no en la del archivo de etapas.
+    const lastStart = axis.positions.at(-2), lastJd = stageJd(stages.at(-2));
+    const jd = position <= lastStart ? axis.jdAt(position)
+      : lastJd + (probe.jd - lastJd) * Math.min((position - lastStart) / (1 - lastStart), 1);
+    const index = Math.min(Math.max(Math.round((jd - startJd) / stepDays), 0), speed.length - 1);
+    return { x: x(position), speed: speed[index], escape: escapeSpeed(Math.max(au[index], 0.3)), jd };
   };
 
   return <section ref={root} className={`linea-tiempo${compact ? ' compacta' : ''}`} aria-label={`Etapas de ${probe.name}`}
@@ -168,13 +173,13 @@ export default function LineaTiempoSonda({ probe, data, onIr, onCerrar, selected
       {/* Todo el alto del visor (gráfico, nombres, puntos y años) mueve la sonda por su ruta. */}
       <div className="linea-lienzo" style={{ width: inner }}
         onPointerMove={event => {
+          // Fuera del eje, el extremo más cercano: a la derecha del todo, la sonda hoy.
           const offset = event.clientX - event.currentTarget.getBoundingClientRect().left;
-          if (offset < pad || offset > inner - pad) { setCursor(null); probeCursor.jd = null; return; }
-          const point = speedAt((offset - pad) / span);
+          const point = speedAt(Math.min(Math.max((offset - pad) / span, 0), 1));
           setCursor(point);
-          Object.assign(probeCursor, { code: probe.code, jd: point.jd });
+          setProbeCursor(probe.code, point.jd);
         }}
-        onPointerLeave={() => { setCursor(null); probeCursor.jd = null; }}>
+        onPointerLeave={() => { setCursor(null); setProbeCursor(probe.code, null); }}>
         <svg width={inner} height={HEIGHT} aria-hidden="true">
           <text className="linea-grafico-titulo" x={pad} y={10}>Velocidad respecto del Sol</text>
           {chart.ticks.map(value => <g key={value}>

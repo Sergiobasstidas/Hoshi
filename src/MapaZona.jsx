@@ -1,5 +1,5 @@
 import { temperatureColor } from './scene/stellarPhysics';
-import { anoEnBorde, distanciaComparada, enZonaHabitable, luzEnBorde, numeroZona, planetasDentro, zonaDeEstrella } from './scene/zonaHabitable';
+import { anoEnBorde, centroComparado, enZonaHabitable, listaDePlanetas, luzEnBorde, numeroZona, planetasDentro, zonaDeEstrella } from './scene/zonaHabitable';
 import './mapaZona.css';
 
 const ANCHO = 520, EJE = 38, ESTRELLA_X = 14, BORDE_DERECHO = 506, SEPARACION_LETRAS = 12;
@@ -40,20 +40,23 @@ function Mapa({ zona, planetas, temperatura }) {
 }
 
 // Zona habitable en la ficha: se pulsa para mirarla de frente. El realce queda para los sistemas con un planeta dentro.
-export default function MapaZonaHabitable({ star, fichas, planetas, temperatura, masa, comparar = false, onMostrar }) {
+// Cada dato habla de la zona y nombra a la estrella (`nombre`).
+export default function MapaZonaHabitable({ star, nombre, fichas, planetas, temperatura, masa, comparar = false, onMostrar }) {
   const zona = zonaDeEstrella(star, fichas);
   if (!zona) return null;
-  const dentro = planetas.filter(planeta => enZonaHabitable(zona, planeta.a)).length;
+  const dentroDeZona = planetas.filter(planeta => enZonaHabitable(zona, planeta.a));
+  const dentro = dentroDeZona.length;
   const [anoInterior, anoExterior] = [anoEnBorde(zona.interior, masa), anoEnBorde(zona.exterior, masa)];
   const unidad = anoInterior?.unidad === anoExterior?.unidad;
   return <button className={`zona-ficha${dentro ? ' con-planeta' : ''}`} onClick={onMostrar}>
     <span className="zona-ficha-titulo"><span>Zona habitable</span>{dentro > 0 && <em>{planetasDentro(dentro)}</em>}</span>
     <Mapa zona={zona} planetas={planetas} temperatura={temperatura} />
     <span className="zona-ficha-datos">
-      <span><span>Distancia a la estrella</span><b>{numeroZona(zona.interior)} a {numeroZona(zona.exterior)} UA</b></span>
-      {comparar && <span><span>Comparación</span><b>{distanciaComparada((zona.interior + zona.exterior) / 2)}</b></span>}
-      <span><span>Luz que llega</span><b>{luzEnBorde(zona.exterior, zona)} % a {luzEnBorde(zona.interior, zona)} % de la Tierra</b></span>
-      {anoInterior && <span><span>Un año ahí dura</span><b>{unidad ? `${anoInterior.valor} a ${anoExterior.valor} ${anoExterior.unidad}` : `${anoInterior.valor} ${anoInterior.unidad} a ${anoExterior.valor} ${anoExterior.unidad}`}</b></span>}
+      <span><span>Dónde está</span><b>Entre {numeroZona(zona.interior)} y {numeroZona(zona.exterior)} UA de {nombre}</b></span>
+      <span><span>Planetas en la zona</span><b>{listaDePlanetas(dentroDeZona.map(planeta => planeta.n), nombre)}</b></span>
+      {comparar && <span><span>Comparación</span><b>{centroComparado((zona.interior + zona.exterior) / 2, nombre)}</b></span>}
+      <span><span>Luz</span><b>Un planeta en la zona recibe entre {luzEnBorde(zona.exterior, zona)} % y {luzEnBorde(zona.interior, zona)} % de la luz que recibe la Tierra</b></span>
+      {anoInterior && <span><span>Año</span><b>Un planeta en la zona tarda entre {unidad ? `${anoInterior.valor} y ${anoExterior.valor} ${anoExterior.unidad}` : `${anoInterior.valor} ${anoInterior.unidad} y ${anoExterior.valor} ${anoExterior.unidad}`} en dar una vuelta a {nombre}</b></span>}
       <small>1 UA es la distancia de la Tierra al Sol</small>
     </span>
   </button>;
