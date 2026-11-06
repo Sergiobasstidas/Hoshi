@@ -133,6 +133,7 @@ export const orbitalPeriodDays = (name, date = EPHEMERIS_DATE) => 365.256363 * o
 
 // Órbita: la trayectoria real durante un período completo centrado en la fecha (Horizons), no una
 // elipse fija. Por las perturbaciones no cierra exactamente; la diferencia es de pocos miles de km.
+// La de la Tierra es la de la Tierra misma (no la del baricentro con la Luna): pasa por el planeta dibujado.
 // 4.096 tramos en los planetas exteriores (a 30 UA, la cuerda se aparta ≈ 1.300 km de la curva) y
 // 1.024 en los interiores: con más, de canto, los tramos se superponen y la línea se ve más brillante.
 const ORBIT_SEGMENTS = { Mercurio: 1024, Venus: 1024, Tierra: 1024, Marte: 1024 };
@@ -141,13 +142,8 @@ export function planetOrbit(name, date = EPHEMERIS_DATE, segments = ORBIT_SEGMEN
   const points = new Float32Array((segments + 1) * 3);
   for (let i = 0; i <= segments; i++) {
     const position = planetPosition(name, new Date(date.getTime() + (i / segments - 0.5) * period));
-    points.set(name === 'Tierra' ? keplerOrbitCorrection(position, i, segments, date, period) : position, i * 3);
+    points.set(position, i * 3);
   }
   return points;
 }
 
-// La órbita de la Tierra se dibuja con el baricentro Tierra-Luna: sin el vaivén mensual de ± 4.700 km.
-function keplerOrbitCorrection(position, i, segments, date, period) {
-  const moon = moonOffset(new Date(date.getTime() + (i / segments - 0.5) * period));
-  return position.map((value, k) => value + moon[k] / (1 + EARTH_MOON_MASS_RATIO));
-}

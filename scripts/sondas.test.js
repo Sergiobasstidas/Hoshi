@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { AU_KM, AU_TO_PC, KM_TO_PC } from '../src/scene/scale.js';
 import { planetOrbit } from '../src/scene/solarEphemeris.js';
 import { FLYBY_PLANETS, closestApproach, composeRoute, flybyArcPc, flybyBody, flybySamples } from '../src/scene/probeFlybys.js';
-import { LIGHT_DAY_AU, PROBE_INFO, markRouteClick, markRouteMissed, probeLit, TAIL_START_FRACTION, buildProbeBodies, lightDaysText, julianDay, probePositionAu, probeSamples, probeTailAu, probeTrailPc } from '../src/scene/probeTrajectories.js';
+import { LIGHT_DAY_AU, PROBE_INFO, clearRouteMark, markRouteClick, markRouteMissed, probeLit, TAIL_START_FRACTION, buildProbeBodies, lightDaysText, julianDay, probePositionAu, probeSamples, probeTailAu, probeTrailPc } from '../src/scene/probeTrajectories.js';
 
 const data = JSON.parse(fs.readFileSync(new URL('../public/data/probes.json', import.meta.url), 'utf8'));
 const probe = code => data.probes.find(item => item.code === code);
@@ -230,6 +230,9 @@ test('Un clic marca una ruta, otro la cambia y un clic en el vacío la quita', (
   // Clic en el vacío (o Esc): todas las rutas reciben el aviso y la marca se va.
   for (const code of [-23, -24, -31, -32]) markRouteMissed(code);
   assert.ok(![-23, -24, -31, -32].some(probeLit));
+  // Ir a un cuerpo (nombre, buscador, etapa) quita la marca.
+  markRouteClick(-24); clearRouteMark();
+  assert.ok(!probeLit(-24));
 });
 
 test('Urano 1986 y Neptuno 1989 caen sobre la órbita de hoy (trayectoria real de un período)', () => {

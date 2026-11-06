@@ -28,9 +28,20 @@ export function barraDesdeDistancia(distancia) {
   const [, inicio, cerca] = MARCAS_ESCALA[i - 1], [, fin, lejos] = MARCAS_ESCALA[i];
   return inicio + (fin - inicio) * Math.log(d / cerca) / Math.log(lejos / cerca);
 }
+// Distancia (pc) en la unidad que se lee mejor: años luz desde 0,1 años luz, UA desde 0,01 UA,
+// km desde 1 km y metros por debajo. Devuelve la cifra (es-CL) y la unidad.
+const cifra = (valor, decimales) => valor.toLocaleString('es-CL', { maximumFractionDigits: decimales });
+export function medidaDistancia(distancia) {
+  if (distancia >= 0.1 * LIGHT_YEAR_PC) return { valor: cifra(distancia / LIGHT_YEAR_PC, 2), unidad: 'años luz' };
+  if (distancia >= 0.01 * AU_TO_PC) return { valor: cifra(distancia / AU_TO_PC, 2), unidad: 'UA' };
+  const km = distancia / KM_TO_PC;
+  if (km >= 1) return { valor: cifra(km, km >= 100 ? 0 : 1), unidad: 'km' };
+  const m = km * 1000;
+  return { valor: cifra(m, m >= 10 ? 0 : 1), unidad: 'm' };
+}
 export function textoDistancia(distancia) {
-  const esUA = distancia < 0.1 * LIGHT_YEAR_PC;
-  return `${(distancia / (esUA ? AU_TO_PC : LIGHT_YEAR_PC)).toLocaleString('es-CL', {maximumSignificantDigits:3})} ${esUA ? 'UA' : 'años luz'}`;
+  const { valor, unidad } = medidaDistancia(distancia);
+  return `${valor} ${unidad}`;
 }
 export function destinoDesdeBarra(valor, posicion, origen) {
   const direccion = new Vector3(...posicion).add(new Vector3(...origen)).sub(new Vector3(...TIERRA.position));

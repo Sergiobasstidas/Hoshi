@@ -119,9 +119,10 @@ function ContornoSolar() {
 
 // Las rutas completas de las sondas (ProbeTrails.jsx) se encienden con «Rutas de sondas» en
 // «Mostrar»; por defecto se ven solo las colas de cometa (ProbeComets.jsx) y la ruta de la sonda
-// elegida (`probeSelected`, su código). `onSelect` viaja a una sonda o a un planeta de entonces.
+// elegida (`probeSelected`, su código). `onSelect` viaja a una sonda o a un planeta de entonces;
+// `onAim` gira la cámara hacia una sonda sin moverla (clic en su ruta).
 // `probeThen`: la sonda en la etapa elegida de la línea de tiempo (SondaEntonces.jsx).
-export default function SolarSystem({ origin, probeSelected = null, onSelect, probeThen = null }) {
+export default function SolarSystem({ origin, probeSelected = null, onSelect, onAim, probeThen = null }) {
   const probeRoutes = useRutasSondas();
   // Otra estrella puede ocupar el lugar del Sol, a su tamaño publicado, para comparar con las órbitas.
   const { mostrada: elegida } = useComparacionSol();
@@ -160,7 +161,7 @@ export default function SolarSystem({ origin, probeSelected = null, onSelect, pr
     <PhysicalBody position={MOON.position} radiusPc={MOON.radiusKm * KM_TO_PC} color={MOON.color} texture={PLANET_TEXTURES.Luna} />
     <ProbeComets origin={origin} />
     {(probeRoutes || probeSelected) && <ProbeTrails origin={origin} codes={probeRoutes ? null : [probeSelected]}
-      selected={probeSelected} onSelect={onSelect} />}
+      selected={probeSelected} onSelect={onSelect} onAim={onAim} />}
     <ProbeModels origin={origin} extra={probeThen ? [probeThen] : []} />
     <SondaEntonces origin={origin} then={probeThen} />
     <MoonTrail />

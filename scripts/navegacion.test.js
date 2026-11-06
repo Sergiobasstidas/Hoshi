@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Vector3 } from 'three';
-import { distanciaDesdeBarra, barraDesdeDistancia, destinoDesdeBarra, DISTANCIA_MINIMA, TIERRA } from '../src/scene/escalaNavegacion.js';
+import { distanciaDesdeBarra, barraDesdeDistancia, destinoDesdeBarra, DISTANCIA_MINIMA, TIERRA, medidaDistancia, textoDistancia } from '../src/scene/escalaNavegacion.js';
+import { AU_TO_PC as UA_PC, KM_TO_PC as KM_PC, LIGHT_YEAR_PC as AL_PC } from '../src/scene/scale.js';
 import { MAX_VIEW_DISTANCE_PC, KM_TO_PC } from '../src/scene/scale.js';
 import { selectStarLabels } from '../src/scene/starLabelSelection.js';
 
@@ -98,4 +99,13 @@ test('El viaje corto de escala conserva la partida y llega en dos segundos sin c
   const normal=beginJourney(camera,{...vista,journey:{...vista.journey,duration:undefined}},[0,0,0]);
   assert.equal(normal.duration,JOURNEY_SECONDS);
   assert.ok(normal.duration>transicion.duration);
+});
+
+test('El visor de distancia pasa de años luz a UA, km y metros', () => {
+  assert.equal(textoDistancia(2 * UA_PC), '2 UA');
+  assert.equal(textoDistancia(0.3 * AL_PC), '0,3 años luz');
+  assert.equal(textoDistancia(0.005 * UA_PC), '747.989 km');
+  assert.equal(textoDistancia(42.5 * KM_PC), '42,5 km');
+  assert.deepEqual(medidaDistancia(0.4 * KM_PC), { valor: '400', unidad: 'm' });
+  assert.equal(textoDistancia(0.0042 * KM_PC), '4,2 m');
 });

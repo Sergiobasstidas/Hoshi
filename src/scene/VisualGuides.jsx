@@ -8,7 +8,7 @@ import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
 import { probeHidden, probeLit, probeMark } from './probeTrajectories';
 import { kuiperFadeOut, kuiperOpacity } from './kuiper';
-import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
+import { barraDesdeDistancia, medidaDistancia, textoDistancia } from './escalaNavegacion.js';
 import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
@@ -47,15 +47,12 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     }
     // El visor mide hasta el objetivo actual; sin objetivo, hasta el Sol.
     const targetPc = distanceTarget ? Math.hypot(camera.position.x + origin[0] - distanceTarget[0], camera.position.y + origin[1] - distanceTarget[1], camera.position.z + origin[2] - distanceTarget[2]) : pc;
-    const au = targetPc / AU_TO_PC;
-    // UA hasta que la distancia alcanza 0,1 años luz; desde ahí, años luz.
-    const enUA = targetPc < 0.1 * LIGHT_YEAR_PC;
+    // Años luz, UA, km o metros según la distancia (medidaDistancia).
+    const medida = medidaDistancia(targetPc);
     const cifra = root.querySelector('[data-distance]');
-    cifra.textContent = enUA
-      ? `${au < 0.01 ? au.toLocaleString('es-CL', { maximumSignificantDigits: 4 }) : format.format(au)}`
-      : format.format(targetPc / LIGHT_YEAR_PC);
+    cifra.textContent = medida.valor;
     cifra.style.setProperty('--largo', cifra.textContent.length);
-    root.querySelector('[data-distance-unit]').textContent = enUA ? 'UA' : 'años luz';
+    root.querySelector('[data-distance-unit]').textContent = medida.unidad;
     const llenado = barraDesdeDistancia(targetPc);
     root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${llenado * .75} 100`);
     root.querySelector('[data-distance-bar]').style.width = `${llenado}%`;
@@ -65,18 +62,14 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const distancePc = camera.position.distanceTo(vector.set(...focusedBody.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const altitude = root.querySelector('[data-body-altitude]');
       if (altitude) altitude.textContent = focusedBody.kind === 'system' || !focusedBody.radiusKm
-        ? `Distancia de cámara al sistema: ${format.format(distancePc / AU_TO_PC)} UA`
+        ? `Distancia de cámara al sistema: ${textoDistancia(distancePc)}`
         : `Altitud de cámara: ${format.format(distancePc / KM_TO_PC - focusedBody.radiusKm)} km`;
     }
     if (aimTarget) {
       const remaining = camera.position.distanceTo(vector.set(...aimTarget.position)
         .sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const readout = root.querySelector('[data-aim-distance]');
-      if (readout) readout.textContent = aimTarget.star.physics && remaining < 0.01 * AU_TO_PC
-        ? `A ${format.format(remaining / KM_TO_PC)} km del centro`
-        : remaining < 0.1 * LIGHT_YEAR_PC
-        ? `A ${format.format(remaining / AU_TO_PC)} UA de la cámara`
-        : `A ${format.format(remaining / LIGHT_YEAR_PC)} años luz de la cámara`;
+      if (readout) readout.textContent = `A ${textoDistancia(remaining)} ${aimTarget.star?.physics && remaining < 0.01 * AU_TO_PC ? 'del centro' : 'de la cámara'}`;
     }
 
     const project = (position, local = false, retained = false) => {

@@ -186,7 +186,7 @@ function FlybyPlanet({ ghost, probeName, origin, active, onSelect }) {
 
 const setCursor = (gl, value) => { gl.domElement.style.cursor = value; };
 
-function ProbeRoute({ probe, origin, flybys, selected, onSelect }) {
+function ProbeRoute({ probe, origin, flybys, selected, onSelect, onAim }) {
   const gl = useThree(state => state.gl);
   const route = useMemo(() => {
     const own = flybys.filter(flyby => flyby.code === probe.code);
@@ -214,12 +214,12 @@ function ProbeRoute({ probe, origin, flybys, selected, onSelect }) {
     }
   });
   const active = () => probeLit(probe.code) || selected === probe.code;
-  // Un clic marca la ruta sin mover la cámara; el doble clic viaja a la sonda.
+  // Un clic (o doble clic) marca la ruta y elige la sonda; la cámara gira hacia ella sin moverse.
   const handlers = {
     onPointerOver: event => { event.stopPropagation(); probeHighlight.code = probe.code; setCursor(gl, 'pointer'); },
     onPointerOut: () => { if (probeHighlight.code === probe.code) probeHighlight.code = null; setCursor(gl, ''); },
-    onClick: event => { event.stopPropagation(); markRouteClick(probe.code); },
-    onDoubleClick: event => { event.stopPropagation(); onSelect?.(probe); },
+    onClick: event => { event.stopPropagation(); markRouteClick(probe.code); onAim?.(probe); },
+    onDoubleClick: event => { event.stopPropagation(); markRouteClick(probe.code); },
     onPointerMissed: () => markRouteMissed(probe.code),
   };
   useEffect(() => () => { setCursor(gl, ''); markRouteMissed(probe.code); }, [gl, probe.code]);
@@ -236,9 +236,9 @@ function ProbeRoute({ probe, origin, flybys, selected, onSelect }) {
 }
 
 // `codes`: sondas cuya ruta se dibuja (todas si es nulo); `selected`: código de la sonda elegida.
-export default function ProbeTrails({ origin, codes = null, selected = null, onSelect }) {
+export default function ProbeTrails({ origin, codes = null, selected = null, onSelect, onAim }) {
   const { probes } = useProbes();
   const { flybys } = useFlybys();
   return <>{probes.filter(probe => !codes || codes.includes(probe.code)).map(probe => <ProbeRoute key={probe.code} probe={probe}
-    origin={origin} flybys={flybys} selected={selected} onSelect={onSelect} />)}</>;
+    origin={origin} flybys={flybys} selected={selected} onSelect={onSelect} onAim={onAim} />)}</>;
 }

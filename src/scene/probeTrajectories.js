@@ -24,8 +24,9 @@ export const PROBE_COLOR = '#6e7177';
 export const TAIL_START_FRACTION = 0.4825;
 // Sonda bajo el ratón (código de Horizons o null); lo escriben las etiquetas y lo lee la escena.
 export const probeHighlight = { code: null };
-// Ruta marcada con un clic (ProbeTrails.jsx): queda resaltada, con sus planetas de entonces, sin
-// mover la cámara. Otro clic en otra ruta la cambia; un clic en el vacío o Esc la quita.
+// Ruta marcada con un clic o doble clic (ProbeTrails.jsx): queda resaltada, con sus planetas de
+// entonces, y su sonda elegida, sin mover la cámara. Otro clic en otra ruta la cambia; un clic en el
+// vacío o Esc la quita. Solo el nombre de la sonda (o el buscador) lleva la cámara a ella.
 export const probeMark = { code: null };
 // Sonda elegida (por su nombre, el buscador o una etapa de la línea de tiempo); la escribe App.jsx.
 export const probeFocus = { selected: null };
@@ -36,8 +37,20 @@ export const probeHidden = code => focusedProbe() !== null && focusedProbe() !==
 // Resaltar: la sonda bajo el ratón o la de la ruta marcada.
 export const probeLit = code => probeHighlight.code === code || probeMark.code === code;
 // Clic en una ruta: la marca. Clic fuera de una ruta: si era la marcada, la desmarca.
-export function markRouteClick(code) { probeMark.code = code; }
-export function markRouteMissed(code) { if (probeMark.code === code) probeMark.code = null; }
+// La ruta marcada también elige la sonda (línea de tiempo, App.jsx) sin mover la cámara: se puede
+// seguir con useProbeMark. `seq` cuenta los clics, para reabrir la línea aunque sea la misma sonda.
+const markListeners = new Set();
+let markState = { code: null, seq: 0 };
+const emitMark = code => {
+  probeMark.code = code;
+  markState = { code, seq: markState.seq + 1 };
+  markListeners.forEach(listener => listener());
+};
+export function markRouteClick(code) { emitMark(code); }
+export function markRouteMissed(code) { if (probeMark.code === code) emitMark(null); }
+export function clearRouteMark() { if (probeMark.code !== null) emitMark(null); }
+const subscribeMark = listener => { markListeners.add(listener); return () => markListeners.delete(listener); };
+export const useProbeMark = () => useSyncExternalStore(subscribeMark, () => markState, () => markState);
 // Fecha bajo el ratón en el gráfico de la línea de tiempo (LineaTiempoSonda.jsx): la escena marca la
 // sonda en ese punto de su ruta (SondaEntonces.jsx).
 export const probeCursor = { code: null, jd: null };

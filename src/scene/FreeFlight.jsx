@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { flightSpeed, wheelSpeed, KM_TO_PC, AU_TO_PC, MAX_FLIGHT_SPEED_PC } from './scale';
 import { constrainFlight } from './navigation.js';
-import { advanceFlight, FLIGHT_KEYS, isFlightTypingTarget } from './flightMotion';
+import { advanceFlight, createFlightInertia, FLIGHT_KEYS, isFlightTypingTarget } from './flightMotion';
 import { approachSpeed, stopBeforeTarget, STAR_STOP_PC } from './starHeading';
 import { stellarStopDistance } from './stellarPhysics';
 
@@ -12,7 +12,7 @@ const PELLIZCO_SEGUNDOS = 2.5;
 
 export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initialBody, origin, onManualLook, aimTarget, inspectedTarget }) {
   const { camera, gl } = useThree();
-  const motion = useRef({ keys: new Set(), speed: 0 });
+  const motion = useRef({ keys: new Set(), speed: 0, inertia: createFlightInertia() });
   useLayoutEffect(() => {
     const target = aimTarget || inspectedTarget;
     const body = !target && initialBody?.kind !== 'system' ? initialBody : null;
@@ -38,7 +38,7 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
       const delta = Math.min(now - lastTick, 100) / 1000;
       const start = camera.position.clone();
       const speed = state.target ? approachSpeed(state.speed, camera.position.distanceTo(state.target), state.stopDistance) : state.speed;
-      advanceFlight(camera, state.keys, speed, delta);
+      advanceFlight(camera, state.keys, speed, delta, state.inertia);
       if (state.target) {
         stopBeforeTarget(camera, start, state.target, state.stopDistance);
       }
@@ -51,6 +51,9 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
     const clear = () => {
       state.advance();
       state.keys.clear();
+      // Al perder el foco la cámara se detiene sin seguir de largo.
+      state.inertia.move.set(0, 0, 0);
+      state.inertia.turn.set(0, 0, 0);
       toques.clear();
       pellizco = null;
       if (pointer && canvas.hasPointerCapture(pointer.id)) canvas.releasePointerCapture(pointer.id);

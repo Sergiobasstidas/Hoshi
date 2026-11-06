@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { HELIOSPHERE_NORTH_LOBE_AU, HELIOSPHERE_NOSE_AU, HELIOSPHERE_SOUTH_LOBE_AU, HELIOSPHERE_TAIL_AU, INTERSTELLAR_FLOW, VOYAGER_CROSSINGS } from './scene/heliosphereShape';
 
 const es = (value, digits = 1) => value.toLocaleString('es-CL', { maximumFractionDigits: digits });
@@ -6,11 +5,9 @@ const enlace = (href, texto) => <a href={href} target="_blank" rel="noreferrer">
 
 // Ficha de la heliosfera: separa lo medido de lo que procede de un modelo y
 // deja a la vista el debate sobre la forma.
-export default function FichaHeliosfera() {
-  const [abierta, setAbierta] = useState(true);
-  if (!abierta) return null;
+export default function FichaHeliosfera({ onCerrar }) {
   return <aside className="pulsar-legend ficha-heliosfera" aria-label="Información de la heliosfera">
-    <button className="panel-close" aria-label="Cerrar información" onClick={() => setAbierta(false)}>×</button>
+    <button className="panel-close" aria-label="Cerrar información" onClick={onCerrar}>×</button>
     <strong>Heliosfera · modelo «croissant»</strong>
     <span>Superficie dibujada: heliopausa, el límite entre el viento solar y el medio interestelar.</span>
     <span className="ficha-titulo">Medido</span>

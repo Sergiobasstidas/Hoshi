@@ -8,7 +8,7 @@ import { EPHEMERIS_DATE, horizonsCovers, moonOffset, moonPosition, orbitalElemen
 import { encodedDepth } from '../src/scene/depthPrecision.js';
 import { readFileSync } from 'node:fs';
 import { WR140_ID, identifyStellarTargets, stellarTargets } from '../src/scene/stellarTargets.js';
-import { advanceFlight } from '../src/scene/flightMotion.js';
+import { MOVE_EASE_S, TURN_EASE_S, advanceFlight, createFlightInertia, flightCoasting } from '../src/scene/flightMotion.js';
 import { canAimStar, createStarAim, advanceStarAim, STAR_AIM_SECONDS, STAR_STOP_PC, approachSpeed, stopBeforeTarget } from '../src/scene/starHeading.js';
 import { selectStarLabels } from '../src/scene/starLabelSelection.js';
 import { buildSearchIndex, searchStars } from '../src/scene/starSearch.js';
@@ -951,4 +951,46 @@ test('La zona habitable reproduce los límites de Kopparapu para el Sol y exige 
   assert.equal(zonaHabitable(12000, 40), null);
   assert.ok(zonaHabitable(2566, 0.00055).interior > 0);
   assert.equal(zonaHabitable(5000), null);
+});
+
+test('El vuelo con teclado acelera y frena con suavidad y luego queda quieto del todo', () => {
+  const camera = new PerspectiveCamera(), inertia = createFlightInertia(), speed = 1;
+  // Al apretar W, el primer cuadro avanza poco; tras varias constantes de tiempo, a la velocidad completa.
+  advanceFlight(camera, new Set(['KeyW']), speed, 1 / 60, inertia);
+  const first = -camera.position.z;
+  assert.ok(first > 0 && first < speed / 60 * 0.1, `${first}`);
+  for (let i = 0; i < 120; i++) advanceFlight(camera, new Set(['KeyW']), speed, 1 / 60, inertia);
+  const before = camera.position.z;
+  advanceFlight(camera, new Set(['KeyW']), speed, 1 / 60, inertia);
+  assert.ok(Math.abs(before - camera.position.z - speed / 60) < speed / 60 * 0.01);
+  // Al soltar sigue un poco y se detiene; la misma curva a 30 y a 120 cuadros por segundo.
+  const coast = fps => {
+    const c = new PerspectiveCamera(), state = createFlightInertia();
+    state.move.set(0, 0, -1);
+    for (let i = 0; i < fps * 3; i++) advanceFlight(c, new Set(), speed, 1 / fps, state);
+    return { distance: -c.position.z, moving: flightCoasting(state) };
+  };
+  const slow = coast(30), fast = coast(120);
+  assert.ok(Math.abs(slow.distance - MOVE_EASE_S * speed) < 0.03 && Math.abs(fast.distance - MOVE_EASE_S * speed) < 0.01, `${slow.distance} ${fast.distance}`);
+  assert.ok(!slow.moving && !fast.moving);
+  // El giro con Q/E tampoco arranca en seco: el primer cuadro gira mucho menos que a velocidad plena.
+  const turning = new PerspectiveCamera(), turnState = createFlightInertia();
+  advanceFlight(turning, new Set(['KeyQ']), speed, 1 / 60, turnState);
+  assert.ok(turning.quaternion.angleTo(new PerspectiveCamera().quaternion) < 0.3 / 60 * (1 / 60 / TURN_EASE_S) * 1.5);
+  for (let i = 0; i < 180; i++) advanceFlight(turning, new Set(), speed, 1 / 60, turnState);
+  assert.ok(!flightCoasting(turnState));
+});
+
+test('Cada planeta queda sobre su línea de órbita (a menos del 1 % de su radio)', () => {
+  for (const planet of PLANETS) {
+    const orbit = planetOrbit(planet.name), body = planetPosition(planet.name);
+    let best = Infinity;
+    for (let i = 0; i < orbit.length / 3 - 1; i++) {
+      const a = [orbit[i * 3], orbit[i * 3 + 1], orbit[i * 3 + 2]], c = [orbit[i * 3 + 3], orbit[i * 3 + 4], orbit[i * 3 + 5]];
+      const ab = a.map((v, k) => c[k] - v), ap = a.map((v, k) => body[k] - v);
+      const t = Math.max(0, Math.min(1, ap.reduce((sum, v, k) => sum + v * ab[k], 0) / ab.reduce((sum, v) => sum + v * v, 0)));
+      best = Math.min(best, Math.hypot(...ap.map((v, k) => v - t * ab[k])));
+    }
+    assert.ok(best / KM_TO_PC < planet.radiusKm * 0.01, `${planet.name}: ${(best / KM_TO_PC).toFixed(0)} km`);
+  }
 });

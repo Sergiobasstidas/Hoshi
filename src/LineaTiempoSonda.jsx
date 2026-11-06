@@ -125,7 +125,8 @@ export default function LineaTiempoSonda({ probe, data, onIr, onCerrar, selected
   }, []);
   useEffect(() => () => { probeCursor.jd = null; }, []);
   useEffect(() => {
-    const onKey = event => { if (event.key === 'Escape') { if (selected !== null) onSelect(null); else onCerrar(); } };
+    // Esc lo cierra todo (App.jsx suelta la sonda); aquí solo se quita la etapa.
+    const onKey = event => { if (event.key === 'Escape' && selected !== null) onSelect(null); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selected, onCerrar, onSelect]);
