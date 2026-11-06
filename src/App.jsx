@@ -149,6 +149,9 @@ function SceneReady({ catalogueReady }) {
 }
 
 
+// Píxeles que hay que arrastrar la escena para detener un viaje.
+const ARRASTRE_PX = 6;
+
 export default function App() {
   const [catalogue, setCatalogue] = useState(EMPTY_CATALOGUE);
   const [catalogueStatus, setCatalogueStatus] = useState('loading');
@@ -368,8 +371,10 @@ export default function App() {
     const destino = destinoDesdeBarra(valor, camera.position.toArray(), origin);
     camera.position.set(...destino.target.map((v, i) => v - origin[i] + destino.direction[i] * destino.distance));
   };
-  // Detener un viaje en curso (T-03, pedido de Sergio): clic en la escena o Esc. Sin destino concreto,
+  // Detener un viaje en curso (T-03, pedido de Sergio): arrastrar la escena, girar la rueda o Esc. Un clic
+  // suelto no lo corta: el viaje sigue hasta llegar (pedido de Sergio, 05/11/2026). Sin destino concreto,
   // la cámara queda donde está y pasa a vuelo libre, que conserva posición y orientación.
+  const inicioArrastre = useRef(null);
   const detenerViaje = () => {
     if (!traveling) return;
     // Con un destino concreto, la cámara se queda donde está y gira hacia él para orbitarlo.
@@ -613,7 +618,15 @@ export default function App() {
   const temperaturaFicha = estrellaFicha?.physics?.temperatureK ?? estrellaFicha?.datos?.temperatureK;
   const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text : panelBody?.name;
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
-    onPointerDown={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
+    onPointerDown={event => { inicioArrastre.current = event.target instanceof HTMLCanvasElement ? [event.clientX, event.clientY] : null; }}
+    onPointerMove={event => {
+      const inicio = inicioArrastre.current;
+      if (!traveling || !inicio || !event.buttons || Math.hypot(event.clientX - inicio[0], event.clientY - inicio[1]) < ARRASTRE_PX) return;
+      inicioArrastre.current = null;
+      detenerViaje();
+    }}
+    onPointerUp={() => { inicioArrastre.current = null; }}
+    onWheel={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
     <Canvas camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} frameloop="demand" gl={{ antialias: true, logarithmicDepthBuffer: true }}>
       <Reposo />
@@ -766,7 +779,7 @@ export default function App() {
       <div className="oort-note" data-oort-note>2.000–100.000 UA <span>/</span> Nube de Oort</div>
       <AvisoCelular />
       <PantallaCompleta />
-      {traveling && !view.journey?.comparacion && <p className="subtitulo-escena visible" role="status">{TACTIL ? 'Toca la escena para detener el viaje' : 'Clic en la escena o Esc: detener el viaje'}</p>}
+      {traveling && !view.journey?.comparacion && <p className="subtitulo-escena visible" role="status">{TACTIL ? 'Arrastra la escena para detener el viaje' : 'Arrastra, gira la rueda o Esc: detener el viaje'}</p>}
       <footer className="scene-footer">
         <span>© 2026 Sergio Bastidas</span>
       </footer>

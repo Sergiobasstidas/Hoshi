@@ -164,17 +164,17 @@ export default function LineaTiempoSonda({ probe, data, onIr, onCerrar, selected
       <button className="linea-cerrar" aria-label="Cerrar línea de tiempo" onClick={onCerrar}>×</button>
     </div>
     <div className="linea-desplazable">
-      <div className="linea-lienzo" style={{ width: inner }}>
-        <svg width={inner} height={HEIGHT} aria-hidden="true"
-          onPointerMove={event => {
-            const bounds = event.currentTarget.getBoundingClientRect();
-            const offset = event.clientX - bounds.left;
-            if (event.clientY - bounds.top > CHART_HEIGHT + 4 || offset < pad || offset > inner - pad) { setCursor(null); probeCursor.jd = null; return; }
-            const point = speedAt((offset - pad) / span);
-            setCursor(point);
-            Object.assign(probeCursor, { code: probe.code, jd: point.jd });
-          }}
-          onPointerLeave={() => { setCursor(null); probeCursor.jd = null; }}>
+      {/* Todo el alto del visor (gráfico, nombres, puntos y años) mueve la sonda por su ruta. */}
+      <div className="linea-lienzo" style={{ width: inner }}
+        onPointerMove={event => {
+          const offset = event.clientX - event.currentTarget.getBoundingClientRect().left;
+          if (offset < pad || offset > inner - pad) { setCursor(null); probeCursor.jd = null; return; }
+          const point = speedAt((offset - pad) / span);
+          setCursor(point);
+          Object.assign(probeCursor, { code: probe.code, jd: point.jd });
+        }}
+        onPointerLeave={() => { setCursor(null); probeCursor.jd = null; }}>
+        <svg width={inner} height={HEIGHT} aria-hidden="true">
           <text className="linea-grafico-titulo" x={pad} y={10}>Velocidad respecto del Sol</text>
           {chart.ticks.map(value => <g key={value}>
             <line className="linea-marca" x1={pad} x2={inner - pad} y1={chart.y(value)} y2={chart.y(value)} />

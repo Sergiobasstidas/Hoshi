@@ -6,7 +6,7 @@ import { SOLAR_BODIES } from './solarBodies';
 import { BINARY_STATE } from './binaryOrbit';
 import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
-import { probeHidden, probeLit } from './probeTrajectories';
+import { probeHidden, probeLit, probeMark } from './probeTrajectories';
 import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, textoDistancia } from './escalaNavegacion.js';
 import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
@@ -157,7 +157,9 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         alpha = smoothRange(radiusPixels, 20, 50) * kuiperFadeOut(pc);
       } else if (label.kind === 'probe') {
         // Aparece al alejarse más allá del cinturón de Kuiper; se retira con la estela.
-        alpha = probeHidden(label.code) ? 0 : smoothRange(pc / AU_TO_PC, 20, 45) * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
+        // Con su ruta marcada, el nombre se ve también desde dentro del sistema solar.
+        alpha = probeHidden(label.code) ? 0 : (probeMark.code === label.code ? 1 : smoothRange(pc / AU_TO_PC, 20, 45))
+          * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
       } else if (label.kind === 'star') {
         alpha = nameOpacity;
         if (aimTarget === label) alpha = 0.9;
