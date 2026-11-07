@@ -52,18 +52,22 @@ export function granulationLook(temperatureK, radiusSolar = 1) {
   const radius = Number.isFinite(radiusSolar) && radiusSolar > 0 ? radiusSolar : 1;
   const giant = smooth(3, 15, radius) * (1 - smooth(5500, 7000, temperature));
   const dwarf = 0.35 + 0.65 * smooth(3000, 5772, temperature) + 0.25 * smooth(5772, 6800, temperature);
-  return { contrast: dwarf + (1.1 - dwarf) * giant, lane: 0.13 + 0.4 * giant };
+  // Con pocas celdas en todo el disco (gigantes), carriles anchos y suaves: con carriles finos se veían
+  // polígonos enormes de bordes marcados (captura de Deneb de Sergio, 07/11/2026).
+  const pocas = 1 - smooth(6, 60, granulesPerRadius(temperature, radius));
+  return { contrast: dwarf + (1.1 - dwarf) * giant, lane: Math.max(0.13 + 0.4 * giant, 0.13 + 0.45 * pocas) };
 }
 
 // Manchas como las solares solo en estrellas de secuencia principal: en las gigantes no se ven así.
 export const showsSunspots = radiusSolar => !(Number.isFinite(radiusSolar) && radiusSolar > 3);
 
 // Las estrellas frías tienen envoltura convectiva y muestran granulación y manchas;
-// por encima de unos 7.000–10.000 K la envoltura es radiativa y el disco es casi liso.
+// por encima de unos 7.000–8.500 K la envoltura es radiativa y el disco es casi liso (Deneb, a 8.525 K,
+// mostraba celdas marcadas con el límite anterior de 9.500 K).
 // La abundancia de manchas de otras estrellas no se conoce: se usa la solar.
 export function surfaceActivity(temperatureK) {
   const temperature = validTemperature(temperatureK);
-  const convection = 1 - 0.95 * smooth(6500, 9500, temperature);
+  const convection = 1 - 0.95 * smooth(6500, 8500, temperature);
   const spots = convection * (1 - 0.5 * smooth(4000, 6500, temperature));
   return { convection, spots };
 }

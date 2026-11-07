@@ -21,7 +21,7 @@ function CompanionSystem({ system, origin, onElegir }) {
   // centro de masas del par.
   const paths = useMemo(() => system.components.flatMap(component => {
     const shifted = points => new Float32Array(points.flatMap(p => p.map((v, i) => v + component.parentOffsetPc[i])));
-    if (component.pair.k !== 'o') return [{ component, points: new Float32Array([...component.parentOffsetPc, ...component.offsetPc]) }];
+    if (component.pair.k !== 'o') return component.unido ? [{ component, points: new Float32Array([...component.parentOffsetPc, ...component.offsetPc]) }] : [];
     if (component.massRatio === null) return [{ component, points: shifted(companionOrbitPc(component.pair, system.position)) }];
     const orbits = barycentricOrbitsPc(component.pair, system.position, component.massRatio);
     return [{ component, points: shifted(orbits.companion) }, { component, points: shifted(orbits.primary) }];

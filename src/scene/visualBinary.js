@@ -95,6 +95,8 @@ export function wideOffsetPc(pair, position) {
 // Une cada sistema con su registro del catálogo y coloca sus componentes en cadena
 // (Castor: Ab y B respecto de A, Bb respecto de B). La primaria conserva su posición de
 // catálogo: sin masas por componente no se calcula el baricentro.
+// Separación 3D por debajo de la cual un par ancho se une aunque las distancias no coincidan del todo.
+const UNION_MAX_AU = 10000;
 export function buildStarSystems(data, starsById) {
   return Object.entries(data).flatMap(([id, entry]) => {
     const star = starsById.get(Number(id));
@@ -105,6 +107,8 @@ export function buildStarSystems(data, starsById) {
       if (!parent) return [];
       const companion = starsById.get(pair.cid) || null;
       let relative = pair.k === 'o' ? companionOffsetPc(pair, position) : wideOffsetPc(pair, position);
+      // Separación medida en el cielo (WDS), a la distancia de la primaria.
+      const proyectadaAu = Math.hypot(...relative) / AU_TO_PC;
       // Un par ancho cuya compañera ya es un registro del catálogo usa esa posición.
       if (companion && pair.k === 'w') relative = [companion.x - position[0] - parent[0], companion.y - position[1] - parent[1], companion.z - position[2] - parent[2]];
       const offsetPc = parent.map((v, i) => v + relative[i]);
@@ -113,10 +117,14 @@ export function buildStarSystems(data, starsById) {
       if (companion && pair.k === 'o') [companion.x, companion.y, companion.z] = offsetPc.map((v, i) => v + position[i]);
       offsets[pair.n] = offsetPc;
       const separationAu = Math.hypot(...relative) / AU_TO_PC;
+      // Con distancias medidas por separado, dos estrellas juntas en el cielo pueden quedar a años luz una
+      // de otra (hasta 80 millones de UA): esa recta no es una órbita y se veía desde muy lejos. Solo se
+      // une el par si la separación en 3D es compatible con la del cielo; si no, la escala es la del cielo.
+      const unido = pair.k === 'o' || separationAu <= Math.max(3 * proyectadaAu, UNION_MAX_AU);
       // Con masas estimadas (MSC) las dos estrellas giran en torno a su centro de masas.
       const massRatio = pair.k === 'o' && pair.m1 > 0 && pair.m2 > 0 ? pair.m2 / (pair.m1 + pair.m2) : null;
-      return [{ name: pair.n, pair, companion, parentOffsetPc: parent, offsetPc, separationAu, massRatio,
-        scalePc: (pair.k === 'o' ? apastronAu(pair) : separationAu) * AU_TO_PC,
+      return [{ name: pair.n, pair, companion, parentOffsetPc: parent, offsetPc, separationAu, massRatio, unido,
+        scalePc: (pair.k === 'o' ? apastronAu(pair) : unido ? separationAu : proyectadaAu) * AU_TO_PC,
         color: companion?.rgb || companionColor(pair.sp), sizePx: companionSizePx(pair.v, star.d),
         label: `${star.n || entry.wds} ${pair.n}` }];
     });

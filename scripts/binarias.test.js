@@ -83,6 +83,16 @@ test('Los componentes de un par se leen de las designaciones de ORB6 y WDS', () 
   assert.equal(parseComponents('9831'), null);
 });
 
+test('Un par ancho con distancias de catálogo que no coinciden no se une con una recta', () => {
+  const copy = new Map(stars.map(star => [star.i, { ...star }]));
+  const anchos = buildStarSystems(systems, copy).flatMap(system => system.components).filter(c => c.pair.k !== 'o');
+  const unidos = anchos.filter(c => c.unido);
+  // Antes había rectas de hasta 80 millones de UA entre dos estrellas juntas en el cielo.
+  assert.ok(unidos.length > anchos.length * 0.8);
+  assert.ok(Math.max(...unidos.map(c => c.separationAu)) < 100000);
+  for (const c of anchos.filter(c => !c.unido)) assert.ok(c.scalePc / AU_TO_PC < c.separationAu);
+});
+
 test('Las jerarquías se encadenan y las compañeras del catálogo quedan sobre su órbita', () => {
   const copy = new Map(stars.map(star => [star.i, { ...star }]));
   const built = new Map(buildStarSystems(systems, copy).map(system => [system.id, system]));

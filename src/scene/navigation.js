@@ -30,15 +30,16 @@ export function beginJourney(camera, view, origin) {
     const pivote = new Vector3(...view.pivote).sub(new Vector3(...origin));
     const desde = camera.position.clone().sub(pivote);
     const hasta = target.clone().add(new Vector3(...view.direction).normalize().multiplyScalar(view.distance)).sub(pivote);
-    // Giro lento hacia un solo lado: lo que falta para el plano final y, si es poco, una vuelta
-    // más. Avanza con la distancia al Sol en escala logarítmica: casi nulo dentro de la heliosfera,
-    // donde sin perspectiva de las estrellas solo marearía, y mayor ya lejos.
+    // Giro por el lado más corto hacia el plano final: casi nada si la cámara ya viene derecha y, como
+    // mucho, media vuelta si viene de cabeza (antes podía sumar una vuelta entera; pedido de Sergio,
+    // 07/11/2026). Avanza con la distancia al Sol en escala logarítmica: casi nulo dentro de la
+    // heliosfera, donde sin perspectiva de las estrellas solo marearía, y mayor ya lejos.
     const rotation = camera.quaternion.clone();
     camera.up.fromArray(view.up).normalize();
     camera.lookAt(target);
     const relativa = camera.quaternion.clone().invert().multiply(rotation);
     let giro = (2 * Math.atan2(relativa.z, relativa.w) + 4 * Math.PI) % (2 * Math.PI);
-    if (giro < Math.PI / 2) giro += 2 * Math.PI;
+    if (giro > Math.PI) giro -= 2 * Math.PI;
     camera.quaternion.copy(rotation);
     const salida = desde.lengthSq() ? desde.clone().normalize() : hasta.clone().normalize();
     return {

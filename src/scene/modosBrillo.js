@@ -24,3 +24,11 @@ export const useModoBrillo = () => useSyncExternalStore(oyente => { oyentes.add(
 
 // Uniformes del modo: `fisico` activa el brillo real y `limite` es la magnitud apenas visible.
 export const parametrosBrillo = () => ({ fisico: actual.limite ? 1 : 0, limite: actual.limite ?? 6 });
+
+// Cuánto se ve el nombre de una estrella (0–1) en un modo con límite: la misma magnitud aparente que usa
+// StarField.jsx desde la cámara, con medio punto de transición alrededor del límite.
+export function nombreVisible(magnitudAbsoluta, distanciaPc, limite) {
+  const aparente = magnitudAbsoluta + 5 * Math.log10(Math.max(distanciaPc, 1e-6) / 10);
+  const x = Math.min(Math.max((limite - aparente + 0.5) / 1, 0), 1);
+  return x * x * (3 - 2 * x);
+}
