@@ -1,7 +1,9 @@
 // Datos ampliados de las fichas, sin calcular nada: NASA Exoplanet Archive para planetas y sus
-// estrellas, y Gaia DR3 para las estrellas con nombre. Se ejecuta a mano y escribe
+// estrellas, y Gaia DR3 para las estrellas con nombre. Las consultas se guardan en data/raw/red/fichas
+// (ver scripts/catalog/red.js). Escribe
 // public/data/fichas.json, que la app carga solo al abrir una ficha.
 import fs from 'node:fs';
+import { empezarDescarga, pedir } from './catalog/red.js';
 
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync';
 const GAIA = 'https://gea.esac.esa.int/tap-server/tap/sync';
@@ -13,20 +15,20 @@ function csv(texto) {
   return resto.map(fila => Object.fromEntries(cabecera.map((c, i) => [c, fila[i]])));
 }
 async function tap(url, query) {
-  const r = await fetch(url, { signal: AbortSignal.timeout(180000), method: 'POST', body: new URLSearchParams({ request: 'doQuery', lang: 'adql', format: 'csv', query }) });
-  const texto = await r.text();
-  if (!r.ok || texto.startsWith('<')) throw Error(`${url}: ${(texto.match(/QUERY_STATUS[^<]*/) || [texto.slice(0, 200)])[0]}`);
+  const texto = await pedir('fichas', url, { signal: AbortSignal.timeout(180000), method: 'POST',
+    body: new URLSearchParams({ request: 'doQuery', lang: 'adql', format: 'csv', query }), aceptar: (t, r) => r.ok && !t.startsWith('<') });
+  if (texto.startsWith('<')) throw Error(`${url}: ${(texto.match(/QUERY_STATUS[^<]*/) || [texto.slice(0, 200)])[0]}`);
   return csv(texto);
 }
 const limpio = objeto => Object.fromEntries(Object.entries(objeto).filter(([, valor]) => valor !== undefined && valor !== ''));
 
 const columnas = 'pl_name,hostname,gaia_dr3_id,discoverymethod,disc_year,disc_facility,pl_dens,pl_insol,pl_eqt,pl_orbeccen,pl_bmassprov,pl_radeerr1,pl_bmasseerr1,pl_orbpererr1,pl_trandur,pl_trandep,st_age,st_met,st_logg,st_rotp,st_radv,sy_pmra,sy_pmdec,sy_plx,sy_plxerr1,st_lum';
-const r = await fetch(`https://exoplanetarchive.ipac.caltech.edu/TAP/sync?format=csv&query=${encodeURIComponent(`select ${columnas} from pscomppars`)}`, { signal: AbortSignal.timeout(300000) });
+empezarDescarga('fichas');
+const textoNasa = await pedir('fichas', `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?format=csv&query=${encodeURIComponent(`select ${columnas} from pscomppars`)}`, { signal: AbortSignal.timeout(300000) });
 const planetas = {}, anfitrionas = {};
 const estrellaNasa = f => limpio({ edad: numero(f.st_age), metalicidad: numero(f.st_met), gravedad: numero(f.st_logg), rotacion: numero(f.st_rotp), radial: numero(f.st_radv),
   pmRa: numero(f.sy_pmra), pmDec: numero(f.sy_pmdec), paralaje: numero(f.sy_plx), paralajeError: numero(f.sy_plxerr1), gaia: f.gaia_dr3_id?.replace('Gaia DR3 ', ''),
   luminosidad: f.st_lum === '' ? undefined : Number((10 ** Number(f.st_lum)).toPrecision(4)) });
-const textoNasa = await r.text();
 if (!textoNasa.startsWith('pl_name')) throw Error(`NASA: ${textoNasa.slice(0, 300)}`);
 for (const f of csv(textoNasa)) {
   planetas[f.pl_name] = limpio({ metodo: f.discoverymethod, ano: numero(f.disc_year), telescopio: f.disc_facility, densidad: numero(f.pl_dens), insolacion: numero(f.pl_insol), equilibrio: numero(f.pl_eqt),

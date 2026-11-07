@@ -61,3 +61,6 @@ data/moons/fuentes/
 data/rings/fuentes/
 # Vectores de Horizons de los planetas (≈ 25 MB): se descargan con scripts/planets/fetch_planets.mjs.
 data/planets/fuentes/
+# Respuestas guardadas de SIMBAD, NASA, MAST, Gaia y JMDC (≈ 8 MB): npm run descargar:red
+data/raw/red/*
+!data/raw/red/FUENTES.md

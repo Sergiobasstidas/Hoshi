@@ -2,11 +2,13 @@
 // versión 260615. Los miembros se identificaron con Gaia DR3 por posición, movimiento propio y paralaje, con una
 // probabilidad de pertenencia; aquí se cuentan los de probabilidad mayor que 0,5, como hace el UCC.
 // Se cruzan con las estrellas de Hoshi por el identificador de Gaia DR3 y se escriben solo los cúmulos con al menos
-// tres miembros en Hoshi. Se ejecuta a mano: los archivos del UCC van en data/raw/ucc/ (el de miembros no se sube).
+// tres miembros en Hoshi. Los archivos del UCC van en data/raw/ucc/ (el de miembros no se sube); la consulta a
+// SIMBAD se guarda en data/raw/red/cumulos (ver scripts/catalog/red.js).
 import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
+import { empezarDescarga, pedir } from './catalog/red.js';
 
 const VERSION = '260615';
 const MINIMO_EN_HOSHI = 3;
@@ -72,8 +74,9 @@ const porSimbad = new Map(cumulos.flatMap(c => c.otrosNombres.filter(n => DESIGN
 const consulta = `SELECT p.id AS cumulo, c.id AS hip, l.membership, l.link_bibcode FROM h_link AS l JOIN ident AS p ON p.oidref = l.parent
   JOIN ident AS c ON c.oidref = l.child JOIN flux AS f ON f.oidref = l.child AND f.filter = 'V'
   WHERE p.id IN (${[...porSimbad.keys()].map(n => `'${n}'`).join(',')}) AND c.id LIKE 'HIP %' AND f.flux < 6 AND l.membership >= 70`;
-const respuesta = await (await fetch('https://simbad.harvard.edu/simbad/sim-tap/sync', { method: 'POST', signal: AbortSignal.timeout(120000),
-  body: new URLSearchParams({ request: 'doQuery', lang: 'adql', format: 'csv', query: consulta }) })).text();
+empezarDescarga('cumulos');
+const respuesta = await pedir('cumulos', 'https://simbad.harvard.edu/simbad/sim-tap/sync', { method: 'POST', signal: AbortSignal.timeout(120000),
+  body: new URLSearchParams({ request: 'doQuery', lang: 'adql', format: 'csv', query: consulta }), aceptar: (t, r) => r.ok && t.startsWith('cumulo,hip') });
 if (!respuesta.startsWith('cumulo,hip')) throw Error(`SIMBAD: ${respuesta.slice(0, 200)}`);
 const normalizar = n => n.replace(/\s+/g, ' ');
 // Algunos enlaces de SIMBAD son de grupos de movimiento amplios (el «supercúmulo» de las Híades): solo cuentan las

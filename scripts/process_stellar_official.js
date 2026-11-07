@@ -1,9 +1,10 @@
 // Datos físicos de las estrellas con nombre desde catálogos oficiales, sin calcular nada:
 // diámetros medidos del JMDC, NASA Exoplanet Archive, TESS Input Catalog v8.2 (MAST), Gaia DR3 y SIMBAD. Por cada
-// dato vale la primera fuente que lo tenga (regla de radios: lo medido antes que los catálogos). Se ejecuta a mano
-// y escribe data/processed/stellar_official.json.
+// dato vale la primera fuente que lo tenga (regla de radios: lo medido antes que los catálogos). Las consultas se
+// guardan en data/raw/red/oficiales (ver scripts/catalog/red.js). Escribe data/processed/stellar_official.json.
 import fs from 'node:fs';
 import { ESTRELLAS_CURADAS, ESTRELLAS_CURADAS_POR_ID } from './catalog/estrellas_curadas.js';
+import { empezarDescarga, pedir } from './catalog/red.js';
 
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync';
 const en = (lista, n) => Array.from({ length: Math.ceil(lista.length / n) }, (_, i) => lista.slice(i * n, i * n + n));
@@ -15,16 +16,16 @@ function csv(texto) {
   return resto.map(fila => Object.fromEntries(cabecera.map((c, i) => [c, fila[i]])));
 }
 async function tap(url, query, lang = 'ADQL') {
-  const r = await fetch(url, { signal: AbortSignal.timeout(120000), method: 'POST', body: new URLSearchParams({ request: 'doQuery', lang, format: 'csv', query }) });
-  const texto = await r.text();
-  if (!r.ok || texto.startsWith('<')) throw Error(`${url}: ${(texto.match(/QUERY_STATUS[^<]*/) || [texto.slice(0, 300)])[0]}`);
+  const texto = await pedir('oficiales', url, { signal: AbortSignal.timeout(120000), method: 'POST',
+    body: new URLSearchParams({ request: 'doQuery', lang, format: 'csv', query }), aceptar: (t, r) => r.ok && !t.startsWith('<') });
+  if (texto.startsWith('<')) throw Error(`${url}: ${(texto.match(/QUERY_STATUS[^<]*/) || [texto.slice(0, 300)])[0]}`);
   return csv(texto);
 }
 
 async function exoplanetArchive() {
-  const r = await fetch('https://exoplanetarchive.ipac.caltech.edu/TAP/sync?format=csv&query=' + encodeURIComponent('select distinct hip_name,st_teff,st_rad,st_mass,st_lum,st_spectype from pscomppars where hip_name is not null'));
-  const texto = await r.text();
-  if (!r.ok || !texto.startsWith('hip_name')) throw Error(`NASA: ${texto.slice(0, 200)}`);
+  const texto = await pedir('oficiales', 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync?format=csv&query=' + encodeURIComponent('select distinct hip_name,st_teff,st_rad,st_mass,st_lum,st_spectype from pscomppars where hip_name is not null'),
+    { aceptar: (t, r) => r.ok && t.startsWith('hip_name') });
+  if (!texto.startsWith('hip_name')) throw Error(`NASA: ${texto.slice(0, 200)}`);
   return new Map(csv(texto).map(f => [Number(f.hip_name.replace('HIP ', '')), { temperatureK: positivo(f.st_teff), radiusSolar: positivo(f.st_rad), massSolar: positivo(f.st_mass),
     luminositySolar: f.st_lum === '' ? null : 10 ** Number(f.st_lum), espectro: f.st_spectype || null }]));
 }
@@ -33,9 +34,9 @@ async function tic(hips) {
   for (const grupo of en(hips, 150)) {
     const request = JSON.stringify({ service: 'Mast.Catalogs.Filtered.Tic', format: 'json', pagesize: 500, page: 1,
       params: { columns: 'ID,HIP,GAIA,Teff,rad,mass,lum', filters: [{ paramName: 'HIP', values: grupo.map(String) }] } });
-    const r = await fetch('https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(45000), method: 'POST', body: new URLSearchParams({ request }) });
+    const texto = await pedir('oficiales', 'https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(45000), method: 'POST', body: new URLSearchParams({ request }) });
     // Un HIP puede tener varias filas: siempre la misma, primero las que traen radio y luego el ID menor.
-    for (const f of (await r.json()).data || []) {
+    for (const f of JSON.parse(texto).data || []) {
       const previa = filas.get(Number(f.HIP));
       if (!previa || (f.rad && !previa.rad) || (Boolean(f.rad) === Boolean(previa.rad) && Number(f.ID) < Number(previa.ID))) filas.set(Number(f.HIP), f);
     }
@@ -63,8 +64,8 @@ async function ticPorGaia(ids) {
     const request = JSON.stringify({ service: 'Mast.Catalogs.Filtered.Tic', format: 'json', pagesize: 500, page: 1,
       params: { columns: 'ID,HIP,GAIA,Teff,rad,mass,lum', filters: [{ paramName: 'GAIA', values: grupo }] } });
     try {
-      const r = await fetch('https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(45000), method: 'POST', body: new URLSearchParams({ request }) });
-      for (const f of (await r.json()).data || []) filas.set(String(f.GAIA), f);
+      const texto = await pedir('oficiales', 'https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(45000), method: 'POST', body: new URLSearchParams({ request }) });
+      for (const f of JSON.parse(texto).data || []) filas.set(String(f.GAIA), f);
     } catch (error) { console.warn(`TIC, grupo omitido: ${error.message}`); }
   }
   return filas;
@@ -94,6 +95,7 @@ const radioMedido = (fila, distanciaPc) => fila.unidad === 'km' ? positivo(fila.
   : fila.unidad === 'mas' ? positivo(0.1075 * fila.diametro * distanciaPc) : null;
 // GSP-Phot falla en estrellas calientes y muy brillantes, en binarias sin resolver y con mala astrometría.
 const radioGspPhotFiable = (g, espectro = '') => Number(g.phot_g_mean_mag) >= 4 && Number(g.ruwe) <= 1.4 && !/\+/.test(espectro) && !/(^|\s)\(?(O|B[0-3])/.test(espectro);
+empezarDescarga('oficiales');
 const FUENTE = { nasa: 'NASA Exoplanet Archive', tic: 'TESS Input Catalog v8.2 (MAST)', gaia: 'Gaia DR3', simbad: 'SIMBAD', gspphot: 'Gaia DR3 (radius_gspphot)' };
 const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).filter(s => (s.n && s.n !== 'Sol') || ESTRELLAS_CURADAS_POR_ID[s.i]);
 const busqueda = new Map(JSON.parse(fs.readFileSync('public/data/star-search.json', 'utf8')));
