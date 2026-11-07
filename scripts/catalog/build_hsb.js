@@ -32,8 +32,23 @@
 // data/catalog/hsb_companeras_dibujadas.csv relaciona cada compañera que star_systems.json dibuja
 // sin estrella propia con la estrella HSB nueva que la representa.
 //
+// Estrellas cercanas y 2MASS (descargas de scripts/catalog/descargar_cercanas.py):
+//  - tmass: designación 2MASS del vecino más probable de cada Gaia DR3 (tmass_psc_xsc_best_neighbour).
+//  - CNS5 (Golovin et al. 2023): cada objeto con paralaje trigonométrica se enlaza con su estrella del
+//    registro (Gaia DR3, HIP, GJ con su componente y, sin números en común, posición llevada a J2000
+//    con su movimiento propio, ≤ 3″); los que no están entran al registro (origen cns5).
+//  - Capa del millón de Gaia DR3 (data/raw/gaia/gaia_dr3_1m.csv.gz, según la selección que deja
+//    scripts/process_gaia.js: las que descarta por ser una estrella de Hoshi se enlazan con ella) y GCNS
+//    (Gaia Collaboration, Smart et al. 2021) con gcns_prob ≥ 0,38 (umbral del artículo) y
+//    paralaje/error ≥ 10; una fuente de GCNS a ≤ 3″ de una estrella del registro sin Gaia y con
+//    distancia a ±25 % es esa estrella. Las demás fuentes que no son ya el Gaia DR3 de una estrella del
+//    registro reciben número en un lote aparte,
+//    data/catalog/hsb_gaia/lote-AAAA-MM-DD.csv.gz (hsb, gaia_dr3, tmass, origen, alta). Un lote nunca
+//    se reescribe: una carga posterior crea un lote nuevo solo con lo que falte.
+// Los números nuevos siguen al mayor ya usado en el registro y en los lotes.
+//
 // Correrlo dos veces seguidas da exactamente los mismos archivos.
-// Uso: npm run hsb   (requiere data/raw/athyg, ver su FUENTES.md)
+// Uso: npm run hsb   (requiere data/raw/athyg, data/raw/gcns, data/raw/cns5 y data/raw/tmass; ver sus FUENTES.md)
 
 import fs from 'node:fs';
 import zlib from 'node:zlib';
@@ -50,17 +65,27 @@ const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
 const ATHYG_V32 = ['./data/raw/athyg/athyg_v32-1.csv.gz', './data/raw/athyg/athyg_v32-2.csv.gz'];
 const ATHYG_V40 = ['./data/raw/athyg/v40/athyg_40.csv.gz'];
 const HYGLIKE_V40 = './data/raw/athyg/v40/hyglike_from_athyg_v40.csv.gz';
+const CNS5_CSV = './data/raw/cns5/cns5_main.csv';
+const GCNS_CSV = './data/raw/gcns/gcns_main.csv.gz';
+const TMASS_CSV = './data/raw/tmass/gaia_dr3_tmass.csv.gz';
+const GAIA_1M_SELECCION = './data/catalog/gaia_1m_seleccion.csv.gz';
+export const LOTES_DIR = './data/catalog/hsb_gaia';
+export const COLUMNAS_LOTE = ['hsb', 'gaia_dr3', 'tmass', 'origen', 'alta'];
+// GCNS: probabilidad de astrometría fiable desde la que el artículo da la fuente por buena, y
+// paralaje con error ≤ 10 % (regla D-014: distancia = 1/paralaje).
+const GCNS_PROB_MIN = 0.38, PARALAJE_SNR_MIN = 10;
+const CNS5_MAX_ARCSEC = 3;
 
 // Los números de AT-HYG llegan a ~2,6 millones y las anfitrionas añadidas usan 9 000 000 + n:
 // las estrellas que entren después de la primera carga empiezan aquí.
 export const HSB_NUEVO_BASE = 100_000_000;
 export const COLUMNAS = ['hsb', 'origen', 'athyg_v32', 'athyg_v40', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'gaia_revisar',
-  'tic', 'nombre', 'comp', 'primaria_hsb', 'alta', 'estado'];
+  'tmass', 'tic', 'nombre', 'comp', 'primaria_hsb', 'alta', 'estado'];
 // Columnas mínimas para leer un registro de una versión anterior (las demás quedan vacías).
 const COLUMNAS_BASE = ['hsb', 'origen', 'athyg_v32', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'tic', 'nombre', 'alta', 'estado'];
 // Identificadores con los que se reconoce una estrella, en orden de prioridad.
 export const LLAVES = ['hip', 'hd', 'tyc', 'gaia_dr3', 'athyg_v32', 'athyg_v40', 'nombre'];
-const IDENTIDAD = ['origen', 'athyg_v32', 'athyg_v40', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'gaia_revisar', 'tic', 'nombre'];
+const IDENTIDAD = ['origen', 'athyg_v32', 'athyg_v40', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'gaia_revisar', 'tmass', 'tic', 'nombre'];
 // Peso de cada número al buscar la fila de AT-HYG v4.0 de una estrella.
 const PESOS_V40 = { hip: 5, hd: 4, tyc: 3, gaia: 2, gl: 1 };
 const COMPANERA_MAX_ARCSEC = 60, COMPANERA_DIST_REL = 0.25;
@@ -314,7 +339,7 @@ function identidadV40(f) {
 
 const firma = f => LLAVES.map(k => texto(f[k])).join('|');
 
-export function conciliar(registro, estrellas, { fecha }) {
+export function conciliar(registro, estrellas, { fecha, siguienteMinimo = HSB_NUEVO_BASE }) {
   const filas = registro.map(f => ({ ...f }));
   const usados = new Set(filas.map(f => f.hsb));
   const tomadas = new Set();
@@ -348,7 +373,7 @@ export function conciliar(registro, estrellas, { fecha }) {
 
   // 3) Nuevas y actualizadas.
   const vacio = filas.length === 0;
-  let siguiente = filas.reduce((m, f) => Math.max(m, f.hsb + 1), HSB_NUEVO_BASE);
+  let siguiente = filas.reduce((m, f) => Math.max(m, f.hsb + 1), Math.max(HSB_NUEVO_BASE, siguienteMinimo));
   const nuevas = [], filaDe = [];
   estrellas.forEach((s, k) => {
     const identidad = Object.fromEntries(IDENTIDAD.map(c => [c, texto(s[c])]));
@@ -408,6 +433,97 @@ export function relacionarCompaneras(sistemas, hsbDe, companerasDe) {
   return salida;
 }
 export const COLUMNAS_COMPANERAS = ['sistema_hsb', 'wds', 'companera', 'de', 'par', 'tipo', 'hsb_nuevo', 'athyg_v40', 'gl_nuevo', 'criterio'];
+
+// --- CNS5 ---
+
+// Posición de CNS5 (época propia) llevada a J2000 con su movimiento propio (mas/año; pmra con cos δ).
+function posicionJ2000(r) {
+  const ra = Number(r.ra), dec = Number(r.dec), anos = 2000 - Number(r.epoch || 2000);
+  return { ra: (((ra + (Number(r.pmra) || 0) * anos / 3.6e6 / Math.cos(dec * Math.PI / 180)) % 360) + 360) % 360,
+    dec: dec + (Number(r.pmdec) || 0) * anos / 3.6e6 };
+}
+
+// filas: cns5.main; estrellas: identidades del registro (con gaiaAsociados: Set de todos sus Gaia
+// conocidos). Devuelve { enlazadas: Map fila → estrella, por: conteo, nuevas: identidades }.
+export function conciliarCns5(filas, estrellas) {
+  const porGaia = new Map(), porHip = new Map(), porGl = new Map();
+  const agregar = (mapa, clave, s) => { if (clave) mapa.set(clave, [...(mapa.get(clave) || []), s]); };
+  for (const s of estrellas) {
+    for (const g of s.gaiaAsociados || [s.gaia_dr3]) agregar(porGaia, g, s);
+    agregar(porHip, s.hip, s);
+    agregar(porGl, glNormal(s.gl), s);
+  }
+  const medidas = filas.filter(r => Number(r.parallax) > 0);
+  const pares = [];
+  for (const r of medidas) {
+    const gl = glNormal(`${r.gj_id}${r.component_id}`);
+    const candidatas = new Set([...(porGaia.get(r.gaia_edr3_id) || []), ...(porHip.get(r.hip_id) || []), ...(porGl.get(gl) || [])]);
+    for (const s of candidatas) {
+      let p = 0;
+      if (r.gaia_edr3_id) {
+        if ((s.gaiaAsociados || new Set([s.gaia_dr3])).has(r.gaia_edr3_id)) p += 3;
+        else if (s.gaia_dr3) p -= 3;
+      }
+      if (r.hip_id && s.hip) p += r.hip_id === s.hip ? 2 : -2;
+      if (gl && glNormal(s.gl)) p += gl === glNormal(s.gl) ? 1 : -1;
+      if (p > 0) pares.push({ r, s, p });
+    }
+  }
+  pares.sort((a, b) => b.p - a.p || a.r.cns5_id - b.r.cns5_id || ((a.s.i ?? 0) - (b.s.i ?? 0)) || String(a.s.athyg_v40).localeCompare(String(b.s.athyg_v40)));
+  const enlazadas = new Map(), tomadas = new Set(), por = { numeros: 0, gliese: 0, posicion: 0 };
+  for (const { r, s } of pares) {
+    if (enlazadas.has(r) || tomadas.has(s)) continue;
+    enlazadas.set(r, s); tomadas.add(s); por.numeros++;
+  }
+  const vecinas = rejilla(estrellas.filter(s => s.pos).map(s => ({ ...s.pos, s })));
+  // Misma designación GJ completa (número y componente) a ≤ 30″ aunque el Gaia no coincida: CNS5 y
+  // AT-HYG a veces asignan al revés las fuentes de Gaia de las componentes de un par (p Eridani).
+  for (const r of medidas) {
+    if (enlazadas.has(r)) continue;
+    const gl = glNormal(`${r.gj_id}${r.component_id}`);
+    if (!gl) continue;
+    const cerca = vecinas(posicionJ2000(r), COMPANERA_MAX_ARCSEC / 2).find(([, q]) => !tomadas.has(q.s) && glNormal(q.s.gl) === gl);
+    if (cerca) { enlazadas.set(r, cerca[1].s); tomadas.add(cerca[1].s); por.gliese++; }
+  }
+  const nuevas = [];
+  for (const r of medidas) {
+    if (enlazadas.has(r)) continue;
+    const pos = posicionJ2000(r);
+    const cerca = vecinas(pos, CNS5_MAX_ARCSEC).find(([, q]) => !tomadas.has(q.s));
+    if (cerca) { enlazadas.set(r, cerca[1].s); tomadas.add(cerca[1].s); por.posicion++; continue; }
+    nuevas.push({ i: null, nueva: true, origen: 'cns5', athyg_v32: '', athyg_v40: '', hip: texto(r.hip_id), hd: '', hr: '',
+      gl: conPrefijoGl(`${r.gj_id}${r.component_id}`), tyc: '', gaia_dr3: texto(r.gaia_edr3_id), tic: '', nombre: '', pos,
+      d: 1000 / Number(r.parallax), cns5: r.cns5_id });
+  }
+  nuevas.sort((a, b) => a.pos.ra - b.pos.ra || a.pos.dec - b.pos.dec || Number(a.cns5) - Number(b.cns5));
+  return { enlazadas, por, nuevas, medidas: medidas.length };
+}
+
+// --- Lotes de estrellas identificadas solo por Gaia DR3 ---
+
+export function leerLotes(dir = LOTES_DIR) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter(n => /^lote-.*\.csv\.gz$/.test(n)).sort()
+    .flatMap(n => parseSync(zlib.gunzipSync(fs.readFileSync(`${dir}/${n}`)).toString('utf8'), { columns: true, skip_empty_lines: true })
+      .map(f => ({ ...f, hsb: Number(f.hsb), lote: n })));
+}
+
+const compararIds = (a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0);
+
+// Fuentes Gaia que aún no tienen número: ni en el registro ni en un lote. Devuelve las filas del
+// lote nuevo, numeradas desde `siguiente` en orden de origen y, dentro de cada origen, de source_id.
+export function nuevoLote(origenes, { enRegistro, lotes, siguiente, fecha, tmassDe }) {
+  const conNumero = new Set([...enRegistro, ...lotes.map(f => f.gaia_dr3)]);
+  const filas = [];
+  for (const [origen, ids] of origenes) {
+    for (const g of [...ids].sort(compararIds)) {
+      if (conNumero.has(g)) continue;
+      conNumero.add(g);
+      filas.push({ hsb: siguiente++, gaia_dr3: g, tmass: tmassDe(g), origen, alta: fecha });
+    }
+  }
+  return filas;
+}
 
 // --- Lectura de AT-HYG (gz; en la v3.2 solo la primera parte trae cabecera) ---
 
@@ -477,7 +593,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   // 4) Fila v4.0 de cada estrella del registro.
   const asignadas = asignarV40(base, v40);
-  for (const [s, f] of asignadas) s.athyg_v40 = String(f.id);
+  for (const [s, f] of asignadas) { s.athyg_v40 = String(f.id); s.gaia_v40 = f.gaia; }
   const usadas = new Set(asignadas.values());
 
   // 5) Filas que entran: compañeras nuevas y filas del corte, en orden de ascensión recta.
@@ -496,13 +612,51 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     entran.push(s);
   }
   entran.sort((a, b) => a.pos.ra - b.pos.ra || a.pos.dec - b.pos.dec || Number(a.athyg_v40) - Number(b.athyg_v40));
-  const lista = [...base, ...entran];
-  const quitados = quitarNumerosTomados(base, entran, gaiaDescartadosEnRevision(revision));
+
+  // 5b) Todos los Gaia DR3 conocidos de cada estrella (v3.2, v4.0 y las dos opciones de la revisión),
+  //     para no dar por nueva una fuente que ya es de una estrella del registro.
+  const revisionDe = new Map(revision.map(r => [Number(r.hsb), r]));
+  for (const s of [...base, ...entran]) {
+    const r = s.i === null ? null : revisionDe.get(s.i);
+    s.gaiaAsociados = new Set([s.gaia_dr3, s.gaia_v32, s.gaia_v40, r?.gaia_athyg, r?.gaia_star_identity].filter(Boolean));
+  }
+  const asociados = new Set([...base, ...entran].flatMap(s => [...s.gaiaAsociados]));
+
+  // 5c) CNS5: se enlaza con lo que ya está; lo que falta entra al registro.
+  const cns5 = conciliarCns5(parseSync(fs.readFileSync(CNS5_CSV, 'utf8'), { columns: true, skip_empty_lines: true }), [...base, ...entran]);
+  for (const s of cns5.nuevas) {
+    if (s.gaia_dr3) asociados.add(s.gaia_dr3);
+    s.primaria = primariaDe({ ...s, dist: s.d })?.s ?? null;
+  }
+
+  const lista = [...base, ...entran, ...cns5.nuevas];
+  const descartados = gaiaDescartadosEnRevision(revision);
+  const quitados = quitarNumerosTomados(base, entran, descartados);
+  const quitadosCns5 = quitarNumerosTomados([...base, ...entran], cns5.nuevas, descartados);
   const repetidos = quitarGaiaRepetidos(lista);
+
+  // 5d) 2MASS de cada Gaia DR3 (y el que trae GCNS para las fuentes que ARI no devolvió).
+  const tmass = new Map();
+  await recorrerAthyg([TMASS_CSV], (fila, cab) => { tmass.set(fila[cab.indexOf('source_id')], fila[cab.indexOf('tmass')]); });
+  const gcns = [];
+  await recorrerAthyg([GCNS_CSV], (fila, cab) => {
+    const c = n => fila[cab.indexOf(n)];
+    const plx = Number(c('parallax')), err = Number(c('parallax_error'));
+    if (c('name_2mass') && !tmass.has(c('source_id'))) tmass.set(c('source_id'), c('name_2mass'));
+    const dec = Number(c('dec')), anos = 2000 - 2016;
+    gcns.push({ gaia: c('source_id'), valida: Number(c('gcns_prob')) >= GCNS_PROB_MIN && err > 0 && plx / err >= PARALAJE_SNR_MIN,
+      d: 1000 / plx, pos: { ra: (Number(c('ra')) + (Number(c('pmra')) || 0) * anos / 3.6e6 / Math.cos(dec * Math.PI / 180) + 360) % 360,
+        dec: dec + (Number(c('pmdec')) || 0) * anos / 3.6e6 } });
+  });
+  const tmassDe = g => (g && tmass.get(g)) || '';
+  for (const s of lista) s.tmass = tmassDe(s.gaia_dr3);
 
   // 6) Conciliación con el registro anterior.
   const anterior = fs.existsSync(REGISTRO_CSV) ? fs.readFileSync(REGISTRO_CSV, 'utf8') : '';
-  const { filas, nuevas, retiradas, filaDe } = conciliar(leerRegistro(anterior), lista, { fecha: fechaLocal() });
+  const lotes = leerLotes();
+  const mayorLote = lotes.reduce((m, f) => Math.max(m, f.hsb), 0);
+  const fecha = fechaLocal();
+  const { filas, nuevas, retiradas, filaDe } = conciliar(leerRegistro(anterior), lista, { fecha, siguienteMinimo: mayorLote + 1 });
 
   // 7) Sistemas: letra de componente y estrella principal.
   const filaPorEstrella = new Map(lista.map((s, k) => [s, filaDe[k]]));
@@ -515,7 +669,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     for (const c of sistema.comps) if (c.cid !== undefined && hsbDe.has(c.cid) && !primariaHsb.has(hsbDe.get(c.cid))) primariaHsb.set(hsbDe.get(c.cid), h);
   }
   const companerasDe = new Map();
-  for (const s of entran) {
+  for (const s of [...entran, ...cns5.nuevas]) {
     if (!s.primaria) continue;
     const hp = filaPorEstrella.get(s.primaria).hsb;
     const raiz = primariaHsb.get(hp) ?? hp;
@@ -536,6 +690,36 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const anteriorCompaneras = fs.existsSync(COMPANERAS_CSV) ? fs.readFileSync(COMPANERAS_CSV, 'utf8') : '';
   if (salidaCompaneras !== anteriorCompaneras) fs.writeFileSync(COMPANERAS_CSV, salidaCompaneras);
 
+  // 8) Lote de las fuentes identificadas solo por Gaia DR3: capa del millón y GCNS.
+  const enRegistro = new Set(filas.filter(f => f.estado === 'activa' && f.gaia_dr3).map(f => f.gaia_dr3));
+  if (!fs.existsSync(GAIA_1M_SELECCION)) throw new Error(`Falta ${GAIA_1M_SELECCION}: corre antes node scripts/process_gaia.js`);
+  const millon = [], millonEnlazadas = new Set();
+  await recorrerAthyg([GAIA_1M_SELECCION], (fila, cab) => {
+    const [g, estado] = [fila[cab.indexOf('source_id')], fila[cab.indexOf('estado')]];
+    if (estado.startsWith('duplicada')) millonEnlazadas.add(g); else millon.push(g);
+  });
+  for (const g of millonEnlazadas) asociados.add(g);
+  // GCNS: una fuente sin Gaia conocido en el registro puede ser una estrella del registro que no tiene Gaia.
+  const sinGaia = rejilla([...base, ...entran, ...cns5.nuevas].filter(s => !s.gaiaAsociados?.size && !s.gaia_dr3 && s.pos && s.d > 0).map(s => ({ ...s.pos, s })));
+  const gcnsValidas = gcns.filter(g => g.valida);
+  let gcnsPorPosicion = 0;
+  for (const g of gcnsValidas) {
+    if (asociados.has(g.gaia)) continue;
+    if (sinGaia(g.pos, CNS5_MAX_ARCSEC).some(([, q]) => Math.abs(g.d - q.s.d) / q.s.d < COMPANERA_DIST_REL)) { asociados.add(g.gaia); gcnsPorPosicion++; }
+  }
+  const gcnsEnRegistro = gcnsValidas.filter(g => asociados.has(g.gaia)).length;
+  const loteNuevo = nuevoLote([
+    ['gaia_dr3_1m', millon.filter(g => !enRegistro.has(g))],
+    ['gcns', gcnsValidas.map(g => g.gaia).filter(g => !asociados.has(g))],
+  ], { enRegistro, lotes, siguiente: filas.reduce((m, f) => Math.max(m, f.hsb), mayorLote) + 1, fecha, tmassDe });
+  let archivoLote = null;
+  if (loteNuevo.length) {
+    fs.mkdirSync(LOTES_DIR, { recursive: true });
+    let n = 1;
+    do archivoLote = `${LOTES_DIR}/lote-${fecha}${n > 1 ? `-${n}` : ''}.csv.gz`; while (fs.existsSync(archivoLote) && ++n);
+    fs.writeFileSync(archivoLote, zlib.gzipSync(serializarCsv(COLUMNAS_LOTE, loteNuevo), { level: 9 }));
+  }
+
   const activas = filas.filter(f => f.estado === 'activa');
   const sinV40 = base.filter(s => !s.athyg_v40 && s.origen === 'athyg');
   const anfConV40 = base.filter(s => s.athyg_v40 && s.origen === 'anfitriona').length;
@@ -545,6 +729,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`  Filas añadidas que pierden un número ya tomado: HIP ${quitados.hip}, TYC ${quitados.tyc}, Gaia en duda en la revisión ${quitados.gaia}`);
   console.log(`✓ Gaia revisado: ${revisadas}; gaia_revisar = 1: ${activas.filter(f => f.gaia_revisar).length}; con Gaia DR3: ${activas.filter(f => f.gaia_dr3).length}; con TYC: ${activas.filter(f => f.tyc).length}`);
   console.log(`✓ Compañeras dibujadas: ${new Set(companeras.map(c => c.sistema_hsb)).size} sistemas, ${companeras.filter(c => c.companera).length} filas (${companeras.filter(c => c.companera && c.hsb_nuevo).length} con estrella nueva)${salidaCompaneras === anteriorCompaneras ? '; sin cambios' : ''}`);
+  const porOrigen = o => loteNuevo.filter(f => f.origen === o).length;
+  console.log(`✓ CNS5: ${cns5.medidas} con paralaje; enlazadas ${cns5.por.numeros} por números, ${cns5.por.gliese} por designación GJ y ${cns5.por.posicion} por posición; nuevas ${cns5.nuevas.length} (pierden HIP ${quitadosCns5.hip})`);
+  console.log(`✓ 2MASS en el registro: ${activas.filter(f => f.tmass).length} de ${activas.filter(f => f.gaia_dr3).length} con Gaia DR3`);
+  console.log(`✓ Lotes: ${lotes.length} filas anteriores; ${archivoLote ? `nuevo ${archivoLote}: ${loteNuevo.length} (millón ${porOrigen('gaia_dr3_1m')}, GCNS ${porOrigen('gcns')})` : 'sin lote nuevo'}`);
+  const enMillon = new Set(millon);
+  console.log(`  Millón: ${millon.length + millonEnlazadas.size} fuentes; ${millonEnlazadas.size} son estrellas de Hoshi (process_gaia), ${millon.filter(g => enRegistro.has(g)).length} otras ya en el registro`);
+  console.log(`  GCNS fiables: ${gcnsValidas.length} de ${gcns.length}; ${gcnsEnRegistro} ya en el registro (${gcnsPorPosicion} por posición, sin Gaia en el registro); ${gcnsValidas.filter(g => !asociados.has(g.gaia) && enMillon.has(g.gaia)).length} en la capa del millón`);
   if (repetidos.length) {
     const soloBase = repetidos.filter(r => !r.nuevas);
     console.log(`⚠ Gaia DR3 en más de una estrella: ${repetidos.length} (${repetidos.length - soloBase.length} con filas añadidas; entre estrellas de la carga base: ${soloBase.length})`);

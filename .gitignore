@@ -37,6 +37,8 @@ data/raw/exoplanets/*
 data/raw/gaia/*
 !data/raw/gaia/FUENTES.md
 data/catalog/star_identity.json
+# Selección de la capa del millón que deja scripts/process_gaia.js para el registro HSB (regenerable)
+data/catalog/gaia_1m_seleccion.csv.gz
 # AT-HYG v3.2 completo (199 MB): se descarga con las URL de FUENTES.md
 data/raw/athyg/*
 !data/raw/athyg/FUENTES.md
@@ -61,6 +63,13 @@ data/moons/fuentes/
 data/rings/fuentes/
 # Vectores de Horizons de los planetas (≈ 25 MB): se descargan con scripts/planets/fetch_planets.mjs.
 data/planets/fuentes/
+# Estrellas cercanas y 2MASS (≈ 56 MB): se descargan con scripts/catalog/descargar_cercanas.py
+data/raw/gcns/*
+!data/raw/gcns/FUENTES.md
+data/raw/cns5/*
+!data/raw/cns5/FUENTES.md
+data/raw/tmass/*
+!data/raw/tmass/FUENTES.md
 # Respuestas guardadas de SIMBAD, NASA, MAST, Gaia y JMDC (≈ 8 MB): npm run descargar:red
 data/raw/red/*
 !data/raw/red/FUENTES.md

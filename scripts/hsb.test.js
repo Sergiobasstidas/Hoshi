@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { parse } from 'csv-parse/sync';
 import {
-  COLUMNAS, COMPANERAS_CSV, HSB_NUEVO_BASE, REGISTRO_CSV, asignarV40, conPrefijoGl, conciliar, leerRegistro,
-  partesGl, quitarGaiaRepetidos, quitarNumerosTomados, serializarRegistro,
+  COLUMNAS, COMPANERAS_CSV, HSB_NUEVO_BASE, REGISTRO_CSV, asignarV40, conPrefijoGl, conciliar, conciliarCns5, leerLotes, leerRegistro,
+  nuevoLote, partesGl, quitarGaiaRepetidos, quitarNumerosTomados, serializarRegistro,
 } from './catalog/build_hsb.js';
 import { numeradorDeAnfitrionas } from './catalog/build_added_hosts.js';
 
@@ -14,8 +14,10 @@ const registro = leerRegistro(contenido);
 const activas = registro.filter(f => f.estado === 'activa');
 const porHsb = new Map(registro.map(f => [f.hsb, f]));
 const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8'));
-// Primera versión del registro (solo AT-HYG v3.2 y anfitrionas).
-const PRIMERA_VERSION = 'ae0565b';
+const lotes = leerLotes();
+// Versiones anteriores del registro: solo AT-HYG v3.2 y anfitrionas (ae0565b) y con AT-HYG v4.0 (eb4e1a1).
+const VERSIONES = ['ae0565b', 'eb4e1a1'];
+const ORIGENES_NUEVOS = ['athyg_v40', 'cns5'];
 
 const registroDe = commit => {
   try {
@@ -32,22 +34,26 @@ test('cada estrella de Hoshi tiene su número HSB igual a su i', () => {
     assert.ok(f && f.estado === 'activa', `la estrella ${s.i} no está activa en el registro`);
     assert.equal(f.origen, s.dataOrigin === 'exoplanet-host' ? 'anfitriona' : 'athyg');
   }
-  // El resto de las activas son las filas que entraron desde AT-HYG v4.0.
-  assert.ok(activas.filter(f => f.origen === 'athyg_v40').length + stars.length === activas.length);
+  // El resto de las activas son las filas que entraron desde AT-HYG v4.0 y CNS5.
+  assert.ok(activas.filter(f => ORIGENES_NUEVOS.includes(f.origen)).length + stars.length === activas.length);
 });
 
 test('ningún número HSB repetido y el registro va ordenado', () => {
   assert.equal(new Set(registro.map(f => f.hsb)).size, registro.length);
   assert.ok(registro.every((f, k) => Number.isInteger(f.hsb) && (k === 0 || registro[k - 1].hsb < f.hsb)));
-  assert.ok(registro.every(f => ['athyg', 'anfitriona', 'athyg_v40'].includes(f.origen) && ['activa', 'retirada'].includes(f.estado)));
+  assert.ok(registro.every(f => ['athyg', 'anfitriona', ...ORIGENES_NUEVOS].includes(f.origen) && ['activa', 'retirada'].includes(f.estado)));
   assert.equal(contenido.split('\n')[0], COLUMNAS.join(','));
 });
 
-test('ningún par de estrellas activas comparte athyg_v40 ni Gaia DR3', () => {
+test('ningún par de estrellas activas comparte athyg_v40 ni Gaia DR3, tampoco con los lotes', () => {
   for (const c of ['athyg_v40', 'gaia_dr3']) {
     const valores = activas.map(f => f[c]).filter(Boolean);
     assert.equal(new Set(valores).size, valores.length, c);
   }
+  const gaia = [...activas.map(f => f.gaia_dr3).filter(Boolean), ...lotes.map(f => f.gaia_dr3)];
+  assert.equal(new Set(gaia).size, gaia.length, 'Gaia DR3 repetido entre registro y lotes');
+  const numeros = [...registro.map(f => f.hsb), ...lotes.map(f => f.hsb)];
+  assert.equal(new Set(numeros).size, numeros.length, 'número HSB repetido entre registro y lotes');
   const lista = [{ i: 1, gaia_dr3: '7' }, { i: 2, gaia_dr3: '7' }, { i: null, nueva: true, gaia_dr3: '8' }, { i: 3, gaia_dr3: '8' }];
   quitarGaiaRepetidos(lista);
   assert.deepEqual(lista.map(s => s.gaia_dr3), ['', '', '', '8']);
@@ -76,23 +82,52 @@ test('AT-HYG v4.0: Betelgeuse, casos especiales y anfitrionas enlazadas', () => 
   assert.ok(siriusB.hsb >= HSB_NUEVO_BASE && siriusB.gl === 'Gl 244B' && siriusB.comp === 'B' && siriusB.primaria_hsb === '584955');
 });
 
-test('las estrellas nuevas van desde 100 000 000 y traen fila v4.0', () => {
-  const nuevas = registro.filter(f => f.origen === 'athyg_v40');
-  assert.ok(nuevas.length > 0);
-  assert.ok(nuevas.every(f => f.hsb >= HSB_NUEVO_BASE && f.athyg_v40 && !f.athyg_v32));
-  assert.ok(registro.filter(f => f.origen !== 'athyg_v40').every(f => f.hsb < HSB_NUEVO_BASE));
+test('las estrellas nuevas van desde 100 000 000', () => {
+  const v40 = registro.filter(f => f.origen === 'athyg_v40');
+  assert.ok(v40.length > 0 && v40.every(f => f.hsb >= HSB_NUEVO_BASE && f.athyg_v40 && !f.athyg_v32));
+  const cns5 = registro.filter(f => f.origen === 'cns5');
+  assert.ok(cns5.length > 0 && cns5.every(f => f.hsb >= HSB_NUEVO_BASE && f.gl && !f.athyg_v32 && !f.athyg_v40));
+  assert.ok(registro.filter(f => !ORIGENES_NUEVOS.includes(f.origen)).every(f => f.hsb < HSB_NUEVO_BASE));
+  assert.ok(lotes.length > 1_000_000 && lotes.every(f => f.hsb >= HSB_NUEVO_BASE && /^\d+$/.test(f.gaia_dr3) && ['gaia_dr3_1m', 'gcns'].includes(f.origen)));
 });
 
-test('ningún número de la primera versión cambió ni desapareció', () => {
-  const primera = registroDe(PRIMERA_VERSION);
-  if (!primera) return;
-  for (const f of primera) {
-    const g = porHsb.get(f.hsb);
-    assert.ok(g, `el número ${f.hsb} desapareció del registro`);
-    assert.equal(g.origen, f.origen);
-    assert.equal(g.athyg_v32, f.athyg_v32, `cambió la estrella de AT-HYG del número ${f.hsb}`);
-    assert.equal(g.alta, f.alta);
+test('ningún número de las versiones anteriores cambió ni desapareció', () => {
+  for (const version of VERSIONES) {
+    const previa = registroDe(version);
+    if (!previa) continue;
+    const mayor = previa.reduce((m, f) => Math.max(m, f.hsb), 0);
+    for (const f of previa) {
+      const g = porHsb.get(f.hsb);
+      assert.ok(g, `el número ${f.hsb} desapareció del registro`);
+      assert.equal(g.origen, f.origen);
+      assert.equal(g.athyg_v32, f.athyg_v32, `cambió la estrella de AT-HYG del número ${f.hsb}`);
+      if (f.athyg_v40) assert.equal(g.athyg_v40, f.athyg_v40, `cambió la fila v4.0 del número ${f.hsb}`);
+      assert.equal(g.alta, f.alta);
+    }
+    // Lo que entró después usa números mayores que todos los de esa versión.
+    const conocidos = new Set(previa.map(f => f.hsb));
+    assert.ok(registro.filter(f => !conocidos.has(f.hsb)).every(f => f.hsb > mayor), version);
+    assert.ok(lotes.every(f => f.hsb > mayor), version);
   }
+});
+
+test('CNS5, 2MASS y lotes: casos conocidos e idempotencia', () => {
+  // p Eridani A ya es la estrella 125364: CNS5 no la vuelve a crear.
+  assert.ok(!registro.some(f => f.origen === 'cns5' && f.gl === 'Gl 66A'));
+  assert.equal(porHsb.get(125364).tmass, '01394755-5611471');
+  assert.ok(activas.filter(f => f.tmass).length > 120_000);
+  // Con todo ya numerado, un lote nuevo queda vacío.
+  const enRegistro = new Set(activas.map(f => f.gaia_dr3).filter(Boolean));
+  assert.equal(nuevoLote([['gcns', lotes.slice(0, 1000).map(f => f.gaia_dr3)]], { enRegistro, lotes, siguiente: 1, fecha: 'x', tmassDe: () => '' }).length, 0);
+  // CNS5 se enlaza por número antes que por posición, y lo que no está entra como nuevo.
+  const s = { i: 1, origen: 'athyg', hip: '10', gl: 'Gl 5A', gaia_dr3: '77', pos: { ra: 10, dec: 10 } };
+  const filas = [
+    { cns5_id: '1', gj_id: '5', component_id: 'A', gaia_edr3_id: '77', hip_id: '10', ra: '10', dec: '10', epoch: '2000', parallax: '50' },
+    { cns5_id: '2', gj_id: '5', component_id: 'B', gaia_edr3_id: '78', hip_id: '', ra: '20', dec: '10', epoch: '2000', parallax: '50' },
+  ];
+  const r = conciliarCns5(filas, [s]);
+  assert.equal(r.enlazadas.get(filas[0]), s);
+  assert.deepEqual(r.nuevas.map(n => n.gl), ['Gl 5B']);
 });
 
 test('el registro solo crece respecto de la versión commiteada', () => {
@@ -158,7 +193,7 @@ test('las compañeras dibujadas apuntan a estrellas nuevas del registro', () => 
   assert.ok(filas.length > 1000);
   for (const f of filas.filter(f => f.hsb_nuevo)) {
     const g = porHsb.get(Number(f.hsb_nuevo));
-    assert.ok(g && g.origen === 'athyg_v40' && g.athyg_v40 === f.athyg_v40, f.hsb_nuevo);
+    assert.ok(g && ORIGENES_NUEVOS.includes(g.origen) && g.athyg_v40 === f.athyg_v40, f.hsb_nuevo);
   }
   const sirio = filas.find(f => f.sistema_hsb === '584955' && f.companera === 'B');
   assert.equal(porHsb.get(Number(sirio.hsb_nuevo)).gl, 'Gl 244B');
@@ -167,7 +202,9 @@ test('las compañeras dibujadas apuntan a estrellas nuevas del registro', () => 
 
 test('las anfitrionas toman su número del registro', () => {
   const added = JSON.parse(fs.readFileSync('data/catalog/added_hosts.json', 'utf8')).stars;
-  const numero = numeradorDeAnfitrionas(registro);
+  const mayorLote = lotes.reduce((m, f) => Math.max(m, f.hsb), 0);
+  const numero = numeradorDeAnfitrionas(registro, mayorLote);
   for (const s of added) assert.equal(numero({ h: s.h, gaia: s.gaia }), s.i, s.h);
-  assert.equal(numero({ h: 'Anfitriona nueva', gaia: null }), registro[registro.length - 1].hsb + 1);
+  // Una anfitriona nueva sigue al mayor número del registro y de los lotes.
+  assert.equal(numero({ h: 'Anfitriona nueva', gaia: null }), Math.max(registro[registro.length - 1].hsb, mayorLote) + 1);
 });

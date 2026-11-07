@@ -40,6 +40,9 @@ const IDENTITY_PATH = './data/catalog/star_identity.json';
 const HOSTS_PATH = './data/catalog/added_hosts.json';
 const SYSTEMS_PATH = './data/processed/star_systems.json';
 const OUTPUT_PATH = './public/data/gaia-1m.bin';
+// Qué se hizo con cada fuente (para el registro HSB): dibujada, fuera del millón o duplicado de una
+// estrella de Hoshi (por source_id, posición o compañera), con el id de esa estrella. No se versiona.
+const SELECTION_PATH = './data/catalog/gaia_1m_seleccion.csv.gz';
 
 const MAX_STARS = 1_000_000;
 const FORMAT_VERSION = 1;
@@ -85,10 +88,11 @@ for (const s of JSON.parse(fs.readFileSync(IDENTITY_PATH, 'utf-8')).stars) if (s
 for (const s of JSON.parse(fs.readFileSync(HOSTS_PATH, 'utf-8')).stars) if (s.gaia) gaiaById.set(s.i, s.gaia);
 
 const knownSourceIds = new Set();
+const idBySourceId = new Map();
 const withoutId = [];
 for (const s of hoshiStars) {
   const sid = gaiaById.get(s.i);
-  if (sid) knownSourceIds.add(sid);
+  if (sid) { knownSourceIds.add(sid); idBySourceId.set(sid, s.i); }
   else if (s.d > 0) withoutId.push(s); // el Sol (d = 0) no cuenta
 }
 console.log(`✓ Estrellas en Hoshi: ${hoshiStars.length.toLocaleString()}; con source_id de Gaia: ${knownSourceIds.size.toLocaleString()}; sin él: ${withoutId.length}`);
@@ -151,9 +155,11 @@ console.log(`✓ Filas de Gaia leídas: ${rows.length.toLocaleString()}`);
 // === 3. Duplicados ===
 // 3a. Por source_id.
 const duplicate = new Uint8Array(rows.length);
+// Motivo (1 = source_id, 2 = posición, 3 = compañera) y estrella de Hoshi de cada duplicado.
+const duplicateOf = new Float64Array(rows.length);
 let dupById = 0;
 rows.forEach((r, k) => {
-  if (knownSourceIds.has(r.sid)) { duplicate[k] = 1; dupById++; }
+  if (knownSourceIds.has(r.sid)) { duplicate[k] = 1; duplicateOf[k] = idBySourceId.get(r.sid); dupById++; }
 });
 
 // 3b. Por posición (solo las estrellas de Hoshi sin source_id): a menos de MATCH_RADIUS_ARCSEC
@@ -183,7 +189,7 @@ for (const p of probes) {
     if (Math.hypot(dra, r.dec - p.dec) > radiusDeg) continue;
     const vg = vFromGaia(r.g, r.bprp);
     const ok = vg !== null ? Math.abs(vg - p.v) <= TOL_MAG : (r.g - p.v >= G_MINUS_V_MIN && r.g - p.v <= G_MINUS_V_MAX);
-    if (ok) { duplicate[k] = 1; dupByPosition++; }
+    if (ok) { duplicate[k] = 2; duplicateOf[k] = p.i; dupByPosition++; }
   }
 }
 
@@ -215,7 +221,8 @@ for (const [id, system] of Object.entries(JSON.parse(fs.readFileSync(SYSTEMS_PAT
     if (Math.abs(r.plx - hostPlx) / hostPlx > COMP_TOL_PLX) continue;
     const vg = vFromGaia(r.g, r.bprp);
     if (compV.length && vg !== null && Math.min(...compV.map(v => Math.abs(vg - v))) > COMP_TOL_MAG) continue;
-    duplicate[k] = 1;
+    duplicate[k] = 3;
+    duplicateOf[k] = Number(id);
     dupByCompanion++;
   }
 }
@@ -262,6 +269,12 @@ stars.forEach((s, k) => {
 
 fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
 fs.writeFileSync(OUTPUT_PATH, buffer);
+
+const drawn = new Set(stars.map(s => s.sid));
+const MOTIVO = ['', 'source_id', 'posicion', 'companera'];
+const selection = ['source_id,estado,hoshi_i', ...rows.map((r, k) => (duplicate[k]
+  ? `${r.sid},duplicada_${MOTIVO[duplicate[k]]},${duplicateOf[k]}` : `${r.sid},${drawn.has(r.sid) ? 'dibujada' : 'fuera'},`))].join('\n') + '\n';
+fs.writeFileSync(SELECTION_PATH, zlib.gzipSync(selection, { level: 9 }));
 const gzipped = zlib.gzipSync(buffer, { level: 9 }).length;
 console.log(`✓ Guardado: ${OUTPUT_PATH} (${(buffer.length / 1048576).toFixed(2)} MB; con gzip ${(gzipped / 1048576).toFixed(2)} MB)`);
 

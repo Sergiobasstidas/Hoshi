@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { temperatureToBv, temperatureToRgb, vFromGaia } from './photometry.js';
-import { HSB_NUEVO_BASE, REGISTRO_CSV, leerRegistro } from './build_hsb.js';
+import { HSB_NUEVO_BASE, REGISTRO_CSV, leerLotes, leerRegistro } from './build_hsb.js';
 
 const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
 const SYSTEMS_JSON = './data/exoplanets/exoplanet_systems.json';
@@ -52,13 +52,14 @@ export function equatorialToCartesian(raDeg, decDeg, dist) {
 }
 
 // Número HSB de cada anfitriona: se reconoce en el registro por Gaia DR3 o por el nombre de la
-// NASA (también si quedó retirada); si no está, recibe el siguiente libre desde HSB_NUEVO_BASE.
-export function numeradorDeAnfitrionas(registro) {
+// NASA (también si quedó retirada); si no está, recibe el siguiente libre desde HSB_NUEVO_BASE, por
+// encima de todos los números del registro y de los lotes (`mayorLote`).
+export function numeradorDeAnfitrionas(registro, mayorLote = 0) {
   const propias = registro.filter(f => f.origen === 'anfitriona');
   const porGaia = new Map(propias.filter(f => f.gaia_dr3).map(f => [f.gaia_dr3, f.hsb]));
   const porNombre = new Map(propias.filter(f => f.nombre).map(f => [f.nombre, f.hsb]));
   const usados = new Set(registro.map(f => f.hsb));
-  let siguiente = registro.reduce((m, f) => Math.max(m, f.hsb + 1), HSB_NUEVO_BASE);
+  let siguiente = registro.reduce((m, f) => Math.max(m, f.hsb + 1), Math.max(HSB_NUEVO_BASE, mayorLote + 1));
   const dados = new Set();
   return host => {
     let numero = (host.gaia && porGaia.get(host.gaia)) ?? porNombre.get(host.h);
@@ -129,7 +130,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const maxAthygId = Math.max(...read(ATHYG_CSV).map(r => Number(r.id)));
   if (maxAthygId >= ADDED_HOST_ID_BASE) throw new Error(`El rango ${ADDED_HOST_ID_BASE} colisiona con AT-HYG (máx. ${maxAthygId})`);
   if (!fs.existsSync(REGISTRO_CSV)) throw new Error(`Falta ${REGISTRO_CSV}: los números de las anfitrionas salen del registro HSB`);
-  const numero = numeradorDeAnfitrionas(leerRegistro(fs.readFileSync(REGISTRO_CSV, 'utf8')));
+  const numero = numeradorDeAnfitrionas(leerRegistro(fs.readFileSync(REGISTRO_CSV, 'utf8')), leerLotes().reduce((m, f) => Math.max(m, f.hsb), 0));
 
   const added = [], skipped = {}, shared = [];
   const byGaia = new Map();
