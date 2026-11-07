@@ -7,9 +7,9 @@ export const MODOS_BRILLO = [
   { id: 'ojo', nombre: 'Ojo humano', limite: 6, texto: 'Lo que verías a simple vista desde aquí. Lejos de todo, casi nada.' },
   { id: 'binoculares', nombre: 'Binoculares', limite: 9, texto: 'Como con binoculares: aparecen miles de estrellas que el ojo no alcanza.' },
 ];
-// Sin nada guardado se parte en Binoculares (pedido de Sergio, 07/11/2026); la clave cambió para que
-// también parta así un navegador que tenía «Mapa» guardado.
-const CLAVE = 'hoshi-cielo-2', INICIAL = 'binoculares';
+// Sin nada guardado se parte en «Ojo humano» (pedido de Sergio, 07/11/2026); la clave cambió para que
+// también parta así un navegador que tenía otro modo guardado.
+const CLAVE = 'hoshi-cielo-3', INICIAL = 'ojo';
 const leerGuardado = () => {
   try { return window.localStorage.getItem(CLAVE); } catch { return null; }
 };
