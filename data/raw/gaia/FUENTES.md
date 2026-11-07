@@ -65,3 +65,15 @@ Generado con `python3 scripts/catalog/cruzar_gaia_posicion.py xmatch` y luego `v
 | `gaia_dr3_posicion_rechazados.csv` | Candidatos descartados con su motivo | 361845 | — | — |
 
 Validación (constantes al inicio del script): paralaje compatible con la distancia de AT-HYG (±20 % o ±2,5 mas + 3σ) y V predicha desde G y BP−RP (Riello et al. 2021) a ±1 mag; exactamente un candidato válido, si no se descarta por ambiguo. Sin paralaje en Gaia: separación ≤ 1,5″ y magnitud a ±0,5 (`validacion = mag`). Radio amplio: paralaje a ±1 % y movimiento propio a ±2 mas/año o 2 % (`plx+pm`). Una fuente Gaia asignada a dos estrellas descarta ambas.
+
+## Capa de fondo de un millón de estrellas (06/11/2026 23:42 – 07/11/2026 00:01, -03:00)
+
+`gaia_dr3_1m.csv.gz`: 1150000 filas de datos (+ cabecera), 79283169 bytes, sha256 `ed0cd6d4999127f08914cfd61aa08effea39dd06955e300c15a9c2e5ca6634c1`. Cabecera: `source_id,ra,dec,parallax,parallax_over_error,pmra,pmdec,phot_g_mean_mag,bp_rp`.
+
+Servicio: TAP del espejo Gaia de ARI Heidelberg, `https://gaia.ari.uni-heidelberg.de/tap/sync`, `LANG=ADQL`, `FORMAT=csv`, `MAXREC=3000000`. El trabajo asíncrono (`/async`) quedó más de 12 minutos en cola sin empezar y se canceló; la descarga se hizo en tramos de `phot_g_mean_mag` (límites −5, 8, 9, 9,5, 10, 10,25, 10,5, 10,75, 11, 11,25), cada uno con:
+
+```sql
+SELECT source_id, ra, dec, parallax, parallax_over_error, pmra, pmdec, phot_g_mean_mag, bp_rp FROM gaiadr3.gaia_source WHERE parallax_over_error >= 10 AND ruwe < 1.4 AND phot_g_mean_mag IS NOT NULL AND phot_g_mean_mag >= <lím. inf.> AND phot_g_mean_mag < <lím. sup.> ORDER BY phot_g_mean_mag
+```
+
+Cada tramo se comprobó con `SELECT COUNT(*)` y la misma condición: todos coinciden (1264478 filas en total). Los tramos se unieron en orden y se conservaron las primeras 1150000 filas, equivalente a `TOP 1150000 ... ORDER BY phot_g_mean_mag`. Sin `source_id` repetidos; 523 filas sin `bp_rp`. Última fila: G = 11,141. Descarga de los tramos: 1147 s. Posiciones en época 2016.0. Lo procesa `scripts/process_gaia.js`.

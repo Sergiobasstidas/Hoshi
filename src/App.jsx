@@ -9,6 +9,7 @@ import starsUrl from '../data/processed/stars_15pc.json?url';
 import systemsUrl from '../data/processed/star_systems.json?url';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
+import EstrellasGaia from './scene/EstrellasGaia';
 import SolarSystem from './scene/SolarSystem';
 import { Reposo } from './scene/reposo';
 import OortCloud from './scene/OortCloud';
@@ -704,6 +705,7 @@ export default function App() {
       {showPulsars && <PulsarMap origin={origin} />}
       <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
         focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} resaltadas={miembrosCumulo} />
+      <EstrellasGaia activa={catalogueStatus === 'ready'} gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} origin={origin} />
       {verCumulos && datosCumulos && !binaryBody && !showPulsars && <Cumulos datos={datosCumulos} origin={origin}
         elegido={cumulo} onElegir={elegirCumulo} />}
       {binaryBody && <BinarySystem />}
