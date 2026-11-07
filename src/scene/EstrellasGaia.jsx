@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { backgroundGain, skyExposure, smoothRange } from './scale';
+import { LIGHT_YEAR_PC, backgroundGain, skyExposure, smoothRange } from './scale';
 import { catalogueGalaxyGain } from './galaxy.js';
 import { parametrosBrillo } from './modosBrillo';
 import { GAIA_URL, M_MIN, M_STEP, escalasDeGrupo, leerGaia, tablaColores } from './gaiaCapa.js';
@@ -15,7 +15,13 @@ import { GAIA_URL, M_MIN, M_STEP, escalasDeGrupo, leerGaia, tablaColores } from 
 const TENUE_MAPA = 0.4;
 // En «Mapa» la capa no se apaga al alejarse (pedido de Sergio, 07/11/2026): sin la atenuación por
 // distancia a la cámara de StarField y con un piso para el fundido hacia la vista de la Vía Láctea.
-const PISO_GALAXIA_MAPA = 0.4;
+// Ese piso se apaga al salir de la galaxia (entre 30.000 y 60.000 años luz del Sol): desde fuera, el millón
+// de puntos cae en un círculo pequeño de la pantalla y, sumados, formaban un manchón blanco sobre el Sol.
+const PISO_GALAXIA_MAPA = 0.4, PISO_HASTA_AL = [30000, 60000];
+// Visto desde más lejos que la propia capa (el 90 % de sus estrellas está a menos de ~6.000 años luz), el
+// millón de puntos se junta en pantalla y su brillo sumado crece con el cuadrado de la distancia: se compensa
+// para que la mancha conserve su brillo en vez de saturarse.
+const EXTENSION_CAPA_AL = 6000;
 
 // El mismo shader que StarGroup (StarField.jsx) para estrellas de fondo (sin nombre, sin anclar,
 // sin realce), con la magnitud y el color leídos de bytes y la tabla de colores en una textura.
@@ -32,6 +38,7 @@ const vertexShader = `
   uniform float tenue;
   uniform float areaScale;
   uniform float energyScale;
+  uniform float farCompression;
   varying vec3 vColor;
   varying float vAlpha;
   #include <common>
@@ -49,8 +56,11 @@ const vertexShader = `
     float nearSize = 1.0 / sqrt(distanceToEye + 0.5);
     float backgroundSize = clamp(2.8 + 2.5 * nearSize, 2.8, 5.5);
     float individualSize = mix(1.0, markerSize, individualMix);
-    gl_PointSize = 1.15 * backgroundSize * individualSize * pixelRatio;
-    vAlpha = exposure * mix(luminosity, individualLuminosity, individualMix) * 0.36 * tenue;
+    // La misma compresión de lejos que StarField para el fondo: puntos menores y con menos energía, para
+    // no sumar cientos de miles de halos de tamaño fijo en un disco blanco.
+    float farView = smoothstep(300.0, 3000.0, distanceToEye) * farCompression;
+    gl_PointSize = 1.15 * backgroundSize * mix(1.0, 0.65, farView) * individualSize * pixelRatio;
+    vAlpha = exposure * mix(luminosity, individualLuminosity, individualMix) * 0.36 * tenue * mix(1.0, 0.25, farView);
     float apparentMagnitude = absoluteMagnitude + 5.0 * (log(max(distanceToEye, 1e-6) / 10.0) / log(10.0));
     if (fisico > 0.5) {
       vAlpha = clamp(0.08 * pow(10.0, 0.4 * (limite - apparentMagnitude)), 0.0, 1.0) * ganancia;
@@ -117,7 +127,7 @@ export default function EstrellasGaia({ origin, gain = 1, activa = true }) {
   const uniforms = useMemo(() => ({
     tablaColor: { value: null }, exposure: { value: 0.13 }, pixelRatio: { value: 1 },
     individualMix: { value: 0 }, fisico: { value: 0 }, limite: { value: 6 },
-    ganancia: { value: 1 }, tenue: { value: TENUE_MAPA }, areaScale: { value: 1 }, energyScale: { value: 1 },
+    ganancia: { value: 1 }, tenue: { value: TENUE_MAPA }, areaScale: { value: 1 }, energyScale: { value: 1 }, farCompression: { value: 0 },
   }), []);
   useFrame(({ camera, gl }) => {
     const material = materialRef.current;
@@ -128,13 +138,15 @@ export default function EstrellasGaia({ origin, gain = 1, activa = true }) {
     u.tablaColor.value = datos.textura;
     u.areaScale.value = datos.areaScale;
     u.energyScale.value = datos.energyScale;
-    u.exposure.value = skyExposure(distance, false) * backgroundGain(distance) * gain * Math.max(galaxia, PISO_GALAXIA_MAPA);
+    u.exposure.value = skyExposure(distance, false) * backgroundGain(distance) * gain * Math.max(galaxia, PISO_GALAXIA_MAPA * (1 - smoothRange(distance / LIGHT_YEAR_PC, ...PISO_HASTA_AL)))
+      * Math.min(1, (EXTENSION_CAPA_AL * LIGHT_YEAR_PC / distance) ** 2);
     u.pixelRatio.value = gl.getPixelRatio();
     const { fisico, limite } = parametrosBrillo();
     u.fisico.value = fisico;
     u.limite.value = limite;
     u.ganancia.value = gain * galaxia;
     u.individualMix.value = smoothRange(distance, 4, 12);
+    u.farCompression.value = THREE.MathUtils.smoothstep(distance, 300, 3000);
   });
   if (!datos) return null;
   // La geometría queda en el marco del catálogo y el grupo se traslada por −origin: la resta se hace en
