@@ -2,12 +2,37 @@
 // Registro HSB (Hoshi + Sergio Bastidas): un número fijo por estrella que no cambia aunque
 // cambien las versiones de AT-HYG o la tabla de la NASA. Crea o actualiza
 // data/catalog/hsb_registro.csv sin renumerar nunca:
-//  - cada estrella de stars_15pc.json se reconoce en el registro por sus números fijos, en
-//    este orden: HIP, HD, TYC, Gaia DR3, id de AT-HYG de la misma versión y nombre;
-//  - las nuevas reciben el siguiente número desde HSB_NUEVO_BASE (en el llenado inicial,
-//    con el registro vacío, el número es su `i` actual);
+//  - cada estrella se reconoce en el registro por sus números fijos, en este orden: HIP, HD,
+//    TYC, Gaia DR3, id de AT-HYG v3.2, id de AT-HYG v4.0 y nombre;
+//  - las nuevas reciben el siguiente número desde HSB_NUEVO_BASE (en la primera carga, con el
+//    registro vacío, el número fue su `i` de stars_15pc.json);
 //  - las que ya no están quedan como «retirada»; ninguna fila se borra.
-// Correrlo dos veces seguidas da exactamente el mismo archivo.
+//
+// Estrellas que entran:
+//  1. Las de data/processed/stars_15pc.json (AT-HYG v3.2 y anfitrionas añadidas).
+//  2. De AT-HYG v4.0: las filas nuevas (sin TYC, Gaia, HIP ni HYG de la v3.2) que son
+//     compañeras de una estrella del registro (mismo número de Gliese, misma base de TYC o
+//     ≤ 60″ con distancia a ±25 %), y las filas de la HYGLike v4.0 con distancia que
+//     todavía no están. Se numeran en orden de ascensión recta.
+//
+// A cada estrella se le busca su fila de AT-HYG v4.0 (columna athyg_v40) puntuando los números
+// que coinciden y restando los que se contradicen (HIP 5, HD 4, TYC 3, Gaia 2, Gliese 1); se
+// asigna de mayor a menor puntaje, una fila por estrella. Sin ningún número en común, por
+// posición (≤ 5″) y brillo (|Δmag| < 0,5).
+//
+// Gaia DR3: data/catalog/hsb_gaia_revision.csv trae la fuente elegida cuando AT-HYG y el enlace
+// propio (star_identity) no coinciden o solo AT-HYG la da. Criterio (comparación con Gaia DR3 de
+// ARI Heidelberg, 07/11/2026): posición de Gaia llevada a J2000 frente a la de Tycho-2 (< 3″; < 30″
+// si la posición es de Gliese) y V esperada desde G y BP−RP (Riello et al. 2021) frente a la V de
+// Hipparcos (entre −0,5 y +1,0, porque Gaia separa componentes de pares que Hipparcos no). Las
+// dudosas quedan sin Gaia y con gaia_revisar = 1. Un mismo Gaia nunca queda en dos estrellas.
+//
+// Columnas de sistemas: comp (letra de la componente según Gliese en AT-HYG) y primaria_hsb
+// (estrella principal: la de star_systems.json o aquella de la que la fila nueva es compañera).
+// data/catalog/hsb_companeras_dibujadas.csv relaciona cada compañera que star_systems.json dibuja
+// sin estrella propia con la estrella HSB nueva que la representa.
+//
+// Correrlo dos veces seguidas da exactamente los mismos archivos.
 // Uso: npm run hsb   (requiere data/raw/athyg, ver su FUENTES.md)
 
 import fs from 'node:fs';
@@ -16,18 +41,30 @@ import { parse } from 'csv-parse';
 import { parse as parseSync } from 'csv-parse/sync';
 
 export const REGISTRO_CSV = './data/catalog/hsb_registro.csv';
+export const COMPANERAS_CSV = './data/catalog/hsb_companeras_dibujadas.csv';
+const GAIA_REVISION_CSV = './data/catalog/hsb_gaia_revision.csv';
 const STARS_JSON = './data/processed/stars_15pc.json';
+const SYSTEMS_JSON = './data/processed/star_systems.json';
 const ADDED_HOSTS_JSON = './data/catalog/added_hosts.json';
 const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
-const ATHYG_PARTES = ['./data/raw/athyg/athyg_v32-1.csv.gz', './data/raw/athyg/athyg_v32-2.csv.gz'];
+const ATHYG_V32 = ['./data/raw/athyg/athyg_v32-1.csv.gz', './data/raw/athyg/athyg_v32-2.csv.gz'];
+const ATHYG_V40 = ['./data/raw/athyg/v40/athyg_40.csv.gz'];
+const HYGLIKE_V40 = './data/raw/athyg/v40/hyglike_from_athyg_v40.csv.gz';
 
 // Los números de AT-HYG llegan a ~2,6 millones y las anfitrionas añadidas usan 9 000 000 + n:
 // las estrellas que entren después de la primera carga empiezan aquí.
 export const HSB_NUEVO_BASE = 100_000_000;
-export const COLUMNAS = ['hsb', 'origen', 'athyg_v32', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'tic', 'nombre', 'alta', 'estado'];
+export const COLUMNAS = ['hsb', 'origen', 'athyg_v32', 'athyg_v40', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'gaia_revisar',
+  'tic', 'nombre', 'comp', 'primaria_hsb', 'alta', 'estado'];
+// Columnas mínimas para leer un registro de una versión anterior (las demás quedan vacías).
+const COLUMNAS_BASE = ['hsb', 'origen', 'athyg_v32', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'tic', 'nombre', 'alta', 'estado'];
 // Identificadores con los que se reconoce una estrella, en orden de prioridad.
-export const LLAVES = ['hip', 'hd', 'tyc', 'gaia_dr3', 'athyg_v32', 'nombre'];
-const IDENTIDAD = ['origen', 'athyg_v32', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'tic', 'nombre'];
+export const LLAVES = ['hip', 'hd', 'tyc', 'gaia_dr3', 'athyg_v32', 'athyg_v40', 'nombre'];
+const IDENTIDAD = ['origen', 'athyg_v32', 'athyg_v40', 'hip', 'hd', 'hr', 'gl', 'tyc', 'gaia_dr3', 'gaia_revisar', 'tic', 'nombre'];
+// Peso de cada número al buscar la fila de AT-HYG v4.0 de una estrella.
+const PESOS_V40 = { hip: 5, hd: 4, tyc: 3, gaia: 2, gl: 1 };
+const COMPANERA_MAX_ARCSEC = 60, COMPANERA_DIST_REL = 0.25;
+const POSICION_MAX_ARCSEC = 5, POSICION_MAX_DMAG = 0.5;
 
 const texto = v => (v === undefined || v === null ? '' : String(v).trim());
 
@@ -35,32 +72,128 @@ const texto = v => (v === undefined || v === null ? '' : String(v).trim());
 
 const celda = v => (/[",\n\r]|^\s|\s$/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
-export function serializarRegistro(filas) {
-  return [COLUMNAS.join(','), ...filas.map(f => COLUMNAS.map(c => celda(texto(f[c]))).join(','))].join('\n') + '\n';
+export function serializarCsv(columnas, filas) {
+  return [columnas.join(','), ...filas.map(f => columnas.map(c => celda(texto(f[c]))).join(','))].join('\n') + '\n';
 }
+
+export const serializarRegistro = filas => serializarCsv(COLUMNAS, filas);
 
 export function leerRegistro(contenido) {
   if (!contenido) return [];
   const filas = parseSync(contenido, { columns: true, skip_empty_lines: true });
-  const faltan = COLUMNAS.filter(c => filas.length && !(c in filas[0]));
+  const faltan = COLUMNAS_BASE.filter(c => filas.length && !(c in filas[0]));
   if (faltan.length) throw new Error(`Al registro le faltan columnas: ${faltan.join(', ')}`);
-  return filas.map(f => ({ ...f, hsb: Number(f.hsb) }));
+  return filas.map(f => ({ ...Object.fromEntries(COLUMNAS.map(c => [c, f[c] ?? ''])), hsb: Number(f.hsb) }));
 }
 
-// --- Identidad de cada estrella de Hoshi ---
+// --- Números de Gliese, TYC y posiciones ---
 
-// Un mismo Gaia DR3 en dos estrellas indica un enlace dudoso: se deja vacío en todas.
+// «Gl 66B» → { numero: '66', comp: 'B' }; también acepta «66B» (formato de la v4.0).
+export function partesGl(gl) {
+  const m = texto(gl).match(/^(?:[A-Za-z]+\s*)?(\d+(?:\.\d+)?)\s*([A-Za-z]*)$/);
+  return m ? { numero: m[1], comp: m[2] } : null;
+}
+const glNormal = gl => { const p = partesGl(gl); return p ? p.numero + p.comp : ''; };
+// AT-HYG v4.0 quita el prefijo: hasta 999 son del catálogo de Gliese (Gl), desde 1000 de Gliese-Jahreiss (GJ).
+export function conPrefijoGl(gl) {
+  const p = partesGl(gl);
+  if (!p) return texto(gl);
+  return `${Number(p.numero) < 1000 ? 'Gl' : 'GJ'} ${p.numero}${p.comp}`;
+}
+const baseTyc = tyc => texto(tyc).split('-').slice(0, 2).join('-');
+
+function separacion(a, b) {
+  const r = Math.PI / 180;
+  const x = Math.sin((b.dec - a.dec) * r / 2) ** 2 + Math.cos(a.dec * r) * Math.cos(b.dec * r) * Math.sin((b.ra - a.ra) * r / 2) ** 2;
+  return 2 * Math.asin(Math.min(1, Math.sqrt(x))) / r * 3600;
+}
+
+// Índice por celdas de 0,1° para buscar vecinos a menos de unos minutos de arco.
+function rejilla(puntos) {
+  const celdas = new Map();
+  const clave = (i, j) => `${i}:${j}`;
+  for (const p of puntos) {
+    const k = clave(Math.floor(p.dec * 10), Math.floor(p.ra * 10));
+    if (!celdas.has(k)) celdas.set(k, []);
+    celdas.get(k).push(p);
+  }
+  return (p, radio) => {
+    const out = [], fd = Math.floor(p.dec * 10);
+    const anchoRa = Math.abs(p.dec) > 85 ? 1800 : Math.ceil(1 / Math.max(0.05, Math.cos(p.dec * Math.PI / 180)));
+    for (let i = fd - 1; i <= fd + 1; i++) {
+      for (let dj = -anchoRa; dj <= anchoRa; dj++) {
+        for (const q of celdas.get(clave(i, (Math.floor(p.ra * 10) + dj + 3600) % 3600)) || []) {
+          const s = separacion(p, q);
+          if (s <= radio) out.push([s, q]);
+        }
+      }
+    }
+    return out.sort((a, b) => a[0] - b[0]);
+  };
+}
+
+// --- Gaia DR3 ---
+
+// Un mismo Gaia DR3 en dos estrellas indica un enlace dudoso. Lo conserva la única estrella del
+// nivel más alto: 0 = carga base con su Gaia de AT-HYG v3.2, 1 = carga base con Gaia de la
+// revisión, 2 = fila añadida de la v4.0. Si en ese nivel hay más de una, se quita a todas.
+// Donde se quita queda gaia_revisar = 1.
+const nivelGaia = s => (s.nueva ? 2 : s.gaiaDeRevision ? 1 : 0);
 export function quitarGaiaRepetidos(identidades) {
   const porGaia = new Map();
   for (const s of identidades) if (s.gaia_dr3) porGaia.set(s.gaia_dr3, [...(porGaia.get(s.gaia_dr3) || []), s]);
-  const repetidos = [...porGaia].filter(([, lista]) => lista.length > 1);
-  for (const [, lista] of repetidos) for (const s of lista) s.gaia_dr3 = '';
-  return repetidos.map(([gaia, lista]) => ({ gaia, estrellas: lista.map(s => `${s.i} ${s.nombre || s.hip && `HIP ${s.hip}` || s.hd && `HD ${s.hd}` || ''}`.trim()) }));
+  const repetidos = [];
+  for (const [gaia, lista] of porGaia) {
+    if (lista.length < 2) continue;
+    const mejor = Math.min(...lista.map(nivelGaia));
+    const arriba = lista.filter(s => nivelGaia(s) === mejor);
+    const conserva = arriba.length === 1 ? arriba[0] : null;
+    for (const s of lista) if (s !== conserva) { s.gaia_dr3 = ''; s.gaia_revisar = '1'; }
+    repetidos.push({ gaia, nuevas: lista.filter(s => s.nueva).length, estrellas: lista.map(s => `${s.i ?? `v4.0 ${s.athyg_v40}`} ${s.nombre || s.hip && `HIP ${s.hip}` || s.gl || ''}`.trim()), conserva: conserva ? conserva.i ?? `v4.0 ${conserva.athyg_v40}` : null });
+  }
+  return repetidos;
 }
+
+// En las filas añadidas de la v4.0, un HIP o TYC que ya tiene una estrella de la carga base se
+// queda con ella (la v4.0 a veces pasa el HIP de un par a la otra componente), y un Gaia que la
+// revisión dejó en duda tampoco se les asigna (queda gaia_revisar = 1).
+export function quitarNumerosTomados(base, nuevas, gaiaDescartados = new Set()) {
+  const tomados = { hip: new Set(base.map(s => s.hip).filter(Boolean)), tyc: new Set(base.map(s => s.tyc).filter(Boolean)) };
+  const quitados = { hip: 0, tyc: 0, gaia: 0 };
+  for (const s of nuevas) {
+    for (const c of ['hip', 'tyc']) if (s[c] && tomados[c].has(s[c])) { s[c] = ''; quitados[c]++; }
+    if (s.gaia_dr3 && gaiaDescartados.has(s.gaia_dr3)) { s.gaia_dr3 = ''; s.gaia_revisar = '1'; quitados.gaia++; }
+  }
+  return quitados;
+}
+
+// Fuentes Gaia de los casos dudosos de la revisión. En los casos resueltos, la fuente que perdió
+// suele ser la de la otra componente del par, que sí puede quedar en su propia fila.
+export function gaiaDescartadosEnRevision(revision) {
+  const elegidos = new Set(revision.map(r => texto(r.gaia_elegido)).filter(Boolean));
+  return new Set(revision.filter(r => r.veredicto === 'dudosa')
+    .flatMap(r => [texto(r.gaia_athyg), texto(r.gaia_star_identity)]).filter(g => g && !elegidos.has(g)));
+}
+
+export function aplicarRevisionGaia(identidades, revision) {
+  const porHsb = new Map(revision.map(r => [Number(r.hsb), r]));
+  let cambiadas = 0;
+  for (const s of identidades) {
+    const r = porHsb.get(s.i);
+    if (!r) continue;
+    s.gaiaDeRevision = texto(r.gaia_elegido) !== s.gaia_dr3;
+    s.gaia_dr3 = texto(r.gaia_elegido);
+    s.gaia_revisar = r.veredicto === 'dudosa' ? '1' : '';
+    cambiadas++;
+  }
+  return cambiadas;
+}
+
+// --- Identidad de cada estrella de Hoshi (carga base) ---
 
 const deAlias = (alias, patron) => (alias || []).map(a => a.match(patron)?.[1]).find(Boolean) || '';
 
-// stars: stars_15pc.json; athyg: Map id → fila de AT-HYG completo; anfitrionas: Map i → registro de
+// stars: stars_15pc.json; athyg: Map id → fila de AT-HYG v3.2; anfitrionas: Map i → registro de
 // added_hosts.json; nasa: anfitriones de exoplanet_host_identity.json.
 export function identidades({ stars, athyg, anfitrionas, nasa }) {
   const ticPorEstrella = new Map(), nasaPorNombre = new Map();
@@ -70,21 +203,111 @@ export function identidades({ stars, athyg, anfitrionas, nasa }) {
   }
   const tic = v => texto(v).replace(/^TIC\s*/, '');
   return stars.map(s => {
+    const radec = { ra: Math.atan2(s.y, s.x) * 180 / Math.PI, dec: s.d > 0 ? Math.asin(s.z / s.d) * 180 / Math.PI : 0 };
     if (s.dataOrigin === 'exoplanet-host') {
       const a = anfitrionas.get(s.i);
       if (!a) throw new Error(`La anfitriona ${s.i} no está en added_hosts.json`);
       const h = nasaPorNombre.get(a.h) || {};
       return { i: s.i, origen: 'anfitriona', athyg_v32: '', hip: texto(h.hip), hd: texto(h.hd),
         hr: deAlias(h.alias, /^HR (\d+)$/), gl: texto(h.gj), tyc: deAlias(h.alias, /^TYC (\d+-\d+-\d+)$/),
-        gaia_dr3: texto(a.gaia), tic: tic(h.tic), nombre: texto(a.h) };
+        gaia_dr3: texto(a.gaia), gaia_v32: texto(a.gaia), tic: tic(h.tic), nombre: texto(a.h), d: s.d, pos: { ra: (radec.ra + 360) % 360, dec: radec.dec }, mag: null };
     }
     // El Sol es la fila 0 de HYGLike y la 1 de AT-HYG completo; el resto conserva el id.
     const id = s.i === 0 ? 1 : s.i;
     const r = athyg.get(id);
     if (!r) throw new Error(`La estrella ${s.i} no está en AT-HYG v3.2 completo`);
     return { i: s.i, origen: 'athyg', athyg_v32: String(id), hip: texto(r.hip), hd: texto(r.hd), hr: texto(r.hr),
-      gl: texto(r.gl), tyc: texto(r.tyc), gaia_dr3: texto(r.gaia), tic: tic(ticPorEstrella.get(s.i)), nombre: texto(r.proper) };
+      gl: texto(r.gl), tyc: texto(r.tyc), gaia_dr3: texto(r.gaia), gaia_v32: texto(r.gaia), tic: tic(ticPorEstrella.get(s.i)), nombre: texto(r.proper),
+      d: s.d, pos: { ra: Number(r.ra) * 15, dec: Number(r.dec) }, mag: r.mag === '' ? null : Number(r.mag) };
   });
+}
+
+// --- Fila de AT-HYG v4.0 de cada estrella ---
+
+// La fila v4.0 se busca con los números de la v3.2 (gaia_v32: el Gaia de AT-HYG, antes de la revisión).
+const LLAVES_V40 = [['hip', 'hip'], ['hd', 'hd'], ['tyc', 'tyc'], ['gaia', 'gaia_v32'], ['gl', 'gl']];
+
+// Puntaje de una fila v4.0 para una estrella: suma lo que coincide, resta lo que se contradice.
+function puntaje(s, f) {
+  let p = 0, coinciden = 0;
+  for (const [cv, cs] of LLAVES_V40) {
+    const a = cs === 'gl' ? glNormal(s.gl) : s[cs], b = cv === 'gl' ? glNormal(f.gl) : f[cv];
+    if (!a || !b) continue;
+    if (a === b) { p += PESOS_V40[cv]; coinciden++; } else p -= PESOS_V40[cv];
+  }
+  return coinciden ? p : -Infinity;
+}
+
+// estrellas: identidades base (las anfitrionas solo se enlazan por TYC o Gaia);
+// v40: filas de AT-HYG v4.0 conservadas. Devuelve Map estrella → fila.
+export function asignarV40(estrellas, v40) {
+  const indice = Object.fromEntries(LLAVES_V40.map(([cv]) => [cv, new Map()]));
+  for (const f of v40) {
+    for (const [cv] of LLAVES_V40) {
+      const v = cv === 'gl' ? glNormal(f.gl) : f[cv];
+      if (!v) continue;
+      if (!indice[cv].has(v)) indice[cv].set(v, []);
+      indice[cv].get(v).push(f);
+    }
+  }
+  const pares = [], sinNumeros = [];
+  for (const s of estrellas) {
+    const llaves = s.origen === 'anfitriona' ? LLAVES_V40.filter(([cv]) => cv === 'tyc' || cv === 'gaia') : LLAVES_V40;
+    const candidatas = new Set();
+    for (const [cv, cs] of llaves) {
+      const v = cs === 'gl' ? glNormal(s.gl) : s[cs];
+      for (const f of (v && indice[cv].get(v)) || []) candidatas.add(f);
+    }
+    if (!candidatas.size) { sinNumeros.push(s); continue; }
+    for (const f of candidatas) {
+      const p = s.origen === 'anfitriona' ? (f.gaia && f.gaia === s.gaia_v32 ? 2 : 0) + (f.tyc && f.tyc === s.tyc ? 3 : 0) : puntaje(s, f);
+      if (p > 0) pares.push({ s, f, p, sep: s.pos ? separacion(s.pos, f.pos) : 0 });
+    }
+  }
+  pares.sort((a, b) => b.p - a.p || a.sep - b.sep || (a.s.i - b.s.i) || (a.f.id - b.f.id));
+  const asignacion = new Map(), usadas = new Set();
+  for (const { s, f } of pares) {
+    if (asignacion.has(s) || usadas.has(f)) continue;
+    asignacion.set(s, f); usadas.add(f);
+  }
+  // Sin ningún número en común: posición y brillo (solo estrellas de AT-HYG con magnitud).
+  const vecinas = rejilla(v40.map(f => ({ ...f.pos, f })));
+  for (const s of sinNumeros) {
+    if (s.origen !== 'athyg' || s.mag === null) continue;
+    const f = vecinas(s.pos, POSICION_MAX_ARCSEC).map(([, q]) => q.f)
+      .find(q => !usadas.has(q) && q.mag !== null && Math.abs(q.mag - s.mag) < POSICION_MAX_DMAG);
+    if (f) { asignacion.set(s, f); usadas.add(f); }
+  }
+  return asignacion;
+}
+
+// --- Estrellas nuevas de la v4.0 ---
+
+// Primaria de una fila nueva entre las estrellas del registro: mismo número de Gliese, misma
+// base de TYC o vecina a ≤ 60″ con distancia a ±25 %. Devuelve { s, por } o null.
+export function buscadorDePrimaria(estrellas) {
+  const porHip = new Map(estrellas.filter(s => s.hip).map(s => [s.hip, s])), porGl = new Map(), porTyc = new Map();
+  const prefiere = (lista, mejor) => [...lista].sort((a, b) => mejor(b) - mejor(a) || a.i - b.i)[0];
+  for (const s of estrellas) {
+    const g = partesGl(s.gl);
+    if (g) porGl.set(g.numero, [...(porGl.get(g.numero) || []), s]);
+    if (s.tyc) porTyc.set(baseTyc(s.tyc), [...(porTyc.get(baseTyc(s.tyc)) || []), s]);
+  }
+  const vecinas = rejilla(estrellas.filter(s => s.pos).map(s => ({ ...s.pos, s })));
+  return f => {
+    if (f.hip && porHip.has(f.hip)) return { s: porHip.get(f.hip), por: 'hip' };
+    const g = partesGl(f.gl);
+    if (g && porGl.has(g.numero)) return { s: prefiere(porGl.get(g.numero), s => ['', 'A'].includes(partesGl(s.gl).comp)), por: 'gliese' };
+    if (f.tyc && porTyc.has(baseTyc(f.tyc))) return { s: prefiere(porTyc.get(baseTyc(f.tyc)), s => s.tyc.endsWith('-1')), por: 'tyc' };
+    if (f.dist === null) return null;
+    const cerca = vecinas(f.pos, COMPANERA_MAX_ARCSEC).find(([, q]) => q.s.d > 0 && Math.abs(f.dist - q.s.d) / q.s.d < COMPANERA_DIST_REL);
+    return cerca ? { s: cerca[1].s, por: 'posicion' } : null;
+  };
+}
+
+function identidadV40(f) {
+  return { i: null, nueva: true, origen: 'athyg_v40', athyg_v32: '', athyg_v40: String(f.id), hip: f.hip, hd: f.hd, hr: f.hr,
+    gl: conPrefijoGl(f.gl), tyc: f.tyc, gaia_dr3: f.gaia, tic: '', nombre: f.proper, d: f.dist, pos: f.pos, mag: f.mag };
 }
 
 // --- Conciliación con el registro existente ---
@@ -126,40 +349,85 @@ export function conciliar(registro, estrellas, { fecha }) {
   // 3) Nuevas y actualizadas.
   const vacio = filas.length === 0;
   let siguiente = filas.reduce((m, f) => Math.max(m, f.hsb + 1), HSB_NUEVO_BASE);
-  const nuevas = [];
+  const nuevas = [], filaDe = [];
   estrellas.forEach((s, k) => {
     const identidad = Object.fromEntries(IDENTIDAD.map(c => [c, texto(s[c])]));
-    const f = asignacion.get(k);
-    if (f) { Object.assign(f, identidad, { estado: 'activa' }); return; }
-    // Un número ya reservado aguas arriba (anfitriona nueva) o la primera carga conservan su `i`.
-    let hsb = (vacio || s.i >= HSB_NUEVO_BASE) && !usados.has(s.i) ? s.i : null;
-    if (hsb === null) { while (usados.has(siguiente)) siguiente++; hsb = siguiente++; }
-    usados.add(hsb);
-    const fila = { hsb, ...identidad, alta: fecha, estado: 'activa' };
-    filas.push(fila); nuevas.push(fila);
+    let f = asignacion.get(k);
+    if (f) Object.assign(f, identidad, { estado: 'activa' });
+    else {
+      // Un número ya reservado aguas arriba (anfitriona nueva) o la primera carga conservan su `i`.
+      let hsb = Number.isInteger(s.i) && (vacio || s.i >= HSB_NUEVO_BASE) && !usados.has(s.i) ? s.i : null;
+      if (hsb === null) { while (usados.has(siguiente)) siguiente++; hsb = siguiente++; }
+      usados.add(hsb);
+      f = { hsb, ...identidad, comp: '', primaria_hsb: '', alta: fecha, estado: 'activa' };
+      filas.push(f); nuevas.push(f);
+    }
+    filaDe[k] = f;
   });
 
-  const retiradas = filas.filter(f => !tomadas.has(f) && !nuevas.includes(f) && f.estado !== 'retirada');
-  for (const f of filas) if (!tomadas.has(f) && !nuevas.includes(f)) f.estado = 'retirada';
+  const activas = new Set(filaDe);
+  const retiradas = filas.filter(f => !activas.has(f) && f.estado !== 'retirada');
+  for (const f of filas) if (!activas.has(f)) f.estado = 'retirada';
   filas.sort((a, b) => a.hsb - b.hsb);
-  return { filas, nuevas, retiradas };
+  return { filas, nuevas, retiradas, filaDe };
 }
 
-// --- Lectura de AT-HYG completo (dos partes; solo la primera trae cabecera) ---
+// --- Compañeras dibujadas de star_systems.json frente a las estrellas nuevas ---
 
-export async function leerAthyg(ids, partes = ATHYG_PARTES) {
-  const out = new Map();
-  let cabecera = null;
-  for (const parte of partes) {
-    const lector = fs.createReadStream(parte).pipe(zlib.createGunzip()).pipe(parse({ relax_column_count: false }));
-    for await (const fila of lector) {
-      if (!cabecera) { cabecera = fila; continue; }
-      const id = Number(fila[0]);
-      if (ids.has(id)) out.set(id, Object.fromEntries(cabecera.map((c, k) => [c, fila[k]])));
+export function relacionarCompaneras(sistemas, hsbDe, companerasDe) {
+  const salida = [];
+  const claves = Object.keys(sistemas).map(Number).sort((a, b) => a - b);
+  for (const clave of claves) {
+    const sistema = sistemas[clave];
+    const miembros = [clave, ...sistema.comps.filter(c => c.cid !== undefined).map(c => c.cid)];
+    const nuevas = miembros.flatMap(m => companerasDe.get(m) || []);
+    const dibujadas = sistema.comps.filter(c => c.cid === undefined);
+    if (!nuevas.length || !dibujadas.length) continue;
+    const libres = new Set(nuevas), pareja = new Map();
+    for (const c of dibujadas) {
+      const n = [...libres].find(x => x.fila.comp && x.fila.comp === c.n);
+      if (n) { pareja.set(c, [n, 'letra']); libres.delete(n); }
+    }
+    const sinPareja = dibujadas.filter(c => !pareja.has(c));
+    if (sinPareja.length === 1 && libres.size === 1) { const n = [...libres][0]; pareja.set(sinPareja[0], [n, 'única']); libres.delete(n); }
+    for (const c of dibujadas.filter(c => !pareja.has(c))) {
+      const n = [...libres].filter(x => Number.isFinite(c.v) && x.mag !== null && Math.abs(x.mag - c.v) < 1.5)
+        .sort((a, b) => Math.abs(a.mag - c.v) - Math.abs(b.mag - c.v) || a.fila.hsb - b.fila.hsb)[0];
+      if (n) { pareja.set(c, [n, 'brillo']); libres.delete(n); }
+    }
+    for (const c of dibujadas) {
+      const [n, criterio] = pareja.get(c) || [null, 'sin pareja'];
+      salida.push({ sistema_hsb: hsbDe.get(clave), wds: sistema.wds || '', companera: c.n, de: c.of, par: c.pair || '', tipo: c.k,
+        hsb_nuevo: n ? n.fila.hsb : '', athyg_v40: n ? n.fila.athyg_v40 : '', gl_nuevo: n ? n.fila.gl : '', criterio });
+    }
+    for (const n of [...libres].sort((a, b) => a.fila.hsb - b.fila.hsb)) {
+      salida.push({ sistema_hsb: hsbDe.get(clave), wds: sistema.wds || '', companera: '', de: '', par: '', tipo: '',
+        hsb_nuevo: n.fila.hsb, athyg_v40: n.fila.athyg_v40, gl_nuevo: n.fila.gl, criterio: 'nueva sin dibujo' });
     }
   }
-  return out;
+  return salida;
 }
+export const COLUMNAS_COMPANERAS = ['sistema_hsb', 'wds', 'companera', 'de', 'par', 'tipo', 'hsb_nuevo', 'athyg_v40', 'gl_nuevo', 'criterio'];
+
+// --- Lectura de AT-HYG (gz; en la v3.2 solo la primera parte trae cabecera) ---
+
+export async function recorrerAthyg(partes, alLeer) {
+  let cabecera = null;
+  for (const parte of partes) {
+    const lector = fs.createReadStream(parte).pipe(zlib.createGunzip()).pipe(parse());
+    for await (const fila of lector) {
+      if (!cabecera) { cabecera = fila; continue; }
+      alLeer(fila, cabecera);
+    }
+  }
+}
+
+const numero = v => (v === '' || v === undefined ? null : Number(v));
+const filaV40 = (fila, col) => ({
+  id: Number(fila[col.id]), tyc: fila[col.tyc], gaia: fila[col.gaia], hyg: fila[col.hyg], hip: fila[col.hip], hd: fila[col.hd],
+  hr: fila[col.hr], gl: fila[col.gl], proper: fila[col.proper], pos: { ra: Number(fila[col.ra]) * 15, dec: Number(fila[col.dec]) },
+  dist: numero(fila[col.dist]), mag: numero(fila[col.mag]),
+});
 
 const fechaLocal = () => {
   const d = new Date();
@@ -168,21 +436,118 @@ const fechaLocal = () => {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const stars = JSON.parse(fs.readFileSync(STARS_JSON, 'utf8'));
+  const sistemas = JSON.parse(fs.readFileSync(SYSTEMS_JSON, 'utf8'));
   const anfitrionas = new Map(JSON.parse(fs.readFileSync(ADDED_HOSTS_JSON, 'utf8')).stars.map(s => [s.i, s]));
   const nasa = JSON.parse(fs.readFileSync(HOSTS_JSON, 'utf8')).hosts;
-  const ids = new Set(stars.filter(s => s.dataOrigin !== 'exoplanet-host').map(s => (s.i === 0 ? 1 : s.i)));
-  const athyg = await leerAthyg(ids);
-  const lista = identidades({ stars, athyg, anfitrionas, nasa });
+  const revision = parseSync(fs.readFileSync(GAIA_REVISION_CSV, 'utf8'), { columns: true, skip_empty_lines: true });
+
+  // 1) AT-HYG v3.2: filas de Hoshi y números presentes (para saber qué filas de la v4.0 son nuevas).
+  const ids32 = new Set(stars.filter(s => s.dataOrigin !== 'exoplanet-host').map(s => (s.i === 0 ? 1 : s.i)));
+  const v32 = new Map(), en32 = { tyc: new Set(), gaia: new Set(), hip: new Set(), hyg: new Set() };
+  await recorrerAthyg(ATHYG_V32, (fila, cab) => {
+    const c = Object.fromEntries(cab.map((n, k) => [n, k]));
+    for (const n of Object.keys(en32)) if (fila[c[n]]) en32[n].add(fila[c[n]]);
+    const id = Number(fila[0]);
+    if (ids32.has(id)) v32.set(id, Object.fromEntries(cab.map((n, k) => [n, fila[k]])));
+  });
+  const base = identidades({ stars, athyg: v32, anfitrionas, nasa });
+  const revisadas = aplicarRevisionGaia(base, revision);
+
+  // 2) HYGLike v4.0: su `id` es el número de HYG; el de AT-HYG está en comp_primary.
+  const corte = new Set();
+  for (const r of parseSync(zlib.gunzipSync(fs.readFileSync(HYGLIKE_V40)).toString('utf8'), { columns: true, skip_empty_lines: true })) {
+    if (r.dist !== '' && Number(r.dist) >= 0) corte.add(Number(r.comp_primary));
+  }
+
+  // 3) AT-HYG v4.0: se conservan las filas que comparten algún número con el registro, las nuevas y las del corte.
+  const numerosBase = { hip: new Set(), hd: new Set(), tyc: new Set(), gaia: new Set(), gl: new Set() };
+  for (const s of base) {
+    for (const [cv, cs] of LLAVES_V40) { const v = cs === 'gl' ? glNormal(s.gl) : s[cs]; if (v) numerosBase[cv].add(v); }
+  }
+  const celdasSinNumeros = new Set(base.filter(s => !LLAVES_V40.some(([, cs]) => s[cs])).map(s => `${Math.floor(s.pos.dec * 10)}:${Math.floor(s.pos.ra * 10)}`));
+  const v40 = [], nuevasV40 = new Set();
+  await recorrerAthyg(ATHYG_V40, (fila, cab) => {
+    const c = Object.fromEntries(cab.map((n, k) => [n, k]));
+    const f = filaV40(fila, c);
+    const nueva = !['tyc', 'gaia', 'hip', 'hyg'].some(n => f[n] && en32[n].has(f[n]));
+    const comparte = LLAVES_V40.some(([cv]) => { const v = cv === 'gl' ? glNormal(f.gl) : f[cv]; return v && numerosBase[cv].has(v); });
+    const cerca = celdasSinNumeros.has(`${Math.floor(f.pos.dec * 10)}:${Math.floor(f.pos.ra * 10)}`);
+    if (nueva || comparte || cerca || corte.has(f.id)) { v40.push(f); if (nueva) nuevasV40.add(f); }
+  });
+
+  // 4) Fila v4.0 de cada estrella del registro.
+  const asignadas = asignarV40(base, v40);
+  for (const [s, f] of asignadas) s.athyg_v40 = String(f.id);
+  const usadas = new Set(asignadas.values());
+
+  // 5) Filas que entran: compañeras nuevas y filas del corte, en orden de ascensión recta.
+  const primariaDe = buscadorDePrimaria(base);
+  const entran = [], porQue = { companera: 0, corte: 0 }, primariaPor = {};
+  for (const f of v40) {
+    if (usadas.has(f)) continue;
+    const enCorte = corte.has(f.id);
+    if (!enCorte && !nuevasV40.has(f)) continue;
+    const primaria = primariaDe(f);
+    if (!enCorte && !primaria) continue;
+    const s = identidadV40(f);
+    s.primaria = primaria?.s ?? null;
+    if (primaria) primariaPor[primaria.por] = (primariaPor[primaria.por] || 0) + 1;
+    porQue[enCorte ? 'corte' : 'companera']++;
+    entran.push(s);
+  }
+  entran.sort((a, b) => a.pos.ra - b.pos.ra || a.pos.dec - b.pos.dec || Number(a.athyg_v40) - Number(b.athyg_v40));
+  const lista = [...base, ...entran];
+  const quitados = quitarNumerosTomados(base, entran, gaiaDescartadosEnRevision(revision));
   const repetidos = quitarGaiaRepetidos(lista);
+
+  // 6) Conciliación con el registro anterior.
   const anterior = fs.existsSync(REGISTRO_CSV) ? fs.readFileSync(REGISTRO_CSV, 'utf8') : '';
-  const { filas, nuevas, retiradas } = conciliar(leerRegistro(anterior), lista, { fecha: fechaLocal() });
+  const { filas, nuevas, retiradas, filaDe } = conciliar(leerRegistro(anterior), lista, { fecha: fechaLocal() });
+
+  // 7) Sistemas: letra de componente y estrella principal.
+  const filaPorEstrella = new Map(lista.map((s, k) => [s, filaDe[k]]));
+  const hsbDe = new Map(base.map(s => [s.i, filaPorEstrella.get(s).hsb]));
+  const primariaHsb = new Map();
+  for (const [clave, sistema] of Object.entries(sistemas)) {
+    const h = hsbDe.get(Number(clave));
+    if (h === undefined) continue;
+    primariaHsb.set(h, h);
+    for (const c of sistema.comps) if (c.cid !== undefined && hsbDe.has(c.cid) && !primariaHsb.has(hsbDe.get(c.cid))) primariaHsb.set(hsbDe.get(c.cid), h);
+  }
+  const companerasDe = new Map();
+  for (const s of entran) {
+    if (!s.primaria) continue;
+    const hp = filaPorEstrella.get(s.primaria).hsb;
+    const raiz = primariaHsb.get(hp) ?? hp;
+    if (!primariaHsb.has(hp)) primariaHsb.set(hp, hp);
+    primariaHsb.set(filaPorEstrella.get(s).hsb, raiz);
+    companerasDe.set(s.primaria.i, [...(companerasDe.get(s.primaria.i) || []), { fila: filaPorEstrella.get(s), mag: s.mag }]);
+  }
+  for (const s of lista) {
+    const f = filaPorEstrella.get(s);
+    f.comp = partesGl(s.gl)?.comp || '';
+    f.primaria_hsb = primariaHsb.has(f.hsb) ? String(primariaHsb.get(f.hsb)) : '';
+  }
+
   const salida = serializarRegistro(filas);
   if (salida !== anterior) fs.writeFileSync(REGISTRO_CSV, salida);
+  const companeras = relacionarCompaneras(sistemas, hsbDe, companerasDe);
+  const salidaCompaneras = serializarCsv(COLUMNAS_COMPANERAS, companeras);
+  const anteriorCompaneras = fs.existsSync(COMPANERAS_CSV) ? fs.readFileSync(COMPANERAS_CSV, 'utf8') : '';
+  if (salidaCompaneras !== anteriorCompaneras) fs.writeFileSync(COMPANERAS_CSV, salidaCompaneras);
+
   const activas = filas.filter(f => f.estado === 'activa');
+  const sinV40 = base.filter(s => !s.athyg_v40 && s.origen === 'athyg');
+  const anfConV40 = base.filter(s => s.athyg_v40 && s.origen === 'anfitriona').length;
   console.log(`✓ Registro HSB: ${filas.length} filas (${activas.length} activas); nuevas ${nuevas.length}, retiradas ahora ${retiradas.length}${salida === anterior ? '; sin cambios' : ''}`);
-  console.log(`✓ Con TYC: ${activas.filter(f => f.tyc).length}; con Gaia DR3: ${activas.filter(f => f.gaia_dr3).length}; con TIC: ${activas.filter(f => f.tic).length}`);
+  console.log(`✓ AT-HYG v4.0: ${base.filter(s => s.athyg_v40).length} de ${base.length} con fila (${base.filter(s => s.origen === 'athyg').length - sinV40.length} de AT-HYG); entran ${entran.length} (compañeras ${porQue.companera}, corte ${porQue.corte}); primaria por ${JSON.stringify(primariaPor)}`);
+  console.log(`  Estrellas de AT-HYG sin fila v4.0: ${sinV40.map(s => `${s.i}${s.gl ? ` ${s.gl}` : ''}`).join(', ') || 'ninguna'}; anfitrionas enlazadas: ${anfConV40}`);
+  console.log(`  Filas añadidas que pierden un número ya tomado: HIP ${quitados.hip}, TYC ${quitados.tyc}, Gaia en duda en la revisión ${quitados.gaia}`);
+  console.log(`✓ Gaia revisado: ${revisadas}; gaia_revisar = 1: ${activas.filter(f => f.gaia_revisar).length}; con Gaia DR3: ${activas.filter(f => f.gaia_dr3).length}; con TYC: ${activas.filter(f => f.tyc).length}`);
+  console.log(`✓ Compañeras dibujadas: ${new Set(companeras.map(c => c.sistema_hsb)).size} sistemas, ${companeras.filter(c => c.companera).length} filas (${companeras.filter(c => c.companera && c.hsb_nuevo).length} con estrella nueva)${salidaCompaneras === anteriorCompaneras ? '; sin cambios' : ''}`);
   if (repetidos.length) {
-    console.log(`⚠ Gaia DR3 en más de una estrella (queda vacío en todas): ${repetidos.length}`);
-    for (const r of repetidos) console.log(`  ${r.gaia}: ${r.estrellas.join(' / ')}`);
+    const soloBase = repetidos.filter(r => !r.nuevas);
+    console.log(`⚠ Gaia DR3 en más de una estrella: ${repetidos.length} (${repetidos.length - soloBase.length} con filas añadidas; entre estrellas de la carga base: ${soloBase.length})`);
+    for (const r of soloBase) console.log(`  ${r.gaia}: ${r.estrellas.join(' / ')}${r.conserva !== null ? ` (lo conserva ${r.conserva})` : ' (se quita a todas)'}`);
   }
 }

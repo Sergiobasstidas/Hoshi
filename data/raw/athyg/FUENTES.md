@@ -23,3 +23,21 @@ Total: 2 552 165 estrellas. Solo la primera parte trae cabecera; la segunda cont
 El subconjunto HYGLike que usa Hoshi sale de esta misma versión. Comprobado el 07/11/2026: de sus 118 971 filas, 118 970 tienen el mismo `id` en el catálogo completo con `hip`, `hd`, `hr`, `gl`, `proper`, `ra` y `dec` idénticos. La única excepción es el Sol: `id` 0 en HYGLike e `id` 1 en el catálogo completo.
 
 Uso: `scripts/catalog/build_hsb.js` lee estos archivos para el registro HSB (`data/catalog/hsb_registro.csv`).
+
+## AT-HYG v4.0 (`data/raw/athyg/v40/`, solo para comparar)
+
+Descarga realizada con `curl -sSL` el 07/11/2026 a las 12:24 (zona -03:00), desde la rama `main` de `https://codeberg.org/astronexus/athyg`, commit `eebe42b3552ae04e67d27ae085a8aad997b42bc0` (26/07/2026). Licencia CC BY-SA 4.0. sha256 iguales al `oid` LFS.
+
+| Archivo | URL | Tamaño (bytes) | Filas de datos | sha256 |
+| --- | --- | ---: | ---: | --- |
+| `athyg_40.csv.gz` | `https://codeberg.org/astronexus/athyg/media/commit/eebe42b3552ae04e67d27ae085a8aad997b42bc0/data/athyg_40.csv.gz` | 199688001 | 2558654 | `69ad04dd33d7c7bb4f5e1b4682798075811547ea9fb8d0e802e5b319c46818a6` |
+| `hyglike_from_athyg_v40.csv.gz` | `https://codeberg.org/astronexus/athyg/media/commit/eebe42b3552ae04e67d27ae085a8aad997b42bc0/data/subsets/hyglike_from_athyg_v40.csv.gz` | 14096722 | 119670 | `fa59658677ebb4331056d99ee01a519102123081d1d89f2add77c15076eb9053` |
+
+Diferencias de formato con la v3.2:
+
+- Los `id` del catálogo completo se renumeran: el archivo va ordenado por ascensión recta y las estrellas nuevas desplazan a las siguientes. Un mismo `id` apunta a otra estrella en casi todos los casos (solo 638 de 2 552 165 conservan el mismo TYC con el mismo `id`).
+- En la HYGLike v4.0 la columna `id` es el número de HYG (igual a `hyg`); el `id` de AT-HYG pasa a `comp_primary`.
+- `gl` va sin el prefijo `Gl`/`GJ` (por ejemplo `244A` en vez de `Gl 244A`).
+- `pm_ra` y `pm_dec` pasan a llamarse `pmra` y `pmdec`.
+
+Uso: `scripts/catalog/build_hsb.js` lee el catálogo completo y la HYGLike v4.0 para llenar la columna `athyg_v40` del registro HSB y dar de alta las compañeras nuevas y las filas que entran al corte. Hoshi sigue dibujando las estrellas desde la HYGLike v3.2.
