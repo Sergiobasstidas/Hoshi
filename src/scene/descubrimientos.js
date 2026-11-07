@@ -65,7 +65,16 @@ export const STATUS = [
   { id: 'confirmados', nombre: 'Confirmados' },
   { id: 'candidatos', nombre: 'Candidatos' },
 ];
-export const DEFAULT_FILTER = { estado: 'todos', tipo: 'todos', mision: 'todas', color: 'estrella' };
+export const DEFAULT_FILTER = { estado: 'todos', tipo: 'todos', mision: 'todas', zona: 'todos', color: 'estrella' };
+// Planetas dentro de la zona habitable: solo los confirmados de anfitrionas de Hoshi (con nombre en el
+// archivo, columna n) que la ficha de su estrella marca dentro (App.jsx arma la columna z).
+export const ZONA = [{ id: 'todos', nombre: 'Todos' }, { id: 'dentro', nombre: 'En la zona' }];
+// Columna z (1 = dentro de la zona) a partir de los nombres de los planetas que están dentro.
+export function marcarZona(data, dentro) {
+  const z = new Uint8Array(data.planets.s.length);
+  for (const [k, nombre] of Object.entries(data.planets.n || {})) if (dentro.has(nombre)) z[k] = 1;
+  return { ...data, planets: { ...data.planets, z } };
+}
 export const COLOR_MODES = [
   { id: 'estrella', nombre: 'Estrella' },
   { id: 'tipo', nombre: 'Tipo de planeta' },
@@ -74,7 +83,7 @@ export const COLOR_MODES = [
 export const MISSION_COLORS = ['#ffd36b', '#ffa45c', '#7fb6ff', '#d59bff', '#7ff0e0', '#f5f5f5', '#9aa7c2'];
 
 // Prueba de un planeta del archivo (columnas s, t, f, c) contra los filtros. Un filtro
-// puede omitirse con `skip` para contar las pestañas de esa fila con las otras dos activas.
+// puede omitirse con `skip` para contar las pestañas de esa fila con las demás activas.
 // Tipo y misión aceptan varias opciones a la vez, como lista.
 const aceptada = (valor, id) => Array.isArray(valor) ? valor.includes(id) : valor === id;
 export function planetMatches(data, k, filter, skip) {
@@ -82,6 +91,7 @@ export function planetMatches(data, k, filter, skip) {
   if (skip !== 'estado' && filter.estado !== 'todos' && planets.c[k] !== (filter.estado === 'candidatos' ? 1 : 0)) return false;
   if (skip !== 'tipo' && filter.tipo !== 'todos' && !aceptada(filter.tipo, PLANET_TYPES[planets.t[k]].id)) return false;
   if (skip !== 'mision' && filter.mision !== 'todas' && !aceptada(filter.mision, MISSIONS[facilities[planets.f[k]].g].id)) return false;
+  if (skip !== 'zona' && filter.zona === 'dentro' && !planets.z?.[k]) return false;
   return true;
 }
 
@@ -99,13 +109,14 @@ export function filterSystems(data, filter) {
 
 // Recuentos de planetas por pestaña de cada fila, con los filtros de las demás filas activos.
 export function countTabs(data, filter) {
-  const counts = { estado: {}, tipo: {}, mision: {} };
+  const counts = { estado: {}, tipo: {}, mision: {}, zona: {} };
   const { planets, facilities } = data;
   const bump = (row, id) => { counts[row][id] = (counts[row][id] || 0) + 1; };
   for (let k = 0; k < planets.s.length; k++) {
     if (planetMatches(data, k, filter, 'estado')) { bump('estado', 'todos'); bump('estado', planets.c[k] ? 'candidatos' : 'confirmados'); }
     if (planetMatches(data, k, filter, 'tipo')) { bump('tipo', 'todos'); bump('tipo', PLANET_TYPES[planets.t[k]].id); }
     if (planetMatches(data, k, filter, 'mision')) { bump('mision', 'todas'); bump('mision', MISSIONS[facilities[planets.f[k]].g].id); }
+    if (planetMatches(data, k, filter, 'zona')) { bump('zona', 'todos'); if (planets.z?.[k]) bump('zona', 'dentro'); }
   }
   return counts;
 }

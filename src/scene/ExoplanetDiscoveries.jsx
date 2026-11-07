@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { temperatureColor } from './stellarPhysics.js';
 import { LIGHT_YEAR_PC } from './scale.js';
 import { mantenerActivo } from './reposo';
+import { listaDePlanetas } from './zonaHabitable.js';
 import { MISSION_COLORS, PLANET_TYPES, describeSystem, dominantType, filterSystems } from './descubrimientos.js';
 
 // Destello de cuatro puntas por sistema planetario, como en Eyes on Exoplanets: núcleo
@@ -74,8 +75,10 @@ const lightYears = value => value < 100 ? value.toLocaleString('es-CL', { maximu
   : Math.round(value).toLocaleString('es-CL', { maximumSignificantDigits: 3 });
 
 // Ficha de un sistema: al pasar el puntero o, fijada con un clic, hasta hacer clic en otra parte.
-function FichaSistema({ data, index, list, origin, fijada, onSelect }) {
+// `zonas`: id de estrella del catálogo → planetas dentro de su zona habitable (App.jsx).
+function FichaSistema({ data, index, list, origin, fijada, onSelect, zonas }) {
   const info = describeSystem(data, index, list);
+  const dentro = zonas?.get(data.systems.i[index]);
   return <Html position={[0, 1, 2].map(axis => data.systems.p[index * 3 + axis] - origin[axis])} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
     <div className={`descubrimiento-ficha${fijada ? ' fijada' : ''}`}>
       <span className="descubrimiento-mira" aria-hidden="true" />
@@ -84,13 +87,14 @@ function FichaSistema({ data, index, list, origin, fijada, onSelect }) {
       <span>{[info.confirmed && `${info.confirmed} ${info.confirmed === 1 ? 'planeta confirmado' : 'planetas confirmados'}`,
         info.candidates && `${info.candidates} ${info.candidates === 1 ? 'candidato' : 'candidatos'}`].filter(Boolean).join(' · ')}</span>
       <span className="descubrimiento-tipos">{info.types.map(type => <em key={type.id}><i style={{ background: type.color }} />{type.n} {type.nombre.toLowerCase()}</em>)}</span>
+      {dentro?.length > 0 && <span className="descubrimiento-zona">En la zona habitable: {listaDePlanetas(dentro, info.name)}</span>}
       <span>{info.missions.length === 1 ? info.missions[0] : `${info.missions.slice(0, 2).join(', ')}${info.missions.length > 2 ? '…' : ''}`}</span>
       {info.inHoshi && <button className="descubrimiento-accion" onClick={() => onSelect(index)}>Viajar al sistema</button>}
     </div>
   </Html>;
 }
 
-export default function ExoplanetDiscoveries({ data, filter, origin, onSelect }) {
+export default function ExoplanetDiscoveries({ data, filter, origin, onSelect, zonas }) {
   const { camera, gl, size } = useThree();
   const material = useRef(), sunLabel = useRef();
   const matches = useMemo(() => filterSystems(data, filter), [data, filter]);
@@ -210,7 +214,7 @@ export default function ExoplanetDiscoveries({ data, filter, origin, onSelect })
     <Html position={origin.map(v => -v)} zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}>
       <div ref={sunLabel} className="descubrimientos-sol"><i />Sol</div>
     </Html>
-    {fijadoList && <FichaSistema data={data} index={fijado} list={fijadoList} origin={origin} fijada onSelect={onSelect} />}
-    {hoveredList && <FichaSistema data={data} index={hovered} list={hoveredList} origin={origin} onSelect={onSelect} />}
+    {fijadoList && <FichaSistema data={data} index={fijado} list={fijadoList} origin={origin} fijada onSelect={onSelect} zonas={zonas} />}
+    {hoveredList && <FichaSistema data={data} index={hovered} list={hoveredList} origin={origin} onSelect={onSelect} zonas={zonas} />}
   </group>;
 }

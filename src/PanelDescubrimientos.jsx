@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { COLOR_MODES, MISSIONS, MISSION_COLORS, PLANET_TYPES, STATUS, countTabs, filterSystems } from './scene/descubrimientos.js';
+import { COLOR_MODES, MISSIONS, MISSION_COLORS, PLANET_TYPES, STATUS, ZONA, countTabs, filterSystems } from './scene/descubrimientos.js';
 import './PanelDescubrimientos.css';
 
 const number = value => (value || 0).toLocaleString('es-CL');
@@ -68,6 +68,8 @@ export default function PanelDescubrimientos({ data, status, filter, onFilter, o
       <Tabs label="Misión" multiple value={filter.mision} onChange={alternar('mision', 'todas')} counts={counts.mision}
         options={[{ id: 'todas', nombre: 'Todas', icon: <MissionIcon index={null} /> },
           ...MISSIONS.map((mission, index) => ({ ...mission, icon: <MissionIcon index={index} /> }))]} />
+      <Tabs label="Zona habitable" value={filter.zona} onChange={set('zona')} counts={counts.zona}
+        options={ZONA.map(opcion => opcion.id === 'dentro' ? { ...opcion, icon: <i className="descubrimientos-zona-punto" aria-hidden="true" /> } : opcion)} />
       <Tabs label="Color" value={filter.color} onChange={set('color')} options={COLOR_MODES} />
       <div className="descubrimientos-leyenda">
         <span><i className="destello" />Confirmado</span>

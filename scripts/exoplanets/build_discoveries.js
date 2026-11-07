@@ -47,7 +47,7 @@ function system(key, name, position, catalogueId, teff) {
   return systems[systemByKey.get(key)];
 }
 const planets = [];
-const addPlanet = (target, type, facilityId, candidate) => { target.planets.push(planets.length); planets.push({ s: target.idx, t: type, f: facilityId, c: candidate }); };
+const addPlanet = (target, type, facilityId, candidate, name = null) => { target.planets.push(planets.length); planets.push({ s: target.idx, t: type, f: facilityId, c: candidate, n: name }); };
 
 // === 1. Confirmados (pscomppars), con el tipo de su ficha del catálogo de la NASA ===
 // (nasa_science_catalog_types.csv, de scripts/exoplanets/fetch_nasa_catalog_types.py).
@@ -68,7 +68,8 @@ for (const row of confirmed) {
   const rule = planetType(num(row.pl_bmasse), num(row.pl_rade));
   const listed = nasaType.get(row.pl_name) ?? -1;
   if (listed >= 0) { typeSource.ficha++; if (listed === rule) typeSource.coincide++; } else typeSource.regla++;
-  addPlanet(host, listed >= 0 ? listed : rule, facility(row.disc_facility, row.disc_locale), 0);
+  // Nombre solo de los confirmados con anfitriona en Hoshi: la app cruza cada uno con sus planetas (zona habitable).
+  addPlanet(host, listed >= 0 ? listed : rule, facility(row.disc_facility, row.disc_locale), 0, star ? row.pl_name : null);
   if (row.tic_id) ticHost.set(row.tic_id.replace(/^TIC\s*/, ''), row.hostname);
 }
 const confirmedHost = name => systemByKey.has(`h:${name}`) ? systems[systemByKey.get(`h:${name}`)] : null;
@@ -139,7 +140,8 @@ const out = {
   },
   facilities,
   systems: { n: systems.map(s => s.n), p: systems.flatMap(s => s.p.map(round)), i: systems.map(s => s.i), k: systems.map(s => Math.round(s.k || 0)) },
-  planets: { s: planets.map(p => p.s), t: planets.map(p => p.t), f: planets.map(p => p.f), c: planets.map(p => p.c) },
+  planets: { s: planets.map(p => p.s), t: planets.map(p => p.t), f: planets.map(p => p.f), c: planets.map(p => p.c),
+    n: Object.fromEntries(planets.flatMap((p, k) => p.n ? [[k, p.n]] : [])) },
 };
 fs.writeFileSync(OUTPUT_PATH, JSON.stringify(out));
 const count = (filter) => planets.filter(filter).length;

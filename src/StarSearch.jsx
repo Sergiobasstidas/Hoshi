@@ -55,7 +55,7 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
     <input id="star-search-input" role="combobox" autoComplete="off" className={elegida&&query===elegida.nombre?'con-estrella':undefined}
       style={elegida&&query===elegida.nombre?{'--color-estrella':elegida.color}:undefined} aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&results[active]?`star-result-${results[active].id}`:undefined}
-      placeholder={computador?'¿A dónde vamos? Sirio, Júpiter, TRAPPIST-1…':'Buscar: Sirio, Vega, HIP…'} value={query} onFocus={load}
+      placeholder={computador?'¿A dónde quieres ir? Sirio, Júpiter, TRAPPIST-1…':'¿A dónde quieres ir? Sirio, Vega…'} value={query} onFocus={load}
       onChange={e=>{setPropia(null);setQuery(e.target.value);setActive(0);setOpen(true);}}
       onKeyDown={e=>{
         if(e.key==='Escape'){setOpen(false);e.stopPropagation();}

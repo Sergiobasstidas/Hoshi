@@ -68,3 +68,11 @@ export function distanciaComparada(ua) {
   if (razon > 0.85 && razon < 1.18) return `Casi la misma que ${cuerpo} al Sol`;
   return razon < 1 ? `${veces(1 / razon)} veces más cerca que ${cuerpo} del Sol` : `${veces(razon)} veces más lejos que ${cuerpo} del Sol`;
 }
+
+// Un planeta comparado con la órbita solar más parecida, con su nombre y el de su estrella.
+export function planetaComparado(ua, planeta, estrella) {
+  const [cuerpo, orbita] = ORBITAS_SOLARES.reduce((a, b) => Math.abs(Math.log(b[1] / ua)) < Math.abs(Math.log(a[1] / ua)) ? b : a);
+  const razon = ua / orbita;
+  if (razon > 0.85 && razon < 1.18) return `${planeta} está a casi la misma distancia de ${estrella} que ${cuerpo} del Sol`;
+  return `${planeta} está ${veces(razon < 1 ? 1 / razon : razon)} veces más ${razon < 1 ? 'cerca' : 'lejos'} de ${estrella} que ${cuerpo} del Sol`;
+}

@@ -5,7 +5,8 @@ import './mapaZona.css';
 const ANCHO = 520, EJE = 38, ESTRELLA_X = 14, BORDE_DERECHO = 506, SEPARACION_LETRAS = 12;
 
 // Mapa a escala de la zona: la estrella a la izquierda y cada planeta en su semieje.
-function Mapa({ zona, planetas, temperatura }) {
+// `destacado`: nombre del planeta elegido, con su punto y su letra resaltados.
+function Mapa({ zona, planetas, temperatura, destacado = null }) {
   const tope = zona.optimistaExterior * 3;
   const conOrbita = planetas.filter(planeta => planeta.a > 0);
   const maximo = Math.min(tope, Math.max(zona.optimistaExterior * 1.25, ...conOrbita.map(planeta => planeta.a * 1.07)));
@@ -29,11 +30,11 @@ function Mapa({ zona, planetas, temperatura }) {
     <text x={interior} y={18} textAnchor={juntos ? 'end' : 'middle'} className="mapa-zona-valor">{numeroZona(zona.interior)}</text>
     <text x={exterior} y={18} textAnchor={juntos ? 'start' : 'middle'} className="mapa-zona-valor">{numeroZona(zona.exterior)} UA</text>
     {puntos.map(({ planeta, cx, conLetra }) => {
-      const dentro = enZonaHabitable(zona, planeta.a);
-      return <g key={planeta.n}>
+      const dentro = enZonaHabitable(zona, planeta.a), elegido = planeta.n === destacado;
+      return <g key={planeta.n} className={elegido ? 'mapa-zona-elegido' : undefined}>
         {planeta.a > tope ? <text x={cx} y={EJE + 4} textAnchor="middle" className="mapa-zona-fuera">&gt;</text>
-          : <circle cx={cx} cy={EJE} r={dentro ? 3.4 : 2.6} className={dentro ? 'mapa-zona-planeta dentro' : 'mapa-zona-planeta'} />}
-        {conLetra && <text x={cx} y={68} textAnchor="middle" className={dentro ? 'mapa-zona-letra dentro' : 'mapa-zona-letra'}>{planeta.n.split(' ').pop()}</text>}
+          : <circle cx={cx} cy={EJE} r={elegido ? 4.4 : dentro ? 3.4 : 2.6} className={dentro ? 'mapa-zona-planeta dentro' : 'mapa-zona-planeta'} />}
+        {(conLetra || elegido) && <text x={cx} y={68} textAnchor="middle" className={dentro ? 'mapa-zona-letra dentro' : 'mapa-zona-letra'}>{planeta.n.split(' ').pop()}</text>}
       </g>;
     })}
   </svg>;
@@ -41,9 +42,12 @@ function Mapa({ zona, planetas, temperatura }) {
 
 // Zona habitable en la ficha: se pulsa para mirarla de frente. El realce queda para los sistemas con un planeta dentro.
 // Cada dato habla de la zona y nombra a la estrella (`nombre`).
-export default function MapaZonaHabitable({ star, nombre, fichas, planetas, temperatura, masa, comparar = false, onMostrar }) {
+// Con `planeta` (ficha de un planeta), los datos hablan de ese planeta y de su lugar en la zona.
+export default function MapaZonaHabitable({ star, nombre, fichas, planetas, temperatura, masa, comparar = false, onMostrar, planeta = null }) {
   const zona = zonaDeEstrella(star, fichas);
   if (!zona) return null;
+  if (planeta?.a > 0) return <ZonaDelPlaneta zona={zona} planeta={planeta} nombre={nombre} planetas={planetas} temperatura={temperatura}
+    insolacion={fichas?.planetas?.[planeta.n]?.insolacion} onMostrar={onMostrar} />;
   const dentroDeZona = planetas.filter(planeta => enZonaHabitable(zona, planeta.a));
   const dentro = dentroDeZona.length;
   const [anoInterior, anoExterior] = [anoEnBorde(zona.interior, masa), anoEnBorde(zona.exterior, masa)];
@@ -57,6 +61,24 @@ export default function MapaZonaHabitable({ star, nombre, fichas, planetas, temp
       {comparar && <span><span>Comparación</span><b>{centroComparado((zona.interior + zona.exterior) / 2, nombre)}</b></span>}
       <span><span>Luz</span><b>Un planeta en la zona recibe entre {luzEnBorde(zona.exterior, zona)} % y {luzEnBorde(zona.interior, zona)} % de la luz que recibe la Tierra</b></span>
       {anoInterior && <span><span>Año</span><b>Un planeta en la zona tarda entre {unidad ? `${anoInterior.valor} y ${anoExterior.valor} ${anoExterior.unidad}` : `${anoInterior.valor} ${anoInterior.unidad} y ${anoExterior.valor} ${anoExterior.unidad}`} en dar una vuelta a {nombre}</b></span>}
+      <small>1 UA es la distancia de la Tierra al Sol</small>
+    </span>
+  </button>;
+}
+
+
+// Recuadro en la ficha de un planeta: el mapa con el planeta destacado y, como dato, su luz (la publicada en
+// veces la de la Tierra; sin ella, la de su estrella a su distancia) y los otros planetas dentro, si los hay.
+function ZonaDelPlaneta({ zona, planeta, nombre, planetas, temperatura, insolacion, onMostrar }) {
+  const dentro = enZonaHabitable(zona, planeta.a);
+  const otros = planetas.filter(otro => otro.n !== planeta.n && enZonaHabitable(zona, otro.a));
+  const luz = insolacion > 0 ? Math.round(insolacion * 100) : luzEnBorde(planeta.a, zona);
+  return <button className={`zona-ficha${dentro ? ' con-planeta' : ''}`} onClick={onMostrar}>
+    <span className="zona-ficha-titulo"><span>Zona habitable</span>{dentro && <em>dentro</em>}</span>
+    <Mapa zona={zona} planetas={planetas} temperatura={temperatura} destacado={planeta.n} />
+    <span className="zona-ficha-datos">
+      <span><span>Luz</span><b>{luz.toLocaleString('es-CL')} % de la de la Tierra <small>En la zona: {luzEnBorde(zona.exterior, zona)}–{luzEnBorde(zona.interior, zona)} %</small></b></span>
+      {otros.length > 0 && <span><span>También dentro</span><b>{listaDePlanetas(otros.map(otro => otro.n), nombre)}</b></span>}
       <small>1 UA es la distancia de la Tierra al Sol</small>
     </span>
   </button>;

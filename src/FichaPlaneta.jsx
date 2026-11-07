@@ -1,6 +1,6 @@
 import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
-import { distanciaComparada } from './scene/zonaHabitable';
+import { planetaComparado, zonaDeEstrella } from './scene/zonaHabitable';
 import { useFichas } from './useFichas';
 import textos from '../data/processed/textos_fichas.json';
 
@@ -57,8 +57,10 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, onVerEs
       {mas.metodo && <Dato etiqueta="Descubrimiento" valor={`${mas.metodo}${mas.ano ? `, ${mas.ano}` : ''}`} secundario={mas.telescopio} />}
       {planeta.teq > 0 && <Dato etiqueta="Temperatura" valor={`${Math.round(planeta.teq).toLocaleString('es-CL')} K`} secundario={`${Math.round(planeta.teq - 273.15).toLocaleString('es-CL')} °C`} />}
     </dl>
-    <MapaZonaHabitable star={sistema.star} nombre={nombreEstrella} fichas={fichas} planetas={sistema.planets} temperatura={sistema.st?.teff ?? sistema.star.physics?.temperatureK} masa={sistema.st?.m} onMostrar={onZona} />
-    {planeta.a > 0 && <p className="ficha-estrella-relato">{distanciaComparada(planeta.a)}.{excentrica ? ' Su órbita es muy alargada: pasa de acercarse mucho a su estrella a alejarse de ella.' : ''}</p>}
+    <MapaZonaHabitable star={sistema.star} nombre={nombreEstrella} fichas={fichas} planetas={sistema.planets} temperatura={sistema.st?.teff ?? sistema.star.physics?.temperatureK} masa={sistema.st?.m} onMostrar={onZona} planeta={planeta} />
+    {/* Sin datos para la zona, la comparación va suelta (con zona, va dentro del recuadro). */}
+    {planeta.a > 0 && !zonaDeEstrella(sistema.star, fichas) && <p className="ficha-estrella-relato">{planetaComparado(planeta.a, planeta.n, nombreEstrella)}.</p>}
+    {excentrica && <p className="ficha-estrella-relato">Su órbita es muy alargada: pasa de acercarse mucho a su estrella a alejarse de ella.</p>}
     {hermanos.length > 0 && <section>
       <h3>{hermanos.length === 1 ? 'Otro planeta del sistema' : `Otros ${hermanos.length} planetas del sistema`}</h3>
       <ul className="ficha-estrella-planetas">

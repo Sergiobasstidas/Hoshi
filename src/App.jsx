@@ -64,7 +64,7 @@ import GiroLento from './scene/GiroLento';
 const GIRO_RATON = 0.3;
 import PanelDescubrimientos from './PanelDescubrimientos';
 import { useDescubrimientos } from './scene/useDescubrimientos.js';
-import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS } from './scene/descubrimientos.js';
+import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS, marcarZona } from './scene/descubrimientos.js';
 import { DEFAULT_DISCOVERY_VIEW } from './scene/discoveryViews.js';
 import { cambiarFiltroEstelar, filtroPorId, useFiltroEstelar } from './scene/filtroEstelar';
 import CreditoSDO from './CreditoSDO';
@@ -83,7 +83,7 @@ import { useFichas } from './useFichas';
 import { useEsComputador } from './esComputador';
 import { CONTORNO_SOLAR_HASTA, DURACION_CAMBIO_S, UA_POR_RADIO_SOLAR, alcance, definirCandidatas, elegirComparacion, estadoComparacion, mostrarComparacion, suscribirComparacion } from './scene/comparacionSol';
 import FranjaHabitable from './scene/FranjaHabitable';
-import { encuadreDeSistema, zonaDeEstrella } from './scene/zonaHabitable';
+import { encuadreDeSistema, enZonaHabitable, zonaDeEstrella } from './scene/zonaHabitable';
 import { cambiarCumulos, cambiarOrbitas, cambiarRutasSondas, cambiarZonaVisible, useCumulosVisibles, useOrbitas, useRutasSondas, useZonaVisible } from './scene/guiasOrbitales';
 import SelectorBrillo from './SelectorBrillo';
 import FichaPlaneta from './FichaPlaneta';
@@ -491,6 +491,20 @@ export default function App() {
     // Desde Exoplanetas se llega encuadrando el sistema completo.
     if (id >= 0) visitSearchResult({ id, aliases: [discoveries.data.systems.n[index]] }, true);
   };
+  // Planetas dentro de la zona habitable de cada anfitriona del catálogo, para la ficha flotante de
+  // Exoplanetas: id de la estrella → nombres (vacío si ninguno). Sin datos de la estrella, no hay entrada.
+  const zonasPorEstrella = useMemo(() => {
+    const zonas = new Map();
+    for (const sistema of PLANETARY_SYSTEMS) {
+      const zona = zonaDeEstrella(sistema.star, fichas);
+      if (!zona || zonas.has(sistema.star.i)) continue;
+      zonas.set(sistema.star.i, sistema.star.planetary.flatMap(item => item.planets).filter(planeta => enZonaHabitable(zona, planeta.a)).map(planeta => planeta.n));
+    }
+    return zonas;
+  }, [PLANETARY_SYSTEMS, fichas]);
+  // Archivo de descubrimientos con la columna de la zona habitable (la misma cuenta que las fichas).
+  const datosDescubrimientos = useMemo(() => discoveries.data
+    && marcarZona(discoveries.data, new Set([...zonasPorEstrella.values()].flat())), [discoveries.data, zonasPorEstrella]);
   const labels = useMemo(() => [
     { kind: 'moon', text: `Luna · ${(Math.round(MOON.distanceKm / 100) * 100).toLocaleString('es-CL')} km de la Tierra`, position: MOON.position, width:230, body:MOON },
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
@@ -712,13 +726,14 @@ export default function App() {
       {!binaryBody && <CompanionStars onElegir={(star, nombre) => visitBody(starBody(star, nombre), true)} systems={BINARY_SYSTEMS} origin={origin} />}
       {verZona && estrellaZona && <FranjaHabitable key={estrellaZona.i} star={estrellaZona} origin={origin} fichas={fichas} />}
       {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
-      {showDiscoveries && discoveries.data && <ExoplanetDiscoveries data={discoveries.data} filter={discoveryFilter} origin={origin} onSelect={visitDiscovery} />}
+      {showDiscoveries && datosDescubrimientos && <ExoplanetDiscoveries data={datosDescubrimientos} filter={discoveryFilter} origin={origin} onSelect={visitDiscovery} zonas={zonasPorEstrella} />}
       {!binaryBody && departureBody?.kind === 'system' && <BinarySystem position={departureBody.position.map((v,i)=>v-origin[i])} />}
       {/* Conservar el escenario de partida al cambiar el origen local a una estrella. */}
       <group position={origin.map(v=>-v)}>
         <OortCloud origin={origin} /><SolarSystem origin={origin} probeSelected={sondaElegida} onSelect={focusBody} onAim={apuntarASonda} probeThen={sondaEntonces} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} hidden={!showHeliosphere} />
       </group>
-      <VisualGuides overlayRef={overlayRef} labels={labels} focusedBody={panelBody} origin={origin} binary={Boolean(binaryBody)} aimTarget={aimTarget} distanceTarget={distanceTarget?.position} />
+      <VisualGuides overlayRef={overlayRef} labels={labels} focusedBody={panelBody} origin={origin} binary={Boolean(binaryBody)} aimTarget={aimTarget} distanceTarget={distanceTarget?.position}
+        fichaAbierta={Boolean(fichaPlaneta || estrellaFicha || (showBodyPanel && panelBody))} />
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
       <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
@@ -757,7 +772,7 @@ export default function App() {
       {galaxyStatus === 'error' && <div className="galaxy-loading" role="status">No se pudo cargar la galaxia. Recarga para reintentar.</div>}
       {fichaRegion === 'heliosphere' && <FichaHeliosfera onCerrar={() => { setRegionCerrada({ region: fichaRegion, vista: view }); setSoltadas(n => n + 1); }} />}
       {REGIONES_CON_FICHA.includes(fichaRegion) && <FichaRegion key={fichaRegion} region={fichaRegion} onCerrar={() => { setRegionCerrada({ region: fichaRegion, vista: view }); setSoltadas(n => n + 1); }} />}
-      {showDiscoveries && <PanelDescubrimientos data={discoveries.data} status={discoveries.status} filter={discoveryFilter}
+      {showDiscoveries && <PanelDescubrimientos data={datosDescubrimientos} status={discoveries.status} filter={discoveryFilter}
         onFilter={setDiscoveryFilter} onClose={() => setShowDiscoveries(false)} />}
       {showPulsars && <aside className="pulsar-legend">
         <strong>Los 14 púlsares del mapa de Voyager</strong>

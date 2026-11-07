@@ -885,7 +885,8 @@ test('La salida a Exoplanetas arranca sin saltos desde la cámara, gira y termin
     camera.up.set(0, 0, 1);
     const view = { ...vista, journey: { start: inicio, rotation: [0, 0, 0, 1], duration: 8 } };
     const transition = beginJourney(camera, view, [0, 0, 0]);
-    assert.ok(transition.giro >= Math.PI / 2 && transition.giro <= 2.5 * Math.PI);
+    // Por el lado más corto: a lo más media vuelta.
+    assert.ok(Math.abs(transition.giro) <= Math.PI + 1e-9);
     advanceJourney(camera, transition, view, 50, 0.05);
     const movido = camera.position.distanceTo(new Vector3(...inicio));
     assert.ok(movido < Math.max(new Vector3(...inicio).length() * 0.01, 1e-5), `saltó ${movido} pc`);
@@ -894,9 +895,9 @@ test('La salida a Exoplanetas arranca sin saltos desde la cámara, gira y termin
     const mirada = new PerspectiveCamera();
     while (!advanceJourney(camera, transition, view, 50, 0.05)) {
       const restante = transition.giroRestante;
-      assert.ok(restante <= anterior);
+      assert.ok(Math.abs(restante) <= Math.abs(anterior) && Math.sign(restante) * Math.sign(transition.giro) >= 0);
       if (camera.position.length() < 900 * AU_TO_PC && new Vector3(...inicio).length() < 900 * AU_TO_PC) assert.equal(restante, transition.giro);
-      if (Number.isFinite(anterior)) recorrido += anterior - restante;
+      if (Number.isFinite(anterior)) recorrido += Math.abs(anterior - restante);
       anterior = restante;
       if (transition.elapsed / transition.duration > 0.5) {
         mirada.up.copy(camera.up); mirada.position.copy(camera.position); mirada.lookAt(transition.target);
@@ -905,7 +906,7 @@ test('La salida a Exoplanetas arranca sin saltos desde la cámara, gira y termin
         assert.ok(Math.abs(plegar(2 * Math.atan2(relativa.z, relativa.w)) - plegar(restante)) < 1e-3);
       }
     }
-    assert.ok(recorrido <= transition.giro + 1e-9);
+    assert.ok(recorrido <= Math.abs(transition.giro) + 1e-9);
     const final = new Vector3(...vista.target).add(new Vector3(...vista.direction).multiplyScalar(vista.distance));
     assert.ok(camera.position.distanceTo(final) < 1e-6 * vista.distance);
     const derecha = new PerspectiveCamera();
@@ -1013,4 +1014,37 @@ test('De cerca, la línea de órbita es curva junto al planeta y pasa por él', 
   assert.ok(Math.hypot(points[best * 3], points[best * 3 + 1], points[best * 3 + 2]) / KM_TO_PC < 1);
   const next = Math.hypot(points[best * 3 + 3], points[best * 3 + 4], points[best * 3 + 5]) / KM_TO_PC;
   assert.ok(next < 20000, `${next.toFixed(0)} km`);
+});
+
+test('En Ojo humano y Binoculares, el nombre de una estrella sigue a su punto', async () => {
+  const { nombreVisible } = await import('../src/scene/modosBrillo.js');
+  // Deneb (M = −6,93) a 433 pc: magnitud aparente 1,25, visible a simple vista.
+  assert.equal(nombreVisible(-6.93, 432.9, 6), 1);
+  // Una enana de M = 5 a 300 pc tiene magnitud 12,4: no se ve con el ojo ni con binoculares.
+  assert.equal(nombreVisible(5, 300, 6), 0);
+  assert.equal(nombreVisible(5, 300, 9), 0);
+  // En el límite, a medias.
+  assert.ok(Math.abs(nombreVisible(6, 10, 6) - 0.5) < 1e-9);
+});
+
+test('La distancia de un planeta se compara con la órbita solar más parecida', async () => {
+  const { planetaComparado } = await import('../src/scene/zonaHabitable.js');
+  assert.equal(planetaComparado(1.05, 'X b', 'X'), 'X b está a casi la misma distancia de X que la Tierra del Sol');
+  assert.equal(planetaComparado(0.029, 'TRAPPIST-1 e', 'TRAPPIST-1'), 'TRAPPIST-1 e está 13 veces más cerca de TRAPPIST-1 que Mercurio del Sol');
+});
+
+test('La entrada a Exoplanetas gira poco si la cámara viene derecha y media vuelta si viene de cabeza', async () => {
+  const { PerspectiveCamera, Vector3 } = await import('three');
+  const { beginJourney } = await import('../src/scene/navigation.js');
+  const { DEFAULT_DISCOVERY_VIEW: vista } = await import('../src/scene/discoveryViews.js');
+  const inicio = new Vector3(...vista.target).add(new Vector3(...vista.direction).multiplyScalar(vista.distance * 0.2));
+  const giroDesde = invertida => {
+    const camera = new PerspectiveCamera();
+    camera.position.copy(inicio); camera.up.fromArray(vista.up); camera.lookAt(new Vector3(...vista.target));
+    if (invertida) camera.rotateZ(Math.PI);
+    const view = { ...vista, journey: { start: inicio.toArray(), rotation: camera.quaternion.toArray(), duration: 8 } };
+    return beginJourney(camera, view, [0, 0, 0]).giro;
+  };
+  assert.ok(Math.abs(giroDesde(false)) < 0.05);
+  assert.ok(Math.abs(Math.abs(giroDesde(true)) - Math.PI) < 0.05);
 });

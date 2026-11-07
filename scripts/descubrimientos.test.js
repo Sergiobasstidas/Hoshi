@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { MISSIONS, PLANET_TYPES, TYPE_MASS_LIMITS, TYPE_RADIUS_LIMITS, countTabs, describeSystem, filterSystems, missionOf, planetType, typeFromNasa } from '../src/scene/descubrimientos.js';
+import { DEFAULT_FILTER, MISSIONS, PLANET_TYPES, TYPE_MASS_LIMITS, TYPE_RADIUS_LIMITS, countTabs, describeSystem, filterSystems, marcarZona, missionOf, planetMatches, planetType, typeFromNasa } from '../src/scene/descubrimientos.js';
 
 const type = (mass, radius) => PLANET_TYPES[planetType(mass, radius)].id;
 
@@ -97,4 +97,24 @@ test('el acercamiento con inercia recorre lo mismo a cualquier frecuencia de cua
   // A los 0,2 s ya va más de la mitad: responde enseguida y frena poco a poco.
   const early = stepZoom(ZOOM_PER_NOTCH * ZOOM_DECAY_PER_S, 0.2);
   assert.ok(Math.log(early.factor) > ZOOM_PER_NOTCH * 0.6);
+});
+
+test('El filtro de zona habitable deja solo los planetas que su ficha marca dentro', () => {
+  const data = JSON.parse(fs.readFileSync('./public/data/exoplanet-discoveries.json', 'utf8'));
+  // Los confirmados con anfitriona en Hoshi traen nombre; los candidatos, no.
+  const nombres = Object.entries(data.planets.n);
+  assert.ok(nombres.length > 1000 && nombres.every(([k]) => !data.planets.c[k]));
+  const marcados = marcarZona(data, new Set(['TRAPPIST-1 e', 'TRAPPIST-1 f', 'Proxima Cen b', 'no existe']));
+  const filtro = { ...DEFAULT_FILTER, zona: 'dentro' };
+  const dentro = [...filterSystems(marcados, filtro).values()].flat();
+  assert.equal(dentro.length, 3);
+  assert.deepEqual(dentro.map(k => marcados.planets.n[k]).sort(), ['Proxima Cen b', 'TRAPPIST-1 e', 'TRAPPIST-1 f']);
+  for (const k of dentro) assert.ok(planetMatches(marcados, k, filtro));
+  // Las pestañas de la fila se cuentan sin su propio filtro y con los demás activos.
+  const conteo = countTabs(marcados, filtro);
+  assert.equal(conteo.zona.dentro, 3);
+  assert.equal(conteo.zona.todos, data.planets.s.length);
+  assert.equal(countTabs(marcados, { ...filtro, estado: 'candidatos' }).zona.dentro ?? 0, 0);
+  // Sin la columna z (archivo sin marcar), «En la zona» no deja pasar nada.
+  assert.equal(filterSystems(data, filtro).size, 0);
 });
