@@ -49,7 +49,7 @@ import PlanetarySystems from './scene/PlanetarySystem';
 import MoonLabels from './MoonLabels';
 import { FichaAnillos, FichaLuna } from './FichaLuna';
 import { moonHost, useMoons } from './scene/moonBodies';
-import { clearRouteMark, julianDay, lightDaysText, probeFocus, probeHighlight, probePositionAu, probeSamples, useProbeMark, useProbes } from './scene/probeTrajectories';
+import { clearRouteMark, julianDay, probeTrailPc, lightDaysText, probeFocus, probeHighlight, probePositionAu, probeSamples, useProbeMark, useProbes } from './scene/probeTrajectories';
 import { FLYBY_PLANETS, composeRoute, flybyBody, useFlybys } from './scene/probeFlybys';
 import { stageJd, useProbeStages } from './scene/probeStages';
 import LineaTiempoSonda, { FichaEtapa } from './LineaTiempoSonda';
@@ -57,6 +57,10 @@ import { WINDOW_DAYS, flybyKey, playFlyby, playback, stopFlyby } from './scene/f
 import ExoplanetDiscoveries from './scene/ExoplanetDiscoveries';
 import ZoomSuave from './scene/ZoomSuave';
 import { GIRO_AMORTIGUAMIENTO } from './scene/inerciaCamara.js';
+import { encuadreRuta } from './scene/encuadreRuta.js';
+import GiroLento from './scene/GiroLento';
+// Rapidez del giro al arrastrar alrededor de lo elegido (antes 0,45; pedido de Sergio, 07/11/2026).
+const GIRO_RATON = 0.3;
 import PanelDescubrimientos from './PanelDescubrimientos';
 import { useDescubrimientos } from './scene/useDescubrimientos.js';
 import { DEFAULT_FILTER as FILTRO_DESCUBRIMIENTOS } from './scene/descubrimientos.js';
@@ -152,8 +156,6 @@ function SceneReady({ catalogueReady }) {
 
 // Cámara del paso por un planeta (▶): elevación sobre el plano de la trayectoria, cuánto se corre hacia
 // el lado de la entrada y distancia al planeta, en máximos acercamientos y, como mínimo, en radios.
-// Fracción de la distancia a la sonda a la que queda el pivote tras apuntarle con un clic en su ruta.
-const APUNTE_PIVOTE = 0.02;
 const PASO_ELEVACION_DEG = 25, PASO_HACIA_ENTRADA = 0.35, PASO_DISTANCIA_ACERCAMIENTOS = 9, PASO_DISTANCIA_RADIOS = 22;
 // Píxeles que hay que arrastrar la escena para detener un viaje.
 const ARRASTRE_PX = 6;
@@ -365,21 +367,16 @@ export default function App() {
       color: { lanzamiento: '#8dc9ef', heliopausa: '#c9a5e8', 'fin del contacto': '#9aa6b5' }[stage.kind],
       companionViewDistance: (stage.kind === 'lanzamiento' ? 0.05 : 3) * AU_TO_PC });
   };
-  // Clic en la ruta de una sonda: la cámara gira hasta mirarla, sin moverse de donde está (el mismo giro
-  // que al detener un viaje). Queda orbitando a la sonda a la distancia actual.
+  // Clic en la ruta de una sonda: la cámara sale a ver la ruta entera en perspectiva (encuadreRuta.js)
+  // y, al llegar, queda en vuelo libre con la sonda elegida: su ruta, su línea de tiempo y su información.
   const apuntarASonda = probe => {
     const camera = cameraRef.current;
     if (!camera) return;
-    // El pivote de la órbita no pasa a la sonda (a 100 UA o más, girar o acercarse alrededor de ella
-    // desplazaría la cámara hacia allá): queda cerca de la cámara, en la dirección de la sonda, así
-    // arrastrar casi solo gira la mirada. La cámara no se mueve.
-    const posicion = camera.position.toArray().map((value, i) => value + origin[i]);
-    const hacia = probe.position.map((value, i) => value - posicion[i]);
-    const largo = Math.hypot(...hacia);
-    const alcance = largo * APUNTE_PIVOTE;
-    navigate({ id: 'apunte', body: probe, target: posicion.map((value, i) => value + hacia[i] / largo * alcance), distance: alcance,
-      minDistance: Math.min(view.minDistance ?? alcance * 0.01, alcance * 0.5) }, { headingOnly: true });
+    const encuadre = encuadreRuta(probeTrailPc(probe.data, probe.jd), probe.position, ECLIPTIC_UP, camera.fov, camera.aspect);
+    navigate({ id: 'ruta-sonda', ...encuadre, minDistance: encuadre.distance * 0.01 }, { arriveFree: true });
   };
+  // Solo los destinos de «Viajar a» se rondan solos al llegar (GiroLento.jsx).
+  const giraSola = SCALE_VIEWS.some(option => option.id === view.id) || view.id === 'galaxy';
   const [soltadas, setSoltadas] = useState(0);
   const soltarSonda = () => { clearRouteMark(); setSondaSoltada(view); setEtapa(null); stopFlyby(); setSoltadas(n => n + 1); };
   // Lo elegido ahora, para que el buscador borre el nombre que dejó cuando deja de estarlo: el cuerpo de
@@ -697,9 +694,10 @@ export default function App() {
       <color attach="background" args={['#020305']} />
       {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}
-        enablePan={false} enableDamping dampingFactor={GIRO_AMORTIGUAMIENTO} rotateSpeed={0.45} zoomSpeed={1.35}
+        enablePan={false} enableDamping dampingFactor={GIRO_AMORTIGUAMIENTO} rotateSpeed={GIRO_RATON} zoomSpeed={1.35}
         onStart={() => { transitionRef.current = null; setSolApuntado(false); }} />}
       {!freeFlight && !traveling && <ZoomSuave controlsRef={controlsRef} />}
+      {!freeFlight && !traveling && giraSola && <GiroLento controlsRef={controlsRef} />}
       <CameraNavigation view={view} showPulsars={showPulsars} transitionRef={transitionRef} origin={origin} onComplete={arriveFree => { setTraveling(false); setFreeFlight(arriveFree); document.activeElement?.blur(); }} />
       <StarAim target={aimTarget} origin={origin} onRelease={releaseAim} cameraRef={cameraRef} />
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />

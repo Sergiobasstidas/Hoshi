@@ -227,13 +227,13 @@ function ProbeRoute({ probe, origin, flybys, selected, onSelect, onAim }) {
     }
   });
   const active = () => probeLit(probe.code) || selected === probe.code;
-  // Un clic (o doble clic) marca la ruta y elige la sonda; la cámara gira hacia ella sin moverse.
+  // Un clic (o doble clic) marca la ruta y elige la sonda; la cámara sale a ver la ruta entera (App.jsx).
+  // Un clic en el vacío la suelta desde la escena (App.jsx), que no lo hace durante un viaje.
   const handlers = {
     onPointerOver: event => { event.stopPropagation(); probeHighlight.code = probe.code; setCursor(gl, 'pointer'); },
     onPointerOut: () => { if (probeHighlight.code === probe.code) probeHighlight.code = null; setCursor(gl, ''); },
     onClick: event => { event.stopPropagation(); markRouteClick(probe.code); onAim?.(probe); },
     onDoubleClick: event => { event.stopPropagation(); markRouteClick(probe.code); },
-    onPointerMissed: () => markRouteMissed(probe.code),
   };
   useEffect(() => () => { setCursor(gl, ''); markRouteMissed(probe.code); }, [gl, probe.code]);
   useEffect(() => {

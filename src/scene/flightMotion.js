@@ -5,21 +5,20 @@ export const FLIGHT_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'Key
 const motion = new Vector3(), turn = new Vector3();
 
 // Constantes de tiempo (s) con que el desplazamiento y el giro llegan a su velocidad al apretar una
-// tecla y se detienen al soltarla: sin arranques ni frenazos secos.
+// tecla: sin arranques secos. Al soltarla, ese eje se detiene en el acto, sin deslizarse (pedido de
+// Sergio, 07/11/2026: la suavidad era solo para el comienzo).
 export const MOVE_EASE_S = 0.35, TURN_EASE_S = 0.25;
 const TURN_RATE = 0.3;
-// Bajo esta fracción de la velocidad, con la tecla suelta, el movimiento queda en 0 exacto (la escena
-// puede volver al reposo del dibujo bajo demanda).
-const REST = 1e-3;
 export const createFlightInertia = () => ({ move: new Vector3(), turn: new Vector3() });
 
+// Hacia la velocidad de la tecla con suavidad; tecla suelta (o al revés que el movimiento) → 0 de inmediato.
 const ease = (current, target, dt, tau) => {
-  const next = current + (target - current) * (1 - Math.exp(-dt / tau));
-  return target === 0 && Math.abs(next) < REST ? 0 : next;
+  if (target === 0 || current * target < 0) return target === 0 ? 0 : target * (1 - Math.exp(-dt / tau));
+  return current + (target - current) * (1 - Math.exp(-dt / tau));
 };
 
 // Movimiento independiente de la frecuencia de cuadros; la rueda no traslada ni gira. Con `inertia`
-// (createFlightInertia) cada eje acelera y frena con suavidad; sin ella responde de inmediato.
+// (createFlightInertia) cada eje acelera con suavidad y se detiene en seco; sin ella responde de inmediato.
 export function advanceFlight(camera, keys, speed, delta, inertia = null) {
   const axis = (positive, negative) => Number(keys.has(positive)) - Number(keys.has(negative));
   const dt = Math.min(delta, 0.05);

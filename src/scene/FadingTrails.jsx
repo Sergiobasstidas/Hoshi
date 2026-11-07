@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, InstancedBufferAttribute, Vector3 } from 'three';
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
@@ -16,11 +16,20 @@ import { smoothRange } from './scale';
 // Con `fadeDistance` = [lejos, cerca] (unidades de escena, distancia de la cámara al grupo), las
 // estelas no se ven más allá de `lejos` y aparecen de forma gradual hasta `cerca`.
 // Coordenadas locales del grupo padre.
-const center = new Vector3();
+//
+// De cerca de un cuerpo, la estela se dibuja relativa a su cabeza (el cuerpo): en Float32 y relativa
+// al planeta, a unos miles de km de una luna el redondeo movía la línea varios km en cada cuadro y,
+// al mover la cámara, se veían varias líneas. Se ancla a la cabeza más cercana cuando la cámara está a
+// menos de ANCLA_CERCA de su tamaño de referencia (la órbita) y se suelta pasado ANCLA_LEJOS.
+const ANCLA_CERCA = 0.5, ANCLA_LEJOS = 0.75;
+const center = new Vector3(), local = new Vector3();
+const headOf = trail => Array.from(trail.points.subarray(trail.points.length - 3));
 
 export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 1, width = 1.6, fadeDistance }) {
+  const [anchorIndex, setAnchorIndex] = useState(-1);
+  const anchor = useMemo(() => anchorIndex >= 0 && trails[anchorIndex] ? headOf(trails[anchorIndex]) : [0, 0, 0], [trails, anchorIndex]);
   const line = useMemo(() => {
-    const merged = mergeTrails(trails);
+    const merged = mergeTrails(trails, anchor);
     const colors = new Float32Array(merged.color.length);
     merged.progress.forEach((progress, v) => {
       const fade = progress ** 1.4 * merged.weight[v];
@@ -49,13 +58,27 @@ export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 
     material.customProgramCacheKey = () => 'estela-desvanecida';
     const object = new LineSegments2(geometry, material);
     object.frustumCulled = false;
+    object.position.fromArray(anchor);
     object.userData.uniforms = uniforms;
     return object;
-  }, [trails, fadePixels, opacity, width]);
+  }, [trails, anchor, fadePixels, opacity, width]);
   useEffect(() => () => { line.geometry.dispose(); line.material.dispose(); }, [line]);
   const ref = useRef();
   useFrame(({ camera, size }) => {
     const object = ref.current;
+    if (object.parent) {
+      object.parent.worldToLocal(local.copy(camera.position));
+      let best = -1, bestRatio = Infinity;
+      trails.forEach((trail, i) => {
+        const head = headOf(trail);
+        const ratio = Math.hypot(local.x - head[0], local.y - head[1], local.z - head[2]) / trail.size;
+        if (ratio < bestRatio) { best = i; bestRatio = ratio; }
+      });
+      const current = anchorIndex >= 0 && trails[anchorIndex] ? headOf(trails[anchorIndex]) : null;
+      const keep = current && Math.hypot(local.x - current[0], local.y - current[1], local.z - current[2]) / trails[anchorIndex].size < ANCLA_LEJOS;
+      const next = keep ? anchorIndex : bestRatio < ANCLA_CERCA ? best : -1;
+      if (next !== anchorIndex) setAnchorIndex(next);
+    }
     const distance = camera.position.distanceTo(object.getWorldPosition(center));
     object.userData.uniforms.pixelsPerUnit.value = size.height / (2 * Math.tan(camera.fov * Math.PI / 360)) / distance;
     if (fadeDistance) {

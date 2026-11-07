@@ -8,7 +8,7 @@ import { EPHEMERIS_DATE, horizonsCovers, moonOffset, moonPosition, orbitalElemen
 import { encodedDepth } from '../src/scene/depthPrecision.js';
 import { readFileSync } from 'node:fs';
 import { WR140_ID, identifyStellarTargets, stellarTargets } from '../src/scene/stellarTargets.js';
-import { MOVE_EASE_S, TURN_EASE_S, advanceFlight, createFlightInertia, flightCoasting } from '../src/scene/flightMotion.js';
+import { TURN_EASE_S, advanceFlight, createFlightInertia, flightCoasting } from '../src/scene/flightMotion.js';
 import { canAimStar, createStarAim, advanceStarAim, STAR_AIM_SECONDS, STAR_STOP_PC, approachSpeed, stopBeforeTarget } from '../src/scene/starHeading.js';
 import { selectStarLabels } from '../src/scene/starLabelSelection.js';
 import { buildSearchIndex, searchStars } from '../src/scene/starSearch.js';
@@ -963,16 +963,15 @@ test('El vuelo con teclado acelera y frena con suavidad y luego queda quieto del
   const before = camera.position.z;
   advanceFlight(camera, new Set(['KeyW']), speed, 1 / 60, inertia);
   assert.ok(Math.abs(before - camera.position.z - speed / 60) < speed / 60 * 0.01);
-  // Al soltar sigue un poco y se detiene; la misma curva a 30 y a 120 cuadros por segundo.
-  const coast = fps => {
+  // Al soltar se detiene en el acto, sin deslizarse, a 30 y a 120 cuadros por segundo.
+  for (const fps of [30, 120]) {
     const c = new PerspectiveCamera(), state = createFlightInertia();
-    state.move.set(0, 0, -1);
-    for (let i = 0; i < fps * 3; i++) advanceFlight(c, new Set(), speed, 1 / fps, state);
-    return { distance: -c.position.z, moving: flightCoasting(state) };
-  };
-  const slow = coast(30), fast = coast(120);
-  assert.ok(Math.abs(slow.distance - MOVE_EASE_S * speed) < 0.03 && Math.abs(fast.distance - MOVE_EASE_S * speed) < 0.01, `${slow.distance} ${fast.distance}`);
-  assert.ok(!slow.moving && !fast.moving);
+    state.move.set(0, 0, -1); state.turn.set(0, 0, 1);
+    advanceFlight(c, new Set(), speed, 1 / fps, state);
+    assert.equal(c.position.length(), 0);
+    assert.equal(c.quaternion.angleTo(new PerspectiveCamera().quaternion), 0);
+    assert.ok(!flightCoasting(state));
+  }
   // El giro con Q/E tampoco arranca en seco: el primer cuadro gira mucho menos que a velocidad plena.
   const turning = new PerspectiveCamera(), turnState = createFlightInertia();
   advanceFlight(turning, new Set(['KeyQ']), speed, 1 / 60, turnState);

@@ -7,11 +7,13 @@ export const MODOS_BRILLO = [
   { id: 'ojo', nombre: 'Ojo humano', limite: 6, texto: 'Lo que verías a simple vista desde aquí. Lejos de todo, casi nada.' },
   { id: 'binoculares', nombre: 'Binoculares', limite: 9, texto: 'Como con binoculares: aparecen miles de estrellas que el ojo no alcanza.' },
 ];
-const CLAVE = 'hoshi-cielo';
+// Sin nada guardado se parte en Binoculares (pedido de Sergio, 07/11/2026); la clave cambió para que
+// también parta así un navegador que tenía «Mapa» guardado.
+const CLAVE = 'hoshi-cielo-2', INICIAL = 'binoculares';
 const leerGuardado = () => {
   try { return window.localStorage.getItem(CLAVE); } catch { return null; }
 };
-let actual = MODOS_BRILLO.find(modo => modo.id === (typeof window === 'undefined' ? null : leerGuardado())) || MODOS_BRILLO[0];
+let actual = MODOS_BRILLO.find(modo => modo.id === (typeof window === 'undefined' ? null : leerGuardado())) || MODOS_BRILLO.find(modo => modo.id === INICIAL);
 const oyentes = new Set();
 export function elegirModoBrillo(id) {
   actual = MODOS_BRILLO.find(modo => modo.id === id);

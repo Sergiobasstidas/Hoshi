@@ -16,6 +16,10 @@ export function mantenerActivo(segundos = 0.25) {
   if (dormido) despertar();
 }
 
+// La cámara que gira sola (GiroLento.jsx) no despierta el dibujo continuo: pide sus propios cuadros, a
+// menor ritmo, y mientras tanto lo demás que se anima avanza a ese mismo ritmo.
+export const giroAutomatico = { activo: false };
+
 const EVENTOS = ['pointerdown', 'pointermove', 'pointerup', 'wheel', 'keydown', 'keyup', 'touchstart', 'touchmove', 'resize'];
 
 export function Reposo() {
@@ -35,8 +39,9 @@ export function Reposo() {
   useFrame(() => {
     const { position: p, quaternion: q, fov } = camera;
     const estado = [p.x, p.y, p.z, q.x, q.y, q.z, q.w, fov];
-    if (!previa.current || estado.some((v, i) => v !== previa.current[i])) { previa.current = estado; mantenerActivo(ESPERA_S); }
-    if (performance.now() < activoHasta) invalidate();
+    if (!previa.current || estado.some((v, i) => v !== previa.current[i])) { previa.current = estado; if (!giroAutomatico.activo) mantenerActivo(ESPERA_S); }
+    // Mientras la cámara gira sola, el ritmo lo pone el giro (GiroLento.jsx), también para los fundidos.
+    if (performance.now() < activoHasta && !giroAutomatico.activo) invalidate();
   });
   return null;
 }

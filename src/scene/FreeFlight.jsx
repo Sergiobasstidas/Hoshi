@@ -9,6 +9,8 @@ import { stellarStopDistance } from './stellarPhysics';
 
 // Mando táctil: un dedo mira y dos dedos pellizcan para acercarse o alejarse.
 const PELLIZCO_SEGUNDOS = 2.5;
+// Giro de la mirada en vuelo libre por píxel arrastrado (mouse y dedo), en radianes.
+const GIRO_POR_PIXEL = 0.001;
 
 export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initialBody, origin, onManualLook, aimTarget, inspectedTarget }) {
   const { camera, gl } = useThree();
@@ -103,8 +105,8 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
         return;
       }
       if (dx || dy) onManualLook();
-      camera.rotateY(-dx * 0.002);
-      camera.rotateX(-dy * 0.002);
+      camera.rotateY(-dx * GIRO_POR_PIXEL);
+      camera.rotateX(-dy * GIRO_POR_PIXEL);
     };
     const soltarToque = event => {
       const toque = toques.get(event.pointerId);
@@ -123,8 +125,8 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
       if (event.pointerType === 'touch') { moverToque(event); return; }
       if (!pointer || pointer.id !== event.pointerId) return;
       if (event.clientX !== pointer.x || event.clientY !== pointer.y) onManualLook();
-      camera.rotateY(-(event.clientX - pointer.x) * 0.002);
-      camera.rotateX(-(event.clientY - pointer.y) * 0.002);
+      camera.rotateY(-(event.clientX - pointer.x) * GIRO_POR_PIXEL);
+      camera.rotateX(-(event.clientY - pointer.y) * GIRO_POR_PIXEL);
       pointer.x = event.clientX; pointer.y = event.clientY;
     };
     const up = event => {
