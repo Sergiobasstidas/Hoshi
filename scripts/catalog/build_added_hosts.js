@@ -4,11 +4,15 @@
 // las añada. Posición y distancia de Gaia DR3 cuando existen; si no, del NASA Exoplanet
 // Archive. Cada registro declara de dónde sale cada valor.
 // Uso: node scripts/catalog/build_added_hosts.js
-// Requiere exoplanet_host_identity.json y exoplanet_systems.json actualizados.
+// Requiere exoplanet_host_identity.json, exoplanet_systems.json y el registro HSB
+// (data/catalog/hsb_registro.csv) actualizados. El número de cada anfitriona sale del
+// registro; una anfitriona nueva recibe uno desde HSB_NUEVO_BASE. Después de regenerar
+// las estrellas, `npm run hsb` la da de alta en el registro con ese mismo número.
 
 import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { temperatureToBv, temperatureToRgb, vFromGaia } from './photometry.js';
+import { HSB_NUEVO_BASE, REGISTRO_CSV, leerRegistro } from './build_hsb.js';
 
 const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
 const SYSTEMS_JSON = './data/exoplanets/exoplanet_systems.json';
@@ -16,7 +20,8 @@ const GAIA_HOSTS_CSV = './data/raw/gaia/gaia_dr3_exoplanet_hosts.csv';
 const ATHYG_CSV = './data/raw/hyglike_from_athyg_v32.csv';
 const OUTPUT_PATH = './data/catalog/added_hosts.json';
 
-// Los ID de AT-HYG llegan a ~2,6 millones: este rango no colisiona.
+// Los ID de AT-HYG llegan a ~2,6 millones: este rango no colisiona. Las anfitrionas de la
+// primera carga del registro HSB quedaron en 9 000 000 + n; las nuevas van desde HSB_NUEVO_BASE.
 export const ADDED_HOST_ID_BASE = 9000000;
 // Paralaje Gaia fiable para fijar la distancia; si no, se usa sy_dist del archivo.
 const MIN_PARALLAX_SNR = 10;
@@ -44,6 +49,26 @@ export function equatorialToCartesian(raDeg, decDeg, dist) {
   const ra = raDeg * Math.PI / 180, dec = decDeg * Math.PI / 180;
   const coordinate = value => Number((dist * value).toPrecision(7));
   return [coordinate(Math.cos(dec) * Math.cos(ra)), coordinate(Math.cos(dec) * Math.sin(ra)), coordinate(Math.sin(dec))];
+}
+
+// Número HSB de cada anfitriona: se reconoce en el registro por Gaia DR3 o por el nombre de la
+// NASA (también si quedó retirada); si no está, recibe el siguiente libre desde HSB_NUEVO_BASE.
+export function numeradorDeAnfitrionas(registro) {
+  const propias = registro.filter(f => f.origen === 'anfitriona');
+  const porGaia = new Map(propias.filter(f => f.gaia_dr3).map(f => [f.gaia_dr3, f.hsb]));
+  const porNombre = new Map(propias.filter(f => f.nombre).map(f => [f.nombre, f.hsb]));
+  const usados = new Set(registro.map(f => f.hsb));
+  let siguiente = registro.reduce((m, f) => Math.max(m, f.hsb + 1), HSB_NUEVO_BASE);
+  const dados = new Set();
+  return host => {
+    let numero = (host.gaia && porGaia.get(host.gaia)) ?? porNombre.get(host.h);
+    if (numero === undefined || dados.has(numero)) {
+      while (usados.has(siguiente)) siguiente++;
+      numero = siguiente++;
+    }
+    usados.add(numero); dados.add(numero);
+    return numero;
+  };
 }
 
 // Construye el registro de una anfitriona o devuelve { skip: motivo }.
@@ -103,6 +128,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const gaiaBySource = new Map(read(GAIA_HOSTS_CSV).map(g => [g.source_id, g]));
   const maxAthygId = Math.max(...read(ATHYG_CSV).map(r => Number(r.id)));
   if (maxAthygId >= ADDED_HOST_ID_BASE) throw new Error(`El rango ${ADDED_HOST_ID_BASE} colisiona con AT-HYG (máx. ${maxAthygId})`);
+  if (!fs.existsSync(REGISTRO_CSV)) throw new Error(`Falta ${REGISTRO_CSV}: los números de las anfitrionas salen del registro HSB`);
+  const numero = numeradorDeAnfitrionas(leerRegistro(fs.readFileSync(REGISTRO_CSV, 'utf8')));
 
   const added = [], skipped = {}, shared = [];
   const byGaia = new Map();
@@ -117,7 +144,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
     const record = buildHost({ host, system: systems.get(host.h), gaia: host.gaia ? gaiaBySource.get(host.gaia) : null });
     if (record.skip) { (skipped[record.skip] ||= []).push(host.h); continue; }
-    const star = { i: ADDED_HOST_ID_BASE + added.length + 1, ...record, hosts: [host.h],
+    const star = { i: numero(host), ...record, hosts: [host.h],
       alias: [...new Set([host.h, ...host.alias.map(a => a.replace(/^NAME /, ''))])] };
     added.push(star);
     if (host.gaia) byGaia.set(host.gaia, star);
@@ -127,7 +154,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     meta: {
       descripcion: 'Anfitrionas de exoplanetas ausentes de AT-HYG, en el formato de stars_15pc.json',
       marco: 'pc, ecuatorial J2000, Sol en el origen',
-      ids: `${ADDED_HOST_ID_BASE} + n, por orden alfabético del anfitrión; cambian si cambia la tabla de la NASA`,
+      ids: `número HSB fijo desde data/catalog/hsb_registro.csv (por Gaia DR3 o nombre de la NASA); las de la primera carga son ${ADDED_HOST_ID_BASE} + n y las nuevas parten en ${HSB_NUEVO_BASE}`,
       generado: new Date().toISOString(),
       total: added.length, conNombreVisible: added.filter(s => s.n).length,
       procedencia: { posicion: tally('pos'), distancia: tally('d'), magnitud: tally('v'), color: tally('c') },

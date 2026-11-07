@@ -37,6 +37,9 @@ data/raw/exoplanets/*
 data/raw/gaia/*
 !data/raw/gaia/FUENTES.md
 data/catalog/star_identity.json
+# AT-HYG v3.2 completo (199 MB): se descarga con las URL de FUENTES.md
+data/raw/athyg/*
+!data/raw/athyg/FUENTES.md
 # Datos crudos de SIMBAD (4,9 MB)
 data/raw/simbad/*
 !data/raw/simbad/FUENTES.md
