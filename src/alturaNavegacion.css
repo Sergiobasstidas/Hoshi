@@ -6,7 +6,7 @@
 }
 @media (min-width: 901px) and (max-width: 1200px) {
   .star-search { top: calc(182px + var(--nav-extra, 0px)); }
-  .body-panel, .aim-panel { top: calc(240px + var(--nav-extra, 0px)); }
+  .aim-panel { top: calc(240px + var(--nav-extra, 0px)); }
 }
 @media (min-width: 701px) and (max-width: 900px) {
   .star-search { top: calc(210px + var(--nav-extra, 0px)); }

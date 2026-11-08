@@ -12,7 +12,10 @@ const MAX_ACTIVE = 6;
 // Distancias de aparición en múltiplos de la separación de cada componente.
 const MARKER_RANGE = [250, 600], LINE_RANGE = [60, 300], LABEL_RANGE = [45, 110];
 
-function CompanionSystem({ system, origin, onElegir }) {
+// `elegido`: el sistema tiene la ficha abierta o el rumbo fijado en una de sus estrellas. Las rectas de
+// los pares anchos (sin órbita) solo se dibujan entonces: unen estrellas a miles de UA y, sin elegir el
+// sistema, se veían como líneas sueltas (Alula Australis D, enana café a 4.500 UA).
+function CompanionSystem({ system, origin, onElegir, elegido }) {
   const lines = useRef(), material = useRef(), points = useRef(), labels = useRef([]);
   const position = useMemo(() => system.position.map((v, i) => v - origin[i]), [system, origin]);
   // Las compañeras que ya son un registro del catálogo se dibujan con el campo estelar.
@@ -38,7 +41,7 @@ function CompanionSystem({ system, origin, onElegir }) {
       camera.position.y - position[1] - component.offsetPc[1], camera.position.z - position[2] - component.offsetPc[2]) / component.scalePc;
     paths.forEach(({ component }, i) => {
       const line = lines.current.children[i];
-      line.material.opacity = (component.pair.k === 'o' ? 0.3 : 0.14) * (1 - smoothRange(range(component), ...LINE_RANGE));
+      line.material.opacity = (component.pair.k === 'o' ? 0.3 : elegido ? 0.14 : 0) * (1 - smoothRange(range(component), ...LINE_RANGE));
       line.visible = line.material.opacity > 0.003;
     });
     drawn.forEach((component, i) => {
@@ -103,7 +106,11 @@ function CompanionSystem({ system, origin, onElegir }) {
   </group>;
 }
 
-export default function CompanionStars({ systems, origin, onElegir }) {
+// Ids de catálogo de una estrella del sistema: la principal, las compañeras con registro propio y las que
+// se completan con el dato del par (estrellaDeComponente).
+const idsDelSistema = system => [system.star.i, ...system.components.flatMap(c => [c.companion?.i, `${system.star.i}-${c.name}`])];
+
+export default function CompanionStars({ systems, origin, onElegir, elegidos = [] }) {
   const [active, setActive] = useState([]);
   const key = useRef('');
   useFrame(({ camera }) => {
@@ -118,5 +125,7 @@ export default function CompanionStars({ systems, origin, onElegir }) {
     const nextKey = next.map(system => system.id).join(',');
     if (nextKey !== key.current) { key.current = nextKey; setActive(next); }
   });
-  return active.map(system => <CompanionSystem key={system.id} system={system} origin={origin} onElegir={onElegir} />);
+  const buscados = elegidos.filter(id => id !== undefined && id !== null);
+  return active.map(system => <CompanionSystem key={system.id} system={system} origin={origin} onElegir={onElegir}
+    elegido={buscados.length > 0 && idsDelSistema(system).some(id => buscados.includes(id))} />);
 }

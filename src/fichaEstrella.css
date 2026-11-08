@@ -23,6 +23,9 @@
 .ficha-estrella-planetas { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .ficha-estrella-planetas button, .ficha-estrella-planetas span { display: block; padding: 3px 8px; border: 1px solid #ffffff1f; border-radius: 999px; background: transparent; color: #c6d1de; font: inherit; font-size: 10.5px; }
 .ficha-estrella-planetas button { cursor: pointer; }
+/* Sistema: un miembro por línea, con lo que lo une a su estrella debajo (tenue, como los secundarios de Dato). */
+.ficha-estrella-miembros { flex-direction: column; align-items: flex-start; gap: 6px; }
+.ficha-estrella-miembros small { display: block; margin: 2px 0 0 9px; color: #7f8b9b; font-size: 9.5px; }
 .ficha-estrella-planetas button:hover, .ficha-estrella-planetas button:focus-visible { color: #fff; border-color: #8fd3ff; outline: none; }
 .ficha-estrella-accion { display: inline-block; margin-top: 14px; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; pointer-events: auto; }
 .ficha-estrella-accion:hover, .ficha-estrella-accion:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
@@ -80,6 +83,14 @@
 }
 /* En pantallas táctiles, el área de toque crece sin que el botón se vea más grueso. */
 @media (pointer: coarse) {
-  .ficha-estrella-accion, .pulsar-legend button, .aim-panel button, .aviso-celular-caja button { position: relative; }
-  .ficha-estrella-accion::after, .pulsar-legend button::after, .aim-panel button::after, .aviso-celular-caja button::after { content: ''; position: absolute; inset: -7px 0; }
+  .ficha-estrella-accion,.aim-panel button,.aviso-celular-caja button { position: relative; }
+  .ficha-estrella-accion::after,.aim-panel button::after,.aviso-celular-caja button::after { content: ''; position: absolute; inset: -7px 0; }
 }
+
+/* Fichas de regiones (FichaRegion.jsx): frases cortas en lista bajo cada título. */
+.ficha-lista { margin: 0; padding: 0 0 0 14px; color: #c6d1de; }
+.ficha-lista li { margin: 0 0 6px; }
+/* Texto plegado (la forma de la heliosfera en debate). */
+.ficha-plegable { margin-top: 16px; color: #9aa6b5; }
+.ficha-plegable summary { cursor: pointer; color: #8fd3ff; font-size: 11px; }
+.ficha-plegable p { margin: 8px 0 0; }

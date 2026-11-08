@@ -41,5 +41,7 @@ export default function ProbeModel({ probe }) {
   // La antena principal apunta a la Tierra, como vuelan las sondas.
   const quaternion = useMemo(() => new Quaternion().setFromUnitVectors(new Vector3(...model.boresight), new Vector3(...probe.towardEarth)), [model, probe]);
   const scale = model.dishM / model.dishModel / 1000 * KM_TO_PC;
-  return <primitive object={scene} position={probe.position} quaternion={quaternion} scale={scale} />;
+  // Posición, giro y escala van en un grupo: aplicados directamente al modelo cargado, R3F intentaba
+  // reemplazar su `quaternion` (de solo lectura) y la escena se caía al llegar a la sonda.
+  return <group position={probe.position} quaternion={quaternion} scale={scale}><primitive object={scene} /></group>;
 }

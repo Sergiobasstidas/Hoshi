@@ -1,6 +1,7 @@
 // Fichas de las regiones del entorno solar que se eligen en «Viajar a» o con su nombre en la escena:
 // el cinturón de Kuiper, la nube de Oort y las estrellas cercanas. Mismo formato que la ficha de la
-// heliosfera (FichaHeliosfera.jsx). Solo valores publicados por la NASA, la ESA o en Wikipedia.
+// heliosfera (FichaHeliosfera.jsx), en la columna lateral (App.jsx). Solo valores publicados por la NASA,
+// la ESA o en Wikipedia.
 const REGIONES = {
   kuiper: {
     titulo: 'Cinturón de Kuiper',
@@ -33,15 +34,17 @@ const REGIONES = {
   },
 };
 
-export default function FichaRegion({ region, onCerrar }) {
+const TIPOS = { kuiper: 'Región del sistema solar', oort: 'Región del sistema solar', stars: 'Vecindario del Sol' };
+
+export default function FichaRegion({ region }) {
   const datos = REGIONES[region];
-  return <aside className="pulsar-legend ficha-heliosfera" aria-label={`Información de ${datos.titulo}`}>
-    <button className="panel-close" aria-label="Cerrar información" onClick={onCerrar}>×</button>
-    <strong>{datos.titulo}</strong>
-    <span>{datos.relato}</span>
-    {datos.secciones.map(([titulo, lineas]) => [
-      <span key={titulo} className="ficha-titulo">{titulo}</span>,
-      ...lineas.map(linea => <span key={linea}>{linea}</span>),
-    ])}
-  </aside>;
+  return <>
+    <h2 className="marca-hoshi">{datos.titulo}</h2>
+    <p className="ficha-estrella-tipo">{TIPOS[region]}</p>
+    <p className="ficha-estrella-relato">{datos.relato}</p>
+    {datos.secciones.map(([titulo, lineas]) => <section key={titulo}>
+      <h3>{titulo}</h3>
+      <ul className="ficha-lista">{lineas.map(linea => <li key={linea}>{linea}</li>)}</ul>
+    </section>)}
+  </>;
 }

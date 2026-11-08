@@ -23,16 +23,16 @@
   .menu-explorar { top: 92px; }
   .body-selector { top: 126px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
-  .body-panel, .aim-panel { top: 166px; }
-  .body-panel { font-size: 12px; max-height: calc(100% - 330px); max-width: calc(100% - 96px); }
+  .aim-panel { top: 166px; }
+
   .aim-panel { font-size: 12px; }
   .barra-distancia { --superior: 190px; --inferior: 110px; font-size: 11px; }
   .escala-vista { font-size: 12px; }
-  .pulsar-legend, .galaxy-loading { bottom: 110px; font-size: 12px; }
+  .galaxy-loading { bottom: 110px; font-size: 12px; }
   .visores-vuelo { left: 12px; right: 12px; bottom: 10px; width: auto; }
   .scene-footer { max-width: none; font-size: 11px; bottom: 82px; }
   .scene-footer > span:last-child { display: none; }
-  
+
 }
 
 /* Horizontal: buscador arriba al centro, «Explorar» a su lado hasta la esquina y «Acercarse a»
@@ -49,11 +49,11 @@
   .menu-explorar { top: 10px; }
   .scene-overlay .body-selector { top: 52px; display: block; font-size: 0; }
   .body-selector select { width: 100%; }
-  .scene-overlay .body-panel { top: 50px; left: 18px; font-size: 12px; max-width: min(300px, calc(50% - 130px)); max-height: calc(100% - 190px); }
+
   .scene-overlay .aim-panel { top: 96px; right: 90px; font-size: 12px; }
   .barra-distancia { --superior: 96px; --inferior: 30px; font-size: 11px; }
   .visores-vuelo { left: 12px; bottom: 10px; width: min(360px, calc(100% - 110px)); }
-  .pulsar-legend, .galaxy-loading, .oort-note { bottom: 80px; left: 18px; font-size: 12px; }
+  .galaxy-loading,.oort-note { bottom: 80px; left: 18px; font-size: 12px; }
   .scene-footer { left: auto; right: 90px; bottom: 8px; max-width: 45%; font-size: 11px; flex-direction: column; align-items: flex-end; text-align: right; }
   .scene-footer > span:last-child { display: none; }
 }
@@ -110,8 +110,7 @@
    No se aplica a los nombres de la escena, que se colocan en píxeles desde la cámara. */
 @media (min-width: 901px) and (pointer: fine) {
   :root { --zoom-ui: 1.3; }
-  .distance-panel, .scale-navigation, .body-selector, .star-search, .visores-vuelo, .scene-footer,
-  .body-panel, .aim-panel, .pulsar-legend, .credito-sdo, .barra-distancia, .galaxy-loading { zoom: var(--zoom-ui); }
+  .distance-panel,.scale-navigation,.body-selector,.star-search,.visores-vuelo,.scene-footer,.aim-panel,.credito-sdo,.barra-distancia,.galaxy-loading { zoom: var(--zoom-ui); }
   /* El logo sigue la ventana tal cual; el resto crece más despacio (escalaInterfaz.js). */
   .logo-hoshi { zoom: var(--zoom-logo, 1.3); }
   /* Visores más chicos que el resto, para que no dominen la esquina. */

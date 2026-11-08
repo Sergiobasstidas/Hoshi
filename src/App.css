@@ -6,11 +6,7 @@
 .distance-detail { margin-top: 6px; font-size: 13px; color: #758192; font-variant-numeric: tabular-nums; }
 .body-selector { position: absolute; top: 76px; right: 28px; display: flex; align-items: center; gap: 10px; font-size: 11px; color: #9da7b8; pointer-events: auto; z-index: 20; }
 .body-selector select { padding: 7px 10px; color: #d5dbe4; background: #080d15; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
-.body-panel { position: absolute; top: 145px; left: 30px; padding: 14px; background: #080d15df; border: 1px solid #ffffff16; border-radius: 4px; font-size: 11px; line-height: 1.9; pointer-events: auto; z-index: 20; }
-.body-panel strong { font-size: 15px; font-weight: 500; }
-.body-panel { max-width: min(320px, calc(100% - 36px)); }
-.body-panel p { margin: 8px 0 0; color: #8794a6; }
-.body-panel a { color: #91b5ce; }
+
 .binary-guides { position: absolute; inset: 0; pointer-events: none; }
 .binary-label { position: absolute; top: 0; left: 0; font-size: 12px; color: #d2dcec; text-shadow: 0 1px 5px #000; }
 .binary-label[data-component="o"] { color: #e8dfc7; }
@@ -49,7 +45,7 @@
 @media (max-width: 700px) {
   .aim-panel { top: 142px; right: 18px; max-width: calc(100% - 36px); }
   .body-selector { top: 20px; right: 18px; flex-direction: column; align-items: end; gap: 4px; }
-  .body-panel { top: 123px; left: 18px; padding: 10px; font-size: 10px; }
+
   .distance-panel { top: 24px; left: 24px; }
   .scale-navigation { top: auto; bottom: 66px; left: 18px; right: auto; }
   .scene-footer { left: 18px; right: 18px; bottom: 15px; }
@@ -69,22 +65,11 @@
 .search-dropdown li span { color:#95a9ba; line-height:1.5; }
 .star-identifiers { max-width:300px; overflow-wrap:anywhere; color:#9da7b8; }
 .aim-panel { top:190px; }
-@media (max-width:700px) { .star-search { top:86px; right:18px; width:min(260px,calc(100% - 36px)); } .body-panel { top:158px; } .aim-panel { top:158px; } }
+@media (max-width:700px) { .star-search { top:86px; right:18px; width:min(260px,calc(100% - 36px)); }  .aim-panel { top:158px; } }
 
-.panel-close { float:right; margin:-5px -5px 4px 10px; padding:2px 9px; background:transparent; border:1px solid #526173; border-radius:4px; color:#d6dfeb; font-size:21px; cursor:pointer; }
-.panel-close:hover { background:#233040; }
-
-.pulsar-legend {position:absolute;left:30px;bottom:65px;max-width:min(440px,calc(100% - 60px));padding:12px 15px;background:#061117e8;border:1px solid #4ac5d644;border-radius:5px;color:#a6cbd3;font-size:11px;line-height:1.8;pointer-events:auto;z-index:21;}
-.pulsar-legend strong,.pulsar-legend span {display:block;}
-.pulsar-legend button { margin: 8px 0; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; }
-.pulsar-legend button:hover, .pulsar-legend button:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
-.pulsar-legend summary {cursor:pointer;}
-.pulsar-legend a {color:#8adee6;}
-.pulsar-list {max-height:180px;overflow:auto;margin:7px 0;}
 .pulsar-label {display:block;white-space:nowrap;margin:9px 0 0 10px;font:11px monospace;color:#8edee8;text-shadow:0 1px 4px #000;}
 .scale-navigation {max-width:calc(100% - 360px);flex-wrap:wrap;justify-content:flex-end;}
-@media(max-width:900px){.scale-navigation {max-width:calc(100% - 40px);top:115px;right:20px;} .body-selector {top:72px;} .star-search {top:210px;} .pulsar-legend {left:18px;bottom:80px;}}
-
+@media(max-width:900px){.scale-navigation {max-width:calc(100% - 40px);top:115px;right:20px;} .body-selector {top:72px;} .star-search {top:210px;} }
 
 .pulsar-label {position:relative;margin:-10px 0 0 -10px;width:20px;height:20px;padding:0;border:0;background:transparent;cursor:help;}
 .pulsar-label span {position:absolute;left:22px;top:4px;opacity:0;padding:2px 4px;background:#051016e6;border-radius:3px;}
@@ -97,7 +82,7 @@
 .galaxy-loading { position: absolute; bottom: 100px; left: 30px; color: #b4d4e1; font-size: 13px; }
 @media (max-width: 1200px) { .scale-navigation { top: 130px; left: 22px; right: 22px; flex-wrap: wrap; } }
 
-@media (min-width: 901px) and (max-width: 1200px) { .star-search { top: 182px; } .body-panel, .aim-panel { top: 240px; } }
+@media (min-width: 901px) and (max-width: 1200px) { .star-search { top: 182px; } .aim-panel { top: 240px; } }
 
 /* Escala lateral: posición actual y onda de previsualización independientes. */
 .barra-distancia {position:absolute;right:26px;--superior:180px;--inferior:105px;top:calc(var(--superior) + (100% - var(--superior) - var(--inferior)) * .1);height:calc((100% - var(--superior) - var(--inferior)) * .8);width:56px;pointer-events:auto;z-index:22;color:#7f9aa9;font-size:10px;}
@@ -129,8 +114,8 @@
 .dial-teclado{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:50%;bottom:30px;}
 .dial-velocidad:has(input:focus-visible) .dial-fondo{stroke:#94c7d5;}
 .scene-footer{padding-right:0}
-.body-panel{left:30px}
-@media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.body-panel{left:18px;max-width:calc(100% - 96px)}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
+
+@media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
 @media(max-height:650px){.barra-distancia{--superior:155px;--inferior:70px}.dial-velocidad{transform:translateX(-50%) scale(.75);transform-origin:bottom center;bottom:6px}}
 @media(prefers-reduced-motion:reduce){.scene-label.star .label-text,.escala-linea{transition:none}}
 
@@ -148,15 +133,8 @@
 @media(max-height:650px) and (max-width:700px){.visores-vuelo{transform:translateX(-50%) scale(.8625);bottom:20px;}}
 /* Pie: ayuda de controles y, debajo, el copyright en la esquina inferior derecha. */
 @media(min-width:701px){.scene-footer{left:auto;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}
-  .oort-note{bottom:250px}.galaxy-loading{bottom:262px}.pulsar-legend{bottom:250px}}
-/* La ficha con planetas puede ser larga: desplazarla antes que tapar los visores inferiores. */
-.body-panel { max-height: max(220px, calc(100% - 500px)); overflow-y: auto; }
-@media(max-height:650px) and (min-width:701px){.body-panel{max-height:max(150px,calc(100% - 430px));}}
-/* Ficha de la heliosfera: reutiliza el recuadro del mapa de púlsares. */
-.ficha-heliosfera { max-width: min(300px, calc(100% - 60px)); max-height: calc(100% - 330px); overflow-y: auto; padding-right: 34px; line-height: 1.6; }
-.ficha-heliosfera .ficha-titulo { margin-top: 6px; color: #d9b48a; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; }
-.ficha-heliosfera p { margin: 4px 0; }
-.ficha-heliosfera .panel-close { position: absolute; top: 4px; right: 6px; margin: 0; padding: 2px 8px; }
+  .oort-note{bottom:250px}.galaxy-loading{bottom:262px}}
+
 /* Planetas del sistema solar al estilo de NASA Eyes: nombre blanco en mayúsculas espaciadas
    y un círculo hueco en el color del planeta, centrado en su posición (VisualGuides.jsx). */
 .scene-label.planet .label-text { color: #e6ebf3; font-size: calc(10px * var(--escala-nombres, 1)); letter-spacing: .24em; text-transform: uppercase; }
@@ -189,7 +167,6 @@
 .pantalla-completa svg { width: 100%; height: 100%; }
 @media (max-width: 700px) { .pantalla-completa { right: 14px; bottom: 84px; } }
 @media (orientation: landscape) and (max-height: 500px) { .pantalla-completa { right: 14px; bottom: 10px; } }
-.body-panel-texto{margin:2px 0 6px;color:#b4c0ce;line-height:1.45;}
 
 /* Sonda «entonces» en la etapa elegida de la línea de tiempo (SondaEntonces.jsx): el hexágono de las
    sondas en el color de la etapa y su nombre con el año, en letra fina. */

@@ -13,6 +13,18 @@ import { tipoEstelar } from './tipoEstelar';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 
+// Lo que une a una compañera con su estrella, solo con los datos del sistema (star_systems): con órbita,
+// su período (p, en días) y semieje (a, en UA); en un par ancho, la separación proyectada (rho, en UA).
+// Las compañeras espectroscópicas ocultas no forman parte de `components` y no se listan.
+function unionDelPar(c, primaria) {
+  const { pair } = c;
+  const enana = /^[LTY]\d/.test(pair.sp || '') ? `Enana café ${pair.sp}` : null;
+  const padre = pair.of === 'A' ? primaria.n : `${primaria.n} ${pair.of}`;
+  const enlace = pair.k === 'o' && pair.p > 0 && pair.a > 0 ? `Órbita de ${numero(pair.p / 365.25, 3)} años · ${numero(pair.a, 2)} UA`
+    : pair.k !== 'o' && pair.rho > 0 ? `A ${numero(pair.rho, 2)} UA de ${padre} · viaja con el sistema` : null;
+  return [enana, enlace].filter(Boolean).join(' · ') || null;
+}
+
 // Las demás estrellas de su sistema; una compañera sin registro propio se completa con el dato del par.
 function componentesDelSistema(star, nombre) {
   const sistema = star.system || star.sistemaDe;
@@ -21,6 +33,7 @@ function componentesDelSistema(star, nombre) {
   return [{ star: primaria, nombre: primaria.n || 'Estrella principal' }, ...sistema.components.map(c => ({
     nombre: c.companion?.n || `${primaria.n} ${c.name}`,
     star: estrellaDeComponente(sistema, c),
+    detalle: unionDelPar(c, primaria),
   }))].filter(miembro => miembro.star !== star && miembro.nombre !== nombre);
 }
 
@@ -134,8 +147,9 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
       <MapaZonaHabitable star={star} nombre={nombre} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} comparar onMostrar={onZona} />
       {miembros.length > 0 && <section>
         <h3>Sistema</h3>
-        <ul className="ficha-estrella-planetas">
-          {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{miembro.nombre}</button></li>)}
+        <ul className="ficha-estrella-planetas ficha-estrella-miembros">
+          {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{miembro.nombre}</button>
+            {miembro.detalle && <small>{miembro.detalle}</small>}</li>)}
         </ul>
       </section>}
       {planetas.length > 0 && <section>
