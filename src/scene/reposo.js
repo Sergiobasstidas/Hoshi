@@ -16,10 +16,29 @@ export function mantenerActivo(segundos = 0.25) {
   if (dormido) despertar();
 }
 
+// Lo que se anima solo con la cámara quieta (la superficie de una estrella de cerca, los destellos de
+// exoplanetas) cambia despacio: se dibuja a ANIMACION_CUADROS_POR_S y no a la frecuencia de la pantalla,
+// como el giro lento. Si además se mueve la cámara o se usa la escena, manda el dibujo completo.
+const ANIMACION_CUADROS_POR_S = 30;
+let animacionHasta = 0, relojAnimacion = null, pedirCuadro = () => {};
+export function animarSola(segundos = 0.25) {
+  animacionHasta = Math.max(animacionHasta, performance.now() + segundos * 1000);
+  if (relojAnimacion) return;
+  relojAnimacion = setInterval(() => {
+    const ahora = performance.now();
+    if (ahora >= animacionHasta) { clearInterval(relojAnimacion); relojAnimacion = null; return; }
+    if (ahora >= activoHasta && !giroAutomatico.activo) pedirCuadro();
+  }, 1000 / ANIMACION_CUADROS_POR_S);
+}
+
 // La cámara que gira sola (GiroLento.jsx) no despierta el dibujo continuo: pide sus propios cuadros, a
 // menor ritmo, y mientras tanto lo demás que se anima avanza a ese mismo ritmo.
 export const giroAutomatico = { activo: false };
 
+// Mover el ratón sobre los paneles no cambia la escena: solo despierta sobre el lienzo, sobre los nombres
+// de la escena (pasar por el de una sonda resalta su ruta) o arrastrando.
+const sobreEscena = event => event.type !== 'pointermove' || event.buttons !== 0
+  || event.target instanceof HTMLCanvasElement || Boolean(event.target?.closest?.('[data-labels]'));
 const EVENTOS = ['pointerdown', 'pointermove', 'pointerup', 'wheel', 'keydown', 'keyup', 'touchstart', 'touchmove', 'resize'];
 
 export function Reposo() {
@@ -30,9 +49,10 @@ export function Reposo() {
   useEffect(() => {
     // Al despertar, el reloj descarta la pausa: el primer cuadro no avanza viajes ni fundidos de golpe.
     despertar = () => { clock.getDelta(); invalidate(); };
-    const alUsar = () => mantenerActivo(ESPERA_S);
+    pedirCuadro = invalidate;
+    const alUsar = event => { if (sobreEscena(event)) mantenerActivo(ESPERA_S); };
     EVENTOS.forEach(nombre => window.addEventListener(nombre, alUsar, { passive: true }));
-    return () => { despertar = () => {}; EVENTOS.forEach(nombre => window.removeEventListener(nombre, alUsar)); };
+    return () => { despertar = () => {}; pedirCuadro = () => {}; EVENTOS.forEach(nombre => window.removeEventListener(nombre, alUsar)); };
   }, [invalidate, clock]);
   // Cualquier render de React (cambio de vista, ficha, filtro, textura cargada) reactiva el dibujo.
   useLayoutEffect(() => { mantenerActivo(ESPERA_S); });

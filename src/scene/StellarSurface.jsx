@@ -5,11 +5,11 @@ import { temperatureColor } from './stellarPhysics';
 import { SUN_RADIUS_PC } from './scale';
 import { GRANULE_LIFETIME_S, MAX_ACTIVE_REGIONS, SUNSPOT, TIME_ACCELERATION, activeRegions, granulationLook, granulesPerRadius, limbDarkening, showsSunspots, surfaceActivity } from './stellarSurfaceModel';
 import PlasmaLoops from './PlasmaLoops';
-import { playSolarChromosphere, solarChromosphereMap } from './solarChromosphereMap';
+import { cromosferaCargada, playSolarChromosphere, solarChromosphereMap } from './solarChromosphereMap';
 import simplex3d from './shaders/simplex3d.glsl?raw';
 import { FILTRO_POR_DEFECTO, filtroPorId, useFiltroEstelar } from './filtroEstelar';
 import { SDO_CHANNELS, playSdoVideo, sdoChannelDate, sdoImageFrame, sdoTexture } from './sdoSolar';
-import { mantenerActivo } from './reposo';
+import { animarSola } from './reposo';
 import { EPHEMERIS_DATE } from './solarEphemeris';
 
 // La superficie se anima sola: se sigue dibujando mientras su radio ocupe más de estos píxeles.
@@ -175,18 +175,23 @@ const surfaceFragment = `
     vec3 white = pow(colour, vec3(mix(9.0, 1.2, smoothstep(0.35, 0.95, shade)))) * shade;
 
     // Regiones activas en torno a las manchas, comunes a las vistas H-alfa y ultravioleta.
+    // Cada capa de filtro se calcula solo si se ve (su peso es mayor que 0): con peso 0 la mezcla
+    // la descarta igual, así que el resultado no cambia y la GPU se ahorra ese ruido.
     vec3 q = rotating * structure;
-    vec3 swirl = vec3(snoise(q * 7.0), snoise(q * 7.0 + 11.0), snoise(q * 7.0 + 23.0));
     float activity = convection * present * (1.0 - smoothstep(penumbraRadius, penumbraRadius * 5.0, r));
+    vec3 swirl = vec3(0.0);
+    if (halpha > 0.0 || euv > 0.0) swirl = vec3(snoise(q * 7.0), snoise(q * 7.0 + 11.0), snoise(q * 7.0 + 23.0));
 
     // H-alfa: cromosfera. Fibrillas a la escala de la red supergranular (≈ 30 Mm),
     // playas brillantes junto a las manchas y filamentos oscuros alargados.
+    vec3 alpha = vec3(0.0);
+    if (halpha > 0.0) {
     float fibrils = snoise(q * 34.0 + 1.9 * swirl) * 0.6
       + snoise(q * 85.0 + 3.2 * swirl + vec3(0.0, time * 0.02, 0.0)) * 0.4 * (1.0 - smoothstep(0.3, 0.9, footprint * structure * 85.0));
     float plage = activity * smoothstep(-0.35, 0.35, snoise(q * 19.0 + 2.0 * swirl));
     float chromosphere = 0.45 + convection * (0.36 * fibrils + 0.6 * plage * (0.6 + 0.4 * fibrils));
     chromosphere *= (1.0 - 0.75 * umbra) * (1.0 - 0.3 * (1.0 - mu));
-    vec3 alpha = rampRed(chromosphere);
+    alpha = rampRed(chromosphere);
     // Donde está disponible se muestra el mapa real del Sol (NASA, 304 Å) en lugar del
     // dibujo; en otras estrellas es un sustituto solar, atenuado si no hay convección.
     vec2 mapUv = vec2(atan(p.z, p.x) / 6.2831853 + 0.5, asin(clamp(p.y, -1.0, 1.0)) / 3.14159265 + 0.5);
@@ -194,6 +199,7 @@ const surfaceFragment = `
     // Un vídeo llega en sRGB sin decodificar; la imagen fija ya llega en lineal.
     observed = mix(observed, pow(observed, vec3(2.2)), chromosphereVideo) * (1.0 - 0.3 * pow(1.0 - mu, 2.0));
     alpha = mix(alpha, observed, chromosphereReal * smoothstep(0.1, 0.6, convection));
+    }
 
     // Ultravioleta extremo (como SDO/AIA a 171–193 Å): corona. Disco oscuro de grano fino con
     // puntos brillantes, regiones activas muy brillantes de las que salen abanicos de plasma
@@ -201,6 +207,8 @@ const surfaceFragment = `
     // Composición de tres bandas (211, 193 y 171 Å en rojo, verde y azul), como las imágenes
     // combinadas del SDO: el color indica temperatura. Dorado y blanco = plasma más caliente
     // de las regiones activas; azul = plasma más templado en el extremo de los abanicos.
+    vec3 ultraviolet = vec3(0.0);
+    if (euv > 0.0) {
     float grain = 0.5 + 0.5 * snoise(q * 70.0 + swirl) * (1.0 - smoothstep(0.3, 0.9, footprint * structure * 70.0));
     float points = pow(max(0.0, snoise(q * 42.0 + 3.0)), 8.0);
     float reach = 0.12 + penumbraRadius * 9.0;
@@ -216,17 +224,22 @@ const surfaceFragment = `
     vec3 calm = mix(vec3(0.04, 0.12, 0.15), vec3(0.24, 0.24, 0.1), patches);
     vec3 quiet = mix(calm * (0.55 + 0.75 * grain), vec3(0.01, 0.02, 0.14), 0.94 * hole);
     vec3 strands = mix(vec3(0.3, 0.48, 1.0), vec3(1.0, 0.72, 0.22), smoothstep(0.0, 0.65, spread)) * spread * max(fan, 0.0) * 1.5;
-    vec3 ultraviolet = quiet * (1.0 - 0.55 * convection * present * spread)
+    ultraviolet = quiet * (1.0 - 0.55 * convection * present * spread)
       + convection * (points * (1.0 - hole) * vec3(0.9, 0.85, 0.6) + present * (strands + 1.25 * core * vec3(1.0, 0.95, 0.8)))
       + 0.55 * pow(1.0 - mu, 3.0) * vec3(0.85, 0.75, 0.25);
+    }
 
     // Magnetograma (como SDO/HMI): gris donde el campo es débil; cada región activa es un par
     // de polaridades, blanca (hacia fuera) y negra (hacia dentro), a uno y otro lado de la mancha.
+    vec3 magnetic = vec3(0.0);
+    if (magnet > 0.0) {
     float side = clamp(dot(-delta, east) / max(penumbraRadius * 2.0, 0.0001), -1.0, 1.0);
     float strength = clamp(1.5 * activity + penumbra, 0.0, 1.0) * (id.y > 0.5 ? 1.0 : -1.0);
     // Gris medio de la imagen (0,5 en sRGB), pasado a luz lineal como el resto del sombreador.
-    vec3 magnetic = vec3(pow(clamp(0.5 + 0.45 * side * strength + 0.03 * convection * snoise(q * 60.0), 0.0, 1.0), 2.2));
+    magnetic = vec3(pow(clamp(0.5 + 0.45 * side * strength + 0.03 * convection * snoise(q * 60.0), 0.0, 1.0), 2.2));
+    }
     vec3 filtered = mix(mix(mix(white, alpha, halpha), ultraviolet, euv), magnetic, magnet);
+    if (sdo > 0.0) {
     // Imagen real del SDO sobre la cara que miraba a la Tierra. La cara oculta recibe su reflejo
     // en espejo: un punto y su simétrico respecto del borde del disco toman el mismo píxel, así
     // que no hay costura. Se lee un 1,5 % por dentro del borde para no tomar la corona exterior.
@@ -249,6 +262,7 @@ const surfaceFragment = `
     // La imagen HMI es monocroma: se le da el color de la temperatura de la estrella.
     observedSdo = mix(observedSdo, flatTint * pow(clamp(0.95 * flatLevel * (0.45 + 0.55 * mu), 0.0, 1.0), 2.2), sdoFlat);
     filtered = mix(filtered, mix(sdoAnterior, observedSdo, sdoFundido), sdo);
+    }
 
     // Sin filtro: disco sobreexpuesto, sin detalle, como al mirar la estrella directamente.
     vec3 overexposed = mix(temperatureTint, vec3(1.0), 0.55);
@@ -304,15 +318,21 @@ const coronaFragment = `
     float height = max(0.0, length(nearest) - 1.0);
     float reach = height / (extent - 1.0);
     vec3 direction = normalize(nearest);
-    float streamers = 0.5 + 0.5 * snoise(direction * 2.6 + vec3(0.0, time * 0.02, 0.0));
-    float fine = 0.5 + 0.5 * snoise(direction * 9.0 + vec3(time * 0.035, 0.0, reach * 2.0));
     float rim = exp(-height * 22.0);
-    float glow = pow(max(0.0, 1.0 - reach), 3.0) * (0.35 + convection * (0.5 * streamers + 0.25 * fine));
+    // El resplandor con filtro y los rayos sin filtro se calculan solo si se ven (glare < 1 y glare > 0).
+    float glow = 0.0;
+    if (glare < 1.0) {
+      float streamers = 0.5 + 0.5 * snoise(direction * 2.6 + vec3(0.0, time * 0.02, 0.0));
+      float fine = 0.5 + 0.5 * snoise(direction * 9.0 + vec3(time * 0.035, 0.0, reach * 2.0));
+      glow = pow(max(0.0, 1.0 - reach), 3.0) * (0.35 + convection * (0.5 * streamers + 0.25 * fine));
+    }
     // Sin filtro, el deslumbramiento rodea el disco; con filtro casi desaparece.
     float halo = exp(-height * 2.2) + 0.5 * pow(max(0.0, 1.0 - reach), 2.0);
     // Sin filtro: rayos finos y cortos. El trazo fino sigue el ángulo en la imagen, para que no
     // parpadee al mover la cámara; su brillo y su largo dependen de direcciones fijas de la
     // estrella con poco detalle, así que al rodearla cambian, pero de forma gradual.
+    float dazzle = 0.0;
+    if (glare > 0.0) {
     vec2 offset = viewPoint.xy / -viewPoint.z - viewCentre.xy / -viewCentre.z;
     float around = atan(offset.y, offset.x);
     // Dirección de la estrella bajo cada ángulo de la imagen, con una orientación de cámara
@@ -327,7 +347,8 @@ const coronaFragment = `
     float rays = strands * (0.3 + 0.7 * smoothstep(-0.4, 0.6, snoise(anchored * 2.5 + 5.0)));
     // Cada rayo crece y se encoge despacio (entre ≈ 0,12 y 0,45 radios).
     float reachRay = 0.12 + 0.33 * (0.5 + 0.5 * snoise(anchored * 3.0 + vec3(0.0, 0.0, time * 0.133)));
-    float dazzle = min(1.0, rim + 0.8 * halo + 0.9 * rays * (1.0 - smoothstep(reachRay * 0.35, reachRay, height)));
+    dazzle = min(1.0, rim + 0.8 * halo + 0.9 * rays * (1.0 - smoothstep(reachRay * 0.35, reachRay, height)));
+    }
     // Franja de espículas de la cromosfera (5–10 Mm) y corona en ultravioleta, con escala
     // de altura ≈ 0,1 radios a 1,5 millones de kelvin. Las protuberancias son geometría aparte.
     float chromosphere = convection * 0.5 * exp(-height / 0.009);
@@ -416,7 +437,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     if (group.current) {
       const distancia = camera.position.distanceTo(group.current.getWorldPosition(centro));
       const pixeles = radiusPc / Math.max(distancia, 1e-12) * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
-      if (pixeles > PIXELES_ANIMADA) mantenerActivo();
+      if (pixeles > PIXELES_ANIMADA) animarSola();
     }
     const shared = surface.current.uniforms, halo = corona.current.uniforms;
     const pedido = solar ? filtroPorId(filtro).canal : null;
@@ -424,13 +445,15 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     if (filtro !== mostrado.current && shared.sdoFundido.value >= 1 && (!textura || (textura.ready && textura.texture.version > 0))) mostrado.current = filtro;
     shared.sdoFundido.value = Math.min(1, shared.sdoFundido.value + delta / 0.4);
     const filtroVisible = mostrado.current;
-    // Mapa real de la cromosfera: el vídeo en cuanto se reproduce; antes, la imagen fija.
-    const maps = solarChromosphereMap();
-    const map = maps.videoReady ? maps.video : maps.stillReady ? maps.still : null;
-    shared.chromosphereMap.value = map ?? maps.still;
-    shared.chromosphereReal.value = map ? 1 : 0;
-    shared.chromosphereVideo.value = maps.videoReady ? 1 : 0;
     const { capa, canal } = filtroPorId(filtroVisible);
+    // Mapa real de la cromosfera: el vídeo en cuanto se reproduce; antes, la imagen fija. Se descarga
+    // (imagen y vídeo, ~21 MB) recién al pedir la cromosfera, no al abrir la app.
+    const cromosfera = capa === 'cromosfera' || filtroPorId(filtro).capa === 'cromosfera' || shared.halpha.value > 0;
+    const maps = cromosfera ? solarChromosphereMap() : cromosferaCargada();
+    const map = maps?.videoReady ? maps.video : maps?.stillReady ? maps.still : null;
+    shared.chromosphereMap.value = map ?? maps?.still ?? null;
+    shared.chromosphereReal.value = map ? 1 : 0;
+    shared.chromosphereVideo.value = maps?.videoReady ? 1 : 0;
     if (solar) playSolarChromosphere(capa === 'cromosfera');
     view.current.real = map ? 1 : 0;
     view.current.time = shared.time.value = halo.time.value = clock.elapsedTime % 3600;

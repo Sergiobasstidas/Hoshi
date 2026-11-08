@@ -4,7 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { temperatureColor } from './stellarPhysics.js';
 import { LIGHT_YEAR_PC } from './scale.js';
-import { mantenerActivo } from './reposo';
+import { animarSola } from './reposo';
 import { listaDePlanetas } from './zonaHabitable.js';
 import { MISSION_COLORS, PLANET_TYPES, describeSystem, dominantType, filterSystems } from './descubrimientos.js';
 
@@ -118,7 +118,7 @@ export default function ExoplanetDiscoveries({ data, filter, origin, onSelect, z
     if (!material.current) return;
     const u = material.current.uniforms;
     u.time.value = clock.elapsedTime;
-    mantenerActivo();
+    animarSola();
     u.pixelRatio.value = gl.getPixelRatio();
     // De lejos los destellos se agolpan (el campo de Kepler, el bulbo): menores y más
     // tenues para que no se fundan en una mancha blanca.

@@ -32,6 +32,9 @@ export function solarChromosphereMap() {
   return maps;
 }
 
+// Los mapas si ya se pidieron, sin pedirlos.
+export const cromosferaCargada = () => maps;
+
 // El vídeo solo avanza mientras alguna estrella lo muestra.
 export function playSolarChromosphere(active) {
   const element = maps?.element;

@@ -113,6 +113,8 @@ export default function EstrellasGaia({ origin, gain = 1, activa = true }) {
         geometria.setAttribute('position', new THREE.BufferAttribute(leidos.posiciones, 3));
         geometria.setAttribute('magnitudByte', new THREE.BufferAttribute(leidos.magnitudes, 1, true));
         geometria.setAttribute('colorByte', new THREE.BufferAttribute(leidos.colores, 1, true));
+        // Esfera envolvente fija: three la calcula al dibujar, después de subir (y liberar) los atributos.
+        geometria.boundingSphere = new THREE.Sphere(new THREE.Vector3(), Infinity);
         // Los atributos ya están en la GPU tras el primer dibujo; no hace falta conservar la copia.
         for (const nombre of ['position', 'magnitudByte', 'colorByte']) geometria.getAttribute(nombre).onUpload(function liberar() { this.array = null; });
         setDatos({ geometria, textura, ...escalasDeGrupo(leidos.magnitudes, leidos.colores, gv), n: leidos.n });
