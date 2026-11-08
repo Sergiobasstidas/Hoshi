@@ -1,9 +1,9 @@
-// Formato de public/data/estrellas.bin (lo genera scripts/build_estrellas.js). Little-endian:
+// Formato de public/data/estrellas.bin.gz (lo genera scripts/build_estrellas.js; se guarda con gzip y la app lo
+// descomprime al bajarlo). Little-endian, versión 2:
 //   0   4 bytes   firma ASCII «HSBE»
 //   4   uint32    versión
 //   8   uint32    largo de la cabecera JSON (con relleno hasta múltiplo de 8)
-//   12  cabecera JSON: { nCatalogo, nCapa, nExtra, sp: [tipos espectrales], nombres: { hsb: nombre },
-//                        celdas: [[x0, y0, z0, lado, primera, cantidad], …] }
+//   12  cabecera JSON: { nCatalogo, nCapa, nExtra, sp: [tipos espectrales], nombres: { hsb: nombre } }
 //   Catálogo (N = nCatalogo), en columnas:
 //     float64 × nExtra      valores que no caben como entero y decimales (en orden de aparición)
 //     uint32 × N            número HSB
@@ -13,16 +13,19 @@
 //     uint16 × N            tipo espectral (índice en cabecera.sp; '' = sin tipo)
 //     int8 × 4N             decimales de x, y, z, d (−128 = el valor está en la lista float64)
 //     uint8 × 3N            color RGB
-//     (1 byte de relleno si hace falta, para que la capa empiece en un byte par)
+//   Celdas de la capa (solo las usa la capa, por eso van después del catálogo):
+//     (relleno hasta múltiplo de 4)
+//     uint32                largo del JSON de celdas (con relleno de espacios para que la capa empiece en un byte par)
+//     JSON [[x0, y0, z0, lado, primera, cantidad], …]
 //   Capa de fondo (G = nCapa: millón de Gaia DR3 y GCNS), ordenada por celdas:
 //     uint16 × 3G           posición dentro de su celda: origen + q · lado / 65535 (pc)
 //     uint8 × G             magnitud absoluta G cuantizada (como gaia-1m.bin, ver gaiaCapa.js)
 //     uint8 × G             BP−RP cuantizado (255 = sin color)
 // El catálogo va antes que la capa: la app puede empezar a dibujar con solo esa parte.
 
-export const ESTRELLAS_URL = '/data/estrellas.bin';
+export const ESTRELLAS_URL = '/data/estrellas.bin.gz';
 export const ESTRELLAS_FIRMA = 'HSBE';
-export const ESTRELLAS_VERSION = 1;
+export const ESTRELLAS_VERSION = 2;
 export const MAX_POR_CELDA = 4096;
 const MAX_DECIMALES = 12;
 
@@ -46,11 +49,9 @@ function cabeceraDe(buffer) {
   return { cabecera, inicio: 12 + largo };
 }
 
-// Bytes que ocupan la cabecera y el catálogo (para empezar antes de que llegue la capa).
+// Bytes que ocupan la cabecera y el catálogo, hasta el fin del catálogo (para empezar antes de que llegue la capa).
 export function largoHastaCapa(cabecera, inicio) {
-  const n = cabecera.nCatalogo;
-  const fin = inicio + 8 * cabecera.nExtra + n * (4 + 16 + 2 + 2 + 2 + 4 + 3);
-  return fin + (fin % 2);
+  return inicio + 8 * cabecera.nExtra + cabecera.nCatalogo * (4 + 16 + 2 + 2 + 2 + 4 + 3);
 }
 
 // Estrellas del catálogo como objetos { i, n?, x, y, z, d, m, c, sp, rgb }, igual que stars_15pc.json.
@@ -70,17 +71,21 @@ export function leerCatalogo(buffer) {
     const estrella = { i, n: cabecera.nombres[i] ?? null, x, y, z, d, m: m[k] / 1000, c: c[k] / 1000, sp: cabecera.sp[sp[k]] || null, rgb: [rgb[3 * k], rgb[3 * k + 1], rgb[3 * k + 2]] };
     estrellas[k] = estrella;
   }
-  return { cabecera, estrellas, inicioCapa: p + (p % 2) };
+  return { cabecera, estrellas, finCatalogo: p };
 }
 
-// Capa de fondo: celdas, posiciones cuantizadas y bytes de magnitud y color.
-export function leerCapa(buffer, cabecera, inicioCapa) {
+// Capa de fondo: celdas, posiciones cuantizadas y bytes de magnitud y color. finCatalogo: donde termina el catálogo.
+export function leerCapa(buffer, cabecera, finCatalogo) {
   const g = cabecera.nCapa;
+  const inicioCeldas = finCatalogo + ((4 - (finCatalogo % 4)) % 4);
+  const largo = new DataView(buffer).getUint32(inicioCeldas, true);
+  const celdas = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, inicioCeldas + 4, largo)).trimEnd());
+  const inicioCapa = inicioCeldas + 4 + largo;
   // Copias propias: así el archivo completo (catálogo incluido) se puede soltar de la memoria.
   const q = new Uint16Array(buffer, inicioCapa, 3 * g).slice();
   const magnitudes = new Uint8Array(buffer, inicioCapa + 6 * g, g).slice();
   const colores = new Uint8Array(buffer, inicioCapa + 7 * g, g).slice();
-  return { n: g, celdas: cabecera.celdas, q, magnitudes, colores };
+  return { n: g, celdas, q, magnitudes, colores };
 }
 
 // Posiciones de la capa respecto de `origen` (pc), en doble precisión y luego float32.

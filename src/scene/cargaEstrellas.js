@@ -1,5 +1,6 @@
-// Carga de public/data/estrellas.bin por partes: el catálogo (≈ 4 MB) se entrega apenas llega, sin esperar la capa
-// de fondo (≈ 10 MB), que llega después. Formato en estrellasBin.js.
+// Carga de public/data/estrellas.bin.gz por partes: el catálogo (≈ 4 MB sin comprimir) se entrega apenas llega, sin
+// esperar la capa de fondo (≈ 10 MB), que llega después. El archivo viene con gzip; si el servidor ya lo descomprimió
+// (Content-Encoding), se lee tal cual. Formato en estrellasBin.js.
 import { ESTRELLAS_URL, cabeceraDe, largoHastaCapa, leerCapa, leerCatalogo } from './estrellasBin.js';
 
 function unir(trozos, total) {
@@ -9,24 +10,46 @@ function unir(trozos, total) {
   return salida.buffer;
 }
 
+const esGzip = bytes => bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
+const descomprimir = flujo => flujo.pipeThrough(new DecompressionStream('gzip'));
+
 // alCatalogo(estrellas) y alCapa(capa) se llaman una vez cada uno; devuelve una promesa que termina con la capa.
 export async function cargarEstrellas({ alCatalogo, alCapa, alProgreso } = {}) {
   const respuesta = await fetch(ESTRELLAS_URL);
   if (!respuesta.ok) throw new Error(ESTRELLAS_URL);
-  const lector = respuesta.body?.getReader();
-  if (!lector) {
+  const lectorRed = respuesta.body?.getReader();
+  if (!lectorRed) {
     // Sin lectura por partes: todo de una vez.
-    const buffer = await respuesta.arrayBuffer();
-    const { cabecera, estrellas, inicioCapa } = leerCatalogo(buffer);
+    let buffer = await respuesta.arrayBuffer();
+    if (esGzip(new Uint8Array(buffer, 0, Math.min(2, buffer.byteLength)))) buffer = await new Response(descomprimir(new Blob([buffer]).stream())).arrayBuffer();
+    const { cabecera, estrellas, finCatalogo } = leerCatalogo(buffer);
     alCatalogo?.(estrellas);
-    const capa = leerCapa(buffer, cabecera, inicioCapa);
+    const capa = leerCapa(buffer, cabecera, finCatalogo);
     alCapa?.(capa);
     return capa;
   }
+  // El primer trozo dice si viene comprimido.
+  let pendiente = await lectorRed.read();
+  let lector = lectorRed;
+  if (pendiente.value && esGzip(pendiente.value)) {
+    const primero = pendiente.value;
+    const comprimido = new ReadableStream({
+      start(control) { control.enqueue(primero); },
+      async pull(control) {
+        const { done, value } = await lectorRed.read();
+        if (done) control.close(); else control.enqueue(value);
+      },
+      cancel(motivo) { return lectorRed.cancel(motivo); },
+    });
+    lector = descomprimir(comprimido).getReader();
+    pendiente = null;
+  }
+  // Todo lo que sigue cuenta bytes ya descomprimidos.
   const trozos = [];
   let recibidos = 0, necesarios = null, cabecera = null, catalogoListo = false;
   for (;;) {
-    const { done, value } = await lector.read();
+    const { done, value } = pendiente ?? await lector.read();
+    pendiente = null;
     if (value) { trozos.push(value); recibidos += value.length; }
     if (!cabecera && recibidos >= 12) {
       const inicio = unir(trozos, recibidos);

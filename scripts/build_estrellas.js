@@ -1,5 +1,6 @@
 // scripts/build_estrellas.js
-// Archivo único de estrellas de la app: public/data/estrellas.bin (formato en src/scene/estrellasBin.js).
+// Archivo único de estrellas de la app: public/data/estrellas.bin.gz (formato en src/scene/estrellasBin.js; se guarda con
+// gzip nivel 9, que da siempre los mismos bytes, y la app lo descomprime al bajarlo).
 //  - Catálogo (data/processed/stars_15pc.json): número HSB, posición y distancia exactas (cada valor se guarda como
 //    entero y cantidad de decimales, y la división da el mismo número que hoy lee la app; si no, va en float64),
 //    magnitud absoluta y B−V con 3 decimales, color RGB, tipo espectral (tabla) y nombre.
@@ -20,7 +21,7 @@ import { leerEnlaces } from './catalog/enlaces_registro.js';
 const STARS = './data/processed/stars_15pc.json', CAPA = './data/processed/gaia-1m.bin';
 const ORDEN = './data/catalog/gaia_capa_orden.txt.gz', REGISTRO = './data/catalog/hsb_registro.csv', LOTES = './data/catalog/hsb_gaia';
 const ENLAZADAS = './data/catalog/hsb_capa_enlazadas.csv';
-const SALIDA = './public/data/estrellas.bin', SALIDA_HSB = './public/data/estrellas-hsb.bin';
+const SALIDA = './public/data/estrellas.bin.gz', SALIDA_HSB = './public/data/estrellas-hsb.bin';
 
 // Octree sobre las posiciones: celdas cúbicas de hasta MAX_POR_CELDA estrellas y de lado ≤ MAX_LADO_PC; además, cerca
 // del Sol, de lado ≤ la mitad de su distancia (mínimo 2 pc), para que el error sea también chico visto desde aquí.
@@ -125,21 +126,27 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
   }
   // --- Cabecera y archivo ---
-  const cabecera = { nCatalogo: n, nCapa: g, nExtra: extra.length, sp: tablaSp, nombres, celdas: tablaCeldas };
+  const cabecera = { nCatalogo: n, nCapa: g, nExtra: extra.length, sp: tablaSp, nombres };
   const json = Buffer.from(JSON.stringify(cabecera));
   const relleno = (8 - ((12 + json.length) % 8)) % 8;
   const partes = [Buffer.from(ESTRELLAS_FIRMA, 'ascii'), Buffer.from(new Uint32Array([ESTRELLAS_VERSION, json.length + relleno]).buffer), json, Buffer.alloc(relleno, 32),
     Buffer.from(Float64Array.from(extra).buffer), Buffer.from(hsb.buffer), Buffer.from(mant.buffer), Buffer.from(m.buffer), Buffer.from(c.buffer), Buffer.from(sp.buffer),
     Buffer.from(dec.buffer), Buffer.from(rgb.buffer)];
-  const hastaAqui = partes.reduce((t, b) => t + b.length, 0);
-  partes.push(Buffer.alloc(hastaAqui % 2), Buffer.from(q.buffer), Buffer.from(mg.buffer), Buffer.from(cg.buffer));
+  // Celdas de la capa después del catálogo: relleno hasta múltiplo de 4, largo y JSON con espacios hasta un largo par
+  // (así la capa empieza en un byte par).
+  const finCatalogo = partes.reduce((t, b) => t + b.length, 0);
+  const jsonCeldas = Buffer.from(JSON.stringify(tablaCeldas));
+  const largoCeldas = jsonCeldas.length + (jsonCeldas.length % 2);
+  partes.push(Buffer.alloc((4 - (finCatalogo % 4)) % 4), Buffer.from(new Uint32Array([largoCeldas]).buffer), jsonCeldas, Buffer.alloc(largoCeldas - jsonCeldas.length, 32),
+    Buffer.from(q.buffer), Buffer.from(mg.buffer), Buffer.from(cg.buffer));
   const archivo = Buffer.concat(partes);
-  fs.writeFileSync(SALIDA, archivo);
+  const comprimido = zlib.gzipSync(archivo, { level: 9 });
+  fs.writeFileSync(SALIDA, comprimido);
   // --- Número HSB de la capa de fondo, en el orden del archivo ---
   const hsbCapa = Uint32Array.from(orden, k => hsbFuente[k]);
   fs.writeFileSync(SALIDA_HSB, Buffer.from(hsbCapa.buffer));
-  const gz = zlib.gzipSync(archivo, { level: 9 }).length;
-  console.log(`✓ ${SALIDA}: ${(archivo.length / 1048576).toFixed(2)} MB (gzip ${(gz / 1048576).toFixed(2)} MB); catálogo ${n} (${extra.length} valores en float64), capa ${g} en ${lista.length} celdas; error máx. de posición ${(errMax * 206264.8).toFixed(1)} UA`);
+  const critico = zlib.gzipSync(archivo.subarray(0, finCatalogo), { level: 9 }).length;
+  console.log(`✓ ${SALIDA}: ${(comprimido.length / 1048576).toFixed(2)} MB (sin comprimir ${(archivo.length / 1048576).toFixed(2)} MB; hasta el fin del catálogo ${(finCatalogo / 1048576).toFixed(2)} MB, ${(critico / 1048576).toFixed(2)} MB con gzip); catálogo ${n} (${extra.length} valores en float64), capa ${g} en ${lista.length} celdas; error máx. de posición ${(errMax * 206264.8).toFixed(1)} UA`);
   console.log(`✓ ${SALIDA_HSB}: ${g} números HSB; sin número: ${sinNumero}; fuentes que ya son una estrella del catálogo (no entran): ${quitadas}`);
   console.log(`  Error máximo de posición de la capa (UA): < 10 pc ${(errTramo[0] * 206264.8).toFixed(3)}, 10–100 pc ${(errTramo[1] * 206264.8).toFixed(2)}, 100–1.000 pc ${(errTramo[2] * 206264.8).toFixed(1)}, > 1.000 pc ${(errTramo[3] * 206264.8).toFixed(1)}`);
 }

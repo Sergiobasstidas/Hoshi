@@ -2,12 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import zlib from 'node:zlib';
-import { codificarValor, leerCapa, leerCatalogo, posicionesCapa } from '../src/scene/estrellasBin.js';
+import { ESTRELLAS_VERSION, codificarValor, leerCapa, leerCatalogo, posicionesCapa } from '../src/scene/estrellasBin.js';
 import { leerGaia } from '../src/scene/gaiaCapa.js';
 
 const abrir = ruta => { const a = fs.readFileSync(ruta); return a.buffer.slice(a.byteOffset, a.byteOffset + a.byteLength); };
-const buffer = abrir('public/data/estrellas.bin');
-const { cabecera, estrellas, inicioCapa } = leerCatalogo(buffer);
+const comoBuffer = a => a.buffer.slice(a.byteOffset, a.byteOffset + a.byteLength);
+const buffer = comoBuffer(zlib.gunzipSync(fs.readFileSync('public/data/estrellas.bin.gz')));
+const { cabecera, estrellas, finCatalogo } = leerCatalogo(buffer);
+
+test('estrellas.bin.gz es de la versión 2: celdas después del catálogo y la capa en un byte par', () => {
+  const vista = new DataView(buffer);
+  assert.equal(String.fromCharCode(...new Uint8Array(buffer, 0, 4)), 'HSBE');
+  assert.equal(vista.getUint32(4, true), 2);
+  assert.equal(ESTRELLAS_VERSION, 2);
+  assert.equal(cabecera.celdas, undefined, 'las celdas no van en la cabecera');
+  const inicioCeldas = finCatalogo + ((4 - (finCatalogo % 4)) % 4);
+  const largo = vista.getUint32(inicioCeldas, true);
+  const inicioCapa = inicioCeldas + 4 + largo;
+  assert.equal(inicioCapa % 2, 0);
+  assert.equal(buffer.byteLength, inicioCapa + 8 * cabecera.nCapa);
+});
 
 test('el catálogo de estrellas.bin es idéntico a stars_15pc.json en lo que usa la app', () => {
   const original = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8'));
@@ -33,7 +47,7 @@ for (const lote of fs.readdirSync('data/catalog/hsb_gaia').filter(f => f.endsWit
 }
 const igualA = new Map(fs.readFileSync('data/catalog/hsb_enlaces.csv', 'utf8').split('\n').slice(1).map(l => l.split(',')).filter(c => c[1] === 'igual_a').map(c => [Number(c[0]), Number(c[2])]));
 const alCatalogo = g => idsCatalogo.has(enlazadas.get(g)) || idsCatalogo.has(deGaia.get(g)) || idsCatalogo.has(igualA.get(deGaia.get(g)));
-const capa = leerCapa(buffer, cabecera, inicioCapa);
+const capa = leerCapa(buffer, cabecera, finCatalogo);
 const antes = leerGaia(abrir('data/processed/gaia-1m.bin'));
 
 // El orden de las fuentes de la capa (data/catalog/gaia_capa_orden.txt.gz) lo escribe process_gaia.js y no se guarda en

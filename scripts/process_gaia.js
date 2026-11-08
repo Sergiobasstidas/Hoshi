@@ -6,7 +6,7 @@
 // Distancia = 1000 / paralaje (pc), sin modelos bayesianos (regla D-014).
 //
 // === Formato de data/processed/gaia-1m.bin (little-endian) ===
-// La app no lo baja: scripts/build_estrellas.js lo junta con el catálogo en public/data/estrellas.bin.
+// La app no lo baja: scripts/build_estrellas.js lo junta con el catálogo en public/data/estrellas.bin.gz.
 // Encabezado, 16 bytes:
 //   0  4 bytes  firma ASCII "HGAI"
 //   4  uint32   versión del formato (FORMAT_VERSION)
