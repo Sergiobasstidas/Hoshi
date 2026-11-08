@@ -64,6 +64,7 @@ Comprobaciones: `npm test`, `npm run lint`, `npm run build`. Vista del build: `n
 - **Púlsares:** catálogo ATNF.
 - **Imagen galáctica:** ESA/Gaia/DPAC, Stefan Payne-Wardenaar, CC BY-SA 3.0 IGO; [atribución](public/textures/galaxy/ATTRIBUTION.md).
 - **Texturas:** Solar System Scope / INOVE, CC BY 4.0; [detalles](public/textures/solar-system-scope/README.md).
+- **Mapas de lunas:** mosaicos de USGS Astrogeology (Galileo, Voyager y Cassini) y de NASA/JPL/Space Science Institute, dominio público; [detalles](public/textures/usgs-lunas/README.md).
 - **Ruido procedural:** Ashima Arts, [licencia MIT](public/licenses/webgl-noise.txt).
 
 Las referencias completas están en la [documentación técnica](docs/DOCUMENTACION.md) y en los archivos de fuentes de `data/raw/`. Las licencias de recursos de terceros no conceden una licencia general sobre el código de Hoshi.
