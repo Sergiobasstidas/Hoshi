@@ -4,11 +4,10 @@ import { OrbitControls, useProgress } from '@react-three/drei';
 import { progresoCarga } from './progresoCarga';
 import * as THREE from 'three';
 import datosOficiales from '../data/processed/stellar_official.json';
-import starsUrl from '../data/processed/stars_15pc.json?url';
 import systemsUrl from '../data/processed/star_systems.json?url';
 import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
-import EstrellasGaia from './scene/EstrellasGaia';
+import { cargarEstrellas } from './scene/cargaEstrellas';
 import SolarSystem from './scene/SolarSystem';
 import { Reposo } from './scene/reposo';
 import OortCloud from './scene/OortCloud';
@@ -166,6 +165,8 @@ const REGION_DE_ETIQUETA = { kuiper: 'kuiper', oort: 'oort', heliosphere: 'helio
 export default function App() {
   const [catalogue, setCatalogue] = useState(EMPTY_CATALOGUE);
   const [catalogueStatus, setCatalogueStatus] = useState('loading');
+  // Capa de fondo (millón de Gaia DR3 y GCNS): llega después del catálogo, en el mismo archivo.
+  const [capaEstrellas, setCapaEstrellas] = useState(null);
   useEffect(() => {
     let active = true;
     // Los planetas viajan aparte del bundle; si fallan, el catálogo se muestra sin ellos.
@@ -173,7 +174,12 @@ export default function App() {
     // El catálogo se pide como archivo estático: importarlo como módulo hace que vite lo transforme
     // con source map y el servidor de desarrollo llega a ~4 GB de RAM.
     const json = url => fetch(url).then(response => { if (!response.ok) throw new Error(url); return response.json(); });
-    const partes = [json(starsUrl), json(systemsUrl), planets];
+    // Todas las estrellas vienen de public/data/estrellas.bin: el catálogo se entrega apenas llega y la capa después.
+    let entregarCatalogo, fallarCatalogo;
+    const estrellas = new Promise((resolve, reject) => { entregarCatalogo = resolve; fallarCatalogo = reject; });
+    cargarEstrellas({ alCatalogo: entregarCatalogo, alCapa: capa => { if (active) setCapaEstrellas(capa); } })
+      .catch(error => { fallarCatalogo(error); console.warn('Capa de estrellas no disponible:', error.message); });
+    const partes = [estrellas, json(systemsUrl), planets];
     let recibidas = 0;
     partes.forEach(parte => parte.then(() => progresoCarga('catalogo', ++recibidas / partes.length), () => {}));
     Promise.all(partes)
@@ -707,9 +713,8 @@ export default function App() {
       <StarAim target={aimTarget} origin={origin} onRelease={releaseAim} cameraRef={cameraRef} />
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />
       {showPulsars && <PulsarMap origin={origin} />}
-      <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} origin={origin}
+      <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} catalogo={stars} capa={capaEstrellas} origin={origin}
         focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} resaltadas={miembrosCumulo} />
-      <EstrellasGaia activa={catalogueStatus === 'ready'} gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} origin={origin} />
       {verCumulos && datosCumulos && !binaryBody && !showPulsars && <Cumulos datos={datosCumulos} origin={origin}
         elegido={cumulo} onElegir={elegirCumulo} />}
       {binaryBody && <BinarySystem />}

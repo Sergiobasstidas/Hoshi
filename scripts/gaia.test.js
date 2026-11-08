@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { bvDesdeBpRp, escalasDeGrupo, gMenosV, leerGaia, magnitudG, tablaColores } from '../src/scene/gaiaCapa.js';
 
-const archivo = fs.readFileSync('public/data/gaia-1m.bin');
+const archivo = fs.readFileSync('data/processed/gaia-1m.bin');
 const buffer = archivo.buffer.slice(archivo.byteOffset, archivo.byteOffset + archivo.byteLength);
 
 test('gaia-1m.bin trae el millón de Gaia más las de GCNS, con posiciones y magnitudes válidas', () => {

@@ -20,7 +20,7 @@ import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { applyDistance } from './catalog_patches.js';
 import { DISTANCIAS_CURADAS } from './distancias_curadas.js';
-import { paralajeMedida } from './fusion.js';
+import { indiceCns5, paralajeMedida } from './fusion.js';
 
 const HSB_NUEVO_BASE = 100_000_000;
 export const FUENTE_SISTEMA = 'sistema (paralaje común)';
@@ -57,7 +57,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const gaia = new Map(csvGz(GAIA).map(g => [g.source_id, g]));
   const hip = new Map(csvGz(HIP).map(h => [h.hip, h]));
   const filasCns5 = parse(fs.readFileSync(CNS5, 'utf8'), { columns: true });
-  const cns5 = { porGaia: new Map(filasCns5.filter(r => r.gaia_edr3_id).map(r => [r.gaia_edr3_id, r])), porGl: new Map(filasCns5.map(r => [`${r.gj_id}${r.component_id}`, r])) };
+  const cns5 = indiceCns5(filasCns5);
   const curada = new Map(DISTANCIAS_CURADAS.map(c => [c.i, c]));
   const fuentes = new Map(csvGz(FUENTES).map(f => [Number(f.hsb), f]));
   const porId = new Map(stars.map((s, k) => [s.i, k]));
@@ -71,7 +71,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const cur = ids.map(i => curada.get(i)).find(Boolean);
     if (cur) { d = cur.dNueva; conCurada++; }
     else {
-      const medida = new Map(ids.map(i => [i, registro.get(i) ? paralajeMedida(registro.get(i), { gaia, hip, cns5 }) : null]));
+      const medida = new Map(ids.map(i => [i, registro.get(i) ? paralajeMedida(registro.get(i), { gaia, hip, cns5 }, stars[porId.get(i)]) : null]));
       // Primaria brillante con distancia propia confiable (curada, o paralaje con error ≤ 10 %): fuera las paralajes de
       // Gaia de compañeras cercanas. Si la primaria no la tiene, la de la compañera es la única medición buena y se usa.
       const p = porId.has(primaria) ? stars[porId.get(primaria)] : null, gp = registro.get(primaria)?.gaia_dr3 && gaia.get(registro.get(primaria).gaia_dr3);

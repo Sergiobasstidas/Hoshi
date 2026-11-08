@@ -41,8 +41,9 @@
 //    scripts/process_gaia.js: las que descarta por ser una estrella de Hoshi se enlazan con ella) y GCNS
 //    (Gaia Collaboration, Smart et al. 2021) con gcns_prob ≥ 0,38 (umbral del artículo) y
 //    paralaje/error ≥ 10; una fuente de GCNS a ≤ 3″ de una estrella del registro sin Gaia y con
-//    distancia a ±25 % es esa estrella. Las demás fuentes que no son ya el Gaia DR3 de una estrella del
-//    registro reciben número en un lote aparte,
+//    distancia a ±25 % es esa estrella. Una fuente que se dibuja en la capa solo se da por una estrella del
+//    registro si coincide con ella (mismaEstrella); esas quedan en data/catalog/hsb_capa_enlazadas.csv.
+//    Las demás fuentes que no son ya el Gaia DR3 de una estrella del registro reciben número en un lote aparte,
 //    data/catalog/hsb_gaia/lote-AAAA-MM-DD.csv.gz (hsb, gaia_dr3, tmass, origen, alta). Un lote nunca
 //    se reescribe: una carga posterior crea un lote nuevo solo con lo que falte.
 // Los números nuevos siguen al mayor ya usado en el registro y en los lotes.
@@ -58,6 +59,12 @@ import { parse as parseSync } from 'csv-parse/sync';
 export const REGISTRO_CSV = './data/catalog/hsb_registro.csv';
 export const COMPANERAS_CSV = './data/catalog/hsb_companeras_dibujadas.csv';
 const GAIA_REVISION_CSV = './data/catalog/hsb_gaia_revision.csv';
+// Fuentes dibujadas en la capa de fondo (millón y GCNS) que son una estrella del registro, por un Gaia DR3
+// conocido de esa estrella que no es el de su fila o por posición: gaia_dr3, hsb de la estrella, motivo.
+// build_estrellas no las dibuja si esa estrella ya está en el catálogo de la app.
+export const CAPA_ENLAZADAS_CSV = './data/catalog/hsb_capa_enlazadas.csv';
+export const COLUMNAS_CAPA_ENLAZADAS = ['gaia_dr3', 'hsb', 'por'];
+const GAIA_1M_CSV = './data/raw/gaia/gaia_dr3_1m.csv.gz';
 const STARS_JSON = './data/processed/stars_15pc.json';
 const SYSTEMS_JSON = './data/processed/star_systems.json';
 const ADDED_HOSTS_JSON = './data/catalog/added_hosts.json';
@@ -90,6 +97,19 @@ const IDENTIDAD = ['origen', 'athyg_v32', 'athyg_v40', 'hip', 'hd', 'hr', 'gl', 
 const PESOS_V40 = { hip: 5, hd: 4, tyc: 3, gaia: 2, gl: 1 };
 const COMPANERA_MAX_ARCSEC = 60, COMPANERA_DIST_REL = 0.25;
 const POSICION_MAX_ARCSEC = 5, POSICION_MAX_DMAG = 0.5;
+// Fuente de GCNS dibujada en la capa frente a la estrella del registro con la que se enlaza: es la misma si
+// está a ≤ 15″ (las posiciones de Gliese en AT-HYG pueden estar a varios segundos de arco), con distancia a
+// ±25 % y G − V entre −2,5 y +1,5 (enanas M: G hasta 2,5 mag más brillante que V); a menos de 1″ no se mira
+// el brillo (Gaia no separa dos fuentes tan juntas). Si la estrella ya tiene otro Gaia DR3, es otra fuente.
+const MISMA_MAX_ARCSEC = 15, MISMA_G_MENOS_V = [-2.5, 1.5];
+export function mismaEstrella(g, s) {
+  if (s.gaia_dr3 && s.gaia_dr3 !== g.gaia) return false;
+  if (!s.pos || !(s.d > 0)) return false;
+  const sep = separacion(g.pos, s.pos);
+  if (sep > MISMA_MAX_ARCSEC || Math.abs(g.d - s.d) / s.d >= COMPANERA_DIST_REL) return false;
+  if (sep < 1 || g.G === null || s.mag === null || s.mag === undefined) return true;
+  return g.G - s.mag >= MISMA_G_MENOS_V[0] && g.G - s.mag <= MISMA_G_MENOS_V[1];
+}
 
 const texto = v => (v === undefined || v === null ? '' : String(v).trim());
 
@@ -529,6 +549,14 @@ export function nuevoLote(origenes, { enRegistro, lotes, siguiente, fecha, tmass
   return filas;
 }
 
+// Distancia, G y posición J2000 (con el movimiento propio, desde la época 2016,0) de una fila de Gaia DR3.
+function fuenteGaia(c) {
+  const dec = Number(c('dec')), anos = 2000 - 2016, g = c('phot_g_mean_mag');
+  return { d: 1000 / Number(c('parallax')), G: g === '' || g === undefined ? null : Number(g),
+    pos: { ra: (Number(c('ra')) + (Number(c('pmra')) || 0) * anos / 3.6e6 / Math.cos(dec * Math.PI / 180) + 360) % 360,
+      dec: dec + (Number(c('pmdec')) || 0) * anos / 3.6e6 } };
+}
+
 // --- Lectura de AT-HYG (gz; en la v3.2 solo la primera parte trae cabecera) ---
 
 export async function recorrerAthyg(partes, alLeer) {
@@ -647,10 +675,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const c = n => fila[cab.indexOf(n)];
     const plx = Number(c('parallax')), err = Number(c('parallax_error'));
     if (c('name_2mass') && !tmass.has(c('source_id'))) tmass.set(c('source_id'), c('name_2mass'));
-    const dec = Number(c('dec')), anos = 2000 - 2016;
-    gcns.push({ gaia: c('source_id'), valida: Number(c('gcns_prob')) >= GCNS_PROB_MIN && err > 0 && plx / err >= PARALAJE_SNR_MIN,
-      d: 1000 / plx, pos: { ra: (Number(c('ra')) + (Number(c('pmra')) || 0) * anos / 3.6e6 / Math.cos(dec * Math.PI / 180) + 360) % 360,
-        dec: dec + (Number(c('pmdec')) || 0) * anos / 3.6e6 } });
+    gcns.push({ gaia: c('source_id'), valida: Number(c('gcns_prob')) >= GCNS_PROB_MIN && err > 0 && plx / err >= PARALAJE_SNR_MIN, ...fuenteGaia(c) });
   });
   const tmassDe = g => (g && tmass.get(g)) || '';
   for (const s of lista) s.tmass = tmassDe(s.gaia_dr3);
@@ -697,26 +722,56 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // 8) Lote de las fuentes identificadas solo por Gaia DR3: capa del millón y GCNS.
   const enRegistro = new Set(filas.filter(f => f.estado === 'activa' && f.gaia_dr3).map(f => f.gaia_dr3));
   if (!fs.existsSync(GAIA_1M_SELECCION)) throw new Error(`Falta ${GAIA_1M_SELECCION}: corre antes node scripts/process_gaia.js`);
-  const millon = [], millonEnlazadas = new Set();
+  const millon = [], millonEnlazadas = new Set(), dibujadasGcns = new Set(), dibujadas1m = new Set();
   await recorrerAthyg([GAIA_1M_SELECCION], (fila, cab) => {
     const [g, estado, capa] = [fila[cab.indexOf('source_id')], fila[cab.indexOf('estado')], fila[cab.indexOf('capa')]];
     // La capa también lleva GCNS; aquí solo cuentan las del millón (GCNS tiene su propio paso).
-    if (capa !== undefined && capa !== '1m') { if (estado.startsWith('duplicada')) millonEnlazadas.add(g); return; }
+    if (capa !== undefined && capa !== '1m') { if (estado.startsWith('duplicada')) millonEnlazadas.add(g); else if (estado === 'dibujada') dibujadasGcns.add(g); return; }
     if (estado.startsWith('duplicada')) millonEnlazadas.add(g); else millon.push(g);
+    if (estado === 'dibujada') dibujadas1m.add(g);
   });
   for (const g of millonEnlazadas) asociados.add(g);
+  // Estrella del registro de cada Gaia DR3 conocido (para las fuentes de GCNS que no reciben número).
+  const estrellaDeGaia = new Map();
+  for (const s of lista) for (const g of [...(s.gaiaAsociados || []), s.gaia_dr3]) if (g && !estrellaDeGaia.has(g)) estrellaDeGaia.set(g, s);
+  const enlazadasCapa = new Map();
+  // Millón: fuentes dibujadas que son un Gaia DR3 conocido de otra estrella del registro (ya tienen número).
+  const candidatas1m = new Set([...dibujadas1m].filter(g => estrellaDeGaia.has(g) && !enRegistro.has(g)));
+  await recorrerAthyg([GAIA_1M_CSV], (fila, cab) => {
+    const c = n => fila[cab.indexOf(n)];
+    if (!candidatas1m.has(c('source_id'))) return;
+    const g = { gaia: c('source_id'), ...fuenteGaia(c) }, s = estrellaDeGaia.get(g.gaia);
+    if (mismaEstrella(g, s)) enlazadasCapa.set(g.gaia, { s, por: 'gaia_conocido' });
+  });
   // GCNS: una fuente sin Gaia conocido en el registro puede ser una estrella del registro que no tiene Gaia.
   const sinGaia = rejilla([...base, ...entran, ...cns5.nuevas].filter(s => !s.gaiaAsociados?.size && !s.gaia_dr3 && s.pos && s.d > 0).map(s => ({ ...s.pos, s })));
   const gcnsValidas = gcns.filter(g => g.valida);
   let gcnsPorPosicion = 0;
+  const separadas = new Set();
   for (const g of gcnsValidas) {
-    if (asociados.has(g.gaia)) continue;
-    if (sinGaia(g.pos, CNS5_MAX_ARCSEC).some(([, q]) => Math.abs(g.d - q.s.d) / q.s.d < COMPANERA_DIST_REL)) { asociados.add(g.gaia); gcnsPorPosicion++; }
+    let s, por;
+    if (asociados.has(g.gaia)) {
+      if (enRegistro.has(g.gaia) || !estrellaDeGaia.has(g.gaia)) continue;
+      [s, por] = [estrellaDeGaia.get(g.gaia), 'gaia_conocido'];
+    } else {
+      const cerca = sinGaia(g.pos, CNS5_MAX_ARCSEC).find(([, q]) => Math.abs(g.d - q.s.d) / q.s.d < COMPANERA_DIST_REL);
+      if (!cerca) continue;
+      [s, por] = [cerca[1].s, 'posicion'];
+    }
+    // Una fuente que process_gaia dibuja en la capa solo es esa estrella si de verdad coincide con ella;
+    // si no, es otra estrella (una compañera, o un Gaia DR3 mal asignado) y recibe su propio número.
+    if (dibujadasGcns.has(g.gaia) && !mismaEstrella(g, s)) { separadas.add(g.gaia); continue; }
+    if (por === 'posicion') { asociados.add(g.gaia); gcnsPorPosicion++; }
+    if (dibujadasGcns.has(g.gaia)) enlazadasCapa.set(g.gaia, { s, por });
   }
+  const filasCapa = [...enlazadasCapa].sort(([a], [b]) => compararIds(a, b))
+    .map(([gaia, { s, por }]) => ({ gaia_dr3: gaia, hsb: filaPorEstrella.get(s).hsb, por }));
+  const salidaCapa = serializarCsv(COLUMNAS_CAPA_ENLAZADAS, filasCapa);
+  if (!fs.existsSync(CAPA_ENLAZADAS_CSV) || fs.readFileSync(CAPA_ENLAZADAS_CSV, 'utf8') !== salidaCapa) fs.writeFileSync(CAPA_ENLAZADAS_CSV, salidaCapa);
   const gcnsEnRegistro = gcnsValidas.filter(g => asociados.has(g.gaia)).length;
   const loteNuevo = nuevoLote([
     ['gaia_dr3_1m', millon.filter(g => !enRegistro.has(g))],
-    ['gcns', gcnsValidas.map(g => g.gaia).filter(g => !asociados.has(g))],
+    ['gcns', gcnsValidas.map(g => g.gaia).filter(g => !asociados.has(g) || separadas.has(g))],
   ], { enRegistro, lotes, siguiente: filas.reduce((m, f) => Math.max(m, f.hsb), mayorLote) + 1, fecha, tmassDe });
   let archivoLote = null;
   if (loteNuevo.length) {
@@ -741,6 +796,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`✓ Lotes: ${lotes.length} filas anteriores; ${archivoLote ? `nuevo ${archivoLote}: ${loteNuevo.length} (millón ${porOrigen('gaia_dr3_1m')}, GCNS ${porOrigen('gcns')})` : 'sin lote nuevo'}`);
   const enMillon = new Set(millon);
   console.log(`  Millón: ${millon.length + millonEnlazadas.size} fuentes; ${millonEnlazadas.size} son estrellas de Hoshi (process_gaia), ${millon.filter(g => enRegistro.has(g)).length} otras ya en el registro`);
+  console.log(`  Capa de fondo: ${enlazadasCapa.size} fuentes dibujadas son una estrella del registro (${CAPA_ENLAZADAS_CSV}); ${separadas.size} de GCNS enlazadas antes son otra estrella y tienen número propio`);
   console.log(`  GCNS fiables: ${gcnsValidas.length} de ${gcns.length}; ${gcnsEnRegistro} ya en el registro (${gcnsPorPosicion} por posición, sin Gaia en el registro); ${gcnsValidas.filter(g => !asociados.has(g.gaia) && enMillon.has(g.gaia)).length} en la capa del millón`);
   if (repetidos.length) {
     const soloBase = repetidos.filter(r => !r.nuevas);

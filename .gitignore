@@ -39,6 +39,7 @@ data/raw/gaia/*
 data/catalog/star_identity.json
 # Selección de la capa del millón que deja scripts/process_gaia.js para el registro HSB (regenerable)
 data/catalog/gaia_1m_seleccion.csv.gz
+data/catalog/gaia_capa_orden.txt.gz
 # AT-HYG v3.2 completo (199 MB): se descarga con las URL de FUENTES.md
 data/raw/athyg/*
 !data/raw/athyg/FUENTES.md

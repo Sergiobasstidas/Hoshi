@@ -8,7 +8,7 @@ import { parse } from 'csv-parse/sync';
 import zlib from 'node:zlib';
 import readline from 'node:readline';
 import { applyPatches, loadPatches } from './catalog/catalog_patches.js';
-import { estrellasNuevas, fusionarBase } from './catalog/fusion.js';
+import { estrellasNuevas, fusionarBase, indiceCns5 } from './catalog/fusion.js';
 
 // === CONFIGURACIÓN ===
 const MAX_DISTANCE_PC = 400000;
@@ -140,9 +140,8 @@ if (fs.existsSync(REGISTRO_CSV)) {
     if (pedidas.has(id)) { const [fila] = parse(linea, { columns: cabecera, relax_quotes: true }); v40.set(id, fila); }
   }
   const filasCns5 = parse(fs.readFileSync(CNS5_CSV, 'utf8'), { columns: true });
-  const cns5 = { porGaia: new Map(filasCns5.filter(r => r.gaia_edr3_id).map(r => [r.gaia_edr3_id, r])),
-    porGl: new Map(filasCns5.map(r => [`${r.gj_id}${r.component_id}`, r])) };
-  const base = fusionarBase(patched, { registro, gaia, hip, espectros });
+  const cns5 = indiceCns5(filasCns5);
+  const base = fusionarBase(patched, { registro, gaia, hip, espectros, cns5 });
   const nuevas = estrellasNuevas(registro, { gaia, hip, espectros, v40, cns5 });
   // La fuente de cada dato queda en hsb_fuentes.csv.gz; en el catálogo de la app solo se conserva `ds` en las
   // anfitrionas añadidas y en las curadas, como antes.

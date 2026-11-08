@@ -19,7 +19,8 @@
 //     registro HSB (scripts/catalog/distancia_sistemas.js), escena de exoplanetas y descubrimientos.
 //  5. Pasos con consultas guardadas en data/raw/red: Gaia según SIMBAD, JMDC, alias del buscador, datos
 //     oficiales, fichas y cúmulos (cúmulos usa además data/raw/ucc, local).
-//  6. Capa del millón de Gaia (usa las binarias y la identidad) y, al final, el registro HSB.
+//  6. Capa del millón de Gaia (usa las binarias y la identidad), el registro HSB y, al final, el archivo único de
+//     estrellas de la app (public/data/estrellas.bin: catálogo y capa de fondo).
 //
 // Las fechas «generado» y «descargado» de las salidas no se reescriben si el resto del archivo no cambió.
 
@@ -45,8 +46,9 @@ const PASOS = [
   { script: 'scripts/process_stellar_official.js', salidas: ['data/processed/stellar_official.json'], red: true },
   { script: 'scripts/process_fichas.js', salidas: ['public/data/fichas.json'], red: true },
   { script: 'scripts/process_cumulos.js', salidas: ['public/data/cumulos.json'], red: true },
-  { script: 'scripts/process_gaia.js', salidas: ['public/data/gaia-1m.bin'] },
-  { script: 'scripts/catalog/build_hsb.js', salidas: ['data/catalog/hsb_registro.csv', 'data/catalog/hsb_companeras_dibujadas.csv'] },
+  { script: 'scripts/process_gaia.js', salidas: ['data/processed/gaia-1m.bin'] },
+  { script: 'scripts/catalog/build_hsb.js', salidas: ['data/catalog/hsb_registro.csv', 'data/catalog/hsb_companeras_dibujadas.csv', 'data/catalog/hsb_capa_enlazadas.csv'] },
+  { script: 'scripts/build_estrellas.js', salidas: ['public/data/estrellas.bin', 'public/data/estrellas-hsb.bin'] },
 ];
 
 const argumentos = new Set(process.argv.slice(2));

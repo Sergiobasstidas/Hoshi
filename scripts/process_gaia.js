@@ -5,7 +5,8 @@
 //
 // Distancia = 1000 / paralaje (pc), sin modelos bayesianos (regla D-014).
 //
-// === Formato de public/data/gaia-1m.bin (little-endian) ===
+// === Formato de data/processed/gaia-1m.bin (little-endian) ===
+// La app no lo baja: scripts/build_estrellas.js lo junta con el catálogo en public/data/estrellas.bin.
 // Encabezado, 16 bytes:
 //   0  4 bytes  firma ASCII "HGAI"
 //   4  uint32   versión del formato (FORMAT_VERSION)
@@ -39,7 +40,9 @@ const STARS_PATH = './data/processed/stars_15pc.json';
 const IDENTITY_PATH = './data/catalog/star_identity.json';
 const HOSTS_PATH = './data/catalog/added_hosts.json';
 const SYSTEMS_PATH = './data/processed/star_systems.json';
-const OUTPUT_PATH = './public/data/gaia-1m.bin';
+const OUTPUT_PATH = './data/processed/gaia-1m.bin';
+// source_id de cada estrella dibujada, en el orden del binario (para su número HSB). No se versiona.
+const ORDER_PATH = './data/catalog/gaia_capa_orden.txt.gz';
 // Qué se hizo con cada fuente (para el registro HSB): dibujada, fuera del millón o duplicado de una
 // estrella de Hoshi (por source_id, posición o compañera), con el id de esa estrella. No se versiona.
 const SELECTION_PATH = './data/catalog/gaia_1m_seleccion.csv.gz';
@@ -316,6 +319,7 @@ const MOTIVO = ['', 'source_id', 'posicion', 'companera'];
 const selection = ['source_id,estado,hoshi_i,capa', ...rows.map((r, k) => (duplicate[k]
   ? `${r.sid},duplicada_${MOTIVO[duplicate[k]]},${duplicateOf[k]},${r.capa}` : `${r.sid},${drawn.has(r.sid) ? 'dibujada' : 'fuera'},,${r.capa}`))].join('\n') + '\n';
 fs.writeFileSync(SELECTION_PATH, zlib.gzipSync(selection, { level: 9 }));
+fs.writeFileSync(ORDER_PATH, zlib.gzipSync(stars.map(s => s.sid).join('\n') + '\n', { level: 9 }));
 const gzipped = zlib.gzipSync(buffer, { level: 9 }).length;
 console.log(`✓ Guardado: ${OUTPUT_PATH} (${(buffer.length / 1048576).toFixed(2)} MB; con gzip ${(gzipped / 1048576).toFixed(2)} MB)`);
 
