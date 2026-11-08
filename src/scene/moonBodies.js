@@ -58,3 +58,15 @@ export function hiddenByPlanet(cx, cy, cz, moon, radius) {
   if (t <= 0 || t >= length) return false;
   return Math.hypot(cx + dx / length * t, cy + dy / length * t, cz + dz / length * t) < radius;
 }
+
+// Presencia en pantalla del sistema de lunas de cada planeta (0–1), publicada por Moons.jsx en cada
+// cuadro. Dentro de un sistema de lunas solo se nombran el planeta, sus lunas y lo elegido (VisualGuides.jsx).
+const presencias = new Map();
+export function publicarPresencia(planeta, valor) {
+  presencias.set(planeta, valor);
+}
+export function presenciaLunas() {
+  let mayor = { planeta: null, valor: 0 };
+  for (const [planeta, valor] of presencias) if (valor > mayor.valor) mayor = { planeta, valor };
+  return mayor;
+}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { AdditiveBlending, InstancedBufferAttribute, Vector3 } from 'three';
+import { AdditiveBlending, InstancedBufferAttribute, Vector2, Vector3 } from 'three';
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -22,7 +22,7 @@ import { smoothRange } from './scale';
 // al mover la cámara, se veían varias líneas. Se ancla a la cabeza más cercana cuando la cámara está a
 // menos de ANCLA_CERCA de su tamaño de referencia (la órbita) y se suelta pasado ANCLA_LEJOS.
 const ANCLA_CERCA = 0.5, ANCLA_LEJOS = 0.75;
-const center = new Vector3(), local = new Vector3();
+const center = new Vector3(), local = new Vector3(), canvasSize = new Vector2();
 const headOf = trail => Array.from(trail.points.subarray(trail.points.length - 3));
 
 export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 1, width = 1.6, fadeDistance }) {
@@ -56,15 +56,24 @@ export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 
         '#include <clipping_planes_fragment>\n\tif ( abs( vUv.y ) > 1.0 ) discard;');
     };
     material.customProgramCacheKey = () => 'estela-desvanecida';
+    // Tamaño aparente y distancia se miden al dibujar, desde el grupo (el planeta), no desde la cabeza
+    // de anclaje: al anclarse a una luna lejana la distancia cambiaba de golpe y las estelas se apagaban
+    // y volvían; y al cambiar de ancla la línea nueva tenía un primer cuadro sin medir (otro parpadeo).
+    material.onBeforeRender = (renderer, scene, camera, geometry, object) => {
+      const distance = camera.position.distanceTo((object.parent ?? object).getWorldPosition(center));
+      renderer.getSize(canvasSize);
+      uniforms.pixelsPerUnit.value = canvasSize.y / (2 * Math.tan(camera.fov * Math.PI / 360)) / distance;
+      uniforms.trailOpacity.value = opacity * (fadeDistance ? 1 - smoothRange(distance, fadeDistance[1], fadeDistance[0]) : 1);
+    };
     const object = new LineSegments2(geometry, material);
     object.frustumCulled = false;
     object.position.fromArray(anchor);
     object.userData.uniforms = uniforms;
     return object;
-  }, [trails, anchor, fadePixels, opacity, width]);
+  }, [trails, anchor, fadePixels, opacity, width, fadeDistance]);
   useEffect(() => () => { line.geometry.dispose(); line.material.dispose(); }, [line]);
   const ref = useRef();
-  useFrame(({ camera, size }) => {
+  useFrame(({ camera }) => {
     const object = ref.current;
     if (object.parent) {
       object.parent.worldToLocal(local.copy(camera.position));
@@ -78,12 +87,6 @@ export default function FadingTrails({ trails, fadePixels = [12, 50], opacity = 
       const keep = current && Math.hypot(local.x - current[0], local.y - current[1], local.z - current[2]) / trails[anchorIndex].size < ANCLA_LEJOS;
       const next = keep ? anchorIndex : bestRatio < ANCLA_CERCA ? best : -1;
       if (next !== anchorIndex) setAnchorIndex(next);
-    }
-    const distance = camera.position.distanceTo(object.getWorldPosition(center));
-    object.userData.uniforms.pixelsPerUnit.value = size.height / (2 * Math.tan(camera.fov * Math.PI / 360)) / distance;
-    if (fadeDistance) {
-      const factor = 1 - smoothRange(distance, fadeDistance[1], fadeDistance[0]);
-      object.userData.uniforms.trailOpacity.value = opacity * factor;
     }
   });
   return <primitive object={line} ref={ref} />;

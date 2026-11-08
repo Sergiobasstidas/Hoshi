@@ -1,13 +1,14 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { AdditiveBlending, Color, Matrix4, Quaternion, SRGBColorSpace, Vector3 } from 'three';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { AdditiveBlending, Color, LinearMipmapLinearFilter, Matrix4, Quaternion, SRGBColorSpace, TextureLoader, Vector3 } from 'three';
 import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange } from './scale';
 import { EPHEMERIS_DATE, planetPosition } from './solarEphemeris';
 import { julianDay, moonOffsetKm, orbitalPeriodDays } from './moonEphemeris';
 import { sampleTrail } from './fadingTrail';
 import FadingTrails from './FadingTrails';
-import { MOON_PLANETS, hiddenByPlanet, useMoons } from './moonBodies';
+import { MOON_PLANETS, hiddenByPlanet, publicarPresencia, useMoons } from './moonBodies';
 import { currentOccluders, hiddenBehind, publishOccluders } from './labelOcclusion';
+import { moonAxes, moonTextureUrl } from './moonTextures';
 
 // Lunas de Júpiter y Saturno: esferas a escala de su radio, en su posición de la fecha y con
 // una estela de un cuarto de vuelta (FadingTrails.jsx). De lejos, un punto de tamaño fijo (no representa el radio) indica dónde
@@ -18,9 +19,16 @@ import { currentOccluders, hiddenBehind, publishOccluders } from './labelOcclusi
 const MARKER_PIXELS = [6, 22];
 // El punto se retira cuando la esfera ya ocupa estos píxeles de radio.
 const SPHERE_PIXELS = [1.5, 4];
-// Nombres: las lunas grandes aparecen antes; las pequeñas, solo con su órbita muy abierta.
-const MAJOR_LABEL_PIXELS = [30, 70], MINOR_LABEL_PIXELS = [260, 520];
+// Nombres (pedido de Sergio, 08/11/2026): las lunas de radio ≥ LABEL_RADIUS_KM llevan nombre fijo, que aparece
+// al entrar al sistema (la órbita de la más externa de ellas ocupa PRESENCE_PIXELS de radio) y se queda.
+// Las pequeñas conservan su punto; su nombre aparece al pasar el ratón a menos de HOVER_PIXELS de su punto
+// o esfera, si es la luna enfocada, o de cerca, cuando su esfera ocupa SMALL_SPHERE_PIXELS de radio.
+const LABEL_RADIUS_KM = 150, PRESENCE_PIXELS = [15, 30], HOVER_PIXELS = 12, SMALL_SPHERE_PIXELS = [3, 5];
 const MAJOR_RADIUS_KM = 40, MAX_LABELS = 20;
+// Espacio libre (px) que necesita un nombre nuevo para aparecer junto a los que ya están.
+const LABEL_MARGIN = 6;
+// Rapidez (1/s) del fundido de los nombres al aparecer y desaparecer.
+const LABEL_FADE = 12;
 // Las lunas que ya se ven como esfera salen de la malla instanciada y se dibujan sueltas: la
 // matriz de cada instancia se guarda en float32 relativa al planeta y, a 20 millones de km, eso
 // deja un error de ≈ 1 km, mayor que una luna pequeña (se veía como un polígono roto). Una malla
@@ -38,7 +46,50 @@ const TRAIL_FADE = [12, 50], TRAIL_COLOR = new Color('#d9c59a'), MINOR_TRAIL_COL
 const TRAIL_DISTANCE = [2.5 * AU_TO_PC, 1 * AU_TO_PC];
 const vector = new Vector3(), view = new Vector3();
 
+// Mapas de superficie (moonTextures.js): se cargan cuando la esfera de la luna pasa TEXTURE_PIXELS de radio
+// y quedan en caché. Son mapas en gris: se tiñen con el color de la luna aclarado a la mitad.
+const TEXTURE_PIXELS = 20;
+const textureCache = new Map(), loader = new TextureLoader();
+function moonTexture(url, onReady) {
+  let entry = textureCache.get(url);
+  if (!entry) {
+    entry = { texture: null };
+    textureCache.set(url, entry);
+    loader.load(url, texture => {
+      texture.colorSpace = SRGBColorSpace;
+      texture.minFilter = LinearMipmapLinearFilter;
+      texture.anisotropy = 4;
+      entry.texture = texture;
+      onReady();
+    });
+  }
+  return entry.texture;
+}
+// Orientación de cada luna con mapa en la fecha de carga (polo y meridiano cero de la IAU).
+const orientationCache = new Map();
+function moonQuaternion(code) {
+  if (!orientationCache.has(code)) {
+    const { x, y, z } = moonAxes(code, EPHEMERIS_DATE);
+    orientationCache.set(code, new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(
+      new Vector3(...x), new Vector3(...y), new Vector3(...z))));
+  }
+  return orientationCache.get(code);
+}
+const WHITE = new Color('white');
+// El puntero de R3F arranca en el centro de la pantalla y se queda donde fue el último movimiento, aunque
+// el ratón esté sobre un nombre o un botón: justo donde queda el planeta al viajar a él, y todas sus lunas
+// chicas contaban como «bajo el ratón». Solo cuenta si el ratón se movió sobre el lienzo mismo.
+const pointerOnCanvas = { value: false };
+
 function MoonGroup({ planet, moons, origin }) {
+  const canvas = useThree(state => state.gl.domElement);
+  useEffect(() => {
+    const move = event => { pointerOnCanvas.value = event.target === canvas; };
+    const leave = () => { pointerOnCanvas.value = false; };
+    window.addEventListener('pointermove', move);
+    document.addEventListener('pointerleave', leave);
+    return () => { window.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', leave); };
+  }, [canvas]);
   const group = useRef(), spheres = useRef(), points = useRef(), material = useRef(), pool = useRef([]);
   const nearState = useRef([]);
   const center = useMemo(() => planetPosition(planet), [planet]);
@@ -53,6 +104,9 @@ function MoonGroup({ planet, moons, origin }) {
   const metrics = useMemo(() => moons.map(body => ({ orbitPc: Math.hypot(...body.offsetPc), radiusPc: body.radiusKm * KM_TO_PC,
     major: body.radiusKm >= MAJOR_RADIUS_KM })), [moons]);
   const outermostPc = useMemo(() => Math.max(...metrics.map(item => item.orbitPc)), [metrics]);
+  // Órbita de la luna con nombre fijo más externa: mide la presencia del sistema en pantalla.
+  const namedOrbitPc = useMemo(() => Math.max(0, ...moons.map((body, i) => body.radiusKm >= LABEL_RADIUS_KM ? metrics[i].orbitPc : 0)),
+    [moons, metrics]);
   const uniforms = useMemo(() => ({ pixelRatio: { value: 1 } }), []);
   const trails = useMemo(() => {
     const endJd = julianDay(EPHEMERIS_DATE);
@@ -66,7 +120,7 @@ function MoonGroup({ planet, moons, origin }) {
   // Los primeros cuadros se dibuja todo aunque esté lejos: así los sombreadores se compilan y los
   // datos suben a la GPU durante la carga y no al llegar al planeta (eso trababa la llegada).
   const warmup = useRef(3);
-  const labelState = useRef({ elements: null, shown: new Set() });
+  const labelState = useRef({ elements: null, shown: new Set(), fading: new Map() });
 
   useLayoutEffect(() => {
     const matrix = new Matrix4(), rotation = new Quaternion(), scale = new Vector3(), position = new Vector3();
@@ -100,22 +154,31 @@ function MoonGroup({ planet, moons, origin }) {
       mesh.position.fromArray(body.offsetPc);
       mesh.scale.setScalar(body.radiusKm * KM_TO_PC);
       mesh.material.color.setStyle(body.color, SRGBColorSpace);
+      mesh.material.map = null;
+      mesh.material.needsUpdate = true;
+      mesh.userData.textured = false;
+      if (moonTextureUrl(body.moon.code)) mesh.quaternion.copy(moonQuaternion(body.moon.code));
+      else mesh.quaternion.identity();
     });
     nearState.current = near;
   };
 
-  useFrame(({ camera, gl, size }) => {
+  useFrame(({ camera, gl, size, pointer, invalidate }, delta) => {
     const focal = size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
     const cx = camera.position.x + origin[0] - center[0], cy = camera.position.y + origin[1] - center[1], cz = camera.position.z + origin[2] - center[2];
     const planetDistance = Math.hypot(cx, cy, cz);
+    const presence = smoothRange(namedOrbitPc / planetDistance * focal, ...PRESENCE_PIXELS);
+    publicarPresencia(planet, presence);
+    const pointerX = (pointer.x + 1) * size.width / 2, pointerY = (1 - pointer.y) * size.height / 2;
     const container = document.querySelector('[data-moon-labels]');
     const state = labelState.current;
     if (container && (!state.elements || state.elements.size !== container.children.length)) {
       state.elements = new Map([...container.children].map(element => [element.dataset.code, element]));
     }
     const hideLabels = () => {
-      for (const code of state.shown) { const element = state.elements?.get(code); if (element) { element.style.opacity = 0; element.style.visibility = 'hidden'; } }
+      for (const code of state.fading.keys()) { const element = state.elements?.get(code); if (element) { element.style.opacity = 0; element.style.visibility = 'hidden'; } }
       state.shown.clear();
+      state.fading.clear();
     };
     // Lejos del planeta no hay nada que dibujar: ni puntos ni nombres.
     const active = outermostPc / planetDistance * focal > MARKER_PIXELS[0];
@@ -126,7 +189,7 @@ function MoonGroup({ planet, moons, origin }) {
     const candidates = [];
     camera.updateMatrixWorld();
     // Los nombres tapados por un cuerpo más cercano (planeta, Sol u otra luna) no se muestran.
-    const occluders = currentOccluders(), moonDisks = [];
+    const occluders = currentOccluders(camera, size), moonDisks = [];
     moons.forEach((body, i) => {
       const { orbitPc, radiusPc, major } = metrics[i];
       const dx = cx - body.offsetPc[0], dy = cy - body.offsetPc[1], dz = cz - body.offsetPc[2];
@@ -134,46 +197,105 @@ function MoonGroup({ planet, moons, origin }) {
       const orbitPixels = orbitPc / planetDistance * focal;
       const spherePixels = radiusPc / distance * focal;
       if (spherePixels > NEAR_PIXELS) near.push([i, spherePixels]);
+      // Toda luna que ya se ve como esfera tapa nombres, rutas y clics detrás de ella (labelOcclusion.js),
+      // tenga o no su nombre a la vista.
+      if (spherePixels > 3) {
+        view.set(center[0] - origin[0] + body.offsetPc[0], center[1] - origin[1] + body.offsetPc[1], center[2] - origin[2] + body.offsetPc[2]);
+        vector.copy(view).applyMatrix4(camera.matrixWorldInverse);
+        if (-vector.z > camera.near) {
+          vector.applyMatrix4(camera.projectionMatrix);
+          moonDisks.push({ key: body.name, x: (vector.x + 1) * size.width / 2, y: (1 - vector.y) * size.height / 2,
+            radius: spherePixels, distance, center: view.toArray(), radiusPc });
+        }
+      }
       attributes.alpha[i] = smoothRange(orbitPixels, ...MARKER_PIXELS) * (1 - smoothRange(spherePixels, ...SPHERE_PIXELS)) * (major ? 1 : 0.7);
       const isFocused = String(body.moon.code) === focused;
-      const labelAlpha = isFocused ? 1 : smoothRange(orbitPixels, ...(major ? MAJOR_LABEL_PIXELS : MINOR_LABEL_PIXELS))
-        * Math.max(attributes.alpha[i], smoothRange(spherePixels, ...SPHERE_PIXELS));
-      if (labelAlpha < 0.02 || !container || hiddenByPlanet(cx, cy, cz, body.offsetPc, planetRadiusPc)) return;
+      const named = body.radiusKm >= LABEL_RADIUS_KM;
+      // Las pequeñas: de cerca (esfera visible) o con el ratón encima (se decide al proyectarla).
+      const labelAlpha = isFocused ? 1 : named ? presence : smoothRange(spherePixels, ...SMALL_SPHERE_PIXELS);
+      if ((labelAlpha < 0.02 && (named || presence < 0.5)) || !container || hiddenByPlanet(cx, cy, cz, body.offsetPc, planetRadiusPc)) return;
       view.set(center[0] - origin[0] + body.offsetPc[0], center[1] - origin[1] + body.offsetPc[1], center[2] - origin[2] + body.offsetPc[2]);
       vector.copy(view).applyMatrix4(camera.matrixWorldInverse);
       if (-vector.z <= camera.near) return;
       vector.applyMatrix4(camera.projectionMatrix);
-      if (Math.abs(vector.x) > 0.97 || Math.abs(vector.y) > 0.93) return;
+      // Junto al borde de la pantalla el nombre se funde en vez de cortarse de golpe.
+      const edge = (1 - smoothRange(Math.abs(vector.x), 0.9, 0.99)) * (1 - smoothRange(Math.abs(vector.y), 0.84, 0.95));
+      if (edge < 0.02) return;
       const screenX = (vector.x + 1) * size.width / 2, screenY = (1 - vector.y) * size.height / 2;
-      if (spherePixels > 3) moonDisks.push({ key: body.name, x: screenX, y: screenY, radius: spherePixels, distance });
-      const item = { code: String(body.moon.code), alpha: labelAlpha, priority: isFocused ? Infinity : body.radiusKm,
+      // Con el ratón sobre una luna chica; no cuenta mientras su punto se confunde con el del planeta.
+      const hovered = !named && pointerOnCanvas.value && Math.hypot(pointerX - screenX, pointerY - screenY) - spherePixels < HOVER_PIXELS
+        && orbitPixels > 2 * HOVER_PIXELS;
+      const alpha = (hovered && presence > 0.5 ? Math.max(labelAlpha, 0.9) : labelAlpha) * edge;
+      if (alpha < 0.02) return;
+      const item = { code: String(body.moon.code), alpha, hovered: hovered && presence > 0.5, priority: isFocused ? Infinity : body.radiusKm,
         x: screenX + Math.min(spherePixels, size.width / 3) + 8, y: screenY - 8, width: body.name.length * 6.2 + 8 };
       if (!isFocused && hiddenBehind({ x: item.x, y: item.y, width: item.width, height: 16 }, distance, occluders, body.name)) return;
       candidates.push(item);
     });
     publishOccluders(`lunas-${planet}`, moonDisks);
     assignNear(near.sort((a, b) => b[1] - a[1]).slice(0, NEAR_POOL).map(([index]) => index).sort((a, b) => a - b));
+    // Mapa de superficie en las esferas sueltas, cuando ya ocupan unos píxeles.
+    const pixelsOf = new Map(near);
+    nearState.current.forEach((index, k) => {
+      const mesh = pool.current[k], body = moons[index], url = moonTextureUrl(body.moon.code);
+      if (!mesh || !url || mesh.userData.textured || !(pixelsOf.get(index) > TEXTURE_PIXELS)) return;
+      const texture = moonTexture(url, invalidate);
+      if (!texture) return;
+      mesh.material.map = texture;
+      mesh.material.color.setStyle(body.color, SRGBColorSpace).lerp(WHITE, 0.5);
+      mesh.material.needsUpdate = true;
+      mesh.userData.textured = true;
+    });
     points.current.geometry.attributes.alpha.needsUpdate = true;
     material.current.uniforms.pixelRatio.value = gl.getPixelRatio();
     if (!container) return;
-    // Sin solapes: primero la luna enfocada y después las de mayor radio.
-    candidates.sort((a, b) => b.priority - a.priority);
+    // Sin solapes. Orden: la luna enfocada; las grandes (primero las que ya estaban a la vista); las
+    // pequeñas que ya estaban; las pequeñas nuevas; dentro de cada grupo, de mayor a menor radio. Un
+    // nombre nuevo necesita un margen libre; uno que ya estaba solo se retira si de verdad se encima con
+    // otro. Antes se rehacía todo en cada cuadro y, al girar la cámara, los nombres cerca del límite se
+    // apagaban y encendían (parpadeo).
+    const shown = state.shown;
+    const rank = item => item.priority === Infinity || item.hovered ? 0 : item.priority >= LABEL_RADIUS_KM ? (shown.has(item.code) ? 1 : 2)
+      : shown.has(item.code) ? 3 : 4;
+    candidates.sort((a, b) => rank(a) - rank(b) || b.priority - a.priority);
     const placed = [], next = new Set();
     for (const item of candidates) {
       if (placed.length >= MAX_LABELS) break;
-      if (placed.some(other => item.x < other.x + other.width && other.x < item.x + item.width && Math.abs(item.y - other.y) < 14)) continue;
+      const margin = shown.has(item.code) ? 0 : LABEL_MARGIN;
+      if (placed.some(other => item.x < other.x + other.width + margin && other.x < item.x + item.width + margin
+        && Math.abs(item.y - other.y) < 14 + margin)) continue;
       placed.push(item);
-      const element = state.elements.get(item.code);
+      next.add(item.code);
+    }
+    state.shown = next;
+    // Aparecer y desaparecer se funden (≈ 200 ms, como los nombres de estrellas). Un nombre que sale
+    // queda en su último lugar mientras se apaga (o donde está ahora, si sigue siendo candidato).
+    const step = 1 - Math.exp(-LABEL_FADE * delta);
+    const byCode = new Map(candidates.map(item => [item.code, item]));
+    for (const item of placed) {
+      const current = state.fading.get(item.code);
+      state.fading.set(item.code, { alpha: current?.alpha ?? 0, target: item.alpha, x: item.x, y: item.y });
+    }
+    for (const [code, previous] of [...state.fading]) {
+      const item = byCode.get(code);
+      const leaving = !next.has(code);
+      const target = leaving ? 0 : previous.target;
+      const entry = { target, alpha: previous.alpha + (target - previous.alpha) * step,
+        x: leaving && item ? item.x : previous.x, y: leaving && item ? item.y : previous.y };
+      state.fading.set(code, entry);
+      const element = state.elements.get(code);
+      if (entry.target === 0 && entry.alpha < 0.02) {
+        state.fading.delete(code);
+        if (element) { element.style.opacity = 0; element.style.visibility = 'hidden'; }
+        continue;
+      }
       if (!element) continue;
       // Escribir en el DOM solo lo que cambia: con decenas de nombres por cuadro se nota.
-      const opacity = item.alpha.toFixed(2), transform = `translate(${Math.round(item.x)}px, ${Math.round(item.y)}px)`;
+      const opacity = entry.alpha.toFixed(2), transform = `translate(${Math.round(entry.x)}px, ${Math.round(entry.y)}px)`;
       if (element.style.opacity !== opacity) element.style.opacity = opacity;
       if (element.style.visibility !== 'visible') element.style.visibility = 'visible';
       if (element.style.transform !== transform) element.style.transform = transform;
-      next.add(item.code);
     }
-    for (const code of state.shown) if (!next.has(code)) { const element = state.elements.get(code); if (element) { element.style.opacity = 0; element.style.visibility = 'hidden'; } }
-    state.shown = next;
   });
 
   return <group ref={group} position={center}>

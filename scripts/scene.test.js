@@ -579,6 +579,8 @@ test('Los puntos de Oort permanecen compactos al atravesar la envoltura', () => 
 });
 
 test('Los nombres estelares desaparecen a 700 años luz sin ocultar las estrellas', () => {
+  assert.equal(starLabelOpacity(0.3), 0);
+  assert.ok(starLabelOpacity(1.34) >= 0.8);
   assert.ok(starLabelOpacity(600 * LIGHT_YEAR_PC) > 0.8);
   assert.ok(starLabelOpacity(675 * LIGHT_YEAR_PC) > 0);
   assert.equal(starLabelOpacity(700 * LIGHT_YEAR_PC), 0);

@@ -5,6 +5,7 @@ import { Color, Vector3 } from 'three';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { AU_TO_PC, KM_TO_PC, LIGHT_YEAR_PC, PLANETS, smoothRange, solarDistance } from './scale';
 import OrbitLine from './OrbitLine';
+import { anchorHidden, currentOccluders, rayHidden } from './labelOcclusion';
 import { PROBE_COLOR, markRouteClick, markRouteMissed, probeHidden, probeHighlight, probeLit, probeSamples, useProbes } from './probeTrajectories';
 import { advanceFlyby, flybyKey, playback } from './flybyPlayback';
 import { ARC_AU, FLYBY_PLANETS, addFlybyGhost, composeRoute, routeChunks, flybyArcPc, flybyArrows, flybyBody, flybyCurvePc, pick, thinIndices, useFlybys } from './probeFlybys';
@@ -89,13 +90,21 @@ function RouteChunk({ chunk, probe, origin, active, handlers, anchor, fade }) {
   return <group {...handlers}>{origin3 ? <group position={origin3}>{routes}</group> : routes}</group>;
 }
 
-// Solo se buscan las rutas que se ven; el margen se suma al ancho del trazo (Line2).
+// Solo se buscan las rutas que se ven; el margen se suma al ancho del trazo (Line2). Los tramos
+// tapados por un planeta, una luna o el Sol, más cercanos a la cámara, no cuentan.
 function hitTest(raycaster, intersects) {
   if (!this.visible || this.material.opacity < 0.05) return;
-  const previous = raycaster.params.Line2;
+  const previous = raycaster.params.Line2, before = intersects.length;
   raycaster.params.Line2 = { threshold: HIT_PIXELS };
   Line2.prototype.raycast.call(this, raycaster, intersects);
   raycaster.params.Line2 = previous;
+  if (intersects.length === before) return;
+  const disks = currentOccluders();
+  let kept = before;
+  for (let i = before; i < intersects.length; i++) {
+    if (!rayHidden(raycaster.ray, intersects[i].distance, disks)) intersects[kept++] = intersects[i];
+  }
+  intersects.length = kept;
 }
 
 const ahead = new Vector3(), here = new Vector3();
@@ -103,6 +112,7 @@ const ahead = new Vector3(), here = new Vector3();
 // ya se distingue, dos marcas finas sobre ella indican el sentido en que la sonda la recorrió.
 function FlybyPlanet({ ghost, probeName, origin, active, onSelect }) {
   const { flyby, planetPc } = ghost;
+  const probeAt = useRef(null);
   const sphere = useRef(), label = useRef(), arrows = useRef([]), probeDot = useRef(), probeGroup = useRef();
   // Marcas de sentido sobre la ruta (heliocéntrica), donde la sonda está al doble de la distancia mínima.
   const marks = useMemo(() => flybyArrows(flyby, flybyCurvePc(flyby).points).map(mark => {
@@ -119,7 +129,7 @@ function FlybyPlanet({ ghost, probeName, origin, active, onSelect }) {
     const t = playing ? Math.min(Math.max(playback().t ?? flyby.closestJd, ghost.first), ghost.last) : null;
     if (sphere.current) sphere.current.position.fromArray(playing ? ghost.planetAt(t).map((value, a) => value - planetPc[a]) : [0, 0, 0]);
     if (probeGroup.current) probeGroup.current.position.fromArray(playing ? ghost.probeAt(t).map((value, a) => value - planetPc[a]) : [0, 0, 0]);
-    if (probeDot.current) probeDot.current.style.opacity = playing ? 1 : 0;
+    probeAt.current = playing ? ghost.probeAt(t).map((value, a) => value - planetPc[a]) : null;
   });
   // Arco de su órbita real (± 60 días), con el estilo de las órbitas; pasa por el planeta de entonces.
   const arc = useRef();
@@ -132,6 +142,11 @@ function FlybyPlanet({ ghost, probeName, origin, active, onSelect }) {
   useFrame(({ camera, size }) => {
     const distance = Math.hypot(camera.position.x + origin[0] - planetPc[0], camera.position.y + origin[1] - planetPc[1],
       camera.position.z + origin[2] - planetPc[2]);
+    // Nombre, sonda animada y marcas no se ven ni se pueden pulsar detrás de un cuerpo más cercano
+    // (también el planeta de hoy con el mismo nombre); la esfera de alambre no tapa nada.
+    const disks = currentOccluders(camera, size);
+    const covered = (offset, width = 0, left = 0) => anchorHidden(planetPc[0] - origin[0] + offset[0], planetPc[1] - origin[1] + offset[1],
+      planetPc[2] - origin[2] + offset[2], camera, size, width, left, disks);
     const focal = size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
     const near = 1 - smoothRange(distance, NEAR_FLYBY_AU * AU_TO_PC, NEAR_FLYBY_AU * 2 * AU_TO_PC);
     // Como los nombres de los planetas, se retira cuando la órbita del planeta ocupa pocos píxeles.
@@ -149,16 +164,22 @@ function FlybyPlanet({ ghost, probeName, origin, active, onSelect }) {
       sphere.current.visible = sphere.current.material.opacity > 0.005;
     }
     if (label.current) {
+      const visible = shown > 0.02 && !covered([0, 0, 0], Math.min(spherePixels, size.width / 3) + 9 + label.current.textContent.length * 6.2 + 8);
       label.current.style.opacity = shown;
-      label.current.style.visibility = shown > 0.02 ? 'visible' : 'hidden';
+      label.current.style.visibility = visible ? 'visible' : 'hidden';
       label.current.style.setProperty('--punto', 1 - smoothRange(spherePixels, 3, 6));
       label.current.style.setProperty('--borde', `${Math.min(spherePixels, size.width / 3)}px`);
+    }
+    if (probeDot.current) {
+      const visible = probeAt.current && !covered(probeAt.current, 14 + probeName.length * 6.2 + 8, 7);
+      probeDot.current.style.opacity = visible ? 1 : 0;
+      probeDot.current.style.visibility = visible ? 'visible' : 'hidden';
     }
     const curvePixels = flyby.closestKm * KM_TO_PC / distance * focal;
     marks.forEach((mark, i) => {
       const element = arrows.current[i];
       if (!element) return;
-      const alpha = shown * smoothRange(curvePixels, 25, 60);
+      const alpha = shown * smoothRange(curvePixels, 25, 60) * (covered(mark.position) ? 0 : 1);
       element.style.opacity = alpha * 0.8;
       if (alpha < 0.02) return;
       here.set(...mark.position).add({ x: planetPc[0] - origin[0], y: planetPc[1] - origin[1], z: planetPc[2] - origin[2] }).project(camera);

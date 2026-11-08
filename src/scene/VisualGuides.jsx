@@ -10,6 +10,7 @@ import { nombreVisible, parametrosBrillo } from './modosBrillo';
 import { probeHidden, probeLit, probeMark } from './probeTrajectories';
 import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, medidaDistancia, textoDistancia } from './escalaNavegacion.js';
+import { presenciaLunas } from './moonBodies';
 import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
@@ -23,8 +24,16 @@ const RULERS = [
   { selector: '[data-day-ruler]', length: LIGHT_DAY_PC, gap: 48, day: true },
 ];
 
-// `fichaAbierta`: hay una ficha de estrella, sistema o planeta abierta (App.jsx).
-export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget, distanceTarget, fichaAbierta = false }) {
+// `fichaFoco`: { position, id } de la estrella o el sistema de la ficha abierta (App.jsx), o null.
+// Nombres de estrellas: se ven completos hasta NOMBRE_LEJOS[0] años luz de la cámara y se apagan en NOMBRE_LEJOS[1]
+// (salvo la elegida o con rumbo): lejos del vecindario solar quedaban nombres sueltos sin relación con lo que se mira.
+const NOMBRE_LEJOS = [80, 120];
+// Una ficha abierta enciende los nombres de alrededor solo con la cámara junto a su estrella (pc).
+const FICHA_CERCA = [1, 2];
+// Rapidez (1/s) con que los nombres aparecen y desaparecen al taparse o destaparse (≈ 200 ms).
+const FUNDIDO = 12;
+
+export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget, distanceTarget, fichaFoco = null }) {
   const elapsed = useRef(0);
   const visibleStars = useRef(new Set());
   const labelAlpha = useRef(new Map());
@@ -58,14 +67,22 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const llenado = barraDesdeDistancia(targetPc);
     root.querySelector('[data-distance-arc]').setAttribute('stroke-dasharray', `${llenado * .75} 100`);
     root.querySelector('[data-distance-bar]').style.width = `${llenado}%`;
-    // Con la ficha cerrada manda la regla normal, aunque el origen siga en el sistema visitado.
-    const inspectingStar = fichaAbierta || aimTarget?.kind === 'star';
-    // Con una ficha abierta los nombres se ven también de cerca, pero se apagan al alejarse de lo elegido
-    // tanto como la zona del catálogo (650–700 años luz); se mide desde lo elegido, así una estrella lejana
-    // como Deneb conserva los nombres de alrededor.
-    const elegido = aimTarget?.kind === 'star' ? aimTarget.position : focusedBody?.position;
-    const foco = elegido ? camera.position.distanceTo(vector.set(...elegido).sub({ x: origin[0], y: origin[1], z: origin[2] })) : pc;
-    const nameOpacity = inspectingStar ? 0.9 * (1 - smoothRange(foco / LIGHT_YEAR_PC, 650, 700)) : starLabelOpacity(pc);
+    // Regla normal: nombres según la distancia de la cámara al Sol (starLabelOpacity, nada dentro del
+    // sistema solar). Con una ficha de estrella o sistema abierta, o un rumbo fijado a una estrella, se
+    // nombran también las de alrededor, pero solo con la cámara junto a ella (así sigue valiendo en una
+    // estrella lejana como Deneb). Antes bastaba tener la ficha abierta: desde Júpiter, con la ficha de
+    // K2-415, se nombraban Wolf 359, Procyon o Castor.
+    const elegido = fichaFoco?.position ?? (aimTarget?.kind === 'star' ? aimTarget.position : null);
+    const foco = elegido ? camera.position.distanceTo(vector.set(...elegido).sub({ x: origin[0], y: origin[1], z: origin[2] })) : Infinity;
+    // Dentro del sistema de lunas de Júpiter o Saturno solo se nombran el planeta, sus lunas (Moons.jsx) y
+    // lo elegido (cuerpo enfocado, rumbo, sonda marcada); lo demás se apaga con la presencia del sistema en
+    // pantalla. Así no se puede pulsar por error el nombre de una estrella lejana.
+    const presencia = presenciaLunas();
+    const nameOpacity = Math.max(starLabelOpacity(pc), elegido ? 0.9 * (1 - smoothRange(foco, ...FICHA_CERCA)) : 0)
+      * (1 - presencia.valor);
+    // La estrella elegida (ficha o rumbo) conserva siempre su nombre.
+    const elegidaId = aimTarget?.catalogueId ?? fichaFoco?.id ?? focusedBody?.star?.i;
+    const esElegida = label => label === aimTarget || (elegidaId !== undefined && elegidaId !== null && label.catalogueId === elegidaId);
     if (focusedBody) {
       const distancePc = camera.position.distanceTo(vector.set(...focusedBody.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const altitude = root.querySelector('[data-body-altitude]');
@@ -116,7 +133,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const focal = size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
     const sphereOf = (key, position, radiusPc) => {
       viewSpace.set(...position).sub({ x: origin[0], y: origin[1], z: origin[2] }).applyMatrix4(camera.matrixWorldInverse);
-      return screenDisk(key, viewSpace, radiusPc, project(position), focal);
+      const disk = screenDisk(key, viewSpace, radiusPc, project(position), focal);
+      return disk && { ...disk, center: position.map((value, axis) => value - origin[axis]), radiusPc };
     };
     const disks = labels.filter(label => label.body?.radiusKm)
       .map(label => sphereOf(label.body.name, label.position, label.body.radiusKm * KM_TO_PC));
@@ -125,19 +143,21 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       if (radiusPc) disks.push(sphereOf(target.name ?? target.text, target.position, radiusPc));
     }
     publishOccluders('cuerpos', disks.filter(Boolean));
-    const occluders = currentOccluders();
+    const occluders = currentOccluders(camera, size);
     const labelElements = root.querySelector('[data-labels]').children;
     // Con «Ojo humano» o «Binoculares», el nombre solo aparece si su estrella se alcanza a ver desde aquí
     // (magnitud aparente bajo el límite del modo, como en StarField.jsx): antes quedaban nombres sueltos.
     const brillo = parametrosBrillo();
     const visibleEnModo = label => {
-      if (!brillo.fisico || label.star?.m === undefined || label === aimTarget || label.catalogueId === focusedBody?.star?.i) return 1;
+      if (!brillo.fisico || label.star?.m === undefined || esElegida(label)) return 1;
       const distancia = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       return nombreVisible(label.star.m, distancia, brillo.limite);
     };
+    const lejania = label => esElegida(label) ? 1 : 1 - smoothRange(camera.position.distanceTo(vector.set(...label.position)
+      .sub({ x: origin[0], y: origin[1], z: origin[2] })) / LIGHT_YEAR_PC, ...NOMBRE_LEJOS);
     const candidates = [];
     labels.forEach((label, i) => {
-      if (label.kind !== 'star' || ((nameOpacity <= 0.015 || !visibleEnModo(label)) && label !== aimTarget)) return;
+      if (label.kind !== 'star' || ((nameOpacity * lejania(label) <= 0.015 || !visibleEnModo(label)) && !esElegida(label))) return;
       const point = project(label.position, false, visibleStars.current.has(label.catalogueId));
       if (!point.visible) return;
       const width = label.width * 0.75;
@@ -148,7 +168,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
           .sub({ x: origin[0], y: origin[1], z: origin[2] })),
       });
     });
-    visibleStars.current = selectStarLabels(candidates, visibleStars.current, aimTarget?.catalogueId ?? focusedBody?.star?.i, size.width < 700 ? 6 : 12);
+    visibleStars.current = selectStarLabels(candidates, visibleStars.current, elegidaId, size.width < 700 ? 6 : 12);
     labels.forEach((label, i) => {
       const el = labelElements[i];
       if (!el) return; // El lienzo y el DOM pueden actualizarse en cuadros distintos.
@@ -170,12 +190,10 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         alpha = probeHidden(label.code) ? 0 : (probeMark.code === label.code ? 1 : smoothRange(pc / AU_TO_PC, 20, 45))
           * (1 - smoothRange(earthPc, 0.019 * LIGHT_YEAR_PC, 0.02 * LIGHT_YEAR_PC));
       } else if (label.kind === 'star') {
-        alpha = nameOpacity * visibleEnModo(label);
-        if (aimTarget === label) alpha = 0.9;
+        // La estrella de la ficha también se apaga dentro de un sistema de lunas (la ficha ya muestra su
+        // nombre y un clic por error sacaba del sistema solar); el rumbo fijado conserva el suyo.
+        alpha = label === aimTarget ? 0.9 : esElegida(label) ? 0.9 * (1 - presencia.valor) : nameOpacity * visibleEnModo(label) * lejania(label);
         if (!visibleStars.current.has(label.catalogueId)) alpha = 0;
-        const previousAlpha = labelAlpha.current.get(label.catalogueId) || 0;
-        alpha = previousAlpha + (alpha - previousAlpha) * (1 - Math.exp(-10 * frameTime));
-        labelAlpha.current.set(label.catalogueId, alpha);
         const button = el.querySelector('button');
         if (button) {
           button.disabled = false;
@@ -188,6 +206,10 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       } else if (label.kind === 'heliosphere') {
         alpha = binary ? 0 : heliosphereVisibility(pc) * 0.9;
       }
+      if (label.kind !== 'star' && label !== aimTarget && label.text !== focusedBody?.name
+        && !(label.kind === 'planet' && label.text === presencia.planeta) && !(label.kind === 'probe' && probeMark.code === label.code)) {
+        alpha *= 1 - presencia.valor;
+      }
       // Colocar el nombre junto al borde físico del cuerpo, sin ocultarlo al elegirlo.
       const bodyDistance = label.body?.radiusKm ? camera.position.distanceTo(vector.set(...label.position)
         .sub({x:origin[0],y:origin[1],z:origin[2]})) : Infinity;
@@ -197,7 +219,13 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const box = { x: Math.max(8, Math.min(point.x + Math.min(bodyPixels, size.width/3) + 9, size.width - width - 12)), y: point.y - 8 };
       const labelDistance = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const covered = hiddenBehind({ x: box.x, y: box.y, width, height: 16 }, labelDistance, occluders, label.body?.name ?? label.text);
-      const visible = point.visible && alpha > 0.015 && !covered;
+      // Las estrellas se funden al aparecer, al desaparecer y al quedar tapadas (antes, de golpe).
+      if (label.kind === 'star') {
+        const previousAlpha = labelAlpha.current.get(label.catalogueId) || 0;
+        alpha = previousAlpha + ((covered ? 0 : alpha) - previousAlpha) * (1 - Math.exp(-FUNDIDO * frameTime));
+        labelAlpha.current.set(label.catalogueId, alpha);
+      }
+      const visible = point.visible && alpha > 0.015 && (label.kind === 'star' || !covered);
       el.style.opacity = visible ? alpha : 0;
       el.style.visibility = visible ? 'visible' : 'hidden';
       if (visible) {

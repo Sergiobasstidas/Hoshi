@@ -95,8 +95,11 @@ export function oortPointScale(distancePc) {
   return 1 + 0.35 * (1 - smoothRange(distancePc / LIGHT_YEAR_PC, 2, 11));
 }
 
+// Nombres de estrellas según la distancia de la cámara al Sol: entran entre 0,5 y 0,8 pc, apenas fuera de la
+// nube de Oort (borde exterior ≈ 0,485 pc). Antes entraban de 0,7 a 4 pc y en Alfa Centauri (1,34 pc) quedaban
+// al 8 %: los nombres de las vecinas casi no se veían.
 export function starLabelOpacity(distancePc) {
-  return smoothRange(distancePc, 0.7, 4) * 0.85
+  return smoothRange(distancePc, 0.5, 0.8) * 0.85
     * (1 - smoothRange(distancePc / LIGHT_YEAR_PC, 650, 700));
 }
 

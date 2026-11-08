@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hiddenBehind, screenDisk } from '../src/scene/labelOcclusion.js';
+import { hiddenBehind, rayHidden, screenDisk } from '../src/scene/labelOcclusion.js';
 
 const disk = { key: 'Júpiter', x: 400, y: 300, radius: 200, distance: 10 };
 
@@ -23,4 +23,22 @@ test('el disco en pantalla depende del radio y la distancia', () => {
   assert.equal(d.radius, 60);
   assert.equal(screenDisk('Sol', { x: 0, y: 0, z: 10 }, 1, { x: 400, y: 300 }, 600), null);
   assert.equal(screenDisk('Sol', { x: 0, y: 0, z: -1000 }, 1, { x: 400, y: 300 }, 600), null);
+});
+
+// Rayo del puntero desde el origen hacia +x; un planeta de radio 1 a 10 unidades sobre ese eje.
+const ray = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 1, y: 0, z: 0 } };
+const sphere = { key: 'Júpiter', center: [10, 0, 0], radiusPc: 1 };
+
+test('una ruta detrás de un planeta queda tapada para el puntero', () => {
+  assert.equal(rayHidden(ray, 50, [sphere]), true);
+});
+
+test('una ruta delante del planeta o al lado sigue alcanzable', () => {
+  assert.equal(rayHidden(ray, 5, [sphere]), false);
+  assert.equal(rayHidden(ray, 50, [{ ...sphere, center: [10, 3, 0] }]), false);
+});
+
+test('un planeta detrás de la cámara o sin esfera no tapa', () => {
+  assert.equal(rayHidden(ray, 50, [{ ...sphere, center: [-10, 0, 0] }]), false);
+  assert.equal(rayHidden(ray, 50, [{ key: 'Saturno', x: 0, y: 0, radius: 100, distance: 1 }]), false);
 });
