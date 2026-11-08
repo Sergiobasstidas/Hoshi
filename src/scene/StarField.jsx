@@ -5,7 +5,7 @@ import { AU_TO_PC, LIGHT_YEAR_PC, SUN_RADIUS_PC, backgroundGain, skyExposure, sm
 import { STAR_STOP_PC } from './starHeading';
 import { buildStellarAppearance, stellarMarkerSize } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
-import { parametrosBrillo } from './modosBrillo';
+import { PROXIMA_HSB, nombreProxima, parametrosBrillo } from './modosBrillo';
 import StellarSurface from './StellarSurface';
 import { M_MIN, M_STEP, escalasDeGrupo, tablaColores } from './gaiaCapa.js';
 import { posicionesCapa } from './estrellasBin.js';
@@ -170,6 +170,8 @@ const unidoVertex = `
   uniform float individualMix;
   uniform float fisico;
   uniform float limite;
+  uniform vec3 proximaPos;
+  uniform float proximaAlpha;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vHalo;
@@ -209,6 +211,10 @@ const unidoVertex = `
     if (fisico > 0.5) {
       vAlpha = clamp(0.08 * pow(10.0, 0.4 * (limite - apparentMagnitude)), 0.0, 1.0) * gananciaK;
       gl_PointSize = clamp(2.5 + 1.6 * (limite - apparentMagnitude), 1.5, 34.0) * pixelRatio;
+      // Proxima, mientras su nombre se ve (modosBrillo.js): al menos como una estrella apenas visible.
+      float proxima = esCapa < 0.5 && length(position - proximaPos) < 1e-5 ? proximaAlpha : 0.0;
+      vAlpha = max(vAlpha, proxima * 0.08 * gananciaK);
+      gl_PointSize = max(gl_PointSize, proxima * 2.5 * pixelRatio);
     }
     float saturation = max(1.0 - smoothstep(1.0, 3.0, apparentMagnitude), smoothstep(0.22, 0.5, vAlpha));
     vColor = mix(vec3(0.92), vividColor, saturation);
@@ -315,7 +321,10 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     areaScale: { value: [1, 1, 1] }, energyScale: { value: [1, 1, 1] }, tenue: { value: TENUE_CAPA },
     pixelRatio: { value: 1 }, distantSize: { value: 1 }, farCompression: { value: 0 }, individualMix: { value: 0 },
     fisico: { value: 0 }, limite: { value: 6 },
+    proximaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) }, proximaAlpha: { value: 0 },
   }), []);
+  // Proxima en el catálogo (su punto se refuerza mientras su nombre se ve; ver modosBrillo.js).
+  const proxima = useMemo(() => catalogo.find(star => star.i === PROXIMA_HSB), [catalogo]);
   useFrame(({ camera, gl }) => {
     const material = materialRef.current;
     if (!material) return;
@@ -337,6 +346,8 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     const { fisico, limite } = parametrosBrillo();
     u.fisico.value = fisico;
     u.limite.value = limite;
+    u.proximaAlpha.value = proxima ? Math.min(1, nombreProxima.alpha / 0.9) : 0;
+    if (proxima) u.proximaPos.value.set(proxima.x - origin[0], proxima.y - origin[1], proxima.z - origin[2]);
     u.individualMix.value = smoothRange(distance, 4, 12);
     u.farCompression.value = THREE.MathUtils.smoothstep(distance, 300, 3000);
     u.distantSize.value = 1 - 0.22 * THREE.MathUtils.smoothstep(distance, 50, 300);

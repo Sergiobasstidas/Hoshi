@@ -6,7 +6,7 @@ import { SOLAR_BODIES } from './solarBodies';
 import { BINARY_STATE } from './binaryOrbit';
 import { heliosphereVisibility } from './heliosphereScale';
 import { selectStarLabels } from './starLabelSelection';
-import { nombreVisible, parametrosBrillo } from './modosBrillo';
+import { nombreEnModo, nombreProxima, PROXIMA_HSB, parametrosBrillo } from './modosBrillo';
 import { probeHidden, probeLit, probeMark } from './probeTrajectories';
 import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, medidaDistancia, textoDistancia } from './escalaNavegacion.js';
@@ -151,7 +151,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const visibleEnModo = label => {
       if (!brillo.fisico || label.star?.m === undefined || esElegida(label)) return 1;
       const distancia = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
-      return nombreVisible(label.star.m, distancia, brillo.limite);
+      return nombreEnModo(label.star, distancia, brillo.limite);
     };
     const lejania = label => esElegida(label) ? 1 : 1 - smoothRange(camera.position.distanceTo(vector.set(...label.position)
       .sub({ x: origin[0], y: origin[1], z: origin[2] })) / LIGHT_YEAR_PC, ...NOMBRE_LEJOS);
@@ -226,6 +226,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         labelAlpha.current.set(label.catalogueId, alpha);
       }
       const visible = point.visible && alpha > 0.015 && (label.kind === 'star' || !covered);
+      if (label.catalogueId === PROXIMA_HSB) nombreProxima.alpha = visible ? alpha : 0;
       el.style.opacity = visible ? alpha : 0;
       el.style.visibility = visible ? 'visible' : 'hidden';
       if (visible) {
