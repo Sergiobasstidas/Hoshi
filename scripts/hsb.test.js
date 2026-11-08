@@ -32,10 +32,11 @@ test('cada estrella de Hoshi tiene su número HSB igual a su i', () => {
   for (const s of stars) {
     const f = porHsb.get(s.i);
     assert.ok(f && f.estado === 'activa', `la estrella ${s.i} no está activa en el registro`);
-    assert.equal(f.origen, s.dataOrigin === 'exoplanet-host' ? 'anfitriona' : 'athyg');
+    assert.equal(f.origen, s.dataOrigin === 'exoplanet-host' ? 'anfitriona' : ORIGENES_NUEVOS.includes(s.dataOrigin) ? s.dataOrigin : 'athyg');
   }
-  // El resto de las activas son las filas que entraron desde AT-HYG v4.0 y CNS5.
-  assert.ok(activas.filter(f => ORIGENES_NUEVOS.includes(f.origen)).length + stars.length === activas.length);
+  // Las que no están en la escena son nuevas del registro sin una paralaje con error ≤ 10 % (o sin magnitud).
+  const enEscena = new Set(stars.map(s => s.i));
+  assert.ok(activas.filter(f => !enEscena.has(f.hsb)).every(f => ORIGENES_NUEVOS.includes(f.origen)));
 });
 
 test('ningún número HSB repetido y el registro va ordenado', () => {
@@ -197,7 +198,10 @@ test('las compañeras dibujadas apuntan a estrellas nuevas del registro', () => 
   }
   const sirio = filas.find(f => f.sistema_hsb === '584955' && f.companera === 'B');
   assert.equal(porHsb.get(Number(sirio.hsb_nuevo)).gl, 'Gl 244B');
-  assert.ok(filas.filter(f => f.companera).every(f => sistemas[f.sistema_hsb]?.comps.some(c => c.n === f.companera && c.cid === undefined)));
+  // La compañera dibujada no tiene estrella propia de la carga base: o sigue dibujada, o apunta a su estrella nueva.
+  assert.ok(filas.filter(f => f.companera).every(f => sistemas[f.sistema_hsb]?.comps.some(c => c.n === f.companera && (c.cid === undefined || c.cid >= HSB_NUEVO_BASE))));
+  const sirioB = sistemas[584955].comps.find(c => c.n === 'B');
+  assert.equal(sirioB.cid, Number(filas.find(f => f.sistema_hsb === '584955' && f.companera === 'B').hsb_nuevo));
 });
 
 test('las anfitrionas toman su número del registro', () => {

@@ -12,7 +12,7 @@
     "hsb": "node scripts/catalog/build_hsb.js",
     "catalogo": "node scripts/catalogo.mjs",
     "descargar:red": "node scripts/catalogo.mjs --descargar",
-    "descargar:cercanas": "python3 scripts/catalog/descargar_cercanas.py cns5 && python3 scripts/catalog/descargar_cercanas.py gcns && python3 scripts/catalog/descargar_cercanas.py tmass"
+    "descargar:cercanas": "python3 scripts/catalog/descargar_cercanas.py cns5 && python3 scripts/catalog/descargar_cercanas.py gcns && python3 scripts/catalog/descargar_cercanas.py tmass && python3 scripts/catalog/descargar_cercanas.py astrometria && python3 scripts/catalog/descargar_cercanas.py hipparcos"
   },
   "dependencies": {
     "@fontsource/comfortaa": "^5.3.0",

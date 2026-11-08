@@ -5,17 +5,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'csv-parse/sync';
+import zlib from 'node:zlib';
+import readline from 'node:readline';
 import { applyPatches, loadPatches } from './catalog/catalog_patches.js';
+import { estrellasNuevas, fusionarBase } from './catalog/fusion.js';
 
 // === CONFIGURACIÓN ===
 const MAX_DISTANCE_PC = 400000;
 const RAW_DIR = './data/raw';
 // Nombre heredado: el archivo ya no se limita a 15 pc. Se conserva por los imports.
 const OUTPUT_PATH = './data/processed/stars_15pc.json';
+// Registro HSB y fuentes para elegir cada dato (scripts/catalog/fusion.js). Sin registro, el catálogo sale
+// como antes, solo con AT-HYG y los parches (primera pasada de npm run catalogo en un repositorio nuevo).
+const REGISTRO_CSV = './data/catalog/hsb_registro.csv';
+const GAIA_CSV = './data/raw/gaia/gaia_dr3_registro.csv.gz';
+const HIPPARCOS_CSV = './data/raw/hipparcos/hipparcos_2007.csv.gz';
+const ESPECTROS_JSON = './data/catalog/espectros_simbad.json';
+const ATHYG_V40 = './data/raw/athyg/v40/athyg_40.csv.gz';
+const CNS5_CSV = './data/raw/cns5/cns5_main.csv';
+const FUENTES_PATH = './data/catalog/hsb_fuentes.csv.gz';
 
 
 // === 1. Detectar el CSV en data/raw/ (cualquier nombre sirve) ===
-const csvFiles = fs.readdirSync(RAW_DIR).filter(f => f.endsWith('.csv'));
+const csvFiles = fs.readdirSync(RAW_DIR).filter(f => f.endsWith('.csv')).sort();
 if (csvFiles.length === 0) {
   console.error('❌ No se encontró ningún CSV en data/raw/');
   process.exit(1);
@@ -108,13 +120,56 @@ const patched = applyPatches(processed, patches);
 console.log(`✓ Distancias corregidas: ${patches.corrections.length}; anfitrionas añadidas: ${patches.added.length}`);
 
 
+// === 5c. Una regla por dato (distancia, color, tipo espectral) y estrellas nuevas del registro HSB ===
+let catalogo = patched;
+if (fs.existsSync(REGISTRO_CSV)) {
+  const csvGz = ruta => parse(zlib.gunzipSync(fs.readFileSync(ruta)).toString('utf8'), { columns: true, skip_empty_lines: true });
+  const registro = new Map(parse(fs.readFileSync(REGISTRO_CSV, 'utf8'), { columns: true }).map(r => [Number(r.hsb), { ...r, hsb: Number(r.hsb) }]));
+  const gaia = new Map(csvGz(GAIA_CSV).map(g => [g.source_id, g]));
+  const hip = new Map(csvGz(HIPPARCOS_CSV).map(h => [h.hip, h]));
+  const espectros = JSON.parse(fs.readFileSync(ESPECTROS_JSON, 'utf8'));
+  // Solo las filas de AT-HYG v4.0 que hacen falta: las de estrellas nuevas.
+  const pedidas = new Set([...registro.values()].filter(r => r.origen === 'athyg_v40' && r.athyg_v40).map(r => Number(r.athyg_v40)));
+  const v40 = new Map();
+  let cabecera = null;
+  const lineas = readline.createInterface({ input: fs.createReadStream(ATHYG_V40).pipe(zlib.createGunzip()), crlfDelay: Infinity });
+  for await (const linea of lineas) {
+    if (!linea) continue;
+    if (!cabecera) { cabecera = linea.split(','); continue; }
+    const id = Number(linea.slice(0, linea.indexOf(',')));
+    if (pedidas.has(id)) { const [fila] = parse(linea, { columns: cabecera, relax_quotes: true }); v40.set(id, fila); }
+  }
+  const filasCns5 = parse(fs.readFileSync(CNS5_CSV, 'utf8'), { columns: true });
+  const cns5 = { porGaia: new Map(filasCns5.filter(r => r.gaia_edr3_id).map(r => [r.gaia_edr3_id, r])),
+    porGl: new Map(filasCns5.map(r => [`${r.gj_id}${r.component_id}`, r])) };
+  const base = fusionarBase(patched, { registro, gaia, hip, espectros });
+  const nuevas = estrellasNuevas(registro, { gaia, hip, espectros, v40, cns5 });
+  // La fuente de cada dato queda en hsb_fuentes.csv.gz; en el catálogo de la app solo se conserva `ds` en las
+  // anfitrionas añadidas y en las curadas, como antes.
+  catalogo = [...base.estrellas, ...nuevas.estrellas].map(star => {
+    if (star.dataOrigin === 'exoplanet-host' || star.dataOrigin === 'curated') return star;
+    const resto = { ...star };
+    delete resto.ds;
+    return resto;
+  });
+  const columnas = ['hsb', 'd', 'fuente_d', 'c', 'fuente_c', 'sp', 'fuente_sp'];
+  const celda = v => { const t = v === null || v === undefined ? '' : String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const filas = [...base.fuentes, ...nuevas.fuentes].sort((a, b) => a.hsb - b.hsb);
+  fs.writeFileSync(FUENTES_PATH, zlib.gzipSync([columnas.join(','), ...filas.map(f => columnas.map(c => celda(f[c])).join(','))].join('\n') + '\n', { level: 9 }));
+  const conteo = campo => filas.reduce((o, f) => ({ ...o, [f[campo]]: (o[f[campo]] || 0) + 1 }), {});
+  console.log(`✓ Fuentes: distancia ${JSON.stringify(conteo('fuente_d'))}`);
+  console.log(`  color ${JSON.stringify(conteo('fuente_c'))}; espectro ${JSON.stringify(conteo('fuente_sp'))}`);
+  console.log(`✓ Estrellas nuevas del registro HSB: ${nuevas.estrellas.length}; omitidas ${JSON.stringify(nuevas.omitidas)}`);
+}
+
+
 // === 6. Ordenar por distancia (Sol primero) ===
-patched.sort((a, b) => a.d - b.d);
+const patchedSorted = catalogo.sort((a, b) => a.d - b.d || a.i - b.i);
 
 
 // === 7. Escribir el JSON ===
 fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-fs.writeFileSync(OUTPUT_PATH, JSON.stringify(patched));
+fs.writeFileSync(OUTPUT_PATH, JSON.stringify(patchedSorted));
 
 const sizeKB = (fs.statSync(OUTPUT_PATH).size / 1024).toFixed(1);
 console.log(`✓ Guardado: ${OUTPUT_PATH} (${sizeKB} KB)`);
@@ -122,7 +177,7 @@ console.log(`✓ Guardado: ${OUTPUT_PATH} (${sizeKB} KB)`);
 
 // === Bonus: mostrar las 5 más cercanas en consola, para verificar ===
 console.log(`\nLas 5 estrellas más cercanas al Sol:`);
-patched.slice(0, 5).forEach(s => {
+patchedSorted.slice(0, 5).forEach(s => {
   const name = s.n || '(sin nombre)';
   console.log(`  ${name.padEnd(25)} d=${s.d.toFixed(3)} pc   RGB=${s.rgb}`);
 });

@@ -43,6 +43,12 @@ const OUTPUT_PATH = './public/data/gaia-1m.bin';
 // Qué se hizo con cada fuente (para el registro HSB): dibujada, fuera del millón o duplicado de una
 // estrella de Hoshi (por source_id, posición o compañera), con el id de esa estrella. No se versiona.
 const SELECTION_PATH = './data/catalog/gaia_1m_seleccion.csv.gz';
+// Registro HSB: Gaia DR3 de cada estrella de Hoshi (también las que entraron desde el registro).
+const REGISTRY_PATH = './data/catalog/hsb_registro.csv';
+// GCNS (Gaia Catalogue of Nearby Stars): se suman a la capa las fuentes fiables que no son estrellas de Hoshi,
+// todas, aparte del tope de MAX_STARS del millón. Mismo criterio que el registro HSB.
+const GCNS_PATH = './data/raw/gcns/gcns_main.csv.gz';
+const GCNS_PROB_MIN = 0.38, GCNS_PARALLAX_SNR_MIN = 10;
 
 const MAX_STARS = 1_000_000;
 const FORMAT_VERSION = 1;
@@ -86,11 +92,19 @@ const hoshiStars = JSON.parse(fs.readFileSync(STARS_PATH, 'utf-8'));
 const gaiaById = new Map();
 for (const s of JSON.parse(fs.readFileSync(IDENTITY_PATH, 'utf-8')).stars) if (s.gaia) gaiaById.set(s.i, s.gaia);
 for (const s of JSON.parse(fs.readFileSync(HOSTS_PATH, 'utf-8')).stars) if (s.gaia) gaiaById.set(s.i, s.gaia);
+// Gaia DR3 del registro HSB por estrella (puede diferir del de star_identity tras la revisión de Gaia).
+const registryGaia = new Map();
+if (fs.existsSync(REGISTRY_PATH)) {
+  for (const r of parse(fs.readFileSync(REGISTRY_PATH, 'utf-8'), { columns: true })) if (r.gaia_dr3 && r.estado === 'activa') registryGaia.set(Number(r.hsb), r.gaia_dr3);
+}
 
 const knownSourceIds = new Set();
 const idBySourceId = new Map();
 const withoutId = [];
 for (const s of hoshiStars) {
+  const extra = registryGaia.get(s.i);
+  if (extra && extra !== gaiaById.get(s.i)) { knownSourceIds.add(extra); idBySourceId.set(extra, s.i); }
+  if (!gaiaById.has(s.i) && extra) gaiaById.set(s.i, extra);
   const sid = gaiaById.get(s.i);
   if (sid) { knownSourceIds.add(sid); idBySourceId.set(sid, s.i); }
   else if (s.d > 0) withoutId.push(s); // el Sol (d = 0) no cuenta
@@ -124,6 +138,9 @@ function positionAtGaiaEpoch(s) {
   return { i: s.i, ra: ra + (pmra * dt * MAS_TO_DEG) / cosDec, dec: dec + pmdec * dt * MAS_TO_DEG, v };
 }
 const probes = withoutId.map(positionAtGaiaEpoch);
+// Las fuentes de GCNS se comparan por posición con todas las estrellas de Hoshi: una brillante de Hoshi
+// puede estar enlazada a otro source_id (o a uno dudoso) y no debe aparecer otra vez en la capa.
+const probesGcns = hoshiStars.filter(s => s.d > 0).map(positionAtGaiaEpoch);
 
 
 // === 2. Leer la descarga cruda (CSV comprimido, ordenado por G) ===
@@ -147,9 +164,29 @@ for await (const line of lines) {
     pmdec: Number(f[header.pmdec]) || 0,
     g: Number(f[header.phot_g_mean_mag]),
     bprp: f[header.bp_rp] === '' ? null : Number(f[header.bp_rp]),
+    capa: '1m',
   });
 }
 console.log(`✓ Filas de Gaia leídas: ${rows.length.toLocaleString()}`);
+
+// GCNS: fuentes fiables que no están ya en el millón.
+const enMillon = new Set(rows.map(r => r.sid));
+let gcnsHeader = null, gcnsRows = 0;
+const gcnsLines = readline.createInterface({ input: fs.createReadStream(GCNS_PATH).pipe(zlib.createGunzip()), crlfDelay: Infinity });
+for await (const line of gcnsLines) {
+  if (!line) continue;
+  const f = line.split(',');
+  if (!gcnsHeader) { gcnsHeader = Object.fromEntries(f.map((name, k) => [name, k])); continue; }
+  const h = gcnsHeader, plx = Number(f[h.parallax]), err = Number(f[h.parallax_error]);
+  if (!(Number(f[h.gcns_prob]) >= GCNS_PROB_MIN) || !(err > 0) || plx / err < GCNS_PARALLAX_SNR_MIN || enMillon.has(f[h.source_id])) continue;
+  // Un campo vacío no es magnitud 0: sin G la fuente no entra.
+  const bp = f[h.phot_bp_mean_mag], rp = f[h.phot_rp_mean_mag], g = f[h.phot_g_mean_mag] === '' ? NaN : Number(f[h.phot_g_mean_mag]);
+  if (!Number.isFinite(g)) continue;
+  rows.push({ sid: f[h.source_id], ra: Number(f[h.ra]), dec: Number(f[h.dec]), plx, pmra: Number(f[h.pmra]) || 0, pmdec: Number(f[h.pmdec]) || 0,
+    g, bprp: bp === '' || rp === '' ? null : Number(bp) - Number(rp), capa: 'gcns' });
+  gcnsRows++;
+}
+console.log(`✓ Filas de GCNS sumadas (fiables, fuera del millón): ${gcnsRows.toLocaleString()}`);
 
 
 // === 3. Duplicados ===
@@ -180,11 +217,11 @@ function lowerBound(arr, value) {
 }
 const radiusDeg = MATCH_RADIUS_ARCSEC / 3600;
 let dupByPosition = 0;
-for (const p of probes) {
+for (const [lista, soloGcns] of [[probes, false], [probesGcns, true]]) for (const p of lista) {
   if (p.v === null || !Number.isFinite(p.v)) continue;
   for (let j = lowerBound(decs, p.dec - radiusDeg); j < decs.length && decs[j] <= p.dec + radiusDeg; j++) {
     const k = byDec[j], r = rows[k];
-    if (duplicate[k]) continue;
+    if (duplicate[k] || (soloGcns && r.capa !== 'gcns')) continue;
     const dra = (((r.ra - p.ra + 540) % 360) - 180) * Math.cos(p.dec * DEG);
     if (Math.hypot(dra, r.dec - p.dec) > radiusDeg) continue;
     const vg = vFromGaia(r.g, r.bprp);
@@ -232,11 +269,15 @@ console.log(`✓ Duplicados descartados: ${dupTotal.toLocaleString()} (${dupById
 
 // === 4. Quedarse con las MAX_STARS más brillantes ===
 // La descarga viene ordenada por G; se reordena por si acaso, con el source_id como desempate.
-const kept = rows.filter((_, k) => !duplicate[k]);
-kept.sort((a, b) => a.g - b.g || (a.sid < b.sid ? -1 : 1));
+const porG = (a, b) => a.g - b.g || (a.sid < b.sid ? -1 : 1);
+const kept = rows.filter((r, k) => !duplicate[k] && r.capa === '1m');
+kept.sort(porG);
 if (kept.length < MAX_STARS) console.warn(`⚠ Solo quedan ${kept.length.toLocaleString()} estrellas (< ${MAX_STARS.toLocaleString()})`);
-const stars = kept.slice(0, MAX_STARS);
+// El millón más brillante y todas las de GCNS, ordenadas juntas por G.
+const keptGcns = rows.filter((r, k) => !duplicate[k] && r.capa === 'gcns');
+const stars = [...kept.slice(0, MAX_STARS), ...keptGcns].sort(porG);
 const n = stars.length;
+console.log(`✓ En la capa: ${MAX_STARS.toLocaleString()} del millón y ${keptGcns.length.toLocaleString()} de GCNS`);
 
 
 // === 5. Escribir el binario ===
@@ -272,8 +313,8 @@ fs.writeFileSync(OUTPUT_PATH, buffer);
 
 const drawn = new Set(stars.map(s => s.sid));
 const MOTIVO = ['', 'source_id', 'posicion', 'companera'];
-const selection = ['source_id,estado,hoshi_i', ...rows.map((r, k) => (duplicate[k]
-  ? `${r.sid},duplicada_${MOTIVO[duplicate[k]]},${duplicateOf[k]}` : `${r.sid},${drawn.has(r.sid) ? 'dibujada' : 'fuera'},`))].join('\n') + '\n';
+const selection = ['source_id,estado,hoshi_i,capa', ...rows.map((r, k) => (duplicate[k]
+  ? `${r.sid},duplicada_${MOTIVO[duplicate[k]]},${duplicateOf[k]},${r.capa}` : `${r.sid},${drawn.has(r.sid) ? 'dibujada' : 'fuera'},,${r.capa}`))].join('\n') + '\n';
 fs.writeFileSync(SELECTION_PATH, zlib.gzipSync(selection, { level: 9 }));
 const gzipped = zlib.gzipSync(buffer, { level: 9 }).length;
 console.log(`✓ Guardado: ${OUTPUT_PATH} (${(buffer.length / 1048576).toFixed(2)} MB; con gzip ${(gzipped / 1048576).toFixed(2)} MB)`);

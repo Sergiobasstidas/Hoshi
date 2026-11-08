@@ -6,9 +6,9 @@ import { bvDesdeBpRp, escalasDeGrupo, gMenosV, leerGaia, magnitudG, tablaColores
 const archivo = fs.readFileSync('public/data/gaia-1m.bin');
 const buffer = archivo.buffer.slice(archivo.byteOffset, archivo.byteOffset + archivo.byteLength);
 
-test('gaia-1m.bin trae un millón de estrellas con posiciones y magnitudes válidas', () => {
+test('gaia-1m.bin trae el millón de Gaia más las de GCNS, con posiciones y magnitudes válidas', () => {
   const { n, posiciones, magnitudes } = leerGaia(buffer);
-  assert.equal(n, 1_000_000);
+  assert.ok(n > 1_200_000 && n < 1_400_000, `${n} estrellas`);
   let cerca = 0, lejos = 0;
   for (let k = 0; k < n; k++) {
     const d = Math.hypot(posiciones[3 * k], posiciones[3 * k + 1], posiciones[3 * k + 2]);
@@ -19,7 +19,8 @@ test('gaia-1m.bin trae un millón de estrellas con posiciones y magnitudes váli
   // Las estrellas cercanas ya están en el catálogo de Hoshi: aquí quedan muy pocas.
   assert.ok(cerca < 20, `${cerca} a menos de 10 pc`);
   assert.ok(lejos > 100_000);
-  assert.ok(magnitudes.every(m => m > 0 && m < 255));
+  // 255 = magnitud absoluta de 19,875 o más débil (enanas marrones de GCNS).
+  assert.ok(magnitudes.every(m => m > 0 && m <= 255));
 });
 
 test('un archivo con otro formato se rechaza', () => {

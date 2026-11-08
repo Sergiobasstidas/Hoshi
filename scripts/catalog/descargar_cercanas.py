@@ -5,6 +5,8 @@ Uso, desde la raíz del repositorio:
     python3 scripts/catalog/descargar_cercanas.py gcns    # data/raw/gcns/gcns_main.csv.gz
     python3 scripts/catalog/descargar_cercanas.py cns5    # data/raw/cns5/cns5_main.csv
     python3 scripts/catalog/descargar_cercanas.py tmass   # data/raw/tmass/gaia_dr3_tmass.csv.gz
+    python3 scripts/catalog/descargar_cercanas.py astrometria  # data/raw/gaia/gaia_dr3_registro.csv.gz
+    python3 scripts/catalog/descargar_cercanas.py hipparcos    # data/raw/hipparcos/hipparcos_2007.csv.gz
 
 - GCNS (Gaia Catalogue of Nearby Stars, Gaia Collaboration, Smart et al. 2021) desde el TAP de
   GAVO (Heidelberg), tabla gcns.main. No se bajan las columnas dist_* ni las coordenadas y
@@ -13,6 +15,9 @@ Uso, desde la raíz del repositorio:
 - 2MASS: vecino más probable de Gaia DR3 en 2MASS (gaiadr3.tmass_psc_xsc_best_neighbour) en el
   TAP de ARI (Heidelberg), para los Gaia DR3 del registro HSB, de CNS5 y de la capa del millón
   (data/raw/gaia/gaia_dr3_1m.csv.gz). Los identificadores se suben en lotes (TAP_UPLOAD).
+- Astrometría y fotometría de Gaia DR3 (gaiadr3.gaia_source en ARI) de cada Gaia DR3 del registro HSB y
+  de CNS5, para elegir distancia y color de cada estrella.
+- Hipparcos, nueva reducción (van Leeuwen 2007), tabla completa `hipparcos` del TAP de ARI.
 
 Solo biblioteca estándar. No procesa ni modifica los datos recibidos; al final imprime el
 sha256 y el número de filas de cada archivo para su FUENTES.md.
@@ -121,6 +126,48 @@ def sincrona_con_tabla(tap, consulta, tabla, intentos=5):
     raise RuntimeError("Sin respuesta de " + tap)
 
 
+def ids_registro():
+    ids = set()
+    with open("data/catalog/hsb_registro.csv", newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            ids.update(g for g in (r["gaia_dr3"],) if g)
+    with open("data/raw/cns5/cns5_main.csv", newline="", encoding="utf-8") as f:
+        ids.update(r["gaia_edr3_id"] for r in csv.DictReader(f) if r["gaia_edr3_id"])
+    return sorted(ids, key=int)
+
+
+def ordenar_y_guardar(ruta, partes):
+    texto, filas = unir_csv(partes)
+    lineas = texto.splitlines()
+    texto = "\n".join([lineas[0]] + sorted(lineas[1:], key=lambda l: int(l.split(",")[0]))) + "\n"
+    guardar(ruta, texto, True)
+    return filas
+
+
+def descargar_astrometria():
+    ids = ids_registro()
+    print("Gaia DR3 pedidos:", len(ids), flush=True)
+    consulta = ("SELECT g.source_id, g.ra, g.dec, g.ref_epoch, g.parallax, g.parallax_error, g.pmra, g.pmdec, "
+                "g.phot_g_mean_mag, g.bp_rp, g.ruwe FROM TAP_UPLOAD.ids AS u "
+                "JOIN gaiadr3.gaia_source AS g ON g.source_id = u.source_id")
+    partes = []
+    for k in range(0, len(ids), LOTE_TMASS):
+        partes.append(sincrona_con_tabla(ARI, consulta, votable_ids(ids[k:k + LOTE_TMASS])))
+        print(f"  lote {k // LOTE_TMASS + 1}: {len(ids[k:k + LOTE_TMASS])} ids", flush=True)
+        time.sleep(PAUSA)
+    filas = ordenar_y_guardar("data/raw/gaia/gaia_dr3_registro.csv.gz", partes)
+    print("gaia_source:", filas, "filas de", len(ids), "pedidos")
+
+
+def descargar_hipparcos():
+    esperadas = contar(ARI, "SELECT COUNT(*) FROM hipparcos")
+    partes = [sincrona(ARI, "SELECT hip, ra, dec, plx, e_plx, pmra, pmdec, hpmag, b_v, e_b_v, v_i, nc, sn FROM hipparcos")]
+    filas = ordenar_y_guardar("data/raw/hipparcos/hipparcos_2007.csv.gz", partes)
+    if filas != esperadas:
+        raise RuntimeError(f"Descarga cortada: {filas} filas de {esperadas}")
+    print("hipparcos:", filas, "filas")
+
+
 def ids_tmass():
     ids = set()
     with open("data/catalog/hsb_registro.csv", newline="", encoding="utf-8") as f:
@@ -155,7 +202,8 @@ def descargar_tmass():
 
 if __name__ == "__main__":
     modo = sys.argv[1] if len(sys.argv) > 1 else ""
-    acciones = {"gcns": descargar_gcns, "cns5": descargar_cns5, "tmass": descargar_tmass}
+    acciones = {"gcns": descargar_gcns, "cns5": descargar_cns5, "tmass": descargar_tmass,
+                "astrometria": descargar_astrometria, "hipparcos": descargar_hipparcos}
     if modo not in acciones:
         sys.exit(__doc__)
     acciones[modo]()

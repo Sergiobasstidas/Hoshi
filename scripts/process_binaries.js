@@ -36,7 +36,11 @@ const number = text => (text === '' || text === '.' ? null : Number(text));
 const anchor = component => component[0];
 
 // ---------- Catálogo ----------
-const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8'));
+// Las estrellas que entraron desde el registro HSB (i ≥ 100 000 000) no participan del cruce automático: si lo
+// hicieran, el resultado dependería de la corrida anterior. Se enlazan al final con hsb_companeras_dibujadas.csv.
+const HSB_NUEVO_BASE = 100_000_000;
+const todasLasEstrellas = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8'));
+const stars = todasLasEstrellas.filter(star => star.i < HSB_NUEVO_BASE);
 const byId = new Map(stars.map(star => [star.i, star]));
 const rows = parse(fs.readFileSync('data/raw/hyglike_from_athyg_v32.csv', 'utf8'), { columns: true });
 const byHip = new Map(), byHd = new Map();
@@ -286,7 +290,26 @@ for (const [id, entry] of [...systems].sort((a, b) => a[0] - b[0])) {
   const hidden = entry.hidden.filter(item => placed.has(item.of) && !placed.has(item.n));
   if (comps.length) { output[id] = { wds: entry.wds, comps, ...(hidden.length ? { hidden } : {}) }; counts.components += comps.length; }
 }
+// Compañeras que el registro HSB ya tiene como estrella propia (data/catalog/hsb_companeras_dibujadas.csv): el
+// sistema apunta a esa estrella en vez de dibujar una copia aparte. Solo si la estrella está en la escena.
+const COMPANERAS_CSV = 'data/catalog/hsb_companeras_dibujadas.csv';
+// La estrella nueva tiene que estar en el cielo donde el par dice: a no más de 3 veces su separación (rho, o
+// a·(1 + e) en las órbitas) más 5″, y a una distancia parecida a la de la primaria (±25 %, como el cruce de
+// arriba); si no, es otra estrella y la compañera se sigue dibujando.
+const todasPorId = new Map(todasLasEstrellas.map(star => [star.i, star]));
+const separacionArcsec = (a, b) => Math.acos(Math.min(1, (a.x * b.x + a.y * b.y + a.z * b.z) / (Math.hypot(a.x, a.y, a.z) * Math.hypot(b.x, b.y, b.z)))) * ARCSEC_PER_RAD;
+if (fs.existsSync(COMPANERAS_CSV)) {
+  for (const fila of parse(fs.readFileSync(COMPANERAS_CSV, 'utf8'), { columns: true })) {
+    const pair = fila.companera && fila.hsb_nuevo && output[fila.sistema_hsb]?.comps.find(c => c.n === fila.companera && c.cid === undefined);
+    const nueva = todasPorId.get(Number(fila.hsb_nuevo)), root = byId.get(Number(fila.sistema_hsb));
+    if (!pair || !nueva || !root) continue;
+    const limite = 3 * (pair.k === 'o' ? pair.a * (1 + pair.e) : pair.rho) / root.d + 5;
+    if (separacionArcsec(root, nueva) > limite || Math.abs(nueva.d - root.d) / root.d >= 0.25) { counts.hsbLejos = (counts.hsbLejos || 0) + 1; continue; }
+    pair.cid = Number(fila.hsb_nuevo); counts.hsbCompanions = (counts.hsbCompanions || 0) + 1;
+  }
+}
 fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output));
+console.log(`HSB: ${counts.hsbCompanions || 0} compañeras dibujadas pasan a ser su estrella del registro; ${counts.hsbLejos || 0} no, porque la estrella nueva está lejos de donde dice el par (en el cielo o en distancia).`);
 const all = Object.values(output).flatMap(entry => entry.comps);
 console.log(`ORB6: ${counts.orbits} órbitas; ${counts.incomplete} incompletas o sin componentes legibles, ${counts.grade} de grado > ${MAX_GRADE}, `
   + `${counts.unmatched} sin cruce HIP/HD, ${counts.mass} con masa dinámica fuera de rango.`);

@@ -227,7 +227,8 @@ export function identidades({ stars, athyg, anfitrionas, nasa }) {
     nasaPorNombre.set(h.h, h);
   }
   const tic = v => texto(v).replace(/^TIC\s*/, '');
-  return stars.map(s => {
+  // Las estrellas que ya entraron desde el registro (i ≥ HSB_NUEVO_BASE) no son de la carga base.
+  return stars.filter(s => s.i < HSB_NUEVO_BASE).map(s => {
     const radec = { ra: Math.atan2(s.y, s.x) * 180 / Math.PI, dec: s.d > 0 ? Math.asin(s.z / s.d) * 180 / Math.PI : 0 };
     if (s.dataOrigin === 'exoplanet-host') {
       const a = anfitrionas.get(s.i);
@@ -404,9 +405,12 @@ export function relacionarCompaneras(sistemas, hsbDe, companerasDe) {
   const claves = Object.keys(sistemas).map(Number).sort((a, b) => a - b);
   for (const clave of claves) {
     const sistema = sistemas[clave];
-    const miembros = [clave, ...sistema.comps.filter(c => c.cid !== undefined).map(c => c.cid)];
+    // Una compañera enlazada a una estrella nueva del registro (cid ≥ HSB_NUEVO_BASE) sigue contando como
+    // dibujada: así esta relación no depende de la corrida anterior.
+    const propia = c => c.cid !== undefined && c.cid < HSB_NUEVO_BASE;
+    const miembros = [clave, ...sistema.comps.filter(propia).map(c => c.cid)];
     const nuevas = miembros.flatMap(m => companerasDe.get(m) || []);
-    const dibujadas = sistema.comps.filter(c => c.cid === undefined);
+    const dibujadas = sistema.comps.filter(c => !propia(c));
     if (!nuevas.length || !dibujadas.length) continue;
     const libres = new Set(nuevas), pareja = new Map();
     for (const c of dibujadas) {
@@ -666,7 +670,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const h = hsbDe.get(Number(clave));
     if (h === undefined) continue;
     primariaHsb.set(h, h);
-    for (const c of sistema.comps) if (c.cid !== undefined && hsbDe.has(c.cid) && !primariaHsb.has(hsbDe.get(c.cid))) primariaHsb.set(hsbDe.get(c.cid), h);
+    for (const c of sistema.comps) if (c.cid !== undefined && c.cid < HSB_NUEVO_BASE && hsbDe.has(c.cid) && !primariaHsb.has(hsbDe.get(c.cid))) primariaHsb.set(hsbDe.get(c.cid), h);
   }
   const companerasDe = new Map();
   for (const s of [...entran, ...cns5.nuevas]) {
@@ -695,7 +699,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (!fs.existsSync(GAIA_1M_SELECCION)) throw new Error(`Falta ${GAIA_1M_SELECCION}: corre antes node scripts/process_gaia.js`);
   const millon = [], millonEnlazadas = new Set();
   await recorrerAthyg([GAIA_1M_SELECCION], (fila, cab) => {
-    const [g, estado] = [fila[cab.indexOf('source_id')], fila[cab.indexOf('estado')]];
+    const [g, estado, capa] = [fila[cab.indexOf('source_id')], fila[cab.indexOf('estado')], fila[cab.indexOf('capa')]];
+    // La capa también lleva GCNS; aquí solo cuentan las del millón (GCNS tiene su propio paso).
+    if (capa !== undefined && capa !== '1m') { if (estado.startsWith('duplicada')) millonEnlazadas.add(g); return; }
     if (estado.startsWith('duplicada')) millonEnlazadas.add(g); else millon.push(g);
   });
   for (const g of millonEnlazadas) asociados.add(g);

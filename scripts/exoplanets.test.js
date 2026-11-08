@@ -145,7 +145,8 @@ test('Las anfitrionas añadidas usan un rango de ID sin colisiones y posiciones 
   const added = stars.filter(s => s.dataOrigin === 'exoplanet-host');
   assert.ok(added.length > 3000);
   assert.ok(added.every(s => s.i > ADDED_HOST_ID_BASE && s.h && s.ds && [s.x, s.y, s.z, s.d, s.m].every(Number.isFinite)));
-  assert.ok(stars.filter(s => s.dataOrigin !== 'exoplanet-host').every(s => s.i < ADDED_HOST_ID_BASE));
+  // Fuera de las anfitrionas añadidas solo hay estrellas de AT-HYG v3.2 y las que entraron desde el registro HSB.
+  assert.ok(stars.filter(s => s.dataOrigin !== 'exoplanet-host').every(s => s.i < ADDED_HOST_ID_BASE || (s.i >= 100_000_000 && ['athyg_v40', 'cns5'].includes(s.dataOrigin))));
   assert.throws(() => applyPatches([{ i: ADDED_HOST_ID_BASE + 1, x: 1, y: 0, z: 0, d: 1, m: 5 }], { added: [{ i: ADDED_HOST_ID_BASE + 1, src: { d: 'paralaje Gaia DR3' } }] }));
   // TRAPPIST-1: 80,2 mas en Gaia DR3 → 12,47 pc, en Acuario.
   const trappist = added.find(s => s.h === 'TRAPPIST-1');

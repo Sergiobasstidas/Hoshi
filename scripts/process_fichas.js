@@ -8,7 +8,10 @@ import { empezarDescarga, pedir } from './catalog/red.js';
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync';
 const GAIA = 'https://gea.esac.esa.int/tap-server/tap/sync';
 const numero = valor => (valor === undefined || valor === '' || !Number.isFinite(Number(valor)) ? undefined : Number(valor));
-const en = (lista, n) => Array.from({ length: Math.ceil(lista.length / n) }, (_, i) => lista.slice(i * n, i * n + n));
+// Lotes en orden fijo (números y nombres ordenados), así las consultas no dependen del orden del catálogo
+// (por distancia) y se pueden repetir sin red con lo guardado en data/raw/red.
+const ordenFijo = lista => [...lista].sort((a, b) => String(a).length - String(b).length || (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0));
+const en = (lista, n) => { const orden = ordenFijo(lista); return Array.from({ length: Math.ceil(orden.length / n) }, (_, i) => orden.slice(i * n, i * n + n)); };
 function csv(texto) {
   const filas = texto.trim().split('\n').map(linea => linea.match(/("([^"]*)"|[^,]*)(,|$)/g).map(c => c.replace(/,$/, '').replace(/^"|"$/g, '')));
   const [cabecera, ...resto] = filas;

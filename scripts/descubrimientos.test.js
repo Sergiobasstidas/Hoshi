@@ -81,7 +81,7 @@ test('el mapa de descubrimientos es coherente y ligero', () => {
   // Un sistema que está en Hoshi usa la posición de su estrella del catálogo.
   const k = data.systems.n.indexOf('Proxima Cen');
   assert.ok(k >= 0 && data.systems.i[k] === 1436975);
-  assert.deepEqual(data.systems.p.slice(k * 3, k * 3 + 3), [-0.47447, -0.36328, -1.1568]);
+  assert.deepEqual(data.systems.p.slice(k * 3, k * 3 + 3), [-0.47446, -0.36327, -1.1567]);
 });
 
 test('el acercamiento con inercia recorre lo mismo a cualquier frecuencia de cuadros', async () => {

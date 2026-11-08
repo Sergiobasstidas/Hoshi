@@ -77,3 +77,11 @@ SELECT source_id, ra, dec, parallax, parallax_over_error, pmra, pmdec, phot_g_me
 ```
 
 Cada tramo se comprobó con `SELECT COUNT(*)` y la misma condición: todos coinciden (1264478 filas en total). Los tramos se unieron en orden y se conservaron las primeras 1150000 filas, equivalente a `TOP 1150000 ... ORDER BY phot_g_mean_mag`. Sin `source_id` repetidos; 523 filas sin `bp_rp`. Última fila: G = 11,141. Descarga de los tramos: 1147 s. Posiciones en época 2016.0. Lo procesa `scripts/process_gaia.js`.
+
+## `gaia_dr3_registro.csv.gz`
+
+Astrometría y fotometría de Gaia DR3 (`gaiadr3.gaia_source`) de los 129 515 Gaia DR3 del registro HSB y de CNS5, para elegir la distancia y el color de cada estrella (`scripts/catalog/fusion.js`). Descarga con `python3 scripts/catalog/descargar_cercanas.py astrometria` desde el Mac de Sergio el 07/11/2026 a las 20:58 (zona -03:00), en el TAP de ARI (Heidelberg), subiendo los identificadores en 2 lotes (`TAP_UPLOAD`). Devueltas: 129 515 de 129 515. Columnas: `source_id, ra, dec, ref_epoch, parallax, parallax_error, pmra, pmdec, phot_g_mean_mag, bp_rp, ruwe`, ordenadas por `source_id`, gzip con mtime 0. Licencia: ESA/Gaia/DPAC, CC BY-SA 3.0 IGO.
+
+| Archivo | Bytes | Filas de datos | sha256 |
+| --- | ---: | ---: | --- |
+| `gaia_dr3_registro.csv.gz` | 9623775 | 129515 | `c72c88dc7150e842821baf2d3d033af8e8f80c468964f9fda995de6337d9dfa4` |

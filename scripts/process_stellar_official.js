@@ -7,7 +7,10 @@ import { ESTRELLAS_CURADAS, ESTRELLAS_CURADAS_POR_ID } from './catalog/estrellas
 import { empezarDescarga, pedir } from './catalog/red.js';
 
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync';
-const en = (lista, n) => Array.from({ length: Math.ceil(lista.length / n) }, (_, i) => lista.slice(i * n, i * n + n));
+// Lotes en orden fijo (números y nombres ordenados), así las consultas no dependen del orden del catálogo
+// (por distancia) y se pueden repetir sin red con lo guardado en data/raw/red.
+const ordenFijo = lista => [...lista].sort((a, b) => String(a).length - String(b).length || (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0));
+const en = (lista, n) => { const orden = ordenFijo(lista); return Array.from({ length: Math.ceil(orden.length / n) }, (_, i) => orden.slice(i * n, i * n + n)); };
 const positivo = valor => { const n = Number(valor); return valor !== null && valor !== '' && Number.isFinite(n) && n > 0 ? n : null; };
 
 function csv(texto) {
@@ -34,7 +37,8 @@ async function tic(hips) {
   for (const grupo of en(hips, 150)) {
     const request = JSON.stringify({ service: 'Mast.Catalogs.Filtered.Tic', format: 'json', pagesize: 500, page: 1,
       params: { columns: 'ID,HIP,GAIA,Teff,rad,mass,lum', filters: [{ paramName: 'HIP', values: grupo.map(String) }] } });
-    const texto = await pedir('oficiales', 'https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(45000), method: 'POST', body: new URLSearchParams({ request }) });
+    // MAST tarda a veces más de un minuto en esta consulta, y sin ella el paso no puede seguir.
+    const texto = await pedir('oficiales', 'https://mast.stsci.edu/api/v0/invoke', { signal: AbortSignal.timeout(180000), method: 'POST', body: new URLSearchParams({ request }) });
     // Un HIP puede tener varias filas: siempre la misma, primero las que traen radio y luego el ID menor.
     for (const f of JSON.parse(texto).data || []) {
       const previa = filas.get(Number(f.HIP));

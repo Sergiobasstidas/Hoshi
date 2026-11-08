@@ -8,27 +8,10 @@ import { estrellaDeComponente } from './scene/visualBinary';
 import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
 import { useFichas } from './useFichas';
+import { tipoEstelar } from './tipoEstelar';
 
 
-const TIPOS = {
-  O: ['Estrella azul', 'Las estrellas de tipo O son las más calientes y masivas, y también las más escasas. Consumen su combustible en pocos millones de años y terminan como supernovas.'],
-  B: ['Estrella azul', 'Las estrellas de tipo B son calientes y luminosas, con varias veces la masa del Sol. Viven decenas o cientos de millones de años, mucho menos que el Sol.'],
-  A: ['Estrella blanca', 'Las estrellas de tipo A son más calientes y masivas que el Sol, y suelen girar rápido. Sirio y Vega son de este tipo.'],
-  F: ['Estrella blanca amarillenta', 'Las estrellas de tipo F son algo más calientes y masivas que el Sol, y viven algo menos que él.'],
-  G: ['Estrella amarilla', 'Las estrellas de tipo G son como el Sol: brillan de forma estable durante unos diez mil millones de años.'],
-  K: ['Enana naranja', 'Las estrellas de tipo K son algo más frías y pequeñas que el Sol, y viven más que él, varias decenas de miles de millones de años.'],
-  M: ['Enana roja', 'Las enanas rojas son las estrellas más comunes de la galaxia. Son pequeñas y frías, y gastan su hidrógeno tan despacio que viven mucho más que la edad actual del universo.'],
-  D: ['Enana blanca', 'Una enana blanca es el núcleo que queda cuando una estrella como el Sol agota su combustible: una masa parecida a la del Sol en un tamaño parecido al de la Tierra, que se enfría poco a poco.'],
-};
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
-
-function tipoEstelar(espectro) {
-  const letra = espectro?.trim()[0]?.toUpperCase();
-  const tipo = TIPOS[letra];
-  if (!tipo) return null;
-  const gigante = /(I{1,3}|II|IV)(?![a-z]*V)/.test(espectro.slice(1)) && !/\bV\b/.test(espectro);
-  return { nombre: gigante && letra !== 'D' ? tipo[0].replace(/^(Estrella|Enana)/, 'Gigante') : tipo[0], texto: tipo[1] };
-}
 
 // Las demás estrellas de su sistema; una compañera sin registro propio se completa con el dato del par.
 function componentesDelSistema(star, nombre) {

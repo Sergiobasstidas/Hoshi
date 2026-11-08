@@ -44,13 +44,15 @@ test('El índice de sistemas solo contiene pares fiables, completos y cruzados c
         assert.ok(pair.mass >= 0.05 && pair.mass <= 150 && pair.ref);
       } else {
         assert.equal(pair.k, 'w');
-        assert.ok(pair.rho > 0 && pair.rho <= 20000 && pair.theta >= 0 && pair.theta <= 360);
+        // Hasta 20.000 UA al cruzar; la distancia común de un sistema (distancia_sistemas.js) puede estirarlo un poco.
+        assert.ok(pair.rho > 0 && pair.rho <= 24000 && pair.theta >= 0 && pair.theta <= 360);
       }
       if (pair.cid !== undefined) assert.ok(byId.has(pair.cid) && pair.cid !== Number(id));
     }
   }
   assert.equal(orbitOf(RIGIL_KENTAURUS).cid, TOLIMAN);
-  assert.equal(orbitOf(SIRIUS).cid, undefined);
+  // Sirio B ya es una estrella del registro HSB (AT-HYG v4.0): el sistema apunta a ella y no dibuja una copia.
+  assert.ok(orbitOf(SIRIUS).cid >= 100_000_000 && byId.get(orbitOf(SIRIUS).cid).n === 'Sirius B');
   assert.equal(orbitOf(SIRIUS).sp, 'DA2');
   // Castor: par interior Aa-Ab, par AB, par interior de B y la compañera ancha C.
   assert.deepEqual(systems[CASTOR].comps.map(c => `${c.of}>${c.n}:${c.k}`).sort(), ['A>Ab:o', 'A>B:o', 'A>C:w', 'B>Bb:o']);
@@ -87,8 +89,12 @@ test('Un par ancho con distancias de catálogo que no coinciden no se une con un
   const copy = new Map(stars.map(star => [star.i, { ...star }]));
   const anchos = buildStarSystems(systems, copy).flatMap(system => system.components).filter(c => c.pair.k !== 'o');
   const unidos = anchos.filter(c => c.unido);
-  // Antes había rectas de hasta 80 millones de UA entre dos estrellas juntas en el cielo.
-  assert.ok(unidos.length > anchos.length * 0.8);
+  // Antes había rectas de hasta 80 millones de UA entre dos estrellas juntas en el cielo. Los sistemas con
+  // compañeras del registro HSB comparten una distancia (scripts/catalog/distancia_sistemas.js) y siguen unidos.
+  assert.ok(unidos.length > anchos.length * 0.85);
+  // Solo quedan sin unir las compañeras cuya paralaje no concuerda con la de su primaria.
+  const nuevas = anchos.filter(c => c.companion?.i >= 100_000_000);
+  assert.ok(nuevas.filter(c => c.unido).length > nuevas.length * 0.95);
   assert.ok(Math.max(...unidos.map(c => c.separationAu)) < 100000);
   for (const c of anchos.filter(c => !c.unido)) assert.ok(c.scalePc / AU_TO_PC < c.separationAu);
 });

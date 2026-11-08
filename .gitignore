@@ -73,3 +73,6 @@ data/raw/tmass/*
 # Respuestas guardadas de SIMBAD, NASA, MAST, Gaia y JMDC (≈ 8 MB): npm run descargar:red
 data/raw/red/*
 !data/raw/red/FUENTES.md
+# Hipparcos, nueva reducción (4,7 MB): python3 scripts/catalog/descargar_cercanas.py hipparcos
+data/raw/hipparcos/*
+!data/raw/hipparcos/FUENTES.md
