@@ -9,6 +9,9 @@ import zlib from 'node:zlib';
 import readline from 'node:readline';
 import { applyPatches, loadPatches } from './catalog/catalog_patches.js';
 import { estrellasNuevas, fusionarBase, indiceCns5 } from './catalog/fusion.js';
+import { aplicarEnlaces, enlacesPorEstrella, retiradasPorEnlace } from './catalog/enlaces_registro.js';
+import { leerGaiaRegistro } from './catalog/gaia_local.js';
+import { bvPorTipo, tablaPecautMamajek } from './catalog/pecaut_mamajek.js';
 
 // === CONFIGURACIÓN ===
 const MAX_DISTANCE_PC = 400000;
@@ -18,7 +21,6 @@ const OUTPUT_PATH = './data/processed/stars_15pc.json';
 // Registro HSB y fuentes para elegir cada dato (scripts/catalog/fusion.js). Sin registro, el catálogo sale
 // como antes, solo con AT-HYG y los parches (primera pasada de npm run catalogo en un repositorio nuevo).
 const REGISTRO_CSV = './data/catalog/hsb_registro.csv';
-const GAIA_CSV = './data/raw/gaia/gaia_dr3_registro.csv.gz';
 const HIPPARCOS_CSV = './data/raw/hipparcos/hipparcos_2007.csv.gz';
 const ESPECTROS_JSON = './data/catalog/espectros_simbad.json';
 const ATHYG_V40 = './data/raw/athyg/v40/athyg_40.csv.gz';
@@ -116,7 +118,9 @@ const processed = nearbyStars.map(s => {
 // === 5b. Parches de data/catalog/: distancias de Gaia DR3 y anfitrionas de exoplanetas ===
 // Se aplican si los archivos existen; AT-HYG no se modifica. Ver scripts/catalog/catalog_patches.js.
 const patches = loadPatches();
-const patched = applyPatches(processed, patches);
+// Estrellas que la auditoría encontró repetidas (hsb_enlaces.csv, igual_a): no entran; queda la otra.
+const repetidas = retiradasPorEnlace();
+const patched = applyPatches(processed.filter(s => !repetidas.has(s.i)), patches);
 console.log(`✓ Distancias corregidas: ${patches.corrections.length}; anfitrionas añadidas: ${patches.added.length}`);
 
 
@@ -124,8 +128,8 @@ console.log(`✓ Distancias corregidas: ${patches.corrections.length}; anfitrion
 let catalogo = patched;
 if (fs.existsSync(REGISTRO_CSV)) {
   const csvGz = ruta => parse(zlib.gunzipSync(fs.readFileSync(ruta)).toString('utf8'), { columns: true, skip_empty_lines: true });
-  const registro = new Map(parse(fs.readFileSync(REGISTRO_CSV, 'utf8'), { columns: true }).map(r => [Number(r.hsb), { ...r, hsb: Number(r.hsb) }]));
-  const gaia = new Map(csvGz(GAIA_CSV).map(g => [g.source_id, g]));
+  const registro = aplicarEnlaces(new Map(parse(fs.readFileSync(REGISTRO_CSV, 'utf8'), { columns: true }).map(r => [Number(r.hsb), { ...r, hsb: Number(r.hsb) }])), enlacesPorEstrella());
+  const gaia = await leerGaiaRegistro();
   const hip = new Map(csvGz(HIPPARCOS_CSV).map(h => [h.hip, h]));
   const espectros = JSON.parse(fs.readFileSync(ESPECTROS_JSON, 'utf8'));
   // Solo las filas de AT-HYG v4.0 que hacen falta: las de estrellas nuevas.
@@ -141,8 +145,22 @@ if (fs.existsSync(REGISTRO_CSV)) {
   }
   const filasCns5 = parse(fs.readFileSync(CNS5_CSV, 'utf8'), { columns: true });
   const cns5 = indiceCns5(filasCns5);
-  const base = fusionarBase(patched, { registro, gaia, hip, espectros, cns5 });
-  const nuevas = estrellasNuevas(registro, { gaia, hip, espectros, v40, cns5 });
+  // Movimiento propio de AT-HYG, de reserva para llevar a J2000 un Gaia o un Hipparcos que no lo trae.
+  // Sin movimiento propio propio, el de otra componente del mismo número de Gliese (un par comparte movimiento).
+  const glNumero = gl => String(gl || '').match(/^(?:[A-Za-z]+\s*)?(\d+(?:\.\d+)?)/)?.[1] || '';
+  const conPm = s => s.pmra !== '' && s.pmdec !== '' && (Number(s.pmra) !== 0 || Number(s.pmdec) !== 0);
+  const pmDeGl = new Map();
+  for (const s of nearbyStars) if (conPm(s) && glNumero(s.gl) && !pmDeGl.has(glNumero(s.gl))) pmDeGl.set(glNumero(s.gl), [Number(s.pmra), Number(s.pmdec)]);
+  const pmAthyg = new Map();
+  for (const s of nearbyStars) {
+    const pm = conPm(s) ? [Number(s.pmra), Number(s.pmdec)] : pmDeGl.get(glNumero(s.gl));
+    if (pm) pmAthyg.set(parseInt(s.id), pm);
+  }
+  // Estrellas sin B−V en AT-HYG: se dibujan con el color de su tipo espectral (Pecaut & Mamajek 2013).
+  const sinColor = new Set(nearbyStars.filter(s => s.ci === '').map(s => parseInt(s.id)));
+  const colorPorTipo = bvPorTipo(await tablaPecautMamajek());
+  const base = fusionarBase(patched, { registro, gaia, hip, espectros, cns5, pmAthyg, sinColor, colorPorTipo });
+  const nuevas = estrellasNuevas(registro, { gaia, hip, espectros, v40, cns5, colorPorTipo });
   // La fuente de cada dato queda en hsb_fuentes.csv.gz; en el catálogo de la app solo se conserva `ds` en las
   // anfitrionas añadidas y en las curadas, como antes.
   catalogo = [...base.estrellas, ...nuevas.estrellas].map(star => {
@@ -151,7 +169,7 @@ if (fs.existsSync(REGISTRO_CSV)) {
     delete resto.ds;
     return resto;
   });
-  const columnas = ['hsb', 'd', 'fuente_d', 'c', 'fuente_c', 'sp', 'fuente_sp'];
+  const columnas = ['hsb', 'd', 'fuente_d', 'c', 'fuente_c', 'sp', 'fuente_sp', 'd_antes', 'fuente_d_antes', 'fuente_pos', 'pos_antes'];
   const celda = v => { const t = v === null || v === undefined ? '' : String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
   const filas = [...base.fuentes, ...nuevas.fuentes].sort((a, b) => a.hsb - b.hsb);
   fs.writeFileSync(FUENTES_PATH, zlib.gzipSync([columnas.join(','), ...filas.map(f => columnas.map(c => celda(f[c])).join(','))].join('\n') + '\n', { level: 9 }));

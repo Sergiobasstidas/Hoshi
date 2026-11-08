@@ -79,14 +79,16 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const deGaia = new Map();
   for (const r of parse(fs.readFileSync(REGISTRO, 'utf8'), { columns: true })) if (r.gaia_dr3 && r.estado === 'activa') deGaia.set(r.gaia_dr3, Number(r.hsb));
   for (const nombre of fs.readdirSync(LOTES).filter(f => f.endsWith('.csv.gz')).sort()) {
-    for (const r of parse(zlib.gunzipSync(fs.readFileSync(`${LOTES}/${nombre}`)).toString('utf8'), { columns: true })) deGaia.set(r.gaia_dr3, Number(r.hsb));
+    // El registro manda: un Gaia que una corrección de enlace le dio a una estrella del registro conserva ese número.
+    for (const r of parse(zlib.gunzipSync(fs.readFileSync(`${LOTES}/${nombre}`)).toString('utf8'), { columns: true })) if (!deGaia.has(r.gaia_dr3)) deGaia.set(r.gaia_dr3, Number(r.hsb));
   }
   const enlazada = new Map(parse(fs.readFileSync(ENLAZADAS, 'utf8'), { columns: true }).map(r => [r.gaia_dr3, Number(r.hsb)]));
   const enCatalogo = new Set(hsb);
   const quedan = [], hsbFuente = [];
   let quitadas = 0, sinNumero = 0;
   for (let k = 0; k < todas.n; k++) {
-    const h = enlazada.get(fuentes[k]);
+    // Fuera: las enlazadas con una estrella del catálogo y las que son el Gaia DR3 de una (ya se dibujan desde el catálogo).
+    const h = enlazada.get(fuentes[k]) ?? (enCatalogo.has(deGaia.get(fuentes[k])) ? deGaia.get(fuentes[k]) : undefined);
     if (h !== undefined && enCatalogo.has(h)) { quitadas++; continue; }
     const numero = deGaia.get(fuentes[k]) ?? h;
     if (numero === undefined) sinNumero++;

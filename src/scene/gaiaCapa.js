@@ -39,10 +39,13 @@ export function gMenosV(bpRp) {
 // B−V desde BP−RP. Riello et al. (2021) no publica esta relación, así que se usa la mediana de B−V
 // (AT-HYG) por intervalo de BP−RP (Gaia DR3) de las ~89 000 estrellas HIP de Hoshi con un solo vecino
 // Gaia y RUWE < 1,4 (data/raw/gaia/gaia_dr3_hip.csv). Así el color coincide con el de StarField.
-// Más allá de BP−RP ≈ 2,35 el B−V de Hipparcos se aplana (~1,65), y se mantiene ese valor.
+// Más allá de BP−RP ≈ 2,35 el B−V de Hipparcos se aplana (~1,65): desde ahí sigue la secuencia de enanas de Pecaut &
+// Mamajek (2013, ApJS 208, 9; versión en línea de E. Mamajek) desde M4.5V, el primer tipo más rojo que ese tope, hasta
+// M8.5V (en M9V el BP−RP vuelve a bajar y M9.5V no trae B−V). Así el color sigue subiendo, sin saltos, en las enanas M.
 const TABLA_BV = [
   [-0.35, -0.208], [-0.05, -0.042], [0.25, 0.180], [0.55, 0.417], [0.85, 0.675],
   [1.15, 0.990], [1.45, 1.281], [1.75, 1.520], [2.05, 1.630], [2.35, 1.653],
+  [3.16, 1.69], [3.35, 1.83], [3.71, 1.94], [4.16, 2.01], [4.5, 2.07], [4.65, 2.12], [4.72, 2.14], [4.86, 2.15], [5.1, 2.16],
 ];
 export function bvDesdeBpRp(bpRp) {
   if (bpRp <= TABLA_BV[0][0]) return TABLA_BV[0][1];

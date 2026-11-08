@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { leerEnlaces } from './catalog/enlaces_registro.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -51,7 +52,12 @@ test('ningún par de estrellas activas comparte athyg_v40 ni Gaia DR3, tampoco c
     const valores = activas.map(f => f[c]).filter(Boolean);
     assert.equal(new Set(valores).size, valores.length, c);
   }
-  const gaia = [...activas.map(f => f.gaia_dr3).filter(Boolean), ...lotes.map(f => f.gaia_dr3)];
+  // Un número de lote cuyo Gaia pasó a una estrella del registro por una corrección de enlace queda «igual a» ella
+  // (data/catalog/hsb_enlaces.csv); los demás no pueden repetir un Gaia del registro.
+  const igualA = new Map(leerEnlaces().filter(f => f.campo === 'igual_a').map(f => [Number(f.hsb), Number(f.valor)]));
+  const deRegistro = new Map(activas.filter(f => f.gaia_dr3).map(f => [f.gaia_dr3, f.hsb]));
+  for (const l of lotes) if (deRegistro.has(l.gaia_dr3)) assert.equal(igualA.get(l.hsb), deRegistro.get(l.gaia_dr3), `lote ${l.hsb} con el Gaia de HSB ${deRegistro.get(l.gaia_dr3)}`);
+  const gaia = [...activas.map(f => f.gaia_dr3).filter(Boolean), ...lotes.filter(l => !igualA.has(l.hsb)).map(f => f.gaia_dr3)];
   assert.equal(new Set(gaia).size, gaia.length, 'Gaia DR3 repetido entre registro y lotes');
   const numeros = [...registro.map(f => f.hsb), ...lotes.map(f => f.hsb)];
   assert.equal(new Set(numeros).size, numeros.length, 'número HSB repetido entre registro y lotes');

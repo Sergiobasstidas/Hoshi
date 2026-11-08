@@ -4,6 +4,8 @@
 //   npm run catalogo -- --desde-cero      borra antes las salidas regenerables (comprueba que no dependen de sí mismas)
 //   npm run descargar:red                 igual, pero los pasos con consultas externas vuelven a descargar
 //                                         (HOSHI_RED=descargar, ver scripts/catalog/red.js)
+//   npm run catalogo -- --auditoria       al final, la auditoría cruzada en modo control (scripts/catalog/auditoria.js):
+//                                         falla si queda algo para corregir o una diferencia nueva sin revisar
 //
 // Orden y por qué:
 //  0. Tipos espectrales de SIMBAD (consulta guardada), que usa process_stars.
@@ -53,7 +55,9 @@ const PASOS = [
 
 const argumentos = new Set(process.argv.slice(2));
 const descargar = argumentos.has('--descargar');
-const pasos = PASOS;
+const AUDITORIA = { script: 'scripts/catalog/auditoria.js', salidas: ['data/catalog/hsb_identidad.csv.gz', 'data/catalog/hsb_auditoria.csv.gz'],
+  node: ['--max-old-space-size=8192'], args: ['--control'] };
+const pasos = argumentos.has('--auditoria') ? [...PASOS, AUDITORIA] : PASOS;
 
 // Fechas que cambian en cada corrida aunque el contenido sea el mismo.
 const sinFechas = texto => {
@@ -75,7 +79,7 @@ const inicio = Date.now();
 for (const [k, paso] of pasos.entries()) {
   const t = Date.now();
   const env = { ...process.env, ...(descargar && paso.red ? { HOSHI_RED: 'descargar' } : {}) };
-  const r = spawnSync(process.execPath, [paso.script], { env, encoding: 'utf8', maxBuffer: 1 << 26 });
+  const r = spawnSync(process.execPath, [...(paso.node || []), paso.script, ...(paso.args || [])], { env, encoding: 'utf8', maxBuffer: 1 << 26 });
   const ultima = `${r.stdout}${r.stderr}`.trim().split('\n').filter(Boolean).pop() || '';
   console.log(`${String(k + 1).padStart(2)}. ${paso.script} (${((Date.now() - t) / 1000).toFixed(1)} s) ${ultima.slice(0, 110)}`);
   if (r.status !== 0) {

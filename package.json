@@ -11,6 +11,7 @@
     "test": "node --test scripts/*.test.js",
     "hsb": "node scripts/catalog/build_hsb.js",
     "catalogo": "node scripts/catalogo.mjs",
+    "auditoria": "node --max-old-space-size=8192 scripts/catalog/auditoria.js",
     "descargar:red": "node scripts/catalogo.mjs --descargar",
     "descargar:cercanas": "python3 scripts/catalog/descargar_cercanas.py cns5 && python3 scripts/catalog/descargar_cercanas.py gcns && python3 scripts/catalog/descargar_cercanas.py tmass && python3 scripts/catalog/descargar_cercanas.py astrometria && python3 scripts/catalog/descargar_cercanas.py hipparcos"
   },

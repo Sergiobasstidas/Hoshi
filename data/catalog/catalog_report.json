@@ -1,6 +1,6 @@
 {
-  "generado": "2026-10-13T13:50:09.847Z",
-  "estrellasHoshi": 118660,
+  "generado": "2026-11-08T06:46:25.126Z",
+  "estrellasHoshi": 118659,
   "conGaia": 118047,
   "conGaiaPorHip": 99274,
   "conGaiaPorPosicion": 18773,
@@ -9,7 +9,7 @@
     "mag": 532,
     "plx+pm": 689
   },
-  "sinGaia": 613,
+  "sinGaia": 612,
   "enlaceHipGaiaDudoso": 705,
   "distanciaDiscrepante": {
     "umbral": 0.1,

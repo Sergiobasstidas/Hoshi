@@ -21,6 +21,8 @@ import { parse } from 'csv-parse/sync';
 import { applyDistance } from './catalog_patches.js';
 import { DISTANCIAS_CURADAS } from './distancias_curadas.js';
 import { indiceCns5, paralajeMedida } from './fusion.js';
+import { aplicarEnlaces } from './enlaces_registro.js';
+import { leerGaiaRegistro } from './gaia_local.js';
 
 const HSB_NUEVO_BASE = 100_000_000;
 export const FUENTE_SISTEMA = 'sistema (paralaje común)';
@@ -28,7 +30,7 @@ const G_SATURA = 4, CONTAMINACION_ARCSEC = 30;
 const separacionArcsec = (a, b) => Math.acos(Math.min(1, (a.x * b.x + a.y * b.y + a.z * b.z) / (Math.hypot(a.x, a.y, a.z) * Math.hypot(b.x, b.y, b.z)))) * 648000 / Math.PI;
 const STARS = './data/processed/stars_15pc.json', SISTEMAS = './data/processed/star_systems.json';
 const REGISTRO = './data/catalog/hsb_registro.csv', FUENTES = './data/catalog/hsb_fuentes.csv.gz';
-const GAIA = './data/raw/gaia/gaia_dr3_registro.csv.gz', HIP = './data/raw/hipparcos/hipparcos_2007.csv.gz', CNS5 = './data/raw/cns5/cns5_main.csv';
+const HIP = './data/raw/hipparcos/hipparcos_2007.csv.gz', CNS5 = './data/raw/cns5/cns5_main.csv';
 
 // Paralaje común ponderada por 1/σ². medidas: [{ plx, err }].
 export function paralajeComun(medidas) {
@@ -42,7 +44,16 @@ export function paralajeComun(medidas) {
 // ¿Concuerdan dos paralajes? Diferencia de hasta 3σ combinados o 10 %.
 export const concuerdan = (a, b) => Math.abs(a.plx - b.plx) <= Math.max(3 * Math.hypot(a.err, b.err), 0.1 * Math.max(a.plx, b.plx));
 
-// Sistemas a unificar: los que tienen alguna compañera nueva del registro. Miembros: la primaria y las
+// Sistemas a unificar: los que tienen alguna compañera nueva del registro y, con `distancia` (Map id → pc), también
+// los que tienen una componente con estrella propia a más de 10 % de la primaria (si sus paralajes calzan, comparten).
+export function sistemasAUnificar(sistemas, distancia = null) {
+  return Object.entries(sistemas).filter(([clave, s]) => s.comps.some(c => c.cid >= HSB_NUEVO_BASE)
+    || (distancia && s.comps.some(c => c.cid !== undefined && distancia.get(c.cid) > 0 && distancia.get(Number(clave)) > 0
+      && Math.abs(distancia.get(c.cid) - distancia.get(Number(clave))) / distancia.get(Number(clave)) > 0.1)))
+    .map(([clave, s]) => [Number(clave), ...s.comps.filter(c => c.cid !== undefined).map(c => c.cid)]);
+}
+
+// Sistemas con alguna compañera nueva del registro. Miembros: la primaria y las
 // compañeras con estrella propia.
 export function sistemasConEstrellaNueva(sistemas) {
   return Object.entries(sistemas).filter(([, s]) => s.comps.some(c => c.cid >= HSB_NUEVO_BASE))
@@ -53,8 +64,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const csvGz = ruta => parse(zlib.gunzipSync(fs.readFileSync(ruta)).toString('utf8'), { columns: true, skip_empty_lines: true });
   const stars = JSON.parse(fs.readFileSync(STARS, 'utf8'));
   const sistemas = JSON.parse(fs.readFileSync(SISTEMAS, 'utf8'));
-  const registro = new Map(parse(fs.readFileSync(REGISTRO, 'utf8'), { columns: true }).map(r => [Number(r.hsb), r]));
-  const gaia = new Map(csvGz(GAIA).map(g => [g.source_id, g]));
+  const registro = aplicarEnlaces(new Map(parse(fs.readFileSync(REGISTRO, 'utf8'), { columns: true }).map(r => [Number(r.hsb), r])));
+  const gaia = await leerGaiaRegistro();
   const hip = new Map(csvGz(HIP).map(h => [h.hip, h]));
   const filasCns5 = parse(fs.readFileSync(CNS5, 'utf8'), { columns: true });
   const cns5 = indiceCns5(filasCns5);
@@ -63,8 +74,21 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const porId = new Map(stars.map((s, k) => [s.i, k]));
   let primariaBrillante = 0, unificados = 0, sinParalaje = 0, conCurada = 0, movidas = 0, discordantes = 0, contaminadas = 0;
   const vistos = new Set();
-  for (const miembros of sistemasConEstrellaNueva(sistemas)) {
-    const primaria = miembros[0], dPrimaria = porId.has(primaria) ? stars[porId.get(primaria)].d : null;
+  // Distancia de cada estrella antes de este paso: con ella calculó process_binaries las separaciones en UA. Si la
+  // primaria de un sistema ya cambió de distancia en otro sistema, la escala se toma igual desde esta.
+  const dInicial = new Map(stars.map(s => [s.i, s.d]));
+  const escalar = (clave, d) => {
+    const d0 = dInicial.get(clave);
+    if (!(d0 > 0) || d === d0) return;
+    const f = d / d0;
+    for (const c of sistemas[clave].comps) {
+      // La masa dinámica de una órbita es a³/P²: escala con el cubo.
+      if (c.k === 'o') { c.a = Number((c.a * f).toPrecision(6)); if (c.mass) c.mass = Number((c.mass * f ** 3).toPrecision(3)); }
+      else c.rho = Number((c.rho * f).toPrecision(5));
+    }
+  };
+  for (const miembros of sistemasAUnificar(sistemas, dInicial)) {
+    const primaria = miembros[0];
     const ids = [...new Set(miembros)].filter(i => porId.has(i) && !vistos.has(i));
     if (ids.length < 2) continue;
     let d;
@@ -97,14 +121,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       }
     }
     unificados++;
-    if (dPrimaria > 0 && d !== dPrimaria) {
-      const f = d / dPrimaria;
-      for (const c of sistemas[primaria].comps) {
-        // La masa dinámica de una órbita es a³/P²: escala con el cubo.
-        if (c.k === 'o') { c.a = Number((c.a * f).toPrecision(6)); if (c.mass) c.mass = Number((c.mass * f ** 3).toPrecision(3)); }
-        else c.rho = Number((c.rho * f).toPrecision(5));
-      }
-    }
     for (const i of ids) {
       vistos.add(i);
       const k = porId.get(i);
@@ -115,16 +131,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       if (stars[k].dataOrigin !== 'exoplanet-host' && stars[k].dataOrigin !== 'curated' && !curada.has(i)) delete stars[k].ds;
       else if (fuenteAnterior && curada.has(i)) stars[k].ds = fuenteAnterior;
       const f = fuentes.get(i);
-      if (f && !curada.has(i)) Object.assign(f, { d, fuente_d: cur ? cur.fuente : FUENTE_SISTEMA });
+      if (f && !curada.has(i)) {
+        if (!f.d_antes) Object.assign(f, { d_antes: f.d, fuente_d_antes: f.fuente_d });
+        Object.assign(f, { d, fuente_d: cur ? cur.fuente : FUENTE_SISTEMA });
+      }
       movidas++;
     }
+  }
+  // Separaciones en UA de cada sistema cuya primaria cambió de distancia (en su sistema o en otro).
+  let escalados = 0;
+  for (const clave of Object.keys(sistemas).map(Number)) {
+    const k = porId.get(clave);
+    if (k !== undefined && stars[k].d !== dInicial.get(clave)) { escalar(clave, stars[k].d); escalados++; }
   }
   stars.sort((a, b) => a.d - b.d || a.i - b.i);
   fs.writeFileSync(STARS, JSON.stringify(stars));
   fs.writeFileSync(SISTEMAS, JSON.stringify(sistemas));
-  const columnas = ['hsb', 'd', 'fuente_d', 'c', 'fuente_c', 'sp', 'fuente_sp'];
+  const columnas = ['hsb', 'd', 'fuente_d', 'c', 'fuente_c', 'sp', 'fuente_sp', 'd_antes', 'fuente_d_antes', 'fuente_pos', 'pos_antes'];
   const celda = v => { const t = v === null || v === undefined ? '' : String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
   const filas = [...fuentes.values()].sort((a, b) => Number(a.hsb) - Number(b.hsb));
   fs.writeFileSync(FUENTES, zlib.gzipSync([columnas.join(','), ...filas.map(f => columnas.map(c => celda(f[c])).join(','))].join('\n') + '\n', { level: 9 }));
-  console.log(`✓ Sistemas con distancia común: ${unificados} (${conCurada} con distancia curada); sin paralaje útil: ${sinParalaje}; con la distancia de su primaria brillante: ${primariaBrillante}; componentes con paralaje que no concuerda (conservan la suya): ${discordantes}; paralajes de Gaia junto a una primaria brillante que no entran: ${contaminadas}; estrellas movidas: ${movidas}`);
+  console.log(`✓ Sistemas con distancia común: ${unificados} (${conCurada} con distancia curada); sin paralaje útil: ${sinParalaje}; con la distancia de su primaria brillante: ${primariaBrillante}; componentes con paralaje que no concuerda (conservan la suya): ${discordantes}; paralajes de Gaia junto a una primaria brillante que no entran: ${contaminadas}; estrellas movidas: ${movidas}; sistemas con separaciones reescaladas: ${escalados}`);
 }

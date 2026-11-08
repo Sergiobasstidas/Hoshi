@@ -129,3 +129,23 @@ Servicio: SIMBAD (CDS), TAP. Consultas: 1 (0 con error). Descarga: 2026-11-08T00
 | Archivo | Servicio | Bytes | sha256 |
 | --- | --- | ---: | --- |
 | `75c4b7932e198571ea044de22cc50a3c5f58546e.txt` | simbad.harvard.edu | 88419 | `eea398b658a29fad9cce47975c24855fc569a330fdd5d92d6158fb21eef0dd7c` |
+
+## `auditoria` — `scripts/catalog/auditoria/simbad.js`
+
+Servicio: SIMBAD (CDS), TAP, consultas en bloque sobre la tabla `ident`: para cada HIP, sus HD, GJ, Gaia DR3 y 2MASS (una consulta por tipo), y Gaia DR3 de cada GJ. Las usa la auditoría cruzada (`npm run auditoria`) para ver si los identificadores de una estrella son del mismo objeto. Consultas: 5 (0 con error). Descarga: 2026-11-08T06:03:26Z – 2026-11-08T06:03:44Z, desde el Mac de Sergio (`HOSHI_RED=descargar node scripts/catalog/auditoria/simbad.js`). Total: 12062711 bytes.
+
+| Archivo | Servicio | Bytes | sha256 |
+| --- | --- | ---: | --- |
+| `bb6cba3894ef9b995f3fd704b82d4440c0cbb5fb.txt` | simbad.harvard.edu | 2445267 | `20f8bb8f1c2797620c5035c187663ecf23cdecf55907dba4cabcb3854aceec05` |
+| `73bd7512083989eb775862a1ec9ab657a9db18dc.txt` | simbad.harvard.edu | 67886 | `fd4722a9d8015ca8e94c992f3e3c9258fa8325c19cf8318c9f7b8f2bfa4f0ce6` |
+| `a0a691113c938a4a421095fa9da46e204e5bacfb.txt` | simbad.harvard.edu | 4905208 | `25fed33126553f80d7ca6d026f9c1c356f20ace72a08f272f171b747f34fd70e` |
+| `1b26bdddf77b3098c0f07da1e95c4db07144c309.txt` | simbad.harvard.edu | 4443631 | `52a0ae9e78f22d9e79f0d4c90694e9883f1ba8609ccccf351e0b04596e5b8abb` |
+| `6e8c1212ef2fe9a6ca20019ab1d366b1f6504cc0.txt` | simbad.harvard.edu | 200719 | `3209ac5d7575e6c777408535dd1d72c66907d89da4311aa1b2c315ac0ef965e1` |
+
+## `pecaut_mamajek` — `scripts/catalog/pecaut_mamajek.js`
+
+Secuencia media de enanas de Pecaut & Mamajek (2013, ApJS 208, 9), versión en línea de E. Mamajek (`EEM_dwarf_UBVIJHK_colors_Teff.txt`). Se usa para el color por tipo espectral de las estrellas sin color medido (solo para dibujar) y para extender la conversión BP−RP → B−V de las enanas M (decisiones C y D de la auditoría, D-024). Consultas: 1 (0 con error). Descarga: 2026-11-08T17:11:35Z, desde el Mac de Sergio (`HOSHI_RED=descargar node scripts/catalog/pecaut_mamajek.js`).
+
+| Archivo | Servicio | Bytes | sha256 |
+| --- | --- | ---: | --- |
+| `57504aa8bfa46a3b5d82476ca0652c8f170808a5.txt` | www.pas.rochester.edu | 55680 | `1de2edeec17bb3346e0e4e70b999de5ee29947df38474e64cddb7cfacc164b7f` |

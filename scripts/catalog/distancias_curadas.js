@@ -11,7 +11,19 @@ const KERVELLA = 'Kervella et al. 2016, A&A 594, A107 (paralaje del par, 747,17 
 // Sirio: la paralaje de Gaia de Sirio B está contaminada por el brillo de Sirio A (a ~10″) y Gaia satura con A.
 const BOND = 'Bond et al. 2017, ApJ 840, 70, arXiv:1703.10625 (paralaje adoptada del sistema, 378,9 mas: Hipparcos 2007 y Gatewood & Gatewood 1978)';
 
+// Estrellas con nombre sin paralaje con error ≤ 10 % (auditoría, decisión B, aprobada por Sergio el 08/11/2026).
+// Antares, Alniyat (σ Sco) y Fang (π Sco): miembros de Upper Scorpius según de Zeeuw et al. (1999, 1999AJ....117..354D;
+// probabilidad 100, 94 y 98 %); distancia del grupo: mediana de las paralajes de Gaia DR1 de sus 169 miembros
+// brillantes, 146 pc (Luhman et al. 2018, 2018AJ....156..271L).
+const UPPER_SCO = 'Upper Scorpius: de Zeeuw et al. 1999, AJ 117, 354 (pertenencia) y Luhman et al. 2018, AJ 156, 271 (mediana de las paralajes de Gaia DR1 de 169 miembros brillantes, 146 pc)';
+// Mekbuda (ζ Gem, cefeida): paralaje de HST/FGS, 2,78 ± 0,18 mas (Benedict et al. 2007, 2007AJ....133.1810B).
+const BENEDICT = 'Benedict et al. 2007, AJ 133, 1810 (paralaje de HST/FGS, 2,78 ± 0,18 mas)';
+
 export const DISTANCIAS_CURADAS = [
+  { i: 1620181, n: 'Antares', dNueva: 146, fuente: UPPER_SCO },
+  { i: 1605930, n: 'Alniyat', dNueva: 146, fuente: UPPER_SCO },
+  { i: 1569628, n: 'Fang', dNueva: 146, fuente: UPPER_SCO },
+  { i: 641742, n: 'Mekbuda', dNueva: 359.7122, fuente: BENEDICT },
   { i: 584955, n: 'Sirius', dNueva: 2.639219, fuente: BOND },
   { i: 100001806, n: 'Sirius B', dNueva: 2.639219, fuente: BOND },
   { i: 1451193, n: 'Rigil Kentaurus', dNueva: 1.338382, fuente: KERVELLA },
