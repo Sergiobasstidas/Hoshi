@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import zlib from 'node:zlib';
 import { codificarValor, leerCapa, leerCatalogo, posicionesCapa } from '../src/scene/estrellasBin.js';
 import { leerGaia } from '../src/scene/gaiaCapa.js';
 
@@ -22,8 +23,17 @@ test('el catálogo de estrellas.bin es idéntico a stars_15pc.json en lo que usa
 
 // Fuentes de la capa que build_hsb enlazó con una estrella del catálogo: build_estrellas no las dibuja.
 const idsCatalogo = new Set(estrellas.map(e => e.i));
-const enlazadasAlCatalogo = fs.readFileSync('data/catalog/hsb_capa_enlazadas.csv', 'utf8').trim().split('\n').slice(1)
-  .filter(l => idsCatalogo.has(Number(l.split(',')[1]))).length;
+// También las que son el Gaia DR3 de una estrella del catálogo, o un número de lote que la auditoría dio por igual a una
+// (data/catalog/hsb_enlaces.csv, igual_a).
+const enlazadas = new Map(fs.readFileSync('data/catalog/hsb_capa_enlazadas.csv', 'utf8').trim().split('\n').slice(1).map(l => l.split(',')).map(c => [c[0], Number(c[1])]));
+const deGaia = new Map();
+for (const l of fs.readFileSync('data/catalog/hsb_registro.csv', 'utf8').split('\n').slice(1)) { const c = l.split(','); if (c[9] && c[17] === 'activa') deGaia.set(c[9], Number(c[0])); }
+for (const lote of fs.readdirSync('data/catalog/hsb_gaia').filter(f => f.endsWith('.csv.gz'))) {
+  for (const l of zlib.gunzipSync(fs.readFileSync(`data/catalog/hsb_gaia/${lote}`)).toString('utf8').split('\n').slice(1)) { const c = l.split(','); if (c[1] && !deGaia.has(c[1])) deGaia.set(c[1], Number(c[0])); }
+}
+const igualA = new Map(fs.readFileSync('data/catalog/hsb_enlaces.csv', 'utf8').split('\n').slice(1).map(l => l.split(',')).filter(c => c[1] === 'igual_a').map(c => [Number(c[0]), Number(c[2])]));
+const fuentesCapa = zlib.gunzipSync(fs.readFileSync('data/catalog/gaia_capa_orden.txt.gz')).toString('utf8').trim().split('\n');
+const enlazadasAlCatalogo = fuentesCapa.filter(g => idsCatalogo.has(enlazadas.get(g)) || idsCatalogo.has(deGaia.get(g)) || idsCatalogo.has(igualA.get(deGaia.get(g)))).length;
 
 test('la capa de fondo conserva magnitud y color, y su posición se mueve muy poco', () => {
   const capa = leerCapa(buffer, cabecera, inicioCapa);

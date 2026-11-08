@@ -193,7 +193,8 @@ export function fusionarBase(stars, { registro, gaia, hip, espectros, cns5 = nul
     const vHoshi = s.d > 0 && Number.isFinite(s.m) ? s.m + 5 * Math.log10(s.d / 10) : null;
     const mismaEstrella = Boolean(g && num(g.parallax) > 0 && vGaia !== null && vHoshi !== null
       && Math.abs(1000 / num(g.parallax) - s.d) / s.d < 0.02 && Math.abs(vGaia - vHoshi) <= 0.5);
-    const pos = posicionMedida(out, g, h, pmAthyg.get(s.i) || null, /^(?:[A-Za-z]+\s*)?\d+(?:\.\d+)?\s*[A-Z]+$/.test(r.gl || ''), mismaEstrella);
+    const pos = posicionMedida(out, g, h, pmAthyg.get(s.i) || null, /^(?:[A-Za-z]+\s*)?\d+(?:\.\d+)?\s*[A-Z]+$/.test(r.gl || ''), mismaEstrella || r.posicion === 'gaia');
+    if (r.nombreCorregido) out = { ...out, n: r.nombre || null };
     let fp = 'AT-HYG', posAntes = '';
     if (pos) {
       const a = radec(out);
@@ -213,7 +214,8 @@ export function fusionarBase(stars, { registro, gaia, hip, espectros, cns5 = nul
     }
     let fe = r.origen === 'anfitriona' ? 'anfitriona' : 'AT-HYG';
     const sp = espectroSimbad(r, espectros);
-    if (sp) { out = { ...out, sp }; fe = 'SIMBAD'; }
+    if (r.spCorregido) { out = { ...out, sp: r.spCorregido }; fe = 'AT-HYG (el de SIMBAD no calza con el color medido)'; }
+    else if (sp) { out = { ...out, sp }; fe = 'SIMBAD'; }
     // Sin color medido: el de su tipo espectral, solo para dibujarla (no es una medida).
     if (fc !== 'Gaia DR3 BP−RP' && sinColor.has(s.i) && colorPorTipo) {
       const c = colorPorTipo(out.sp);

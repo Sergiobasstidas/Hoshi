@@ -99,6 +99,7 @@ test('las estrellas nuevas van desde 100 000 000', () => {
 });
 
 test('ningún número de las versiones anteriores cambió ni desapareció', () => {
+  const corregidas = new Set(leerEnlaces().filter(f => ['hd', 'hip', 'gaia_dr3', 'gl'].includes(f.campo)).map(f => Number(f.hsb)));
   for (const version of VERSIONES) {
     const previa = registroDe(version);
     if (!previa) continue;
@@ -108,7 +109,8 @@ test('ningún número de las versiones anteriores cambió ni desapareció', () =
       assert.ok(g, `el número ${f.hsb} desapareció del registro`);
       assert.equal(g.origen, f.origen);
       assert.equal(g.athyg_v32, f.athyg_v32, `cambió la estrella de AT-HYG del número ${f.hsb}`);
-      if (f.athyg_v40) assert.equal(g.athyg_v40, f.athyg_v40, `cambió la fila v4.0 del número ${f.hsb}`);
+      // La fila v4.0 solo puede cambiar si la auditoría corrigió los números de la estrella (hsb_enlaces.csv).
+      if (f.athyg_v40 && !corregidas.has(f.hsb)) assert.equal(g.athyg_v40, f.athyg_v40, `cambió la fila v4.0 del número ${f.hsb}`);
       assert.equal(g.alta, f.alta);
     }
     // Lo que entró después usa números mayores que todos los de esa versión.

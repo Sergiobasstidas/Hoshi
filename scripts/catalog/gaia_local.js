@@ -1,7 +1,7 @@
 // scripts/catalog/gaia_local.js
 // Astrometría de Gaia DR3 de las estrellas del registro: data/raw/gaia/gaia_dr3_registro.csv.gz (descarga de
 // descargar_cercanas.py) más los Gaia que agregan las correcciones de enlace (data/catalog/hsb_enlaces.csv), que se
-// bajan del archivo de Gaia (ESA) con red.js a data/raw/red/gaia_enlaces.
+// bajan de Gaia DR3 en el servicio TAP de ARI Heidelberg con red.js a data/raw/red/gaia_enlaces.
 //   HOSHI_RED=descargar node scripts/catalog/gaia_local.js   baja los que falten
 import fs from 'node:fs';
 import zlib from 'node:zlib';
@@ -9,17 +9,17 @@ import { parse } from 'csv-parse/sync';
 import { pedir } from './red.js';
 
 const REGISTRO = './data/raw/gaia/gaia_dr3_registro.csv.gz', ENLACES = './data/catalog/hsb_enlaces.csv';
-const GAIA_TAP = 'https://gea.esac.esa.int/tap-server/tap/sync';
+const GAIA_TAP = 'https://gaia.ari.uni-heidelberg.de/tap/sync';
 const COLUMNAS = 'source_id,ra,dec,ref_epoch,parallax,parallax_error,pmra,pmdec,phot_g_mean_mag,bp_rp,ruwe';
 const LOTE = 400;
 
 const csvGz = ruta => parse(zlib.gunzipSync(fs.readFileSync(ruta)).toString('utf8'), { columns: true, skip_empty_lines: true });
 
-// Gaia de las correcciones que no están en la descarga del registro, en orden fijo (el archivo de correcciones solo
-// crece, así que la consulta guardada sirve sin red).
+// Gaia de las correcciones que no están en la descarga del registro, en el orden del archivo de correcciones: como solo
+// crece, un Gaia nuevo cae en el último lote y las consultas ya guardadas siguen sirviendo sin red.
 function idsDeEnlaces(registro) {
   const ids = fs.existsSync(ENLACES) ? parse(fs.readFileSync(ENLACES, 'utf8'), { columns: true }).filter(f => f.campo === 'gaia_dr3' && f.valor).map(f => f.valor) : [];
-  return [...new Set(ids)].filter(id => !registro.has(id)).sort();
+  return [...new Set(ids)].filter(id => !registro.has(id));
 }
 
 async function filasDeEnlaces(registro) {

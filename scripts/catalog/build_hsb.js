@@ -486,7 +486,9 @@ export function conciliarCns5(filas, estrellas) {
     for (const s of candidatas) {
       let p = 0;
       if (r.gaia_edr3_id) {
-        if ((s.gaiaAsociados || new Set([s.gaia_dr3])).has(r.gaia_edr3_id)) p += 3;
+        // Su propio Gaia pesa más que uno solo asociado (en un par, CNS5 y SIMBAD pueden repartir distinto el HIP).
+        if (s.gaia_dr3 === r.gaia_edr3_id) p += 5;
+        else if ((s.gaiaAsociados || new Set([s.gaia_dr3])).has(r.gaia_edr3_id)) p += 3;
         else if (s.gaia_dr3) p -= 3;
       }
       if (r.hip_id && s.hip) p += r.hip_id === s.hip ? 2 : -2;
@@ -672,8 +674,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const quitadosCns5 = quitarNumerosTomados([...base, ...entran], cns5.nuevas, descartados);
   // Una fila nueva (AT-HYG v4.0 o CNS5) con el Gaia que una corrección de la auditoría le dio a una estrella de la
   // carga base es esa misma estrella: queda retirada apuntando a ella.
+  // Las filas nuevas con su propia corrección (reconocidas por su número de AT-HYG v4.0 o, las de CNS5, por su nombre
+  // de Gliese en el registro anterior) la reciben antes de comparar Gaia: así un intercambio de Gaia entre una estrella
+  // de la base y su compañera no retira a la compañera.
+  const previo = leerRegistro(fs.existsSync(REGISTRO_CSV) ? fs.readFileSync(REGISTRO_CSV, 'utf8') : '');
+  const hsbV40 = new Map(previo.filter(f => f.origen === 'athyg_v40' && f.athyg_v40).map(f => [f.athyg_v40, f.hsb]));
+  const hsbCns5 = new Map(previo.filter(f => f.origen === 'cns5' && f.gl).map(f => [f.gl, f.hsb]));
+  for (const s of [...entran, ...cns5.nuevas]) {
+    const h = s.origen === 'cns5' ? hsbCns5.get(s.gl) : hsbV40.get(String(s.athyg_v40));
+    if (h !== undefined && enlaces.has(h)) { corregirFila(s, enlaces.get(h)); s.conEnlace = true; }
+  }
   const gaiaCorregido = new Map(base.filter(s => enlaces.get(s.i)?.gaia_dr3).map(s => [s.gaia_dr3, s.i]));
-  for (const s of [...entran, ...cns5.nuevas]) if (s.gaia_dr3 && gaiaCorregido.has(s.gaia_dr3)) s.igualA = gaiaCorregido.get(s.gaia_dr3);
+  for (const s of [...entran, ...cns5.nuevas]) if (!s.conEnlace && s.gaia_dr3 && gaiaCorregido.has(s.gaia_dr3)) s.igualA = gaiaCorregido.get(s.gaia_dr3);
   const repetidos = quitarGaiaRepetidos(lista);
 
   // 5d) 2MASS de cada Gaia DR3 (y el que trae GCNS para las fuentes que ARI no devolvió).
@@ -687,7 +699,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     gcns.push({ gaia: c('source_id'), valida: Number(c('gcns_prob')) >= GCNS_PROB_MIN && err > 0 && plx / err >= PARALAJE_SNR_MIN, ...fuenteGaia(c) });
   });
   const tmassDe = g => (g && tmass.get(g)) || '';
-  for (const s of lista) s.tmass = tmassDe(s.gaia_dr3);
+  for (const s of lista) s.tmass = s.tmassCorregido ?? tmassDe(s.gaia_dr3);
 
   // 6) Conciliación con el registro anterior.
   const anterior = fs.existsSync(REGISTRO_CSV) ? fs.readFileSync(REGISTRO_CSV, 'utf8') : '';

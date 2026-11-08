@@ -2,7 +2,7 @@
  "meta": {
   "descripcion": "Distancias de AT-HYG sustituidas por la paralaje de Gaia DR3 (d = 1000 / paralaje en mas)",
   "criterio": "paralaje/error > 10, RUWE < 1.4, G > 5, discrepancia > 10 %, enlace no dudoso y magnitud coherente (±1)",
-  "generado": "2026-10-13T13:48:59.678Z",
+  "generado": "2026-11-08T19:39:43.320Z",
   "aplicadas": 31,
   "noAplicadas": 191
  },

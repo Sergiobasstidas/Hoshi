@@ -115,7 +115,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   for (const s of sinAplicar) motivos[s.porque.replace(/\d+/g, 'N')] = (motivos[s.porque.replace(/\d+/g, 'N')] || 0) + 1;
   console.log(JSON.stringify(motivos, null, 1));
   if (process.argv.includes('--escribir')) {
-    const todas = [...existentes, ...nuevas].sort((a, b) => Number(a.hsb) - Number(b.hsb) || (a.campo < b.campo ? -1 : 1));
+    // Se agrega al final, sin reordenar: una fila posterior manda sobre una anterior del mismo dato, y el orden fija los
+    // lotes de la descarga de Gaia (gaia_local.js).
+    const todas = [...existentes, ...nuevas];
     fs.writeFileSync(ENLACES_CSV, [COLUMNAS_ENLACES.join(','), ...todas.map(f => COLUMNAS_ENLACES.map(c => celda(f[c])).join(','))].join('\n') + '\n');
     console.log(`✓ ${ENLACES_CSV}: ${todas.length} correcciones`);
   }

@@ -19,7 +19,20 @@ const UPPER_SCO = 'Upper Scorpius: de Zeeuw et al. 1999, AJ 117, 354 (pertenenci
 // Mekbuda (ζ Gem, cefeida): paralaje de HST/FGS, 2,78 ± 0,18 mas (Benedict et al. 2007, 2007AJ....133.1810B).
 const BENEDICT = 'Benedict et al. 2007, AJ 133, 1810 (paralaje de HST/FGS, 2,78 ± 0,18 mas)';
 
+// Decisión N (aprobada por Sergio el 08/11/2026): miembros de cúmulos del UCC cuya única distancia es de Hipparcos y no
+// calza con la del cúmulo: la del cúmulo, 1/paralaje media de sus miembros con Gaia DR3 (Perren et al. 2023, MNRAS 526,
+// 4107, 2023MNRAS.526.4107P; versión 260615).
+const UCC = (cumulo, plx) => `${cumulo}: Unified Cluster Catalogue, Perren et al. 2023, MNRAS 526, 4107 (paralaje media del cúmulo con Gaia DR3, ${plx} mas)`;
+// Decisión O: θ¹ Orionis B, en el cúmulo de la Nebulosa de Orión: distancia del cúmulo por paralaje VLBA, 388 ± 5 pc
+// (Kounkel et al. 2017, ApJ 834, 142, 2017ApJ...834..142K). Su sistema la comparte (distancia_sistemas.js).
+const KOUNKEL = 'Kounkel et al. 2017, ApJ 834, 142 (cúmulo de la Nebulosa de Orión por paralaje VLBA, 388 ± 5 pc)';
+
 export const DISTANCIAS_CURADAS = [
+  { i: 280634, n: 'HIP 17999', dNueva: 135.8474, fuente: UCC('Pléyades', '7,3612') },
+  { i: 681688, n: 'HIP 35226', dNueva: 299.3922, fuente: UCC('Collinder 135', '3,3401') },
+  { i: 1583688, n: 'HIP 79031', dNueva: 157.0968, fuente: UCC('HSC 2907', '6,3655') },
+  { i: 1658655, n: 'Pipirima', dNueva: 176.0532, fuente: UCC('UPK 640', '5,6801') },
+  { i: 100001450, n: 'θ¹ Orionis B', dNueva: 388, fuente: KOUNKEL },
   { i: 1620181, n: 'Antares', dNueva: 146, fuente: UPPER_SCO },
   { i: 1605930, n: 'Alniyat', dNueva: 146, fuente: UPPER_SCO },
   { i: 1569628, n: 'Fang', dNueva: 146, fuente: UPPER_SCO },

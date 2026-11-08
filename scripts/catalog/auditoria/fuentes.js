@@ -6,7 +6,7 @@ import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { DISTANCIAS_CURADAS } from '../distancias_curadas.js';
 import { indiceCns5 } from '../fusion.js';
-import { aplicarEnlaces } from '../enlaces_registro.js';
+import { aplicarEnlaces, leerEnlaces } from '../enlaces_registro.js';
 import { leerGaiaRegistro } from '../gaia_local.js';
 
 const gz = ruta => zlib.gunzipSync(fs.readFileSync(ruta)).toString('utf8');
@@ -150,5 +150,6 @@ export async function cargarTodo() {
   }
   log(`2MASS ${tmass.size}; NASA ${exo.length} sistemas; cúmulos ${cumulos.length}`);
   return { estrellas, porId, registro, fuentesD, athyg, sistemas, curadas, gaia, hip, cieloHip, cns5, filasCns5, cieloCns5, gcns, cieloGcns,
-    gaia1m, cielo1m, seleccion, enlazadasCapa, hsbDeGaia, tmass, exo, exoIdentidad, oficiales, cumulos, jmdc, nasaPs };
+    gaia1m, cielo1m, seleccion, enlazadasCapa, hsbDeGaia, tmass, exo, exoIdentidad, oficiales, cumulos, jmdc, nasaPs,
+    igualA: new Map(leerEnlaces().filter(f => f.campo === 'igual_a').map(f => [Number(f.hsb), Number(f.valor)])) };
 }

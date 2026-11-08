@@ -77,3 +77,18 @@ test('decisión B: distancias medidas publicadas para Antares, Alniyat, Fang y M
     assert.match(fuentes.get(i).fuente_d, fuente);
   }
 });
+
+test('decisiones I–O: p Eridani, μ Draconis, Gl 563.2, cúmulos y θ¹ Orionis', () => {
+  // p Eridani: A y B cada una con su Gaia (SIMBAD), separadas unos 11″.
+  assert.equal(registro.get(125360).gl, 'Gl 66A');
+  assert.equal(registro.get(125364).gl, 'Gl 66B');
+  const s = sep(stars.get(125360), stars.get(125364));
+  assert.ok(s > 9 && s < 14, `p Eridani a ${s}″`);
+  assert.equal(registro.get(1681916).gl, 'GJ 9584AB');
+  assert.equal(registro.get(1465150).gl, 'Gl 563.2B');
+  assert.equal(registro.get(1465169).gl, 'Gl 563.2A');
+  assert.equal(registro.get(100008705).estado, 'retirada');
+  for (const [i, d] of [[280634, 135.8474], [681688, 299.3922], [1583688, 157.0968], [1658655, 176.0532]]) assert.equal(stars.get(i).d, d);
+  assert.equal(stars.get(100001450).d, 388);
+  assert.equal(stars.get(2211936).d > 0 && registro.get(2211936).gaia_dr3, '1810448909928688768');
+});

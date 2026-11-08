@@ -15,6 +15,7 @@ import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { leerGaia } from '../src/scene/gaiaCapa.js';
 import { ESTRELLAS_FIRMA, ESTRELLAS_VERSION, MAX_POR_CELDA, codificarValor } from '../src/scene/estrellasBin.js';
+import { leerEnlaces } from './catalog/enlaces_registro.js';
 
 const STARS = './data/processed/stars_15pc.json', CAPA = './data/processed/gaia-1m.bin';
 const ORDEN = './data/catalog/gaia_capa_orden.txt.gz', REGISTRO = './data/catalog/hsb_registro.csv', LOTES = './data/catalog/hsb_gaia';
@@ -84,11 +85,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const enlazada = new Map(parse(fs.readFileSync(ENLAZADAS, 'utf8'), { columns: true }).map(r => [r.gaia_dr3, Number(r.hsb)]));
   const enCatalogo = new Set(hsb);
+  // Números de lote que la auditoría dio por iguales a otra estrella (data/catalog/hsb_enlaces.csv, igual_a).
+  const igualA = new Map(leerEnlaces().filter(f => f.campo === 'igual_a').map(f => [Number(f.hsb), Number(f.valor)]));
   const quedan = [], hsbFuente = [];
   let quitadas = 0, sinNumero = 0;
   for (let k = 0; k < todas.n; k++) {
     // Fuera: las enlazadas con una estrella del catálogo y las que son el Gaia DR3 de una (ya se dibujan desde el catálogo).
-    const h = enlazada.get(fuentes[k]) ?? (enCatalogo.has(deGaia.get(fuentes[k])) ? deGaia.get(fuentes[k]) : undefined);
+    const h = enlazada.get(fuentes[k]) ?? (enCatalogo.has(deGaia.get(fuentes[k])) ? deGaia.get(fuentes[k]) : igualA.get(deGaia.get(fuentes[k])));
     if (h !== undefined && enCatalogo.has(h)) { quitadas++; continue; }
     const numero = deGaia.get(fuentes[k]) ?? h;
     if (numero === undefined) sinNumero++;

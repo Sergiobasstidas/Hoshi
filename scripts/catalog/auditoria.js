@@ -103,6 +103,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(1);
     }
     const pendientes = fs.existsSync(REVISADAS) ? parse(fs.readFileSync(REVISADAS, 'utf8'), { columns: true }).filter(f => f.decision === 'pendiente').length : 0;
-    console.log(`✓ Control de la auditoría: todo corregido o revisado con motivo (${pendientes} con decisión pendiente fuera de A–H)`);
+    console.log(`✓ Control de la auditoría: todo corregido o revisado con motivo (${pendientes} con decisión pendiente fuera de A–O)`);
   }
 }

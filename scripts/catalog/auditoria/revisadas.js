@@ -1,8 +1,8 @@
 // scripts/catalog/auditoria/revisadas.js
 // Escribe data/catalog/auditoria_revisadas.csv (hsb, tipo, dato, veredicto, decision, motivo): cada diferencia «Decide
 // Sergio», «Enlace malo» o «Corregir» que queda en la auditoría, con la decisión que la cubre y su motivo. Las
-// decisiones A–H las aprobó Sergio el 08/11/2026 (Hoshi-contexto, DECISIONS D-020 y HSB-09). Lo que no entra en
-// ninguna queda con decisión «pendiente» y su regla, para que se vea.
+// decisiones A–H (D-024, HSB-09) e I–O (HSB-10) las aprobó Sergio el 08/11/2026. Lo que no entra en ninguna queda con
+// decisión «pendiente» y su regla, para que se vea.
 // Uso: node scripts/catalog/auditoria/revisadas.js (después de npm run auditoria)
 import fs from 'node:fs';
 import zlib from 'node:zlib';
@@ -14,6 +14,16 @@ const celda = v => { const t = v === null || v === undefined ? '' : String(v); r
 
 // Revisión a mano de las estrellas con nombre (decisiones E y G).
 const NOTAS = {
+  TIPO: { 2335058: 'Bunda (ξ Aqr): SIMBAD la clasifica K0III (Houk 1999) y es binaria espectroscópica, pero los dos colores medidos (Hipparcos 0,175 y Gaia 0,18) son de una estrella A; no hay otra clasificación para decidir' },
+  NOMBRE: {
+    9000105: 'GJ 667 C: el nombre es la designación de esa estrella (la de los planetas)',
+    9003019: 'TOI-2459: el nombre es la designación de esa estrella (la de los planetas)',
+    100004407: 'Graffias C: designación con la letra de la componente',
+    100004667: 'Alrakis C: designación con la letra de la componente',
+    100004668: 'Alrakis es μ Draconis A (SIMBAD); la estrella brillante del sistema es el par μ Dra AB sin resolver (GJ 9584AB)',
+    125360: 'p Eridani A: el renombre a «p Eridani A» espera una descarga nueva de datos oficiales (cambia sus consultas)',
+    125364: 'p Eridani B: el renombre a «p Eridani B» espera una descarga nueva de datos oficiales (cambia sus consultas)',
+  },
   'ALERTA-MAG-TIPO': {
     90273: 'Emiw: subgigante K1 casi en la secuencia principal; 0,07 mag fuera del rango típico',
     115103: 'Alpherg: gigante G7IIIa luminosa; 0,3 mag fuera del rango típico',
@@ -51,6 +61,8 @@ const NOTAS = {
   },
 };
 
+const distancia = new Map(JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).map(s => [s.i, s.d]));
+
 function decision(d) {
   const nota = NOTAS[d.tipo]?.[Number(d.hsb)];
   if (d.tipo === 'CAPA-REGLA') return ['A', 'RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)'];
@@ -61,7 +73,14 @@ function decision(d) {
   if (d.tipo === 'ALERTA-MAG-TIPO') return ['E', nota || 'alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato'];
   if (d.tipo === 'MAG/COLOR') return ['G', nota || `${d.regla}: no se cambian datos`];
   if (d.tipo === 'POS' && d.veredicto === 'Decide Sergio') return ['F', 'a más de 10″ de su Gaia y el brillo no calza (±0,5 mag): enlace dudoso, se deja la posición'];
-  return ['pendiente', `fuera de A–H: ${d.regla}`];
+  // Decisiones I–O (aprobadas por Sergio el 08/11/2026, HSB-10).
+  if (d.tipo === 'TIPO') return ['I', NOTAS.TIPO[Number(d.hsb)] || (/clase [OBA]/.test(d.regla) && distancia.get(Number(d.hsb)) > 200
+    ? 'estrella O, B o A lejana: el color medido incluye el enrojecimiento por polvo' : 'el tipo es solo texto; el color medido manda en el dibujo y no hay otra medida para cambiarlo')];
+  if (d.tipo === 'DIST-DIFIERE') return ['J', 'se usa la paralaje más precisa; la otra (casi siempre Hipparcos) se anota'];
+  if (d.tipo === 'ID-CONFLICTO' && /GJ/.test(d.dato)) return ['L', 'SIMBAD usa el número GJ del sistema para la principal, o la estrella tiene dos números GJ válidos'];
+  if (d.tipo === 'NOMBRE') return ['M', NOTAS.NOMBRE[Number(d.hsb)] || 'el nombre es la designación de esa componente'];
+  if (d.tipo === 'NASA') return ['O', 'HIP 73674 (HD 133131, par de gemelas): SIMBAD no da un Gaia para el par y NASA usa el de la A; se queda el actual hasta tener una medida que decida'];
+  return ['pendiente', `fuera de A–O: ${d.regla}`];
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

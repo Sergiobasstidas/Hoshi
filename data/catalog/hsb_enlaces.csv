@@ -1,6 +1,7 @@
 hsb,campo,valor,motivo
 3395,gaia_dr3,2765432581794718720,ID-FALTA: SIMBAD (HIP 190); sin datos locales
 6254,gaia_dr3,384361163101836160,ID-FALTA: SIMBAD (HIP 365); sin datos locales
+6309,gl,,K: GJ 3005 está a 932 pc; la estrella de Gliese es la otra (a < 25 pc)
 6652,gaia_dr3,2876698936572615424,ID-FALTA: SIMBAD (HIP 394); sin datos locales
 8473,gaia_dr3,423075173680043904,"ID-FALTA: GCNS por posición (0.43″, ΔV 0.39)"
 12359,gaia_dr3,423018377034969216,ID-FALTA: SIMBAD (HIP 746); sin datos locales
@@ -10,6 +11,7 @@ hsb,campo,valor,motivo
 13974,gaia_dr3,2427459307463350656,ID-FALTA: SIMBAD (HIP 847); sin datos locales
 16212,gaia_dr3,4918365340699806720,ID-FALTA: SIMBAD (HIP 975); sin datos locales
 17595,gaia_dr3,2798587122272590080,"ID-FALTA: GCNS por posición (0.27″, ΔV 0.22)"
+18008,gaia_dr3,2545410413765293824,L: SIMBAD da el Gaia 2545410413765293824 a HIP 1082 y calza en brillo; tenía 2545410413764365952
 18025,gaia_dr3,2308360585899679744,ID-FALTA: SIMBAD (HIP 1083); sin datos locales
 19859,gaia_dr3,2316487312562743296,ID-FALTA: SIMBAD (HIP 1190); sin datos locales
 20653,cns5,1005,CNS5 por posición (auditoría: CNS5 por posición (0.30″; paralaje 200.52999877929688 ± 9.41 mas))
@@ -19,6 +21,7 @@ hsb,campo,valor,motivo
 27330,gaia_dr3,391885121171018624,"ID-FALTA: GCNS por posición (0.07″, ΔV 0.13)"
 29807,gaia_dr3,2323302296085774464,ID-FALTA: SIMBAD (HIP 1768); sin datos locales
 33561,gaia_dr3,2862908793015820928,ID-CONFLICTO: SIMBAD (objeto de HIP 1997)
+34054,sp,A2,"I: SIMBAD da K2III, que no calza con el B−V medido 0.269; el de AT-HYG (A2) sí"
 34838,gaia_dr3,4993479684438433792,ID-FALTA: SIMBAD (HIP 2081)
 37480,gaia_dr3,2363291052952046208,ID-FALTA: SIMBAD (HIP 2237); sin datos locales
 38162,gaia_dr3,,el Gaia 391750774597738368 es de otro objeto (POS: muy lejos y a otra distancia: el Gaia es de otro objeto)
@@ -42,6 +45,8 @@ hsb,campo,valor,motivo
 72768,gaia_dr3,426558460884582016,ID-FALTA: SIMBAD (HIP 4427); sin datos locales
 73844,gaia_dr3,4987210848956089472,"ID-FALTA: GCNS por posición (0.16″, ΔV 0.15)"
 76401,gaia_dr3,2535725468671479936,ID-FALTA: SIMBAD (HIP 4641); sin datos locales
+76986,hd,5789,L: SIMBAD da HD 5789 al objeto de HIP 4675 (Hoshi tenía 5788)
+77607,gaia_dr3,2359083771708433152,L: SIMBAD da el Gaia 2359083771708433152 a HIP 4711 y calza en brillo; tenía 2359083771708433024
 81039,gaia_dr3,,el Gaia 313386725454611200 es de otro objeto (POS: muy lejos y a otra distancia: el Gaia es de otro objeto)
 81540,gaia_dr3,426620514560103552,ID-CONFLICTO: SIMBAD (objeto de HIP 4962)
 82440,gaia_dr3,4904412503784272512,ID-FALTA: SIMBAD (HIP 5018); sin datos locales
@@ -65,6 +70,10 @@ hsb,campo,valor,motivo
 120856,gaia_dr3,5022876291741784064,"ID-FALTA: GCNS por posición (0.24″, ΔV 0.28)"
 123681,gaia_dr3,509893470807130496,ID-FALTA: SIMBAD (HIP 7640); sin datos locales
 125040,gaia_dr3,,el Gaia 2561679986105169536 es de otro objeto (POS: muy lejos y a otra distancia: el Gaia es de otro objeto)
+125360,gaia_dr3,4911306239828325632,K: SIMBAD da este Gaia a HD 10360 (p Eridani A)
+125360,gl,Gl 66A,K: SIMBAD: HD 10360 (HIP 7751) es p Eridani A; AT-HYG tenía las letras cruzadas
+125360,posicion,gaia,K: p Eridani A va a la posición de su Gaia (el par está separado unos 11″)
+125364,gl,Gl 66B,K: SIMBAD: HD 10361 es p Eridani B; AT-HYG tenía las letras cruzadas
 126677,gaia_dr3,2510647326428200448,ID-FALTA: SIMBAD (HIP 7842); sin datos locales
 126720,gaia_dr3,2573698992521620352,ID-FALTA: SIMBAD (HIP 7849); sin datos locales
 127781,gaia_dr3,2463529885923906432,ID-FALTA: SIMBAD (HIP 7916); sin datos locales
@@ -90,6 +99,8 @@ hsb,campo,valor,motivo
 163182,gaia_dr3,329384516560293248,ID-FALTA: SIMBAD (HIP 10064); sin datos locales
 167370,gaia_dr3,99495498687738624,ID-FALTA: SIMBAD (HIP 10306); sin datos locales
 167758,gaia_dr3,,"SIMBAD da el Gaia 506699870563323264 a HIP 10332, pero no calza con la estrella (más de 1,5 mag o muy lejos): es de otra componente; queda sin Gaia"
+167758,gaia_dr3,506699870563323264,O: HIP 10332 es UX Persei (cefeida); su Gaia está donde dice Hipparcos y la diferencia de brillo es su variación
+167758,posicion,gaia,"O: la posición de AT-HYG (Tycho) está a 18,6″; Gaia e Hipparcos coinciden"
 168274,gaia_dr3,2518285393188373504,ID-FALTA: SIMBAD (HIP 10356); sin datos locales
 171103,gaia_dr3,105851637969264000,ID-FALTA: SIMBAD (HIP 10535); sin datos locales
 171613,gaia_dr3,,"el Gaia 105874212317368320 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
@@ -126,6 +137,7 @@ hsb,campo,valor,motivo
 229398,gaia_dr3,4747693686934567040,ID-FALTA: SIMBAD (HIP 14313); sin datos locales
 229985,gaia_dr3,142853330981747328,ID-FALTA: SIMBAD (HIP 14354); sin datos locales
 232634,gaia_dr3,5183380495199234304,ID-FALTA: SIMBAD (HIP 14524); sin datos locales
+233059,gl,,K: GJ 1054B está a 231 pc; la estrella de Gliese es la otra (a < 25 pc)
 234657,gaia_dr3,,"el Gaia 434690036551517952 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 235658,gaia_dr3,112574322643706368,ID-FALTA: SIMBAD (HIP 14748); sin datos locales
 236472,gaia_dr3,110365854756118272,ID-FALTA: SIMBAD (HIP 14807); sin datos locales
@@ -153,6 +165,7 @@ hsb,campo,valor,motivo
 283276,gaia_dr3,3250184344829996544,ID-FALTA: SIMBAD (HIP 18171); sin datos locales
 287923,gaia_dr3,494075071887755904,ID-CONFLICTO: SIMBAD (objeto de HIP 18487)
 289815,gaia_dr3,,"SIMBAD da el Gaia 3272087230633483264 a HIP 18600, pero no calza con la estrella (más de 1,5 mag o muy lejos): es de otra componente; queda sin Gaia"
+289815,sp,F5,"I: SIMBAD da K0III, que no calza con el B−V medido 0.524; el de AT-HYG (F5) sí"
 291594,gaia_dr3,4679280973941374848,ID-FALTA: SIMBAD (HIP 18689); sin datos locales
 292386,gaia_dr3,4779821210539714432,ID-CONFLICTO: SIMBAD (objeto de HIP 18741)
 299444,gaia_dr3,4622231885422602112,ID-FALTA: SIMBAD (HIP 19188); sin datos locales
@@ -190,6 +203,7 @@ hsb,campo,valor,motivo
 338664,gaia_dr3,4877843702948729472,ID-FALTA: SIMBAD (HIP 21733); sin datos locales
 340647,hip,,el HIP 21840 es de otro objeto (a 16.7228″)
 341703,gaia_dr3,3174712286151938944,ID-CONFLICTO: SIMBAD (objeto de HIP 21906)
+344325,gaia_dr3,3281945898565701504,L: SIMBAD da el Gaia 3281945898565701504 a HIP 22067 y calza en brillo; tenía 3281945902861450624
 344713,gaia_dr3,4656342893654871936,ID-FALTA: SIMBAD (HIP 22088); sin datos locales
 345435,gaia_dr3,,"el Gaia 502144181563726976 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 346403,gaia_dr3,203719133602370944,ID-FALTA: SIMBAD (HIP 22196); sin datos locales
@@ -250,6 +264,7 @@ hsb,campo,valor,motivo
 513254,cns5,10901,CNS5 por posición (auditoría: CNS5 por posición (0.06″; paralaje 44.810001373291016 ± 3.31 mas))
 513254,gaia_dr3,3426007073132962944,ID-FALTA: SIMBAD (HIP 29810); sin datos locales
 515924,gaia_dr3,,"el Gaia 3121678992053904256 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+526654,sp,B9,"I: SIMBAD da M3.0III, que no calza con el B−V medido 0.024; el de AT-HYG (B9) sí"
 527735,gaia_dr3,5477247552073288448,ID-FALTA: SIMBAD (HIP 30310); sin datos locales
 528912,gaia_dr3,3377166289889430656,ID-FALTA: SIMBAD (HIP 30343); sin datos locales
 536580,gaia_dr3,3116691916549691776,ID-FALTA: SIMBAD (HIP 30627); sin datos locales
@@ -290,9 +305,12 @@ hsb,campo,valor,motivo
 684228,gaia_dr3,3155322570396114688,ID-FALTA: SIMBAD (HIP 35310); sin datos locales
 688888,gaia_dr3,990470315166876032,ID-FALTA: SIMBAD (HIP 35457); sin datos locales
 689322,gaia_dr3,5619740857426604928,ID-CONFLICTO: SIMBAD (objeto de HIP 35471)
+698324,hd,57066,L: SIMBAD da HD 57066 al objeto de HIP 35726 (Hoshi tenía 57067)
+698403,hd,57067,L: SIMBAD da HD 57067 al objeto de HIP 35731 (Hoshi tenía 57066)
 713289,gaia_dr3,3143264535611892096,ID-FALTA: SIMBAD (HIP 36188); sin datos locales
 717242,gaia_dr3,898539731356582912,ID-CONFLICTO: SIMBAD (objeto de HIP 36313)
 718311,gaia_dr3,5593011729755869696,"ID-FALTA: Gaia DR3 (millón) por posición (0.03″, ΔV 0.47)"
+719018,gaia_dr3,892160231749198848,O: SIMBAD da este Gaia a HIP 36366 (Gl 274A)
 719938,gaia_dr3,3053986768423468288,ID-FALTA: SIMBAD (HIP 36399); sin datos locales
 727499,igual_a,727498,"misma estrella que HSB 727498 (Gl 277A, a 0.65″, ΔV -0.00)"
 734870,gaia_dr3,5492357178301867008,ID-FALTA: SIMBAD (HIP 36832); sin datos locales
@@ -307,6 +325,8 @@ hsb,campo,valor,motivo
 798190,gaia_dr3,1095306687289806592,ID-FALTA: SIMBAD (HIP 38812); sin datos locales
 801462,cns5,1106.0,CNS5 por posición (auditoría: CNS5 por posición (0.19″; paralaje 54.04999923706055 ± 1.74 mas))
 801462,gaia_dr3,5594041731633230720,ID-FALTA: SIMBAD (HIP 38910); sin datos locales
+801876,gl,Gl 293.1A,"K: la componente más brillante del par Gl 293.1 (V 8,05 frente a 12,38) es la A"
+802929,sp,K5,"I: SIMBAD da F5-G2Ib, que no calza con el B−V medido 1.569; el de AT-HYG (K5) sí"
 803470,hip,,el HIP 38978 es de otro objeto (a 15.5372″)
 809982,gaia_dr3,680438856819626752,ID-FALTA: SIMBAD (HIP 39194)
 813955,gaia_dr3,,"el Gaia 3081235071736431872 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
@@ -321,15 +341,18 @@ hsb,campo,valor,motivo
 847449,gaia_dr3,648535255631397120,ID-FALTA: SIMBAD (HIP 40449); sin datos locales
 848014,gaia_dr3,5728453828366818816,ID-FALTA: SIMBAD (HIP 40465); sin datos locales
 851759,gaia_dr3,,"el Gaia 5726378057790125696 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+853703,gl,,K: GJ 3491 está a 276 pc; la estrella de Gliese es la otra (a < 25 pc)
 854325,gaia_dr3,908435615179601792,ID-FALTA: SIMBAD (HIP 40681); sin datos locales
 855325,gaia_dr3,5723025990434513408,ID-FALTA: SIMBAD (HIP 40724); sin datos locales
 861124,gaia_dr3,930501641021758720,"ID-FALTA: GCNS por posición (0.14″, ΔV 0.46)"
 870614,gaia_dr3,5515295666620325504,ID-FALTA: SIMBAD (HIP 41261); sin datos locales
+876566,gaia_dr3,704074027489627264,K: el Gaia de la fila repetida HSB 100002308
 876625,gaia_dr3,3066424100350816640,ID-FALTA: SIMBAD (HIP 41489); sin datos locales
 878273,cns5,308,CNS5 por posición (auditoría: CNS5 por posición (0.27″; paralaje 50.81999969482422 ± 6.27 mas))
 885449,gaia_dr3,903616971110812544,"ID-FALTA: GCNS por posición (0.19″, ΔV -0.00)"
 885662,gaia_dr3,911309635495303808,ID-FALTA: SIMBAD (HIP 41830); sin datos locales
 890586,gaia_dr3,5706674568902518656,ID-FALTA: SIMBAD (HIP 42022); sin datos locales
+900471,hd,73813B,K: SIMBAD da HD 73813B a HIP 42376; HD 73813 es de su compañera
 905151,gaia_dr3,609424046480987136,ID-CONFLICTO: SIMBAD (objeto de HIP 42566)
 908283,gaia_dr3,5318575448532526848,"ID-FALTA: GCNS por posición (0.11″, ΔV 0.20)"
 908640,gaia_dr3,5329122067149201152,ID-FALTA: SIMBAD (HIP 42712); sin datos locales
@@ -337,10 +360,12 @@ hsb,campo,valor,motivo
 912945,cns5,2072,CNS5 por posición (auditoría: CNS5 por posición (0.34″; paralaje 53.88999938964844 ± 2.2 mas))
 912945,gaia_dr3,5522248295266281472,ID-FALTA: SIMBAD (HIP 42881); sin datos locales
 913730,gaia_dr3,5524839844162098048,ID-FALTA: SIMBAD (HIP 42916); sin datos locales
+916707,sp,K3 III,"I: SIMBAD da B/A, que no calza con el B−V medido 1.427; el de AT-HYG (K3 III) sí"
 917915,gaia_dr3,583151353574583552,ID-FALTA: SIMBAD (HIP 43109); sin datos locales
 926434,gaia_dr3,716538709777766272,ID-FALTA: SIMBAD (GJ 3516); sin datos locales
 927315,gaia_dr3,5324873760374353536,ID-FALTA: SIMBAD (HIP 43483); sin datos locales
 928226,gaia_dr3,5297574776435496448,ID-FALTA: SIMBAD (HIP 43524); sin datos locales
+932242,hd,76323B,K: SIMBAD da HD 76323B a HIP 43680; HD 76323 es de su compañera
 932333,gaia_dr3,596915830404034944,ID-FALTA: SIMBAD (HIP 43692)
 934162,gaia_dr3,692438548768466688,ID-FALTA: SIMBAD (HIP 43766); sin datos locales
 935026,gaia_dr3,1118916397395366656,ID-FALTA: SIMBAD (Gl 325A)
@@ -361,6 +386,7 @@ hsb,campo,valor,motivo
 974741,gaia_dr3,1131554695144286464,ID-FALTA: SIMBAD (HIP 45593); sin datos locales
 975468,cns5,340,CNS5 por posición (auditoría: CNS5 por posición (0.05″; paralaje 57.91999816894531 ± 0.76 mas))
 975468,gaia_dr3,695614900422221440,ID-FALTA: SIMBAD (HIP 45617)
+975529,hd,80807B,K: SIMBAD da HD 80807B a HIP 45622; HD 80807 es de su compañera
 979516,gaia_dr3,,"el Gaia 5423525478362753024 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 982982,gaia_dr3,5310393535853560576,ID-FALTA: SIMBAD (HIP 45941); sin datos locales
 989943,gaia_dr3,695443342248789504,ID-FALTA: SIMBAD (HIP 46269); sin datos locales
@@ -368,6 +394,7 @@ hsb,campo,valor,motivo
 998162,gaia_dr3,1067989664496102016,ID-FALTA: SIMBAD (HIP 46653); sin datos locales
 998252,hd,82384,SIMBAD: el HD del objeto de HIP 46657 (antes 82383)
 1000768,gaia_dr3,5250535985379773184,ID-CONFLICTO: SIMBAD (objeto de HIP 46806)
+1002131,hd,85300B,K: SIMBAD da HD 85300B a HIP 46870; HD 85300 es de su compañera
 1005310,gaia_dr3,3852307801603406336,ID-FALTA: SIMBAD (HIP 47008); sin datos locales
 1009306,gaia_dr3,620459157493499904,ID-FALTA: SIMBAD (HIP 47196); sin datos locales
 1011519,gaia_dr3,5250741765856314112,ID-FALTA: SIMBAD (HIP 47309); sin datos locales
@@ -377,6 +404,7 @@ hsb,campo,valor,motivo
 1027074,gaia_dr3,613339647904722432,"ID-FALTA: GCNS por posición (0.04″, ΔV 0.01)"
 1027299,gaia_dr3,612958873284344448,ID-FALTA: SIMBAD (HIP 48036); sin datos locales
 1030613,gaia_dr3,,"el Gaia 5307769620053841280 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+1030613,gaia_dr3,5307769615746566144,K: el Gaia de la fila repetida HSB 100008021
 1031283,gaia_dr3,640100210441202048,ID-FALTA: SIMBAD (HIP 48218); sin datos locales
 1032464,gaia_dr3,3849562733385577216,ID-FALTA: SIMBAD (HIP 48273); sin datos locales
 1033622,gaia_dr3,796493924040231040,ID-FALTA: SIMBAD (HIP 48337); sin datos locales
@@ -410,6 +438,7 @@ hsb,campo,valor,motivo
 1095098,gaia_dr3,3779360187262505472,ID-FALTA: SIMBAD (HIP 51135); sin datos locales
 1097027,gaia_dr3,754644862217132160,ID-FALTA: SIMBAD (HIP 51233); sin datos locales
 1105603,gaia_dr3,720824812259741312,ID-FALTA: SIMBAD (HIP 51641); sin datos locales
+1106400,hd,91590B,K: SIMBAD da HD 91590B a HIP 51691; HD 91590 es de su compañera
 1110745,gaia_dr3,3807150687252116736,ID-FALTA: SIMBAD (HIP 51895); sin datos locales
 1111387,gaia_dr3,3754435186374119424,ID-FALTA: SIMBAD (HIP 51933); sin datos locales
 1112819,gaia_dr3,3754473050805940352,ID-FALTA: SIMBAD (HIP 52003); sin datos locales
@@ -422,6 +451,7 @@ hsb,campo,valor,motivo
 1120195,gaia_dr3,5200920901121351040,ID-FALTA: SIMBAD (HIP 52351); sin datos locales
 1120862,gaia_dr3,5443090089484889856,ID-FALTA: SIMBAD (HIP 52376); sin datos locales
 1121387,gaia_dr3,3857564704134866176,ID-FALTA: SIMBAD (HIP 52401); sin datos locales
+1124249,gaia_dr3,5350346970905044480,L: SIMBAD da el Gaia 5350346970905044480 a HIP 52526 y calza en brillo; tenía 5350346970887961984
 1124693,gaia_dr3,3987570065650051840,ID-CONFLICTO: SIMBAD (objeto de HIP 52551)
 1125443,gaia_dr3,3809266869178231936,ID-FALTA: SIMBAD (HIP 52584); sin datos locales
 1125880,hd,,HD 93339 es de otra estrella según SIMBAD (el objeto de HIP 52607 es HD 93340/301011)
@@ -460,7 +490,9 @@ hsb,campo,valor,motivo
 1200249,gaia_dr3,3917672599643918464,ID-FALTA: SIMBAD (HIP 56589); sin datos locales
 1200436,gaia_dr3,3966191981898180352,ID-FALTA: SIMBAD (HIP 56597); sin datos locales
 1202298,gaia_dr3,3548273698150370816,ID-FALTA: SIMBAD (HIP 56703); sin datos locales
+1205009,gaia_dr3,4018079481800791936,K: el Gaia de la fila repetida HSB 100003175
 1205804,gaia_dr3,5384905720847544192,ID-CONFLICTO: SIMBAD (objeto de HIP 56925)
+1206451,sp,A5,"I: SIMBAD da G5, que no calza con el B−V medido 0.28; el de AT-HYG (A5) sí"
 1207234,gaia_dr3,,"el Gaia 3477417870321571456 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1211063,gaia_dr3,3599733281871243648,ID-FALTA: SIMBAD (HIP 57232); sin datos locales
 1216567,gaia_dr3,3976203211363075328,ID-FALTA: SIMBAD (HIP 57565); sin datos locales
@@ -475,6 +507,7 @@ hsb,campo,valor,motivo
 1237159,gaia_dr3,4000062544966245504,"ID-FALTA: GCNS por posición (0.25″, ΔV 0.05)"
 1238710,gaia_dr3,3459624576730048256,ID-FALTA: SIMBAD (HIP 58799); sin datos locales
 1240304,gaia_dr3,3698712246315199872,ID-FALTA: SIMBAD (HIP 58908); sin datos locales
+1240318,hd,104901B,K: SIMBAD da HD 104901B a HIP 58910; HD 104901 es de su compañera
 1241103,gaia_dr3,3898448360386915328,ID-FALTA: SIMBAD (HIP 58958); sin datos locales
 1246364,gaia_dr3,3474477638789241088,ID-FALTA: SIMBAD (HIP 59259); sin datos locales
 1248777,gaia_dr3,6125076126677677952,ID-FALTA: SIMBAD (HIP 59395); sin datos locales
@@ -507,16 +540,20 @@ hsb,campo,valor,motivo
 1291812,gaia_dr3,,"el Gaia 1580102971958941824 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1293779,gaia_dr3,6129293062999434240,ID-FALTA: SIMBAD (HIP 62252); sin datos locales
 1294178,gaia_dr3,,el Gaia 1569872707752174208 es de otro objeto (POS: muy lejos y a otra distancia: el Gaia es de otro objeto)
+1294279,gaia_dr3,5837620042923708800,L: SIMBAD da el Gaia 5837620042923708800 a HIP 62289 y calza en brillo; tenía 5837620047225213824
 1297617,gaia_dr3,3523699441470095104,ID-FALTA: SIMBAD (HIP 62505)
 1297770,gaia_dr3,1579858609793019264,ID-FALTA: SIMBAD (HIP 62512); sin datos locales
 1298311,gaia_dr3,1677568531661779072,ID-FALTA: SIMBAD (HIP 62556); sin datos locales
 1300994,gaia_dr3,,"el Gaia 3705867593112140160 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+1302093,hd,111844,L: SIMBAD da HD 111844 al objeto de HIP 62782 (Hoshi tenía 111845)
+1302108,hd,111845,L: SIMBAD da HD 111845 al objeto de HIP 62783 (Hoshi tenía 111844)
 1303859,gaia_dr3,3942757338955937408,"ID-FALTA: GCNS por posición (0.34″, ΔV 0.12)"
 1304800,gaia_dr3,1576683529448755328,ID-FALTA: SIMBAD (HIP 62956); sin datos locales
 1306337,gaia_dr3,3733569548056219008,ID-FALTA: SIMBAD (HIP 63063); sin datos locales
 1307879,gaia_dr3,3497104209403939072,ID-FALTA: SIMBAD (HIP 63162); sin datos locales
 1308754,gaia_dr3,3733713476706887168,ID-FALTA: SIMBAD (HIP 63221); sin datos locales
 1309013,gaia_dr3,3690382621101804928,ID-FALTA: SIMBAD (HIP 63235); sin datos locales
+1312080,gaia_dr3,6061478209476557696,L: SIMBAD da el Gaia 6061478209476557696 a HIP 63424 y calza en brillo; tenía 6061478209481129472
 1313235,gaia_dr3,,"el Gaia 3511759775984460928 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1316956,gaia_dr3,3734262274741508992,ID-CONFLICTO: SIMBAD (objeto de HIP 63723)
 1317255,gaia_dr3,3505870654267263232,ID-FALTA: SIMBAD (HIP 63738); sin datos locales
@@ -524,6 +561,7 @@ hsb,campo,valor,motivo
 1317323,gaia_dr3,3677911582262521728,ID-FALTA: SIMBAD (HIP 63742); sin datos locales
 1317593,gaia_dr3,3511727649629434880,ID-FALTA: SIMBAD (HIP 63754); sin datos locales
 1318831,gaia_dr3,1676456238210783488,ID-FALTA: SIMBAD (HIP 63837); sin datos locales
+1322713,gl,,K: GJ 3765 está a 237 pc; la estrella de Gliese es la otra (a < 25 pc)
 1323162,gaia_dr3,3937082209690529408,ID-FALTA: SIMBAD (HIP 64113); sin datos locales
 1325157,gaia_dr3,3937881211045638400,ID-FALTA: SIMBAD (HIP 64241); sin datos locales
 1330015,gaia_dr3,5862474095280537088,ID-FALTA: SIMBAD (HIP 64537); sin datos locales
@@ -531,8 +569,10 @@ hsb,campo,valor,motivo
 1339129,cns5,9441,CNS5 por posición (auditoría: CNS5 por posición (0.06″; paralaje 55.4900016784668 ± 0.17 mas))
 1339129,gaia_dr3,6165699748417797504,ID-FALTA: SIMBAD (HIP 65109); sin datos locales
 1340295,gaia_dr3,,"el Gaia 1473661385871533568 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+1340719,gaia_dr3,3717329172901660160,L: SIMBAD da el Gaia 3717329172901660160 a HIP 65204 y calza en brillo; tenía 3717329177197429376
 1345331,gaia_dr3,1565090003967879424,ID-FALTA: SIMBAD (HIP 65477)
 1349073,gaia_dr3,6166148825901361792,ID-FALTA: SIMBAD (HIP 65671); sin datos locales
+1349610,sp,F8,"I: SIMBAD da K0, que no calza con el B−V medido 0.497; el de AT-HYG (F8) sí"
 1350027,gaia_dr3,6195051413183588480,ID-FALTA: SIMBAD (HIP 65740); sin datos locales
 1352921,gaia_dr3,6088772073787597568,ID-FALTA: SIMBAD (HIP 65906); sin datos locales
 1354459,gaia_dr3,3637598641265071488,ID-FALTA: SIMBAD (HIP 65982); sin datos locales
@@ -546,8 +586,10 @@ hsb,campo,valor,motivo
 1368778,gaia_dr3,6176184480844292736,ID-FALTA: SIMBAD (HIP 66818); sin datos locales
 1368888,gaia_dr3,1503944753599591808,ID-CONFLICTO: SIMBAD (objeto de HIP 66829)
 1369452,gaia_dr3,5864602303124552448,ID-FALTA: SIMBAD (HIP 66859); sin datos locales
+1371543,gaia_dr3,6112257264201415552,L: SIMBAD da el Gaia 6112257264201415552 a HIP 66984 y calza en brillo; tenía 6112257264193158784
 1372686,gaia_dr3,,el Gaia 1559243419606846976 es de otro objeto (POS: muy lejos y a otra distancia: el Gaia es de otro objeto)
 1377079,gaia_dr3,1510374147844219904,ID-FALTA: SIMBAD (HIP 67301); sin datos locales
+1378960,gl,GJ 3806,L: SIMBAD da GJ 3806 al objeto de HIP 67408
 1379114,gaia_dr3,6177092406867764352,ID-FALTA: SIMBAD (HIP 67419); sin datos locales
 1379155,gaia_dr3,1451450048399808384,"ID-FALTA: GCNS por posición (0.17″, ΔV 0.50)"
 1379697,gaia_dr3,6170243926896213120,ID-FALTA: SIMBAD (HIP 67457); sin datos locales
@@ -582,6 +624,7 @@ hsb,campo,valor,motivo
 1419236,gaia_dr3,,el Gaia 1477446592088319872 es de otro objeto (POS: muy lejos y a otra distancia: el Gaia es de otro objeto)
 1419303,hd,,HD 124829 es de HIP 69797 según SIMBAD
 1419401,gaia_dr3,6092787730773333248,ID-FALTA: SIMBAD (HIP 69802); sin datos locales
+1419702,gl,,K: GJ 3838 está a 411 pc; la estrella de Gliese es la otra (a < 25 pc)
 1422006,cns5,9477,CNS5 por posición (auditoría: CNS5 por posición (0.04″; paralaje 45.970001220703125 ± 1.59 mas))
 1422006,gaia_dr3,3639984066101401344,ID-FALTA: SIMBAD (HIP 69962); sin datos locales
 1424928,gaia_dr3,5849469724599671040,ID-CONFLICTO: SIMBAD (objeto de HIP 70140)
@@ -604,12 +647,16 @@ hsb,campo,valor,motivo
 1453270,gaia_dr3,1185648953539868800,ID-FALTA: SIMBAD (HIP 71795)
 1455318,gaia_dr3,1237693065130209408,ID-FALTA: SIMBAD (HIP 71914); sin datos locales
 1455618,gaia_dr3,6218673320994949248,ID-FALTA: SIMBAD (HIP 71936); sin datos locales
+1458789,hd,129989,L: SIMBAD da HD 129989 al objeto de HIP 72105 (Hoshi tenía 129988)
 1458981,gaia_dr3,1236650865545847936,ID-FALTA: SIMBAD (HIP 72116); sin datos locales
 1459510,gaia_dr3,1489843104656188544,ID-FALTA: SIMBAD (HIP 72153); sin datos locales
 1460443,gaia_dr3,6280555385889024512,ID-FALTA: SIMBAD (HIP 72217); sin datos locales
 1461734,gaia_dr3,,"el Gaia 1488516337718912768 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1462718,gaia_dr3,5878098391701351552,ID-CONFLICTO: SIMBAD (objeto de HIP 72367)
 1464682,gaia_dr3,1174934762482949504,ID-FALTA: SIMBAD (HIP 72479); sin datos locales
+1465150,gaia_dr3,6228695236338166528,K: SIMBAD da este Gaia a HIP 72509 (Gl 563.2B)
+1465150,gl,Gl 563.2B,K: SIMBAD: HIP 72509 es CD-25 10553B (Gl 563.2B)
+1465169,gl,Gl 563.2A,K: SIMBAD: HIP 72511 es CD-25 10553A (Gl 563.2A)
 1466596,gaia_dr3,3651095936770128640,ID-CONFLICTO: SIMBAD (objeto de HIP 72590)
 1467018,gaia_dr3,6309703507861332736,ID-FALTA: SIMBAD (HIP 72622); sin datos locales
 1470229,gaia_dr3,5793832576460458624,"ID-FALTA: GCNS por posición (0.13″, ΔV 0.19)"
@@ -617,8 +664,10 @@ hsb,campo,valor,motivo
 1474720,gaia_dr3,6204009413592001408,ID-FALTA: SIMBAD (HIP 73108); sin datos locales
 1475979,gaia_dr3,6232511675556408320,ID-FALTA: SIMBAD (HIP 73182); sin datos locales
 1477116,gaia_dr3,1158184012071254400,ID-FALTA: SIMBAD (HIP 73258); sin datos locales
+1482959,sp,A2,"I: SIMBAD da M9, que no calza con el B−V medido 0.677; el de AT-HYG (A2) sí"
 1485358,gaia_dr3,1156820170976482688,ID-CONFLICTO: SIMBAD (objeto de HIP 73716)
 1485512,gaia_dr3,4419473901080402304,ID-FALTA: SIMBAD (HIP 73722); sin datos locales
+1486876,gaia_dr3,5903642971705779712,L: SIMBAD da el Gaia 5903642971705779712 a HIP 73807 y calza en brillo; tenía 5903642967392021504
 1487229,gaia_dr3,5903423687854577408,ID-FALTA: SIMBAD (HIP 73833); sin datos locales
 1488625,gaia_dr3,1615767697483856768,ID-FALTA: SIMBAD (HIP 73915); sin datos locales
 1492042,gaia_dr3,4418425551104238848,ID-FALTA: SIMBAD (HIP 74106); sin datos locales
@@ -633,10 +682,13 @@ hsb,campo,valor,motivo
 1519616,gaia_dr3,1208036006713927936,ID-FALTA: SIMBAD (HIP 75653); sin datos locales
 1520879,gaia_dr3,6317854874752594048,ID-FALTA: SIMBAD (HIP 75718); sin datos locales
 1520883,gaia_dr3,1387803988895730560,ID-CONFLICTO: SIMBAD (objeto de HIP 75720)
+1526530,hd,138268B,K: SIMBAD da HD 138268B a HIP 76028; HD 138268 es de su compañera
 1526533,gaia_dr3,4417762133275591552,ID-FALTA: SIMBAD (HIP 76031); sin datos locales
 1527604,gaia_dr3,5885383794422181888,ID-FALTA: SIMBAD (HIP 76092); sin datos locales
+1527931,sp,G,"I: SIMBAD da OB+, que no calza con el B−V medido 1.021; el de AT-HYG (G) sí"
 1531253,gaia_dr3,6210363246472402816,"ID-FALTA: GCNS por posición (0.25″, ΔV 0.13)"
 1536573,gaia_dr3,1401050531326713984,"ID-FALTA: GCNS por posición (0.40″, ΔV -0.02)"
+1543184,sp,F2,"I: SIMBAD da K0, que no calza con el B−V medido 0.432; el de AT-HYG (F2) sí"
 1543652,gaia_dr3,1223128521794138496,ID-FALTA: SIMBAD (HIP 76952); sin datos locales
 1544342,gaia_dr3,,"el Gaia 1191136439979956864 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1544383,gaia_dr3,5988906181445959808,ID-FALTA: SIMBAD (HIP 76990); sin datos locales
@@ -674,6 +726,7 @@ hsb,campo,valor,motivo
 1635374,gaia_dr3,1327584600333150080,ID-FALTA: SIMBAD (HIP 81470); sin datos locales
 1645371,gaia_dr3,5927005772739090944,ID-FALTA: SIMBAD (HIP 81937); sin datos locales
 1645893,gaia_dr3,1653447101974540160,ID-FALTA: SIMBAD (HIP 81961); sin datos locales
+1647947,sp,K3/4 III,"I: SIMBAD da A2/3(V), que no calza con el B−V medido 1.596; el de AT-HYG (K3/4 III) sí"
 1648550,gaia_dr3,1408507522265656576,"ID-FALTA: GCNS por posición (0.18″, ΔV 0.09)"
 1650372,gaia_dr3,5927545491184535424,ID-FALTA: SIMBAD (HIP 82167); sin datos locales
 1653200,gaia_dr3,4130583744939189120,ID-CONFLICTO: SIMBAD (objeto de HIP 82307)
@@ -688,6 +741,7 @@ hsb,campo,valor,motivo
 1676175,gaia_dr3,5914366302446170240,ID-FALTA: SIMBAD (HIP 83363); sin datos locales
 1680754,hip,,el HIP 83568 es de otro objeto (a 22.1393″)
 1681144,gaia_dr3,,"el Gaia 4142542621814786944 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+1681916,gl,GJ 9584AB,M: SIMBAD: HIP 83608 es el sistema μ Draconis (F6V+F6V); la A es HD 154906 (Alrakis)
 1687404,hd,,HD 154907 es de HIP 83852 según SIMBAD
 1692884,gaia_dr3,5925706665403203200,ID-FALTA: SIMBAD (HIP 84067); sin datos locales
 1693271,gaia_dr3,5973163373927322880,ID-CONFLICTO: SIMBAD (objeto de HIP 84084)
@@ -712,6 +766,7 @@ hsb,campo,valor,motivo
 1745837,gaia_dr3,1434946443290069888,ID-FALTA: SIMBAD (HIP 86314); sin datos locales
 1748094,gaia_dr3,4377160604838377600,ID-FALTA: SIMBAD (HIP 86400); sin datos locales
 1754884,gaia_dr3,5961206940987571200,ID-FALTA: SIMBAD (HIP 86670); sin datos locales
+1761979,hd,161658B,K: SIMBAD da HD 161658B a HIP 86942; HD 161658 es de su compañera
 1766070,gaia_dr3,5955483050859307648,ID-FALTA: SIMBAD (HIP 87104); sin datos locales
 1767397,gaia_dr3,5774234713706054272,ID-CONFLICTO: SIMBAD (objeto de HIP 87160)
 1768485,gaia_dr3,4609010395538738304,ID-FALTA: SIMBAD (HIP 87204); sin datos locales
@@ -725,6 +780,8 @@ hsb,campo,valor,motivo
 1791674,gaia_dr3,4150413750729448320,ID-FALTA: SIMBAD (HIP 88010); sin datos locales
 1807163,gaia_dr3,6647354079827530624,ID-FALTA: SIMBAD (HIP 88510); sin datos locales
 1809610,gaia_dr3,2159264541431899648,ID-FALTA: SIMBAD (HIP 88592); sin datos locales
+1816493,sp,M9,"I: SIMBAD da O-rich, que no calza con el B−V medido 2.061; el de AT-HYG (M9) sí"
+1819020,sp,K2/3 III,"I: SIMBAD da A3(III), que no calza con el B−V medido 1.274; el de AT-HYG (K2/3 III) sí"
 1819536,gaia_dr3,,"el Gaia 4591149275824008960 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1819932,gaia_dr3,4064821099846182016,"ID-FALTA: GCNS por posición (0.04″, ΔV 0.09)"
 1820830,gaia_dr3,4470319819874781184,ID-FALTA: SIMBAD (HIP 88964); sin datos locales
@@ -735,6 +792,8 @@ hsb,campo,valor,motivo
 1852081,gaia_dr3,2266693630693936512,ID-FALTA: SIMBAD (HIP 89937); sin datos locales
 1858225,gaia_dr3,4530301305914578176,"ID-FALTA: GCNS por posición (0.19″, ΔV 0.28)"
 1868900,hip,,el HIP 90465 es de otro objeto (a 18.6178″)
+1872393,hd,170141B,K: SIMBAD da HD 170141B a HIP 90575; HD 170141 es de su compañera
+1878254,gaia_dr3,6704870976187379328,L: SIMBAD da el Gaia 6704870976187379328 a HIP 90787 y calza en brillo; tenía 6704870976188750464
 1880138,gaia_dr3,4285137563278292864,"ID-FALTA: GCNS por posición (0.10″, ΔV 0.34)"
 1883564,hd,170868,SIMBAD: el HD del objeto de HIP 90969 (antes 170867)
 1883567,hd,170867,SIMBAD: el HD del objeto de HIP 90968 (antes 170868)
@@ -748,10 +807,13 @@ hsb,campo,valor,motivo
 1913446,gaia_dr3,6735137164061432832,ID-FALTA: SIMBAD (HIP 92018); sin datos locales
 1923297,gaia_dr3,6345633280115211008,"ID-FALTA: GCNS por posición (0.12″, ΔV 0.17)"
 1925146,gaia_dr3,,"el Gaia 4530814090658118656 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+1928311,hd,174152B,K: SIMBAD da HD 174152B a HIP 92490; HD 174152 es de su compañera
+1929161,sp,F3/5 II/III,"I: SIMBAD da K2III, que no calza con el B−V medido 0.518; el de AT-HYG (F3/5 II/III) sí"
 1938761,gaia_dr3,4311983376654646656,"ID-FALTA: GCNS por posición (0.19″, ΔV -0.06)"
 1944337,gaia_dr3,2043885295914531072,"ID-FALTA: GCNS por posición (0.64″, ΔV 0.11)"
 1956800,gaia_dr3,,"el Gaia 6731199293213061632 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 1957351,gaia_dr3,6718353634443289856,ID-FALTA: SIMBAD (HIP 93465); sin datos locales
+1958061,sp,F8,"I: SIMBAD da K0, que no calza con el B−V medido 0.549; el de AT-HYG (F8) sí"
 1959401,gaia_dr3,6644315923039747968,ID-FALTA: SIMBAD (HIP 93524); sin datos locales
 1961930,gaia_dr3,2036804818991564928,ID-FALTA: SIMBAD (HIP 93615); sin datos locales
 1968557,cns5,743.1,CNS5 por posición (auditoría: CNS5 por posición (0.54″; paralaje 57.790000915527344 ± 0.75 mas))
@@ -777,6 +839,7 @@ hsb,campo,valor,motivo
 2024037,gaia_dr3,2051485704404028928,ID-CONFLICTO: SIMBAD (objeto de HIP 95679)
 2025943,gaia_dr3,6664983958503572736,ID-CONFLICTO: SIMBAD (objeto de HIP 95741)
 2044200,gaia_dr3,4296063169842657920,ID-FALTA: SIMBAD (HIP 96339); sin datos locales
+2044372,sp,A,"I: SIMBAD da K5, que no calza con el B−V medido -0.048; el de AT-HYG (A) sí"
 2055578,gaia_dr3,2289645626686624512,ID-FALTA: SIMBAD (HIP 96656); sin datos locales
 2068511,gaia_dr3,4181857103177308032,ID-FALTA: SIMBAD (HIP 97063); sin datos locales
 2068720,gaia_dr3,,"el Gaia 2134745603935667200 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
@@ -801,12 +864,15 @@ hsb,campo,valor,motivo
 2147809,gaia_dr3,1835635113568385024,ID-FALTA: SIMBAD (HIP 99523); sin datos locales
 2148934,gaia_dr3,2187996390877091072,ID-CONFLICTO: SIMBAD (objeto de HIP 99561)
 2153538,gaia_dr3,1829793683166008832,ID-CONFLICTO: SIMBAD (objeto de HIP 99717)
+2158095,sp,M0,"I: SIMBAD da G/K, que no calza con el B−V medido 1.469; el de AT-HYG (M0) sí"
 2167704,gaia_dr3,,"el Gaia 2084221361016638208 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 2169263,gaia_dr3,6696275578391882368,ID-FALTA: SIMBAD (HIP 100266); sin datos locales
 2171125,gaia_dr3,2081388160068434048,"ID-FALTA: GCNS por posición (0.21″, ΔV 0.45)"
 2171667,gaia_dr3,6475337306723609600,ID-FALTA: SIMBAD (HIP 100356); sin datos locales
 2172872,gaia_dr3,6472349246436307456,"ID-FALTA: GCNS por posición (0.34″, ΔV 0.26)"
 2173033,gaia_dr3,6695767221764909824,ID-FALTA: SIMBAD (HIP 100417); sin datos locales
+2174158,sp,M0,"I: SIMBAD da F0, que no calza con el B−V medido 1.674; el de AT-HYG (M0) sí"
+2179856,hd,194318B,K: SIMBAD da HD 194318B a HIP 100640; HD 194318 es de su compañera
 2185648,gaia_dr3,6679053481089436032,ID-FALTA: SIMBAD (HIP 100836); sin datos locales
 2191581,gaia_dr3,6668354614475469952,ID-FALTA: SIMBAD (HIP 101053); sin datos locales
 2193117,hd,,HD 195406 es de HIP 101109 según SIMBAD
@@ -817,6 +883,7 @@ hsb,campo,valor,motivo
 2198357,gaia_dr3,6679930616489650176,ID-CONFLICTO: SIMBAD (objeto de HIP 101292)
 2199925,gaia_dr3,6862797847071433088,ID-FALTA: SIMBAD (HIP 101357); sin datos locales
 2208732,gaia_dr3,1864258527965298048,ID-CONFLICTO: SIMBAD (objeto de HIP 101642)
+2211936,gaia_dr3,1810448909928688768,L: SIMBAD da el Gaia 1810448909928688768 a HIP 101769 y calza en brillo; tenía 1810448909928688640
 2212625,hd,,HD 196808 es de HIP 101804 según SIMBAD
 2216738,gaia_dr3,1735416587180214528,ID-FALTA: SIMBAD (HIP 101955); sin datos locales
 2217705,gaia_dr3,,"el Gaia 6798356093342135296 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
@@ -826,6 +893,8 @@ hsb,campo,valor,motivo
 2226187,gaia_dr3,1814257343328666624,ID-FALTA: SIMBAD (HIP 102295); sin datos locales
 2232181,cns5,9707A,CNS5 por posición (auditoría: CNS5 por posición (0.01″; paralaje 44.86000061035156 ± 0.12 mas))
 2232181,gaia_dr3,1869302503206674304,ID-FALTA: SIMBAD (HIP 102488); sin datos locales
+2232213,gaia_dr3,1762987494080694016,K: el Gaia de la fila repetida HSB 100005772
+2235018,sp,F 6 V,"I: SIMBAD da K0, que no calza con el B−V medido 0.494; el de AT-HYG (F 6 V) sí"
 2240711,gaia_dr3,2166458435560706816,ID-CONFLICTO: SIMBAD (objeto de HIP 102827)
 2240789,gaia_dr3,,"el Gaia 6913517223245165696 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 2241339,gaia_dr3,1858219151114884352,ID-CONFLICTO: SIMBAD (objeto de HIP 102851)
@@ -836,6 +905,7 @@ hsb,campo,valor,motivo
 2252100,gaia_dr3,1845833599295880704,ID-FALTA: SIMBAD (HIP 103247); sin datos locales
 2260484,gaia_dr3,1731592451377575040,ID-FALTA: SIMBAD (HIP 103569); sin datos locales
 2260507,gaia_dr3,,"el Gaia 1731592451377571712 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
+2265643,sp,F5II,"I: SIMBAD da K2III+F, que no calza con el B−V medido 0.51; el de AT-HYG (F5II) sí"
 2268590,gaia_dr3,6801284127165143296,ID-FALTA: SIMBAD (HIP 103902); sin datos locales
 2271075,gaia_dr3,,"el Gaia 1840920427283627008 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 2271089,hip,,el HIP 104013 es de otro objeto (a 18.2396″)
@@ -888,11 +958,13 @@ hsb,campo,valor,motivo
 2389094,gaia_dr3,6560604777055249536,ID-FALTA: SIMBAD (HIP 109268); sin datos locales
 2389235,gaia_dr3,1783352270492939008,ID-FALTA: SIMBAD (HIP 109281); sin datos locales
 2392548,gaia_dr3,2720428303852574336,ID-FALTA: SIMBAD (HIP 109427); sin datos locales
+2397007,hd,211300B,K: SIMBAD da HD 211300B a HIP 109657; HD 211300 es de su compañera
 2397588,gaia_dr3,2613186028487827840,ID-FALTA: SIMBAD (HIP 109695); sin datos locales
 2410528,hip,,el HIP 110326 es de otro objeto (a 12.8397″)
 2410535,gaia_dr3,6351706879267062784,ID-CONFLICTO: SIMBAD (objeto de HIP 110329)
 2414587,gaia_dr3,,"el Gaia 6628502987323579904 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
 2420392,gaia_dr3,2707385278448285696,ID-FALTA: SIMBAD (HIP 110785); sin datos locales
+2422130,sp,A0,"I: SIMBAD da G5, que no calza con el B−V medido -0.014; el de AT-HYG (A0) sí"
 2425419,gaia_dr3,6621985563430785664,ID-FALTA: SIMBAD (HIP 111045); sin datos locales
 2425557,gaia_dr3,6602157108174174720,ID-FALTA: SIMBAD (HIP 111051); sin datos locales
 2426962,gaia_dr3,2737747467415920256,ID-FALTA: SIMBAD (HIP 111125); sin datos locales
@@ -901,6 +973,8 @@ hsb,campo,valor,motivo
 2434525,gaia_dr3,6545283632276908032,ID-CONFLICTO: SIMBAD (objeto de HIP 111500)
 2434883,gaia_dr3,6620882890706789248,ID-FALTA: SIMBAD (HIP 111520); sin datos locales
 2434955,gaia_dr3,2002988445525788032,ID-FALTA: SIMBAD (HIP 111528); sin datos locales
+2435198,hd,214167,L: SIMBAD da HD 214167 al objeto de HIP 111544 (Hoshi tenía 214168)
+2435202,hd,214168,L: SIMBAD da HD 214168 al objeto de HIP 111546 (Hoshi tenía 214167)
 2435611,gaia_dr3,2231007778225666944,ID-FALTA: SIMBAD (HIP 111570); sin datos locales
 2437730,gaia_dr3,1876923768033797504,ID-FALTA: SIMBAD (HIP 111680); sin datos locales
 2438511,gaia_dr3,,"el Gaia 6392188629658709888 es de otro objeto (MAG/COLOR: más de 1,5 mag: no es el mismo objeto o es un par sin resolver)"
@@ -964,11 +1038,28 @@ hsb,campo,valor,motivo
 2550422,gaia_dr3,1927184643563033856,ID-FALTA: SIMBAD (HIP 118212); sin datos locales
 2550981,hip,,el HIP 118240 es de otro objeto (a 62.4665″)
 9000475,gaia_dr3,44838019758175488,"DIST-SIN-MEDIDA: Gaia DR3 44838019758175488 (por posición) (G 13.32, RUWE 1.306302): 14.543 ± 0.042 mas (0 %)"
+100000056,gaia_dr3,2545410413764365952,L: intercambio con HIP 1082: esta compañera tenía el Gaia de la primaria
+100000250,gaia_dr3,2359083771708433024,L: intercambio con HIP 4711: esta compañera tenía el Gaia de la primaria
+100001193,gaia_dr3,3281945902861450624,L: intercambio con HIP 22067: esta compañera tenía el Gaia de la primaria
+100002026,igual_a,719018,O: la fila Gl 274B de AT-HYG v4.0 tenía el Gaia de la A: es la misma estrella
+100002308,igual_a,876566,"K: misma estrella que HIP 41487 (a < 0,6″; SIMBAD lo confirma)"
 100002848,hd,,HD 90034 es de HIP 50804 según SIMBAD
+100003175,igual_a,1205009,"K: misma estrella que HIP 56878 (a < 0,6″; SIMBAD lo confirma)"
+100003463,gaia_dr3,5837620047225213824,L: intercambio con HIP 62289: esta compañera tenía el Gaia de la primaria
 100003545,gaia_dr3,1460331868969814400,ID-CONFLICTO: SIMBAD (objeto de HIP 63667)
+100003545,tmass,13025414+2623277,L: SIMBAD y el vecino oficial de su Gaia dan este 2MASS
+100003633,gaia_dr3,3717329177197429376,L: intercambio con HIP 65204: esta compañera tenía el Gaia de la primaria
+100004126,gaia_dr3,5903642967392021504,L: intercambio con HIP 73807: esta compañera tenía el Gaia de la primaria
+100004925,gl,,K: GJ 4036 está a 523 pc; la estrella de Gliese es la otra (a < 25 pc)
+100005106,gaia_dr3,6704870976188750464,L: intercambio con HIP 90787: esta compañera tenía el Gaia de la primaria
+100005772,igual_a,2232213,"K: misma estrella que HIP 102490 (a < 0,6″; SIMBAD lo confirma)"
 100006542,hd,,HD 221551 es de HIP 116263 según SIMBAD
+100006658,gl,GJ 4384B,"K: la componente más débil de GJ 4384 (a 2,1″) es la B"
+100008021,igual_a,1030613,"K: misma estrella que HIP 48190 (a < 0,6″; SIMBAD lo confirma)"
+100008705,igual_a,1465150,K: la fila de CNS5 Gl 563.2B es HIP 72509 (mismo Gaia según SIMBAD)
 100068641,igual_a,68701,el Gaia 417387911124329472 del lote-2026-11-07 es el de HSB 68701 (corrección de enlace)
 100071637,igual_a,81540,el Gaia 426620514560103552 del lote-2026-11-07 es el de HSB 81540 (corrección de enlace)
+100175621,igual_a,100003545,el Gaia 1460331868969814400 del lote-2026-11-07 es el de HSB 100003545 (corrección de enlace)
 100180520,igual_a,1261135,el Gaia 1572620559108017536 del lote-2026-11-07 es el de HSB 1261135 (corrección de enlace)
 100208810,igual_a,101346166,el Gaia 1814257339029589248 del lote-2026-11-07 es el de HSB 101346166 (corrección de enlace)
 100240799,igual_a,2529882,el Gaia 1943854957830988672 del lote-2026-11-07 es el de HSB 2529882 (corrección de enlace)
@@ -1000,6 +1091,7 @@ hsb,campo,valor,motivo
 101238156,igual_a,1880138,el Gaia 4285137563278292864 del lote-2026-11-07 es el de HSB 1880138 (corrección de enlace)
 101242568,igual_a,1730736,el Gaia 4389342781353724928 del lote-2026-11-07 es el de HSB 1730736 (corrección de enlace)
 101255075,igual_a,96204,el Gaia 4692263148249862016 del lote-2026-11-07 es el de HSB 96204 (corrección de enlace)
+101298995,igual_a,100004907,"K: segunda fuente de Gaia de HSB 100004907 (a 0,49″, RUWE 3,8)"
 101301003,igual_a,1424928,el Gaia 5849469724599671040 del lote-2026-11-07 es el de HSB 1424928 (corrección de enlace)
 101301716,igual_a,1368732,el Gaia 5865694736636774016 del lote-2026-11-07 es el de HSB 1368732 (corrección de enlace)
 101304603,igual_a,1608335,el Gaia 5932241509752072576 del lote-2026-11-07 es el de HSB 1608335 (corrección de enlace)

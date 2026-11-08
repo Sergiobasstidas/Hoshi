@@ -7,6 +7,10 @@
 //   hip, hd   número de Hipparcos o Henry Draper (vacío: se quita)
 //   cns5      fila de CNS5 (gj_id + componente) para la escalera de distancias
 //   igual_a   la estrella es la misma que otra del registro: queda «retirada» apuntando a esa
+//   gl, tmass nombre de Gliese o designación 2MASS (vacío: se quita)
+//   nombre    nombre propio de la estrella en la app
+//   sp        tipo espectral (cuando el de SIMBAD no calza con el color medido y otro sí)
+//   posicion  «gaia»: la posición es la de su Gaia en J2000 aunque esté a más de 10″ (enlace comprobado)
 import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 
@@ -29,7 +33,11 @@ export function enlacesPorEstrella(filas = leerEnlaces()) {
 export function corregirFila(fila, c) {
   if (!c) return false;
   if ('gaia_dr3' in c) { fila.gaia_dr3 = c.gaia_dr3; fila.gaia_revisar = c.gaia_dr3 ? '' : '1'; }
-  for (const campo of ['hip', 'hd', 'cns5', 'igual_a']) if (campo in c) fila[campo] = c[campo];
+  for (const campo of ['hip', 'hd', 'cns5', 'igual_a', 'gl', 'tmass']) if (campo in c) fila[campo] = c[campo];
+  if ('nombre' in c) { fila.nombre = c.nombre; fila.nombreCorregido = true; }
+  if ('sp' in c) fila.spCorregido = c.sp;
+  if ('posicion' in c) fila.posicion = c.posicion;
+  if ('tmass' in c) fila.tmassCorregido = c.tmass;
   if (c.igual_a) fila.estado = 'retirada';
   return true;
 }

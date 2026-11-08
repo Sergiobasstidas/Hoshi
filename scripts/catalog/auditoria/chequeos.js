@@ -61,6 +61,7 @@ export function auditar(D, { simbadHip, simbadGj, separaciones }) {
   }
   const sistemaDe = s => enSistema.get(s.i)?.sistema ?? (D.registro.get(s.i)?.primaria_hsb ? Number(D.registro.get(s.i).primaria_hsb) : s.i);
   const anfitriona = new Map(D.exo.filter(e => e.i !== null && e.i !== undefined).map(e => [e.i, e]));
+  const fuentesCuradas = new Set([...D.curadas.values()].map(c => c.fuente));
 
   // ---------- Identificadores repetidos dentro del catálogo ----------
   const usos = { hip: new Map(), hd: new Map(), gl: new Map(), gaia: new Map(), tmass: new Map() };
@@ -214,7 +215,7 @@ export function auditar(D, { simbadHip, simbadGj, separaciones }) {
         dif(s, 'ID-CONFLICTO', `${dato} según SIMBAD`, { valor_actual: actual, fuente_actual: 'registro HSB', valor_propuesto: [...conjunto].join(' / '), fuente_propuesta: `SIMBAD (objeto de HIP ${r.hip})`,
           regla: doble ? 'sistema múltiple: SIMBAD puede dar el identificador a otra componente' : 'los identificadores de una estrella deben ser del mismo objeto en SIMBAD', veredicto: doble ? 'Decide Sergio' : 'Enlace malo' });
       };
-      comparar('HD', r.hd ? r.hd.replace(/\s+/g, '') : '', new Set([...sim.hd].map(x => x.replace(/[A-Z]$/, ''))));
+      comparar('HD', r.hd ? r.hd.replace(/\s+/g, '') : '', new Set([...sim.hd, ...[...sim.hd].map(x => x.replace(/[A-Z]$/, ''))]));
       const gp = glPartes(r.gl);
       if (gp && sim.gj.size && ![...sim.gj].some(x => x.replace(/[A-Z]+$/, '') === gp.numero)) comparar('GJ', gp.numero + gp.comp, sim.gj);
       comparar('Gaia DR3', r.gaia_dr3, sim.gaia);
@@ -302,7 +303,8 @@ export function auditar(D, { simbadHip, simbadGj, separaciones }) {
     }
     const mejor = medidas.filter(m => m.ok).sort((a, b) => a.rango - b.rango)[0];
     const usada = f.fuente_d || '';
-    const rangoUsado = cur ? 0 : usada === 'Gaia DR3' ? 1 : usada.startsWith('Hipparcos') ? 2 : usada.startsWith('CNS5') ? 3 : usada.startsWith('sistema') ? -1 : 5;
+    // La distancia curada de otra componente del sistema también cuenta como curada (distancia_sistemas.js).
+    const rangoUsado = cur || fuentesCuradas.has(usada) ? 0 : usada === 'Gaia DR3' ? 1 : usada.startsWith('Hipparcos') ? 2 : usada.startsWith('CNS5') ? 3 : usada.startsWith('sistema') ? -1 : 5;
     const gaiaMala = usada === 'Gaia DR3' ? medidas.find(m => m.fuente === 'Gaia DR3' && !m.ok) : null;
     const etiquetaGaia = m => `Gaia DR3 (G ${m.G?.toFixed(2)}, RUWE ${m.ruwe ?? '?'}${r.gaia_revisar ? ', en duda' : ''})`;
     if (rangoUsado !== -1 && mejor && mejor.rango < rangoUsado) {
@@ -486,7 +488,7 @@ export function auditarCapa(D) {
   for (const [id, capas] of dibujadas) {
     if (capas.length > 1) fila(id, 'DUPLICADO', 'capa: misma fuente dos veces', { valor_actual: capas.join(' y '), regla: 'una fuente de Gaia se dibuja una vez', veredicto: 'Corregir' });
     // Como build_estrellas: no se dibujan las enlazadas con una estrella del catálogo ni el Gaia DR3 de una.
-    if (enCatalogo.has(id) || D.porId.has(D.enlazadasCapa.get(id))) continue;
+    if (enCatalogo.has(id) || D.porId.has(D.enlazadasCapa.get(id)) || D.porId.has(D.igualA.get(D.hsbDeGaia.get(id)))) continue;
     const o = D.gcns.get(id) || D.gaia1m.get(id);
     if (!o) continue;
     if (o.err > 0 && o.err / o.plx > UMBRAL.errorMax) { error++; fila(id, 'CAPA-REGLA', 'error de paralaje', { valor_actual: `${o.plx.toFixed(3)} ± ${o.err.toFixed(3)} mas`, regla: 'error de paralaje > 10 %', veredicto: 'Decide Sergio' }); }
