@@ -6,6 +6,7 @@ import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange, SUN_RADIUS_PC, solarDistance 
 import { PLANET_TEXTURES, bodyAxes } from './planetTextures';
 import StellarSurface from './StellarSurface';
 import TierraSuperficie from './TierraSuperficie';
+import { cargaInicial } from '../progresoCarga';
 import { MOON } from './solarBodies';
 import { EPHEMERIS_DATE, planetOrbitLocal, planetPosition } from './solarEphemeris';
 import OrbitLine from './OrbitLine';
@@ -47,11 +48,15 @@ function bodyQuaternion(texture) {
 // la 2k al alejarse un poco no ahorra nada (la 4k ya está en memoria) y se notaría el cambio.
 const RADIO_CERCA_PX = 180;
 
-function Superficie({ texture, cerca, luz }) {
+// Radio en pantalla (px) desde el que la Tierra pide nubes, luces nocturnas y mapa especular; solo después de
+// la carga inicial, para que no retrasen la barra. De lejos basta el mapa de día.
+const RADIO_DETALLE_PX = 20;
+
+function Superficie({ texture, cerca, detalle, luz }) {
   if (texture.nubes) {
     const version = cerca ? 'cerca' : 'lejos';
     return <TierraSuperficie luz={luz} mapas={{ dia: cerca ? texture.urlCerca : texture.url,
-      nubes: texture.nubes[version], noche: texture.noche[version], especular: texture.especular[version] }} />;
+      ...(detalle && { nubes: texture.nubes[version], noche: texture.noche[version], especular: texture.especular[version] }) }} />;
   }
   return <PlanetSurface url={cerca ? texture.urlCerca : texture.url} />;
 }
@@ -69,19 +74,22 @@ function PhysicalBody({ position, radiusPc, color, texture }) {
   }, [position, quaternion, texture]);
   const meshRef = useRef();
   const [cerca, setCerca] = useState(false);
+  const [detalle, setDetalle] = useState(false);
   const centro = useMemo(() => new THREE.Vector3(), []);
   useFrame(({ camera, size }) => {
-    if (cerca || !texture?.urlCerca || !meshRef.current) return;
+    const faltaCerca = !cerca && texture?.urlCerca, faltaDetalle = !detalle && texture?.nubes && cargaInicial.lista;
+    if ((!faltaCerca && !faltaDetalle) || !meshRef.current) return;
     const distancia = meshRef.current.getWorldPosition(centro).distanceTo(camera.position);
     const radioPx = radiusPc / distancia * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
-    if (radioPx > RADIO_CERCA_PX) setCerca(true);
+    if (faltaCerca && radioPx > RADIO_CERCA_PX) setCerca(true);
+    if (faltaDetalle && radioPx > RADIO_DETALLE_PX) setDetalle(true);
   });
   return <mesh ref={meshRef} position={position} scale={radiusPc} {...orientation}>
     <sphereGeometry args={texture ? [1, 96, 64] : [1, 64, 48]} />
     {texture ? <Suspense fallback={<meshLambertMaterial color={color} toneMapped={false} />}>
         {/* La 2k queda de reemplazo mientras baja la 4k: no hay parpadeo a color plano. */}
-        <Suspense fallback={<Superficie texture={texture} luz={luz} cerca={false} />}>
-          <Superficie texture={texture} luz={luz} cerca={cerca} />
+        <Suspense fallback={<Superficie texture={texture} luz={luz} cerca={false} detalle={false} />}>
+          <Superficie texture={texture} luz={luz} cerca={cerca} detalle={detalle} />
         </Suspense>
       </Suspense> : <meshLambertMaterial color={color} toneMapped={false} />}
   </mesh>;

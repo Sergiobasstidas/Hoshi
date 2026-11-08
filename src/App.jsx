@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useProgress } from '@react-three/drei';
-import { progresoCarga } from './progresoCarga';
+import { cargaInicial, progresoCarga } from './progresoCarga';
 import * as THREE from 'three';
 import datosOficiales from '../data/processed/stellar_official.json';
 import systemsUrl from '../data/processed/star_systems.json?url';
@@ -139,14 +139,19 @@ const START_POSITION = START_DIRECTION.clone().multiplyScalar(INITIAL_VIEW.dista
 
 // Avisa a la pantalla de carga (index.html) cuando todo está listo: catálogo de estrellas
 // recibido, sin texturas pendientes (Tierra, planetas, Luna) y dos cuadros ya dibujados con ellos.
+// Respaldo: si en este tiempo no se pidió ninguna textura, la carga sigue sin esperarlas.
+const SIN_TEXTURAS_MS = 6000;
 function SceneReady({ catalogueReady }) {
   const frames = useRef(0);
   const { active, loaded, total } = useProgress();
-  const texturesReady = !active && loaded >= total;
+  // Con total = 0 todavía no se pidió ninguna textura: no cuentan como listas (la barra saltaba a 40 % al inicio).
+  const [sinTexturas, setSinTexturas] = useState(false);
+  useEffect(() => { const espera = setTimeout(() => setSinTexturas(true), SIN_TEXTURAS_MS); return () => clearTimeout(espera); }, []);
+  const texturesReady = !active && (total > 0 ? loaded >= total : sinTexturas);
   useEffect(() => { progresoCarga('texturas', texturesReady ? 1 : total ? loaded / total : 0); }, [texturesReady, loaded, total]);
   useFrame(() => {
     if (!catalogueReady || !texturesReady) { frames.current = 0; return; }
-    if (++frames.current === 2) window.hoshiCargaLista?.();
+    if (++frames.current === 2) { cargaInicial.lista = true; window.hoshiCargaLista?.(); }
   });
   return null;
 }
@@ -177,11 +182,14 @@ export default function App() {
     // Todas las estrellas vienen de public/data/estrellas.bin: el catálogo se entrega apenas llega y la capa después.
     let entregarCatalogo, fallarCatalogo;
     const estrellas = new Promise((resolve, reject) => { entregarCatalogo = resolve; fallarCatalogo = reject; });
-    cargarEstrellas({ alCatalogo: entregarCatalogo, alCapa: capa => { if (active) setCapaEstrellas(capa); } })
+    // La barra de carga avanza con los bytes del catálogo de estrellas (el archivo más pesado) y con la
+    // llegada de los sistemas y los planetas: un tercio cada uno.
+    const avance = [0, 0, 0];
+    const informar = (k, valor) => { avance[k] = Math.max(avance[k], valor); progresoCarga('catalogo', (avance[0] + avance[1] + avance[2]) / 3); };
+    cargarEstrellas({ alCatalogo: entregarCatalogo, alCapa: capa => { if (active) setCapaEstrellas(capa); }, alProgreso: valor => informar(0, valor) })
       .catch(error => { fallarCatalogo(error); console.warn('Capa de estrellas no disponible:', error.message); });
     const partes = [estrellas, json(systemsUrl), planets];
-    let recibidas = 0;
-    partes.forEach(parte => parte.then(() => progresoCarga('catalogo', ++recibidas / partes.length), () => {}));
+    partes.forEach((parte, k) => parte.then(() => informar(k, 1), () => {}));
     Promise.all(partes)
       .then(([stars, systems, planets]) => { if (active) { setCatalogue({ catalogue: stars, systems, planets }); setCatalogueStatus('ready'); } })
       .catch(() => { if (active) setCatalogueStatus('error'); });

@@ -40,7 +40,8 @@ export async function cargarEstrellas({ alCatalogo, alCapa, alProgreso } = {}) {
       catalogoListo = true;
       alCatalogo?.(leerCatalogo(unir(trozos, recibidos)).estrellas);
     }
-    if (necesarios) alProgreso?.(Math.min(1, recibidos / (necesarios + 8 * cabecera.nCapa)));
+    // Avance hasta tener el catálogo (lo que espera la pantalla de carga), no hasta el final de la capa.
+    if (necesarios) alProgreso?.(Math.min(1, recibidos / necesarios));
     if (done) break;
   }
   const buffer = unir(trozos, recibidos);

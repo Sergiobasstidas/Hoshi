@@ -59,8 +59,11 @@ void main() {
 }`;
 
 const camaraLocal = new THREE.Vector3();
+// Sin nubes, luces ni mapa especular (de lejos o mientras bajan), el sombreador los lee en negro: queda el día solo.
+const NEGRO = (() => { const t = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); t.needsUpdate = true; return t; })();
 
-// `mapas`: urls de día, nubes, noche y especular; `luz`: dirección hacia el Sol en el marco de la esfera.
+// `mapas`: urls de día y, si ya corresponden, de nubes, noche y especular; `luz`: dirección hacia el Sol en el
+// marco de la esfera.
 export default function TierraSuperficie({ mapas, luz }) {
   const gl = useThree(state => state.gl);
   const configurar = useCallback(cargadas => {
@@ -80,8 +83,8 @@ export default function TierraSuperficie({ mapas, luz }) {
     }
     const nuevo = new THREE.ShaderMaterial({
       uniforms: {
-        dia: { value: texturas.dia }, nubes: { value: texturas.nubes }, noche: { value: texturas.noche },
-        especular: { value: texturas.especular }, luz: { value: new THREE.Vector3(...luz) }, camara: { value: new THREE.Vector3() },
+        dia: { value: texturas.dia }, nubes: { value: texturas.nubes ?? NEGRO }, noche: { value: texturas.noche ?? NEGRO },
+        especular: { value: texturas.especular ?? NEGRO }, luz: { value: new THREE.Vector3(...luz) }, camara: { value: new THREE.Vector3() },
       },
       vertexShader: VERTICES, fragmentShader: FRAGMENTOS, toneMapped: false,
     });
