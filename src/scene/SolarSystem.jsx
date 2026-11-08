@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { AU_TO_PC, KM_TO_PC, PLANETS, smoothRange, SUN_RADIUS_PC, solarDistance } from './scale';
 import { PLANET_TEXTURES, bodyAxes } from './planetTextures';
 import StellarSurface from './StellarSurface';
+import TierraSuperficie from './TierraSuperficie';
 import { MOON } from './solarBodies';
 import { EPHEMERIS_DATE, planetOrbitLocal, planetPosition } from './solarEphemeris';
 import OrbitLine from './OrbitLine';
@@ -42,14 +43,46 @@ function bodyQuaternion(texture) {
     new THREE.Vector3(...x), new THREE.Vector3(...y), new THREE.Vector3(...z)));
 }
 
+// Radio en pantalla (px) a partir del cual se carga la textura 4k. Una vez cargada se queda: volver a
+// la 2k al alejarse un poco no ahorra nada (la 4k ya está en memoria) y se notaría el cambio.
+const RADIO_CERCA_PX = 180;
+
+function Superficie({ texture, cerca, luz }) {
+  if (texture.nubes) {
+    const version = cerca ? 'cerca' : 'lejos';
+    return <TierraSuperficie luz={luz} mapas={{ dia: cerca ? texture.urlCerca : texture.url,
+      nubes: texture.nubes[version], noche: texture.noche[version], especular: texture.especular[version] }} />;
+  }
+  return <PlanetSurface url={cerca ? texture.urlCerca : texture.url} />;
+}
+
 function PhysicalBody({ position, radiusPc, color, texture }) {
   // Con polo y giro declarados, la esfera muestra la cara que mira al Sol en la fecha de carga.
   const quaternion = useMemo(() => texture?.pole && texture?.spin ? bodyQuaternion(texture) : undefined, [texture]);
   const orientation = quaternion ? { quaternion } : texture ? { rotation: [Math.PI / 2, 0, 0] } : {};
-  return <mesh position={position} scale={radiusPc} {...orientation}>
+  // Dirección hacia el Sol (origen del sistema solar) en el marco propio de la esfera.
+  const luz = useMemo(() => {
+    const haciaSol = new THREE.Vector3(...position).normalize().negate();
+    if (quaternion) haciaSol.applyQuaternion(quaternion.clone().invert());
+    else if (texture) haciaSol.applyEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+    return haciaSol.toArray();
+  }, [position, quaternion, texture]);
+  const meshRef = useRef();
+  const [cerca, setCerca] = useState(false);
+  const centro = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera, size }) => {
+    if (cerca || !texture?.urlCerca || !meshRef.current) return;
+    const distancia = meshRef.current.getWorldPosition(centro).distanceTo(camera.position);
+    const radioPx = radiusPc / distancia * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
+    if (radioPx > RADIO_CERCA_PX) setCerca(true);
+  });
+  return <mesh ref={meshRef} position={position} scale={radiusPc} {...orientation}>
     <sphereGeometry args={texture ? [1, 96, 64] : [1, 64, 48]} />
     {texture ? <Suspense fallback={<meshLambertMaterial color={color} toneMapped={false} />}>
-        <PlanetSurface url={texture.url} />
+        {/* La 2k queda de reemplazo mientras baja la 4k: no hay parpadeo a color plano. */}
+        <Suspense fallback={<Superficie texture={texture} luz={luz} cerca={false} />}>
+          <Superficie texture={texture} luz={luz} cerca={cerca} />
+        </Suspense>
       </Suspense> : <meshLambertMaterial color={color} toneMapped={false} />}
   </mesh>;
 }
@@ -62,6 +95,7 @@ const orbitEndsFade = count => Float32Array.from({ length: count * 3 }, (_, k) =
 function Planet({ planet, origin, tragada }) {
   const orbitRef = useRef();
   const { center, points } = useMemo(() => planetOrbitLocal(planet.name), [planet]);
+  const position = useMemo(() => planetPosition(planet.name), [planet]);
   // La trayectoria real de un período no cierra (en Neptuno quedan ≈ 0,1 UA entre los extremos, por
   // el vaivén del Sol): sus extremos, del lado opuesto al planeta, se apagan en el último 0,5 % (menos de 2° de la vuelta), sin hueco visible de lejos.
   const fade = useMemo(() => orbitEndsFade(points.length / 3), [points]);
@@ -91,7 +125,7 @@ function Planet({ planet, origin, tragada }) {
   });
   return <group>
     <group position={center}><OrbitLine ref={orbitRef} points={points} colors={fade} variant="fina" /></group>
-    <PhysicalBody position={planetPosition(planet.name)} radiusPc={planet.radiusKm * KM_TO_PC}
+    <PhysicalBody position={position} radiusPc={planet.radiusKm * KM_TO_PC}
       color={planet.color} texture={PLANET_TEXTURES[planet.name]} />
   </group>;
 }
