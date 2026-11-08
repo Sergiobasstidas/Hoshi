@@ -32,19 +32,37 @@ for (const lote of fs.readdirSync('data/catalog/hsb_gaia').filter(f => f.endsWit
   for (const l of zlib.gunzipSync(fs.readFileSync(`data/catalog/hsb_gaia/${lote}`)).toString('utf8').split('\n').slice(1)) { const c = l.split(','); if (c[1] && !deGaia.has(c[1])) deGaia.set(c[1], Number(c[0])); }
 }
 const igualA = new Map(fs.readFileSync('data/catalog/hsb_enlaces.csv', 'utf8').split('\n').slice(1).map(l => l.split(',')).filter(c => c[1] === 'igual_a').map(c => [Number(c[0]), Number(c[2])]));
-const fuentesCapa = zlib.gunzipSync(fs.readFileSync('data/catalog/gaia_capa_orden.txt.gz')).toString('utf8').trim().split('\n');
-const enlazadasAlCatalogo = fuentesCapa.filter(g => idsCatalogo.has(enlazadas.get(g)) || idsCatalogo.has(deGaia.get(g)) || idsCatalogo.has(igualA.get(deGaia.get(g)))).length;
+const alCatalogo = g => idsCatalogo.has(enlazadas.get(g)) || idsCatalogo.has(deGaia.get(g)) || idsCatalogo.has(igualA.get(deGaia.get(g)));
+const capa = leerCapa(buffer, cabecera, inicioCapa);
+const antes = leerGaia(abrir('data/processed/gaia-1m.bin'));
+
+// El orden de las fuentes de la capa (data/catalog/gaia_capa_orden.txt.gz) lo escribe process_gaia.js y no se guarda en
+// el repositorio: sin él (por ejemplo, en un checkout limpio) no se puede contar cuáles se quitaron.
+const ORDEN = 'data/catalog/gaia_capa_orden.txt.gz';
+test('la capa quita exactamente las fuentes enlazadas a una estrella del catálogo',
+  { skip: !fs.existsSync(ORDEN) && `falta ${ORDEN} (derivado ignorado; se genera con npm run catalogo)` }, () => {
+    const fuentesCapa = zlib.gunzipSync(fs.readFileSync(ORDEN)).toString('utf8').trim().split('\n');
+    assert.equal(fuentesCapa.length, antes.n);
+    assert.equal(capa.n, antes.n - fuentesCapa.filter(alCatalogo).length);
+  });
+
+test('ninguna fuente dibujada en la capa está enlazada a una estrella del catálogo', () => {
+  const gaiaDeLote = new Map();
+  for (const lote of fs.readdirSync('data/catalog/hsb_gaia').filter(f => f.endsWith('.csv.gz'))) {
+    for (const l of zlib.gunzipSync(fs.readFileSync(`data/catalog/hsb_gaia/${lote}`)).toString('utf8').split('\n').slice(1)) { const c = l.split(','); if (c[1]) gaiaDeLote.set(Number(c[0]), c[1]); }
+  }
+  const hsb = new Uint32Array(abrir('public/data/estrellas-hsb.bin'));
+  const malas = [...hsb].filter(h => gaiaDeLote.has(h) && alCatalogo(gaiaDeLote.get(h)));
+  assert.equal(malas.length, 0, `fuentes dibujadas que ya son una estrella del catálogo: ${malas.slice(0, 10).join(', ')}`);
+});
 
 test('la capa de fondo conserva magnitud y color, y su posición se mueve muy poco', () => {
-  const capa = leerCapa(buffer, cabecera, inicioCapa);
-  const antes = leerGaia(abrir('data/processed/gaia-1m.bin'));
-  assert.equal(capa.n, antes.n - enlazadasAlCatalogo);
   // Mismos (magnitud, color) en otro orden, menos las fuentes que ya son una estrella del catálogo.
   const histo = (m, c) => { const h = new Uint32Array(65536); for (let k = 0; k < m.length; k++) h[(m[k] << 8) | c[k]]++; return h; };
   const ahora = histo(capa.magnitudes, capa.colores), previo = histo(antes.magnitudes, antes.colores);
   let faltan = 0;
   for (let k = 0; k < 65536; k++) { assert.ok(ahora[k] <= previo[k]); faltan += previo[k] - ahora[k]; }
-  assert.equal(faltan, enlazadasAlCatalogo);
+  assert.equal(faltan, antes.n - capa.n);
   const pos = posicionesCapa(capa, [0, 0, 0]);
   // Celdas de hasta 4.096 estrellas y 256 pc de lado: el error es como mucho medio paso (lado / 65535) por eje.
   for (const [, , , lado, primera, cantidad] of capa.celdas) {
