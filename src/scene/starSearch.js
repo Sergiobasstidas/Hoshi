@@ -67,5 +67,20 @@ export function searchStars(index, query, limit=8) {
     }
     if(Number.isFinite(score)) matches.push({...item,score,matched});
   }
+  if(!matches.some(m=>m.score===0)) matches.push(...porComponente(index,query,key,matches));
   return matches.sort((a,b)=>a.score-b.score || a.aliases[0].localeCompare(b.aliases[0])).slice(0,limit);
+}
+
+// «HD 37525Ab», «HIP 26579 B»: si ninguna estrella tiene ese nombre, se ofrece la del sistema (HD 37525).
+const CATALOGO_CON_COMPONENTE = /^(hd|hip|hr|gl|sao|hic|ads)(\d+)([a-z]{1,3})$/;
+function porComponente(index, query, key, yaEstan) {
+  const partes = CATALOGO_CON_COMPONENTE.exec(key);
+  if (!partes) return [];
+  // Una sola minúscula al final es un planeta (HD 209458 b): lo busca la lista de cuerpos, no esta.
+  const letras = /([a-z]+)[^a-z]*$/i.exec(query)?.[1];
+  if (!letras || /^[a-z]$/.test(letras)) return [];
+  const sistema = partes[1] + partes[2];
+  const vistos = new Set(yaEstan.map(m => m.id));
+  return index.filter(item => !vistos.has(item.id) && item.keys.includes(sistema))
+    .map(item => ({ ...item, score: 0.5, matched: item.aliases[item.keys.indexOf(sistema)] }));
 }

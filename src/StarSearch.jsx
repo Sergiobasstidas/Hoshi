@@ -64,7 +64,7 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
       }} />
     {/* Sin texto suficiente no se abre la lista: no hace falta pedir más letras. */}
     {open&&(error||!index||query.trim().length>=2)&&<div className="search-dropdown">
-      <div role="status">{error?'No se pudo cargar.':!index?'Cargando catálogo…':results.length?`${results.length} sugerencias`:'Sin coincidencias: el catálogo local no contiene todas las estrellas ni todos sus nombres'}</div>
+      <div role="status">{error?'No se pudo cargar.':!index?'Cargando catálogo…':results.length?`${results.length} ${results.length===1?'sugerencia':'sugerencias'}`:'Sin coincidencias: el catálogo local no contiene todas las estrellas ni todos sus nombres'}</div>
       {error&&<button onClick={load}>Reintentar</button>}
       <ul id="star-search-results" role="listbox">
         {results.map((result,i)=><li key={result.id} id={`star-result-${result.id}`} role="option" aria-selected={active===i}
