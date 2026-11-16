@@ -4501,6 +4501,7 @@ hsb,tipo,dato,veredicto,decision,motivo
 2549989,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 2550072,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 2550606,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
+2550981,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,"HD 224598: la magnitud de AT-HYG (V 11,41) viene del HIP 118240, que es otro objeto a 62″; con la paralaje de Gaia (176 pc) la alerta es por esa V, no por la distancia"
 2551063,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 2551195,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 2551861,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
@@ -52647,12 +52648,9 @@ hsb,tipo,dato,veredicto,decision,motivo
 101346102,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346107,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346111,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
-101346155,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
-101346156,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346158,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346160,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346163,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
-101346164,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346167,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346200,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 101346205,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
@@ -72419,7 +72417,6 @@ hsb,tipo,dato,veredicto,decision,motivo
 118788,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 119891,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 120108,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
-120721,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 122099,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 123681,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 124681,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
@@ -72504,7 +72501,6 @@ hsb,tipo,dato,veredicto,decision,motivo
 173648,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 173849,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 174243,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
-175512,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 175544,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 175559,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 176332,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
@@ -73300,7 +73296,6 @@ hsb,tipo,dato,veredicto,decision,motivo
 939362,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 941172,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 943485,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
-944814,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 944968,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 945719,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 945967,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
@@ -73942,7 +73937,6 @@ hsb,tipo,dato,veredicto,decision,motivo
 1480374,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 1480803,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 1480914,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
-1480945,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 1484192,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 1484473,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 1484528,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
@@ -74870,7 +74864,6 @@ hsb,tipo,dato,veredicto,decision,motivo
 2417748,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 2419319,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 2419474,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
-2419788,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 2420092,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 2420706,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
 2422343,DIST-SIN-MEDIDA,distancia (pc),Decide Sergio,B,"sin paralaje que cumpla la regla ni distancia medida publicada: queda la de AT-HYG, sin aviso visual"
@@ -77785,6 +77778,7 @@ hsb,tipo,dato,veredicto,decision,motivo
 2541247,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
 2541615,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
 2542042,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
+2550981,MAG/COLOR,V (mag),Enlace malo,G,"HD 224598: el Gaia es el correcto (SIMBAD da V ≈ 8,4 para él y está a 0,1″); la V 11,41 de AT-HYG viene del HIP 118240, que es otro objeto a 62″. Pendiente: una regla para tomar la V de Gaia cuando la de AT-HYG es de otro objeto"
 2551052,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
 9001145,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
 9001378,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos

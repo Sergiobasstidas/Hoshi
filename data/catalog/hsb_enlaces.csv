@@ -1098,3 +1098,15 @@ hsb,campo,valor,motivo
 101306457,igual_a,1700319,el Gaia 5974018828337490944 del lote-2026-11-07 es el de HSB 1700319 (corrección de enlace)
 101308789,igual_a,101346169,el Gaia 6026152137815012096 del lote-2026-11-07 es el de HSB 101346169 (corrección de enlace)
 101309216,igual_a,101346168,el Gaia 6036120928708232448 del lote-2026-11-07 es el de HSB 101346168 (corrección de enlace)
+2550981,gaia_dr3,2017236741826492032,"misma estrella que la fuente de la capa HSB 100266555 (a 0,1″; SIMBAD: HD 224598, HIP 118240); AT-HYG la ponía a 1.336 pc sin paralaje"
+100266555,igual_a,2550981,el Gaia 2017236741826492032 del lote-2026-11-07 es el de HSB 2550981 (corrección de enlace)
+1480945,gaia_dr3,1159745146784043264,"SIMBAD ubica GJ 3885 (G 15-2) en este Gaia, a 15° de la posición de AT-HYG; la estrella no tenía HIP ni Gaia propio (revisión de la capa, 09/11/2026)"
+175512,gaia_dr3,327930412432710784,"SIMBAD ubica GJ 94 (Ross 19) en este Gaia, a 31° de la posición de AT-HYG; la estrella no tenía HIP ni Gaia propio (revisión de la capa, 09/11/2026)"
+120721,gaia_dr3,5036026145867484672,"SIMBAD ubica GJ 3101 (G 274-72) en este Gaia, a 5,8′ de la posición de AT-HYG; la estrella no tenía HIP ni Gaia propio (revisión de la capa, 09/11/2026)"
+2419788,gaia_dr3,2703757302393547392,"SIMBAD ubica GJ 4277 A (Wolf 1201) en este Gaia, a 32″ de la posición de AT-HYG; la estrella no tenía HIP ni Gaia propio (revisión de la capa, 09/11/2026)"
+944814,gaia_dr3,583257314711142144,"SIMBAD ubica GJ 333.2 A (Ross 686) en este Gaia, a 30″ de la posición de AT-HYG; la estrella no tenía HIP ni Gaia propio (revisión de la capa, 09/11/2026)"
+100154764,igual_a,1480945,el Gaia 1159745146784043264 del lote-2026-11-07 es el de HSB 1480945 (corrección de enlace)
+101346155,igual_a,175512,el Gaia 327930412432710784 del lote-2026-11-08 es el de HSB 175512 (corrección de enlace)
+101346164,igual_a,120721,el Gaia 5036026145867484672 del lote-2026-11-08 es el de HSB 120721 (corrección de enlace)
+101346159,igual_a,2419788,el Gaia 2703757302393547392 del lote-2026-11-08 es el de HSB 2419788 (corrección de enlace)
+101346156,igual_a,944814,el Gaia 583257314711142144 del lote-2026-11-08 es el de HSB 944814 (corrección de enlace)

@@ -132,7 +132,7 @@ Servicio: SIMBAD (CDS), TAP. Consultas: 1 (0 con error). Descarga: 2026-11-08T00
 
 ## `auditoria` — `scripts/catalog/auditoria/simbad.js`
 
-Servicio: SIMBAD (CDS), TAP. Consultas en bloque sobre la tabla `ident` (para cada HIP, sus HD, GJ, Gaia DR3 y 2MASS; Gaia DR3 de cada GJ), que usa la auditoría cruzada (`npm run auditoria`), y consultas puntuales de tipo espectral, objeto e identificadores para revisar casos a mano (decisiones I–O). Consultas guardadas: 7. Descarga: 2026-11-08T06:03:26Z – 2026-11-08T19:17:41Z, desde el Mac de Sergio.
+Servicio: SIMBAD (CDS), TAP. Consultas en bloque sobre la tabla `ident` (para cada HIP, sus HD, GJ, Gaia DR3 y 2MASS; Gaia DR3 de cada GJ), que usa la auditoría cruzada (`npm run auditoria`), y consultas puntuales de tipo espectral, objeto e identificadores para revisar casos a mano (decisiones I–O). Consultas guardadas: 8. Descarga: 2026-11-08T06:03:26Z – 2026-11-08T19:17:41Z, desde el Mac de Sergio.
 
 | Archivo | Servicio | Bytes | sha256 |
 | --- | --- | ---: | --- |
@@ -143,6 +143,9 @@ Servicio: SIMBAD (CDS), TAP. Consultas en bloque sobre la tabla `ident` (para ca
 | `6e8c1212ef2fe9a6ca20019ab1d366b1f6504cc0.txt` | simbad.harvard.edu | 200719 | `3209ac5d7575e6c777408535dd1d72c66907d89da4311aa1b2c315ac0ef965e1` |
 | `a487e69a2a1db89550629188272a7ac73942ed97.txt` | simbad.harvard.edu | 563 | `044a0b2abc02108d9a429ebe70382aca56875e4488bbde370faaef178352b137` |
 | `05d0f0842713d08abd55ad52263d55b50700a195.txt` | simbad.harvard.edu | 126 | `9b62eaf245c9cc104556e9ffd421fa448801e392ca1d974f888d65c615854e97` |
+| `d771c076d0d57cee6f4c50dd215537dd215ea76c.txt` | simbad.harvard.edu | 6176 | `700ec70a37ccea1d2847c616d74cc54573a811d144449127d1b5a5783d4c17dc` |
+
+El 09/11/2026 se agregó una consulta puntual de identificadores, posición y V de GJ 3885, GJ 94, GJ 3101, GJ 4277 A y GJ 333.2 A (y de sus Gaia en la capa), para la revisión de los nombres que la capa compartía con el catálogo (`Hoshi-contexto/docs/catalog/capa_nombres/revision_catalogo.md`).
 
 ## `pecaut_mamajek` — `scripts/catalog/pecaut_mamajek.js`
 
@@ -168,3 +171,5 @@ Astrometría y fotometría de Gaia DR3 (`gaiadr3.gaia_source`: posición, parala
 | `8dfdfc045c85c4485033a0747f3b52ef86dc8ba8.txt` | gaia.ari.uni-heidelberg.de | 36357 | `084f81c9fb50b86168675e091db8ac6a2041dc39e2e837f38ad6631e1ec3970a` |
 | `ba0f2d0168134a689413176fb486b9dffb70ffb8.txt` | gaia.ari.uni-heidelberg.de | 42066 | `686330a169cfdda1817d2f1c1352804a0eebd3c27a0873ef571fc7b6b3a651cb` |
 | `bfb26e3849c382dd525c4f3f30c895151f541b50.txt` | gaia.ari.uni-heidelberg.de | 36138 | `b8e467185d087e72921a761c934b3bf727546c7245abb9525f6e1edb9e997514` |
+
+El 09/11/2026 se repitió la descarga (`HOSHI_RED=descargar node scripts/catalog/gaia_local.js`) por las correcciones de enlace de HD 224598 (HSB 2550981) y de GJ 3885, GJ 94, GJ 3101, GJ 4277 A y GJ 333.2 A; las respuestas de los lotes anteriores salieron iguales.

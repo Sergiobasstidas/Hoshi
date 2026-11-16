@@ -52,12 +52,14 @@ const NOTAS = {
     2323395: 'Sadalsuud: supergigante G0Ib poco luminosa; 0,2 mag fuera del rango',
     2384866: 'Sadalmelik: supergigante G2Ib poco luminosa; 0,2 mag fuera del rango',
     2403906: 'Ancha: es gigante (G8III–IV); la clase II de su tipo exagera la luminosidad',
+    2550981: 'HD 224598: la magnitud de AT-HYG (V 11,41) viene del HIP 118240, que es otro objeto a 62″; con la paralaje de Gaia (176 pc) la alerta es por esa V, no por la distancia',
   },
   'MAG/COLOR': {
     2043182: 'Campbell\'s Hydrogen Star: estrella central de nebulosa planetaria ([WC9]); el color de Gaia incluye la nebulosa',
     2111238: 'Cygnus X-1: enrojecida por polvo (E(B−V) ~1); la diferencia es de la extinción, no de un error',
     2289559: 'Solaris: el B−V de Hipparcos (1,61) no calza con una K5; el de Gaia (1,01) sí',
     521604: 'Red Rectangle: la nebulosa bipolar suma luz; V y G no son de la misma región',
+    2550981: 'HD 224598: el Gaia es el correcto (SIMBAD da V ≈ 8,4 para él y está a 0,1″); la V 11,41 de AT-HYG viene del HIP 118240, que es otro objeto a 62″. Pendiente: una regla para tomar la V de Gaia cuando la de AT-HYG es de otro objeto',
   },
 };
 
