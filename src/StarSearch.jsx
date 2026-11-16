@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildSearchIndex, normalizeStarQuery, searchStars } from './scene/starSearch';
 import { buscaNumeroDeCatalogo, indiceBusqueda, indiceNumeros } from './indiceBusqueda';
+import { buscarEnCapa } from './capaBusqueda';
 import { useEsComputador } from './esComputador';
 const SIN_DESTINOS=[];
 // El buscador también suma planetas, lunas y estrellas de destino, en el computador y en el celular. Los números
@@ -12,6 +13,8 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
   const [index,setIndex]=useState(null), [query,setQuery]=useState(''), [open,setOpen]=useState(false);
   const [active,setActive]=useState(0), [error,setError]=useState(false);
   const [numeros,setNumeros]=useState(null);
+  // Estrellas de la capa de fondo para lo escrito (se piden aparte, por trozos; ver capaBusqueda.js).
+  const [capa,setCapa]=useState({query:'',results:[]});
   // Lo elegido justo después de la búsqueda; se toma un instante después, cuando la escena ya cambió.
   const [propia,setPropia]=useState(null);
   const seleccionActual=useRef(seleccion);
@@ -19,6 +22,12 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
   if(propia!==null&&seleccion!==propia){setPropia(null);setQuery('');}
   const pideNumero=buscaNumeroDeCatalogo(normalizeStarQuery(query));
   useEffect(()=>{if(pideNumero&&!numeros)indiceNumeros().then(setNumeros,()=>{});},[pideNumero,numeros]);
+  useEffect(()=>{
+    if(!open||normalizeStarQuery(query).length<2)return;
+    let vigente=true;
+    buscarEnCapa(query).then(results=>{if(vigente)setCapa({query,results});},()=>{});
+    return ()=>{vigente=false;};
+  },[open,query]);
   const estrellas=useMemo(()=>{
     const directas=searchStars(index || [],query);
     if(!pideNumero||!numeros||!index)return directas;
@@ -39,9 +48,10 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
   },[nombresDestinos,query]);
   const results=useMemo(()=>{
     const nombres=new Set(cuerpos.map(result=>normalizeStarQuery(result.aliases[0])));
-    return [...cuerpos,...estrellas.filter(result=>!nombres.has(normalizeStarQuery(result.aliases[0])))]
+    const deCapa=capa.query===query?capa.results:[];
+    return [...cuerpos,...estrellas.filter(result=>!nombres.has(normalizeStarQuery(result.aliases[0]))),...deCapa]
       .sort((a,b)=>a.score-b.score).slice(0,8);
-  },[cuerpos,estrellas]);
+  },[cuerpos,estrellas,capa,query]);
   const load=async()=>{
     setOpen(true);setError(false);
     try {
@@ -70,7 +80,7 @@ export default function StarSearch({ onSelect, onSelectBody, destinos=SIN_DESTIN
         {results.map((result,i)=><li key={result.id} id={`star-result-${result.id}`} role="option" aria-selected={active===i}
           onMouseEnter={()=>setActive(i)} onMouseDown={e=>e.preventDefault()} onClick={()=>select(result)}>
           <strong>{result.score>=3?'Quizás: ':''}{result.aliases[0]}</strong>
-          <span>{[result.matched,...result.aliases.filter(a=>a!==result.matched&&a!==result.aliases[0])].slice(0,4).join(' · ')}</span>
+          <span>{result.detalle??[result.matched,...result.aliases.filter(a=>a!==result.matched&&a!==result.aliases[0])].slice(0,4).join(' · ')}</span>
         </li>)}
       </ul>
     </div>}

@@ -31,9 +31,10 @@ const greek = { 'α':'alp', alpha:'alp', alfa:'alp', 'β':'bet', beta:'bet', 'γ
   'ξ':'ksi', xi:'ksi', 'ο':'omi', omicron:'omi', 'π':'pi', 'ρ':'rho', ro:'rho', 'σ':'sig', sigma:'sig', 'τ':'tau', 'υ':'ups', upsilon:'ups', ipsilon:'ups',
   'φ':'phi', fi:'phi', 'χ':'chi', ji:'chi', 'ψ':'psi', 'ω':'ome', omega:'ome', sirio:'sirius' };
 // Minúsculas, sin tildes ni espacios, guiones o signos; nombres largos de constelaciones y letras
-// griegas a su abreviatura, para que «Épsilon Orionis», «ε Ori» y «eps-ori» den lo mismo.
+// griegas a su abreviatura, para que «Épsilon Orionis», «ε Ori» y «eps-ori» den lo mismo. El signo de las zonas de
+// BD, CD y CPD se conserva como letra (p o m): «BD+07 948» y «BD-07 948» son estrellas distintas.
 export function normalizeStarQuery(value) {
-  return value.toLowerCase().replace(/[α-ω]/g, letra => ` ${greek[letra] || letra} `).normalize('NFD').replace(/[̀-ͯ]/g, '')
+  return value.toLowerCase().replace(/\b(bd|cd|cpd)\s*([+\-−–])/g, (_, catalogo, signo) => `${catalogo}${signo === '+' ? 'p' : 'm'}`).replace(/[α-ω]/g, letra => ` ${greek[letra] || letra} `).normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/\b(gliese|gj)\b/g, 'gl')
     .replace(PATRON_FRASES, (_, frase) => ` ${ABREVIATURA.get(frase.replace(/\s+/g, ' '))} `)
     .replace(/[a-z]+/g, token => greek[token] || token).replace(/[^a-z0-9]/g, '');

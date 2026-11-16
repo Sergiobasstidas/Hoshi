@@ -71,6 +71,9 @@ import MenuVer from './MenuVer';
 import ControlesComputador from './ControlesComputador';
 import { colorLegible, fisicaOficial } from './scene/stellarPhysics';
 import FichaEstrella from './FichaEstrella';
+import FichaCapa from './FichaCapa';
+import { datosCapa, nombrePrincipal, posicionEnCapa } from './capaBusqueda';
+import { gMenosV, rgbDesdeBpRp } from './scene/gaiaCapa';
 import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
 import FichaCumulo from './FichaCumulo';
@@ -486,7 +489,21 @@ export default function App() {
       distance:Math.hypot(...camera.position.toArray().map((v,i)=>v+origin[i]))}, { headingOnly:true });
     setSolApuntado(true);
   };
+  // Estrella de la capa de fondo elegida en el buscador: se piden sus datos de Gaia DR3 y se viaja a su posición en la
+  // capa. Magnitud y color para dibujarla de cerca, como en la capa: M_V = G + 5·log10(paralaje/100) − (G − V).
+  const visitarCapa = async fila => {
+    if (!capaEstrellas || !cameraRef.current) return;
+    const datos = await datosCapa(fila).catch(() => null);
+    if (!datos) return;
+    const [x, y, z] = posicionEnCapa(capaEstrellas, datos.indice);
+    const nombre = nombrePrincipal(datos);
+    const m = datos.paralaje > 0 && Number.isFinite(datos.g) ? datos.g + 5 * Math.log10(datos.paralaje / 100) - gMenosV(datos.bpRp) : undefined;
+    const star = { i: datos.hsb, n: nombre, x, y, z, d: datos.paralaje > 0 ? 1000 / datos.paralaje : Math.hypot(x, y, z), m, rgb: rgbDesdeBpRp(datos.bpRp), capa: datos };
+    setShowPulsars(false);
+    visitBody(starBody(star, nombre), true);
+  };
   const visitSearchResult = (result, sistema = false) => {
+    if (result.capa) { visitarCapa(result.capa.fila); return; }
     const star=starsById.get(result.id);
     if(!star || !cameraRef.current)return;
     setShowPulsars(false);
@@ -814,6 +831,7 @@ export default function App() {
         etiqueta={`Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
           onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
+          : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} />
           : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}

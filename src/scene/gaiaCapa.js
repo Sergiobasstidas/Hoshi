@@ -76,13 +76,16 @@ function temperaturaARgb(temp) {
   return [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))));
 }
 
+// Color (sin avivar) de una estrella de la capa por su BP−RP, el mismo de la tabla de abajo.
+export const rgbDesdeBpRp = bpRp => (bpRp === null || bpRp === undefined ? [255, 255, 255] : temperaturaARgb(bvATemperatura(bvDesdeBpRp(bpRp))));
+
 // Tabla de 256 entradas (una por byte de color) para una textura RGBA: rgb = color vivo de
 // StarField y a = G − V, que el shader resta a la magnitud absoluta G para obtener la V.
 export function tablaColores() {
   const datos = new Float32Array(256 * 4);
   for (let byte = 0; byte < 256; byte++) {
     const bpRp = bpRpDeByte(byte);
-    const rgb = bpRp === null ? [255, 255, 255] : temperaturaARgb(bvATemperatura(bvDesdeBpRp(bpRp)));
+    const rgb = rgbDesdeBpRp(bpRp);
     datos.set([...vividStellarColor(rgb), gMenosV(bpRp)], byte * 4);
   }
   return datos;

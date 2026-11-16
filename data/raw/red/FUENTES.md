@@ -173,3 +173,12 @@ Astrometría y fotometría de Gaia DR3 (`gaiadr3.gaia_source`: posición, parala
 | `bfb26e3849c382dd525c4f3f30c895151f541b50.txt` | gaia.ari.uni-heidelberg.de | 36138 | `b8e467185d087e72921a761c934b3bf727546c7245abb9525f6e1edb9e997514` |
 
 El 09/11/2026 se repitió la descarga (`HOSHI_RED=descargar node scripts/catalog/gaia_local.js`) por las correcciones de enlace de HD 224598 (HSB 2550981) y de GJ 3885, GJ 94, GJ 3101, GJ 4277 A y GJ 333.2 A; las respuestas de los lotes anteriores salieron iguales.
+
+## `capa_simbad` y `capa_tycho` — `scripts/catalog/capa_nombres.js`
+
+Nombres oficiales de las estrellas de la capa de fondo (Gaia DR3 y GCNS), para `data/catalog/hsb_capa_nombres.csv.gz`. Descarga: 2026-11-09, desde el Mac de Sergio (`HOSHI_RED=descargar node scripts/catalog/capa_nombres.js`).
+
+- `capa_simbad`: SIMBAD (CDS), TAP en simbad.harvard.edu. Para cada Gaia DR3 de los lotes (`data/catalog/hsb_gaia`, que solo crecen) y, en una tanda aparte, los pocos de la capa que no vienen de un lote: el objeto cuyo identificador es «Gaia DR3 <source_id>», su posición y su V (`allfluxes`) y sus identificadores HD, HR, SAO, BD, CD, CPD, TYC, HIP, GJ, Gl, WDS, V* y NAME (no se piden TIC). Tandas por zona del cielo (HEALPix nivel 2 del `source_id`) de hasta 5.000 `source_id` en orden, así que sacar una estrella de la capa no cambia ninguna consulta. Consultas: 354 (0 con error), 163,7 MB, de 2026-11-09T03:57:17Z a 2026-11-09T04:11:02Z.
+- `capa_tycho`: Gaia DR3 en el TAP de ARI Heidelberg, cruce oficial con Tycho-2 (`gaiadr3.tycho2tdsc_merge_best_neighbour`: `source_id` y `original_ext_source_id`), en 48 rangos de `source_id` (HEALPix nivel 1), toda la tabla. Consultas: 48 (0 con error), 82,8 MB, de 2026-11-09T04:11:07Z a 2026-11-09T04:12:39Z.
+
+Huellas y sha256 de cada respuesta en `capa_simbad/indice.json` (sha256 `83ccadb104e6702e4b99f92df04f6a62c7c3dac604367e3b258e94da212403db`) y `capa_tycho/indice.json` (sha256 `1d9d31f47ea0da5e3c5e7c6bee1c10e3ac20c5b8d7e2f9e68c49b2875d31531a`).

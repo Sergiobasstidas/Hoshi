@@ -22,7 +22,9 @@
 //  5. Pasos con consultas guardadas en data/raw/red: Gaia según SIMBAD, JMDC, alias del buscador, datos
 //     oficiales, fichas y cúmulos (cúmulos usa además data/raw/ucc, local).
 //  6. Capa del millón de Gaia (usa las binarias y la identidad), el registro HSB y, al final, el archivo único de
-//     estrellas de la app (public/data/estrellas.bin.gz: catálogo y capa de fondo).
+//     estrellas de la app (public/data/estrellas.bin.gz: catálogo y capa de fondo) y los nombres oficiales de las
+//     estrellas de la capa (data/catalog/hsb_capa_nombres.csv.gz; SIMBAD y el cruce de Gaia con Tycho-2), con los
+//     archivos del buscador para ellas (public/data/capa/).
 //
 // Las fechas «generado» y «descargado» de las salidas no se reescriben si el resto del archivo no cambió.
 
@@ -51,6 +53,8 @@ const PASOS = [
   { script: 'scripts/process_gaia.js', salidas: ['data/processed/gaia-1m.bin'] },
   { script: 'scripts/catalog/build_hsb.js', salidas: ['data/catalog/hsb_registro.csv', 'data/catalog/hsb_companeras_dibujadas.csv', 'data/catalog/hsb_capa_enlazadas.csv'] },
   { script: 'scripts/build_estrellas.js', salidas: ['public/data/estrellas.bin.gz', 'public/data/estrellas-hsb.bin'] },
+  { script: 'scripts/catalog/capa_nombres.js', salidas: ['data/catalog/hsb_capa_nombres.csv.gz'], red: true },
+  { script: 'scripts/build_capa_busqueda.js', salidas: ['public/data/capa/manifiesto.json'] },
 ];
 
 const argumentos = new Set(process.argv.slice(2));
