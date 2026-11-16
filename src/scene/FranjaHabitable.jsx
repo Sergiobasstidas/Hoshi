@@ -78,15 +78,21 @@ export default function FranjaHabitable({ star, origin, fichas }) {
   }), [zona]);
   const material = useRef();
   useEffect(() => () => geometria?.dispose(), [geometria]);
-  // El círculo se retira en cuanto el disco del planeta se distingue en pantalla: nunca queda encima.
-  const circulos = useRef([]);
+  // El círculo del planeta en la zona habitable solo aparece de cerca, a pocas veces su órbita: al elegir
+  // la estrella o mirar desde lejos no se ve. Se retira también en cuanto el disco del planeta se distingue
+  // en pantalla, para no quedar encima. La opacidad sigue a su meta con un fundido, sin parpadeo.
+  const circulos = useRef([]), opacidades = useRef([]);
   useFrame(({ camera, size }, delta) => {
     const focal = size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
     sistema?.planets.forEach((planeta, i) => {
       const circulo = circulos.current[i];
       if (!circulo) return;
       const distancia = Math.hypot(camera.position.x - star.x + origin[0] - planeta.offsetPc[0], camera.position.y - star.y + origin[1] - planeta.offsetPc[1], camera.position.z - star.z + origin[2] - planeta.offsetPc[2]);
-      circulo.style.opacity = 1 - smoothRange((planeta.radiusPc ?? 0) / distancia * focal, 1, 3);
+      const cerca = 1 - smoothRange(distancia / Math.max(planeta.a * AU_TO_PC, 1e-12), 3, 6);
+      const meta = cerca * (1 - smoothRange((planeta.radiusPc ?? 0) / distancia * focal, 1, 3));
+      const actual = opacidades.current[i] ?? 0;
+      opacidades.current[i] = actual + (meta - actual) * (1 - Math.exp(-delta * 5));
+      circulo.style.opacity = opacidades.current[i].toFixed(3);
     });
     if (!material.current) return;
     const { opacidad } = material.current.uniforms;
