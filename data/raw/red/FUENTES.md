@@ -182,3 +182,35 @@ Nombres oficiales de las estrellas de la capa de fondo (Gaia DR3 y GCNS), para `
 - `capa_tycho`: Gaia DR3 en el TAP de ARI Heidelberg, cruce oficial con Tycho-2 (`gaiadr3.tycho2tdsc_merge_best_neighbour`: `source_id` y `original_ext_source_id`), en 48 rangos de `source_id` (HEALPix nivel 1), toda la tabla. Consultas: 48 (0 con error), 82,8 MB, de 2026-11-09T04:11:07Z a 2026-11-09T04:12:39Z.
 
 Huellas y sha256 de cada respuesta en `capa_simbad/indice.json` (sha256 `83ccadb104e6702e4b99f92df04f6a62c7c3dac604367e3b258e94da212403db`) y `capa_tycho/indice.json` (sha256 `1d9d31f47ea0da5e3c5e7c6bee1c10e3ac20c5b8d7e2f9e68c49b2875d31531a`).
+
+## `anfitrionas_gaia` — consulta del conteo de anfitrionas que faltan (E-01)
+
+Gaia DR3 en el TAP de ARI Heidelberg: posición, paralaje, error, RUWE, G, BP−RP y número de parámetros de la solución astrométrica de las 15 anfitrionas de exoplanetas que faltan en Hoshi y tienen Gaia DR3 sin astrometría local (`Hoshi-contexto/docs/catalog/anfitrionas/faltantes.md`). Consultas: 2 (0 con error): las 15 anfitrionas de la tabla del 13/10/2026 (03:11:35Z) y, con la tabla del 16/11/2026, todas las que faltan con Gaia DR3 (03:14:49Z). Descarga desde el Mac de Sergio.
+
+| Archivo | Servicio | Bytes | sha256 |
+| --- | --- | ---: | --- |
+| `8da418f33d3dc97d592ba9e8c702c6596979acf1.txt` | gaia.ari.uni-heidelberg.de | 1661 | `be42215e4187efe75c2d2e851418ff234b33c8fefac74f8022c129ee902f2f23` |
+| `a1988c1aaae26a5ec727e7fefce6013f48b9dffb.txt` | gaia.ari.uni-heidelberg.de | 2223 | `c05471bee5f9354560d5c07fb3a4570cb4df60f4bde3659f3dbd74930d398b97` |
+
+## `nasa_pscomppars_2026_11` — tabla `pscomppars` actual, solo para el conteo de E-01
+
+NASA Exoplanet Archive, TAP: `pl_name`, `hostname`, `discoverymethod`, `disc_year`, `sy_dist`, `sy_plx` y sus errores, `gaia_dr2_id`, `gaia_dr3_id`, `ra`, `dec` y `pl_pubdate` de los 6.470 planetas confirmados. No reemplaza `data/raw/exoplanets/nasa_pscomppars.csv` (13/10/2026), que sigue usando `npm run catalogo`. Consultas: 1 (0 con error). Descarga: 2026-11-16T03:14:07Z, desde el Mac de Sergio.
+
+| Archivo | Servicio | Bytes | sha256 |
+| --- | --- | ---: | --- |
+| `4e3b40474795c9838bdf6cb1493aa2f08506155f.txt` | exoplanetarchive.ipac.caltech.edu | 1089776 | `441836378b3cfbbeeb0749b3100ba3abddc2a88ff1f788165b818d3c0b260c76` |
+
+## `nasa_exoplanetas` y `gaia_anfitriones` — `scripts/exoplanets/descargar_nasa.js`
+
+Desde el 16/11/2026 las tablas del NASA Exoplanet Archive que usa el catálogo se bajan por `red.js` (paso 0 de `npm run catalogo`). Sin red, el paso escribe `data/raw/exoplanets/nasa_pscomppars.csv` y `nasa_pscomppars_ids.csv` desde lo guardado. Descarga: 2026-11-16, desde el Mac de Sergio (`HOSHI_RED=descargar node scripts/exoplanets/descargar_nasa.js`).
+
+- `nasa_exoplanetas`: NASA Exoplanet Archive, TAP. `select * from pscomppars` (6.470 planetas confirmados) e identificadores y multiplicidad (`pl_name, hostname, hd_name, hip_name, tic_id, gaia_dr2_id, gaia_dr3_id, sy_snum, sy_pnum, cb_flag`). Consultas: 2 (0 con error), 2026-11-16T03:18:15Z – 03:18:17Z.
+- `gaia_anfitriones`: Gaia DR3 en el TAP de ARI Heidelberg, con las mismas columnas que `descargar_gaia.py` (`gaia_source` más `radius_gspphot` de `astrophysical_parameters`). Pide las anfitrionas cuyo Gaia DR3 no está en `data/raw/gaia/gaia_dr3_exoplanet_hosts.csv` (descarga del 13/10/2026) y las escribe en `gaia_dr3_exoplanet_hosts_nuevas.csv`. Consultas: 1 (0 con error), 19 fuentes, 2026-11-16T03:18:22Z.
+
+| Paso | Archivo | Servicio | Bytes | sha256 |
+| --- | --- | --- | ---: | --- |
+| `nasa_exoplanetas` | `2ed1d444138bbf4950f3393cac7aa93dd7813814.txt` | exoplanetarchive.ipac.caltech.edu | 83194086 | `0fc29eb1f4df308c5bedd0e204835f389e6d1f913d01c92efb96f17e8ff098d6` |
+| `nasa_exoplanetas` | `46cba0311794eccd0740ef33966513a97b73e0c4.txt` | exoplanetarchive.ipac.caltech.edu | 724232 | `7a4c895768fffe8279ac383393e7fca4f6062322099e7e44c4c6ed49a5e1c69e` |
+| `gaia_anfitriones` | `779856121d416faf0fde7355f05113b1e2282dd9.txt` | gaia.ari.uni-heidelberg.de | 3903 | `b75a61bc7fc0ec76ff81669e5446c7030f7413d2d890f9bb3d6a10144319c09f` |
+
+`process_fichas.js` y `process_stellar_official.js` siguen con sus propias consultas a NASA guardadas en `fichas` y `oficiales` (no cambiaron).

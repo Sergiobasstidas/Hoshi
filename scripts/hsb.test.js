@@ -94,7 +94,9 @@ test('las estrellas nuevas van desde 100 000 000', () => {
   assert.ok(v40.length > 0 && v40.every(f => f.hsb >= HSB_NUEVO_BASE && f.athyg_v40 && !f.athyg_v32));
   const cns5 = registro.filter(f => f.origen === 'cns5');
   assert.ok(cns5.length > 0 && cns5.every(f => f.hsb >= HSB_NUEVO_BASE && f.gl && !f.athyg_v32 && !f.athyg_v40));
-  assert.ok(registro.filter(f => !ORIGENES_NUEVOS.includes(f.origen)).every(f => f.hsb < HSB_NUEVO_BASE));
+  // Las de la carga base, bajo 100 000 000; una anfitriona puede ser del rango nuevo si entró después (su número lo da
+  // build_added_hosts.js desde el registro).
+  assert.ok(registro.filter(f => !ORIGENES_NUEVOS.includes(f.origen)).every(f => f.hsb < HSB_NUEVO_BASE || (f.origen === 'anfitriona' && f.alta > '2026-11-08')));
   assert.ok(lotes.length > 1_000_000 && lotes.every(f => f.hsb >= HSB_NUEVO_BASE && /^\d+$/.test(f.gaia_dr3) && ['gaia_dr3_1m', 'gcns'].includes(f.origen)));
 });
 

@@ -17,6 +17,8 @@ import { HSB_NUEVO_BASE, REGISTRO_CSV, leerLotes, leerRegistro } from './build_h
 const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
 const SYSTEMS_JSON = './data/exoplanets/exoplanet_systems.json';
 const GAIA_HOSTS_CSV = './data/raw/gaia/gaia_dr3_exoplanet_hosts.csv';
+// Anfitrionas nuevas en NASA, fuera de la descarga base (scripts/exoplanets/descargar_nasa.js).
+const GAIA_HOSTS_NUEVAS_CSV = './data/raw/gaia/gaia_dr3_exoplanet_hosts_nuevas.csv';
 const ATHYG_CSV = './data/raw/hyglike_from_athyg_v32.csv';
 const OUTPUT_PATH = './data/catalog/added_hosts.json';
 
@@ -126,7 +128,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const read = file => parse(fs.readFileSync(file, 'utf8'), { columns: true, skip_empty_lines: true });
   const hosts = JSON.parse(fs.readFileSync(HOSTS_JSON, 'utf8')).hosts;
   const systems = new Map(JSON.parse(fs.readFileSync(SYSTEMS_JSON, 'utf8')).systems.map(s => [s.h, s]));
-  const gaiaBySource = new Map(read(GAIA_HOSTS_CSV).map(g => [g.source_id, g]));
+  const gaiaBySource = new Map([GAIA_HOSTS_CSV, GAIA_HOSTS_NUEVAS_CSV].filter(ruta => fs.existsSync(ruta)).flatMap(ruta => read(ruta)).map(g => [g.source_id, g]));
   const maxAthygId = Math.max(...read(ATHYG_CSV).map(r => Number(r.id)));
   if (maxAthygId >= ADDED_HOST_ID_BASE) throw new Error(`El rango ${ADDED_HOST_ID_BASE} colisiona con AT-HYG (máx. ${maxAthygId})`);
   if (!fs.existsSync(REGISTRO_CSV)) throw new Error(`Falta ${REGISTRO_CSV}: los números de las anfitrionas salen del registro HSB`);

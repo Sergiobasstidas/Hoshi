@@ -53,6 +53,7 @@ const NOTAS = {
     2384866: 'Sadalmelik: supergigante G2Ib poco luminosa; 0,2 mag fuera del rango',
     2403906: 'Ancha: es gigante (G8III–IV); la clase II de su tipo exagera la luminosidad',
     2550981: 'HD 224598: la magnitud de AT-HYG (V 11,41) viene del HIP 118240, que es otro objeto a 62″; con la paralaje de Gaia (176 pc) la alerta es por esa V, no por la distancia',
+    101346210: 'Elias 2-24: estrella T Tauri joven dentro de la nube de ρ Ophiuchi; el polvo de la nube la oscurece varias magnitudes',
   },
   'MAG/COLOR': {
     2043182: 'Campbell\'s Hydrogen Star: estrella central de nebulosa planetaria ([WC9]); el color de Gaia incluye la nebulosa',

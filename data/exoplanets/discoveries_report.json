@@ -1,34 +1,34 @@
 {
-  "sistemas": 12134,
-  "sistemasEnHoshi": 4535,
-  "planetasConfirmados": 6424,
+  "sistemas": 12142,
+  "sistemasEnHoshi": 4554,
+  "planetasConfirmados": 6449,
   "tipoConfirmados": {
     "ficha": 6287,
-    "regla": 137,
-    "coincide": 6047,
-    "acierto": 0.9618
+    "regla": 162,
+    "coincide": 6046,
+    "acierto": 0.9617
   },
   "candidatos": {
     "toi": 5151,
     "koi": 1971,
     "k2": 935
   },
-  "candidatosEnSistemasConfirmados": 516,
+  "candidatosEnSistemasConfirmados": 530,
   "porTipo": {
     "gigante": {
-      "confirmados": 2144,
+      "confirmados": 2160,
       "candidatos": 3938
     },
     "neptuno": {
-      "confirmados": 2228,
+      "confirmados": 2233,
       "candidatos": 1952
     },
     "supertierra": {
-      "confirmados": 1823,
+      "confirmados": 1826,
       "candidatos": 1277
     },
     "terrestre": {
-      "confirmados": 222,
+      "confirmados": 223,
       "candidatos": 357
     },
     "desconocido": {
@@ -39,39 +39,39 @@
   "porMision": {
     "kepler": 4747,
     "k2": 1485,
-    "tess": 6159,
+    "tess": 6177,
     "corot": 35,
-    "gaia": 15,
+    "gaia": 17,
     "espacio": 16,
-    "tierra": 2024
+    "tierra": 2029
   },
   "sinPosicion": {
     "confirmados": 21,
     "ejemplos": [
-      "Kepler-1737 b",
-      "CD-35 2722 B b",
-      "Kepler-1964 b",
-      "Kepler-1910 b",
-      "Kepler-1795 b",
-      "PSR B1620-26 b",
-      "MXB 1658-298 b",
-      "Kepler-1676 b",
-      "OGLE-2017-BLG-1140L b",
       "Kepler-1984 b",
+      "Kepler-1910 b",
+      "Kepler-1813 b",
+      "PSR B1620-26 b",
+      "OGLE-2017-BLG-1140L b",
       "Kepler-1985 b",
       "OGLE-2016-BLG-1227L b",
-      "Kepler-1813 b",
+      "Kepler-1676 b",
+      "CFHTWIR-Oph 98 b",
+      "Kepler-1737 b",
+      "Kepler-1756 b",
       "Kepler-1760 b",
       "Kepler-1945 b",
+      "Kepler-1964 b",
       "WISE J033605.05-014350.4 b",
+      "Luhman 16 b",
       "M62H b",
       "V2376 Ori b",
-      "Luhman 16 b",
-      "CFHTWIR-Oph 98 b"
+      "CD-35 2722 B b",
+      "Kepler-1795 b"
     ],
     "toi": 161,
     "koi": 6,
     "k2": 40
   },
-  "bytes": 827911
+  "bytes": 822767
 }

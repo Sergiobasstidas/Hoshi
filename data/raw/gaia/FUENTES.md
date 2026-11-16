@@ -85,3 +85,7 @@ Astrometría y fotometría de Gaia DR3 (`gaiadr3.gaia_source`) de los 129 515 Ga
 | Archivo | Bytes | Filas de datos | sha256 |
 | --- | ---: | ---: | --- |
 | `gaia_dr3_registro.csv.gz` | 9623775 | 129515 | `c72c88dc7150e842821baf2d3d033af8e8f80c468964f9fda995de6337d9dfa4` |
+
+## `gaia_dr3_exoplanet_hosts_nuevas.csv`
+
+Gaia DR3 de las anfitrionas de exoplanetas que no están en `gaia_dr3_exoplanet_hosts.csv` (la descarga del 13/10/2026), con las mismas columnas. Lo escribe `scripts/exoplanets/descargar_nasa.js` desde la consulta guardada por `red.js` (paso `gaia_anfitriones`, TAP de ARI Heidelberg; ver `data/raw/red/FUENTES.md`). 16/11/2026: 19 fuentes.

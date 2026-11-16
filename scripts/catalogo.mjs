@@ -8,7 +8,8 @@
 //                                         falla si queda algo para corregir o una diferencia nueva sin revisar
 //
 // Orden y por qué:
-//  0. Tipos espectrales de SIMBAD (consulta guardada), que usa process_stars.
+//  0. Tablas del NASA Exoplanet Archive y Gaia DR3 de las anfitrionas nuevas (consultas guardadas,
+//     scripts/exoplanets/descargar_nasa.js) y tipos espectrales de SIMBAD (consulta guardada), que usa process_stars.
 //  1. process_stars (pasada 1). process_exoplanets y build_star_identity solo usan stars_15pc.json para saber
 //     qué filas de AT-HYG tienen distancia, y eso no depende de los parches; esta pasada deja esa lista lista
 //     aunque no exista una anterior.
@@ -32,6 +33,7 @@ import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const PASOS = [
+  { script: 'scripts/exoplanets/descargar_nasa.js', salidas: ['data/raw/exoplanets/nasa_pscomppars.csv', 'data/raw/exoplanets/nasa_pscomppars_ids.csv', 'data/raw/gaia/gaia_dr3_exoplanet_hosts_nuevas.csv'], red: true },
   { script: 'scripts/catalog/build_espectros_simbad.js', salidas: ['data/catalog/espectros_simbad.json'], red: true },
   { script: 'scripts/process_stars.js', salidas: ['data/processed/stars_15pc.json'] },
   { script: 'scripts/exoplanets/process_exoplanets.js', salidas: ['data/exoplanets/exoplanet_systems.json', 'data/exoplanets/crossmatch_report.json'] },

@@ -14,6 +14,8 @@ const GAIA_HIP_CSV = './data/raw/gaia/gaia_dr3_hip.csv';
 // Enlace por posición (scripts/catalog/cruzar_gaia_posicion.py) para las estrellas sin enlace por HIP.
 const GAIA_POSITION_CSV = './data/raw/gaia/gaia_dr3_posicion.csv';
 const GAIA_HOSTS_CSV = './data/raw/gaia/gaia_dr3_exoplanet_hosts.csv';
+// Anfitrionas nuevas en NASA, fuera de la descarga base (scripts/exoplanets/descargar_nasa.js).
+const GAIA_HOSTS_NUEVAS_CSV = './data/raw/gaia/gaia_dr3_exoplanet_hosts_nuevas.csv';
 const SIMBAD_CSV = './data/raw/simbad/simbad_exoplanet_hosts.csv';
 const SIMBAD_MAP_CSV = './data/raw/simbad/simbad_exoplanet_hosts_mapa.csv';
 const NASA_IDS_CSV = './data/raw/exoplanets/nasa_pscomppars_ids.csv';
@@ -73,7 +75,7 @@ if (fs.existsSync(GAIA_POSITION_CSV)) for (const g of read(GAIA_POSITION_CSV)) {
   gaiaByPosition.set(g.id, g);
   if (!gaiaBySource.has(g.source_id)) gaiaBySource.set(g.source_id, g);
 }
-for (const g of read(GAIA_HOSTS_CSV)) if (!gaiaBySource.has(g.source_id)) gaiaBySource.set(g.source_id, g);
+for (const ruta of [GAIA_HOSTS_CSV, GAIA_HOSTS_NUEVAS_CSV]) if (fs.existsSync(ruta)) for (const g of read(ruta)) if (!gaiaBySource.has(g.source_id)) gaiaBySource.set(g.source_id, g);
 
 
 // === 3. Tabla de identidad de las estrellas de Hoshi ===

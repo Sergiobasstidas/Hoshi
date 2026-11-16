@@ -4591,6 +4591,7 @@ hsb,tipo,dato,veredicto,decision,motivo
 100006651,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 100006670,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 100009101,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
+101346210,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,Elias 2-24: estrella T Tauri joven dentro de la nube de ρ Ophiuchi; el polvo de la nube la oscurece varias magnitudes
 ,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 ,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 ,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
@@ -72187,6 +72188,10 @@ hsb,tipo,dato,veredicto,decision,motivo
 100006652,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
 100006654,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
 100006660,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
+101346215,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
+101346217,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
+101346219,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
+101346220,DIST-CALIDAD,distancia (pc),Decide Sergio,H,"única paralaje, de Gaia con RUWE ≥ 1,4 y error ≤ 10 %: se acepta (D-020)"
 5087,DIST-DIFIERE,paralaje (mas),Decide Sergio,J,se usa la paralaje más precisa; la otra (casi siempre Hipparcos) se anota
 27383,DIST-DIFIERE,paralaje (mas),Decide Sergio,J,se usa la paralaje más precisa; la otra (casi siempre Hipparcos) se anota
 113435,DIST-DIFIERE,paralaje (mas),Decide Sergio,J,se usa la paralaje más precisa; la otra (casi siempre Hipparcos) se anota
@@ -77783,7 +77788,6 @@ hsb,tipo,dato,veredicto,decision,motivo
 9001145,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
 9001378,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
 9002558,MAG/COLOR,V (mag),Decide Sergio,G,V de Hoshi y V predicha desde Gaia no calzan: no se cambian datos
-1484566,NASA,Gaia DR3,Enlace malo,O,"HIP 73674 (HD 133131, par de gemelas): SIMBAD no da un Gaia para el par y NASA usa el de la A; se queda el actual hasta tener una medida que decida"
 9000105,NOMBRE,nombre propio en la compañera,Decide Sergio,M,GJ 667 C: el nombre es la designación de esa estrella (la de los planetas)
 9003019,NOMBRE,nombre propio en la compañera,Decide Sergio,M,TOI-2459: el nombre es la designación de esa estrella (la de los planetas)
 100004407,NOMBRE,nombre propio en la compañera,Decide Sergio,M,Graffias C: designación con la letra de la componente

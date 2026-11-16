@@ -1,13 +1,13 @@
 {
   "fuente": "NASA Exoplanet Archive, tabla pscomppars",
-  "generado": "2026-11-08T19:39:39.999Z",
-  "sistemas": 4842,
-  "planetas": 6445,
-  "sistemasEnHoshi": 907,
-  "planetasEnHoshi": 1302,
+  "generado": "2026-11-16T03:18:50.728Z",
+  "sistemas": 4862,
+  "planetas": 6470,
+  "sistemasEnHoshi": 910,
+  "planetasEnHoshi": 1306,
   "idsCompartidos": [
-    "473701: HD 41004 A / HD 41004 B",
-    "1484566: HD 133131 B / HD 133131 A"
+    "473701: HD 41004 B / HD 41004 A",
+    "1484566: HD 133131 A / HD 133131 B"
   ],
   "distanciaDiscrepante": [
     "GJ 411: Hoshi 2.5461 pc, NASA 5.675773 pc",
@@ -17,11 +17,11 @@
     "TOI-5811 B: Hoshi 239.2344 pc, NASA 170.135 pc"
   ],
   "metodoCruce": {
-    "hip": 783,
-    "hd": 63,
+    "hip": 786,
+    "hd": 64,
     "gj": 25,
     "nombre": 0,
-    "posicion": 34,
+    "posicion": 33,
     "posicion-amplia": 2
   },
   "sinCruceDentroDe100pc": [
@@ -225,7 +225,9 @@
     "TOI-871 (68.0 pc)",
     "TOI-1064 (68.1 pc)",
     "Kepler-409 (68.2 pc)",
+    "TOI-7176 (69.4 pc)",
     "TOI-4184 (69.4 pc)",
+    "TOI-713 (69.4 pc)",
     "K2-151 (69.5 pc)",
     "2MASS J22362452+4751425 (69.6 pc)",
     "TOI-1648 (69.8 pc)",
@@ -330,6 +332,7 @@
     "TOI-2407 (92.4 pc)",
     "TOI-1435 (92.9 pc)",
     "TOI-1262 (93.2 pc)",
+    "TOI-4596 (93.5 pc)",
     "TIC 393818343 (93.7 pc)",
     "TOI-697 (93.8 pc)",
     "TOI-1154 (93.9 pc)",
@@ -364,47 +367,47 @@
     "K2-174 (99.9 pc)"
   ],
   "multiplicidad": {
-    "anfitrionEnSistemaMultiple": 432,
+    "anfitrionEnSistemaMultiple": 434,
     "circumbinarios": 43
   },
   "campos": {
     "semiejeMayor": {
-      "presente": "5953 (92.4%)"
+      "presente": "5972 (92.3%)"
     },
     "periodo": {
-      "presente": "6092 (94.5%)"
+      "presente": "6114 (94.5%)"
     },
     "excentricidad": {
-      "presente": "5379 (83.5%)",
-      "igualACero": "3155 (49.0%)"
+      "presente": "5400 (83.5%)",
+      "igualACero": "3164 (48.9%)"
     },
     "inclinacion": {
-      "presente": "4848 (75.2%)",
-      "enTransito": "4472 (69.4%)"
+      "presente": "4863 (75.2%)",
+      "enTransito": "4484 (69.3%)"
     },
     "orbita3DCompleta": "Ω (nodo ascendente) no está en pscomppars: 0 planetas",
     "argumentoPeriastro": {
-      "presente": "2114 (32.8%)"
+      "presente": "2131 (32.9%)"
     },
     "tiempoPeriastro": {
-      "presente": "1068 (16.6%)"
+      "presente": "1074 (16.6%)"
     },
     "transitoCentral": {
-      "presente": "5147 (79.9%)"
+      "presente": "5168 (79.9%)"
     },
     "radio": {
-      "presente": "6395 (99.2%)",
-      "medido": "4858 (75.4%)"
+      "presente": "6420 (99.2%)",
+      "medido": "4876 (75.4%)"
     },
     "masa": {
-      "presente": "6414 (99.5%)",
+      "presente": "6439 (99.5%)",
       "procedencia": {
         "Msini": 926,
-        "Mass": 2472,
+        "Mass": 2495,
         "Msin(i)/sin(i)": 15,
-        "M-R relationship": 3032
+        "M-R relationship": 3034
       }
     },
-    "faseUtilizable": "5865 (91.0%)"
+    "faseUtilizable": "5884 (90.9%)"
   }
 }

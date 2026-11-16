@@ -2,6 +2,8 @@
 
 Descarga realizada con `curl -sSL` desde el Mac de Sergio el 13/10/2026 (zona -03:00). Datos crudos sin modificar.
 
+**Desde el 16/11/2026** `nasa_pscomppars.csv` y `nasa_pscomppars_ids.csv` los escribe `scripts/exoplanets/descargar_nasa.js` desde las consultas guardadas por `red.js` (pasos `nasa_exoplanetas`, ver `data/raw/red/FUENTES.md`): tabla del 16/11/2026, 6.470 planetas; sha256 `0fc29eb1f4df308c5bedd0e204835f389e6d1f913d01c92efb96f17e8ff098d6` y `7a4c895768fffe8279ac383393e7fca4f6062322099e7e44c4c6ed49a5e1c69e`. La tabla de abajo describe la descarga original del 13/10/2026.
+
 | Archivo | Descarga (hora local, -03:00) | Tamaño (bytes) | Líneas | Columnas | sha256 |
 | --- | --- | ---: | ---: | ---: | --- |
 | `nasa_pscomppars.csv` | 2026-10-13 01:10 | 82851596 | 6446 | 703 | `884d7042436e16cb1c99459afb9d08ac351e09324f571dee1388d9691c3a7ca6` |

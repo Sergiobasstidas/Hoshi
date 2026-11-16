@@ -248,8 +248,9 @@ export function identidades({ stars, athyg, anfitrionas, nasa }) {
     nasaPorNombre.set(h.h, h);
   }
   const tic = v => texto(v).replace(/^TIC\s*/, '');
-  // Las estrellas que ya entraron desde el registro (i ≥ HSB_NUEVO_BASE) no son de la carga base.
-  return stars.filter(s => s.i < HSB_NUEVO_BASE).map(s => {
+  // Las estrellas que ya entraron desde el registro (i ≥ HSB_NUEVO_BASE) no son de la carga base; una anfitriona
+  // nueva sí, aunque su número ya sea del rango nuevo (lo reservó build_added_hosts.js desde el registro).
+  return stars.filter(s => s.i < HSB_NUEVO_BASE || s.dataOrigin === 'exoplanet-host').map(s => {
     const radec = { ra: Math.atan2(s.y, s.x) * 180 / Math.PI, dec: s.d > 0 ? Math.asin(s.z / s.d) * 180 / Math.PI : 0 };
     if (s.dataOrigin === 'exoplanet-host') {
       const a = anfitrionas.get(s.i);

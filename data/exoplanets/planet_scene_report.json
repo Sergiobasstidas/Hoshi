@@ -1,33 +1,33 @@
 {
-  "generado": "2026-11-08T19:40:00.306Z",
-  "sistemas": 4533,
-  "planetas": 6125,
-  "anfitrionaAusente": 307,
+  "generado": "2026-11-16T03:19:08.142Z",
+  "sistemas": 4552,
+  "planetas": 6148,
+  "anfitrionaAusente": 308,
   "planetasSinOrbitaDibujable": [
     "SR 12 AB c",
     "TOI-1814 b"
   ],
   "puntosCompartidos": [
-    "HD 41004 A / HD 41004 B",
-    "HD 133131 B / HD 133131 A"
+    "HD 41004 B / HD 41004 A",
+    "HD 133131 A / HD 133131 B"
   ],
   "circumbinarios": 34,
   "circumbinariosConOrbitaDeLaBinaria": 26,
   "circumbinariosSinDatosDeLaBinaria": [],
-  "anfitrionaEnSistemaMultiple": 416,
+  "anfitrionaEnSistemaMultiple": 418,
   "marcas": {
-    "c": 3142,
-    "i": 798,
-    "r": 1235,
-    "e": 767,
-    "w": 399,
-    "f": 292,
-    "k": 160,
-    "a": 483,
-    "P": 63,
+    "c": 3151,
+    "i": 797,
+    "r": 1240,
+    "e": 769,
+    "w": 402,
+    "f": 295,
+    "k": 163,
+    "a": 489,
+    "P": 64,
     "R": 48,
-    "t": 339
+    "t": 345
   },
-  "conFaseMedida": 5833,
-  "conRadioMedido": 4842
+  "conFaseMedida": 5853,
+  "conRadioMedido": 4860
 }

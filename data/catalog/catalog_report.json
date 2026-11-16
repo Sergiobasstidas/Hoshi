@@ -1,5 +1,5 @@
 {
-  "generado": "2026-11-08T19:39:42.215Z",
+  "generado": "2026-11-16T03:18:52.732Z",
   "estrellasHoshi": 118659,
   "conGaia": 118047,
   "conGaiaPorHip": 99274,
@@ -308,21 +308,21 @@
     "total": 27773
   },
   "anfitriones": {
-    "total": 4842,
-    "enHoshi": 911,
+    "total": 4862,
+    "enHoshi": 914,
     "porVia": {
-      "gaia": 896,
-      "ninguna": 3931,
-      "cruce": 6,
+      "ninguna": 3948,
+      "gaia": 899,
+      "simbad-hd": 1,
       "simbad-hip": 8,
-      "simbad-hd": 1
+      "cruce": 6
     },
     "conSimbad": 4538,
-    "conGaia": 4516,
+    "conGaia": 4535,
     "nuevosFrenteAlCruce": [
       {
-        "host": "LHS 475",
-        "i": 2004361,
+        "host": "RR Cae",
+        "i": 316189,
         "method": "gaia"
       },
       {
@@ -331,13 +331,13 @@
         "method": "gaia"
       },
       {
-        "host": "RR Cae",
-        "i": 316189,
+        "host": "TOI-244",
+        "i": 54927,
         "method": "gaia"
       },
       {
-        "host": "TOI-244",
-        "i": 54927,
+        "host": "LHS 475",
+        "i": 2004361,
         "method": "gaia"
       }
     ],
