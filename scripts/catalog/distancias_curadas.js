@@ -27,8 +27,20 @@ const UCC = (cumulo, plx) => `${cumulo}: Unified Cluster Catalogue, Perren et al
 // (Kounkel et al. 2017, ApJ 834, 142, 2017ApJ...834..142K). Su sistema la comparte (distancia_sistemas.js).
 const KOUNKEL = 'Kounkel et al. 2017, ApJ 834, 142 (cúmulo de la Nebulosa de Orión por paralaje VLBA, 388 ± 5 pc)';
 
+// Pléyades brillantes (aprobado por Sergio el 16/11/2026): miembros del cúmulo en el UCC sin paralaje fiable de Gaia
+// (sin paralaje, o con RUWE ≥ 1,4) cuya distancia salía de Hipparcos, que en las Pléyades tiene un sesgo conocido:
+// la del cúmulo, como en la decisión N. Las que tienen Gaia fiable (Pleione, Celaeno, Asterope…) conservan la suya.
+const PLEYADES = UCC('Pléyades', '7,3612');
+
 export const DISTANCIAS_CURADAS = [
-  { i: 280634, n: 'HIP 17999', dNueva: 135.8474, fuente: UCC('Pléyades', '7,3612') },
+  { i: 280634, n: 'HIP 17999', dNueva: 135.8474, fuente: PLEYADES },
+  { i: 276732, n: 'Alcyone', dNueva: 135.8474, fuente: PLEYADES }, // Gaia DR3 sin paralaje
+  { i: 274126, n: 'Taygeta', dNueva: 135.8474, fuente: PLEYADES }, // RUWE 2,31
+  { i: 278603, n: 'Atlas', dNueva: 135.8474, fuente: PLEYADES }, // RUWE 4,12
+  { i: 273761, n: 'Electra', dNueva: 135.8474, fuente: PLEYADES }, // RUWE 2,77
+  { i: 274844, n: 'Maia', dNueva: 135.8474, fuente: PLEYADES }, // RUWE 3,54
+  { i: 275407, n: 'Merope', dNueva: 135.8474, fuente: PLEYADES }, // RUWE 2,33
+  { i: 279525, n: 'HIP 17921', dNueva: 135.8474, fuente: PLEYADES }, // RUWE 2,10
   { i: 681688, n: 'HIP 35226', dNueva: 299.3922, fuente: UCC('Collinder 135', '3,3401') },
   { i: 1583688, n: 'HIP 79031', dNueva: 157.0968, fuente: UCC('HSC 2907', '6,3655') },
   { i: 1658655, n: 'Pipirima', dNueva: 176.0532, fuente: UCC('UPK 640', '5,6801') },

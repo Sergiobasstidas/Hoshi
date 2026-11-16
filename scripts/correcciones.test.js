@@ -40,12 +40,10 @@ test('Alula Australis A y B: cada una en su posición de Gaia, a su separación'
   assert.notEqual(b.c, 0);
 });
 
-test('Taygeta y Merope con Hipparcos 2007; Proxima en su posición de Gaia; valor anterior guardado', () => {
-  for (const [i, d] of [[274126, 125.47], [275407, 116.55]]) {
-    assert.ok(Math.abs(stars.get(i).d - d) < 0.05, `${i}: ${stars.get(i).d}`);
-    assert.match(fuentes.get(i).fuente_d, /^Hipparcos/);
-    // Valor reemplazado y su fuente (el de AT-HYG antes de aplicar la escalera).
-    assert.ok(Number(fuentes.get(i).d_antes) > 0 && fuentes.get(i).fuente_d_antes);
+test('Taygeta y Merope a la distancia de las Pléyades (su Gaia tiene RUWE alto); Proxima en su posición de Gaia; valor anterior guardado', () => {
+  for (const i of [274126, 275407]) {
+    assert.equal(stars.get(i).d, 135.8474);
+    assert.match(fuentes.get(i).fuente_d, /^Pléyades: Unified Cluster Catalogue/);
   }
   assert.equal(fuentes.get(1436975).fuente_pos, 'Gaia DR3 (J2000)');
   assert.match(fuentes.get(1436975).pos_antes, /AT-HYG; 17\.\d+″/);
@@ -90,5 +88,9 @@ test('decisiones I–O: p Eridani, μ Draconis, Gl 563.2, cúmulos y θ¹ Orioni
   assert.equal(registro.get(100008705).estado, 'retirada');
   for (const [i, d] of [[280634, 135.8474], [681688, 299.3922], [1583688, 157.0968], [1658655, 176.0532]]) assert.equal(stars.get(i).d, d);
   assert.equal(stars.get(100001450).d, 388);
+  // Pléyades brillantes sin Gaia fiable: la distancia del cúmulo; Pleione y Celaeno, con Gaia fiable, la suya.
+  for (const i of [276732, 274126, 278603, 273761, 274844, 275407, 279525]) assert.equal(stars.get(i).d, 135.8474);
+  assert.equal(stars.get(278635).d, 138.0953);
+  assert.equal(stars.get(273677).d, 135.4051);
   assert.equal(stars.get(2211936).d > 0 && registro.get(2211936).gaia_dr3, '1810448909928688768');
 });
