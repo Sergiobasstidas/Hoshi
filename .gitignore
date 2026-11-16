@@ -77,3 +77,6 @@ data/raw/red/*
 # Hipparcos, nueva reducción (4,7 MB): python3 scripts/catalog/descargar_cercanas.py hipparcos
 data/raw/hipparcos/*
 !data/raw/hipparcos/FUENTES.md
+
+# Tabla de cúmulos de Hunt & Reffert 2023 (7 MB): se descarga con npm run descargar:red
+data/raw/hunt2023/

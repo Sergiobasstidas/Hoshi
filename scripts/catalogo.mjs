@@ -51,6 +51,7 @@ const PASOS = [
   { script: 'scripts/process_star_aliases.js', salidas: ['public/data/star-search-variables.json', 'public/data/star-search-numeros.json'], red: true },
   { script: 'scripts/process_stellar_official.js', salidas: ['data/processed/stellar_official.json'], red: true },
   { script: 'scripts/process_fichas.js', salidas: ['public/data/fichas.json'], red: true },
+  { script: 'scripts/catalog/descargar_hunt2023.js', salidas: [], red: true },
   { script: 'scripts/process_cumulos.js', salidas: ['public/data/cumulos.json'], red: true },
   { script: 'scripts/process_gaia.js', salidas: ['data/processed/gaia-1m.bin'] },
   { script: 'scripts/catalog/build_hsb.js', salidas: ['data/catalog/hsb_registro.csv', 'data/catalog/hsb_companeras_dibujadas.csv', 'data/catalog/hsb_capa_enlazadas.csv'] },

@@ -17,6 +17,8 @@ export function useCumulos(activo) {
   }, [activo, datos]);
   return datos;
 }
+// Rango de edad en millones de años, con 2 cifras significativas en cada extremo: «110–130», «1.000–1.500».
+export const rangoEdad = (min, max) => [min, max].map(v => Number(v.toPrecision(2)).toLocaleString('es-CL')).join('–');
 // Solo se muestran los cúmulos con al menos estos miembros en Hoshi: con menos, no se distingue el grupo.
 export const MIEMBROS_PARA_NOMBRE = 8;
 // Encuadre al elegir un cúmulo: la cámara mira desde el lado del Sol, fuera del grupo, a la distancia en que sus

@@ -1,12 +1,14 @@
 import { Dato } from './FichaLateral';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { CONSTELACIONES } from './constelaciones';
+import { rangoEdad } from './scene/datosCumulos';
 import textos from '../data/processed/textos_fichas.json';
 import './cumulos.css';
 
 const numero = (valor, decimales = 1) => valor.toLocaleString('es-CL', { maximumFractionDigits: decimales });
 
-// Ficha de un cúmulo: solo valores publicados en el Unified Cluster Catalogue y cuántos de sus miembros tiene Hoshi.
+// Ficha de un cúmulo: valores publicados en el Unified Cluster Catalogue, el rango de edad publicado (estudios dedicados
+// o Hunt & Reffert 2023; las citas están en scripts/catalog/edades_cumulos.js) y cuántos de sus miembros tiene Hoshi.
 export default function FichaCumulo({ cumulo, estrellaDe, fuente, fuenteBrillantes, onVerEstrella }) {
   const brillantes = cumulo.ids.map(id => estrellaDe.get(id)).filter(star => star?.n).slice(0, 10);
   const edad = cumulo.edadMyr;
@@ -19,7 +21,8 @@ export default function FichaCumulo({ cumulo, estrellaDe, fuente, fuenteBrillant
       {cumulo.r50Pc > 0 && <Dato etiqueta="Radio con la mitad de los miembros" valor={`${numero(cumulo.r50Pc / LIGHT_YEAR_PC)} años luz`} secundario={`${numero(cumulo.r50Arcmin)}′ en el cielo`} />}
       {cumulo.miembros > 0 && <Dato etiqueta="Miembros en el catálogo" valor={numero(cumulo.miembros, 0)} secundario="con probabilidad de pertenencia mayor que 50 %" />}
       <Dato etiqueta="Miembros en Hoshi" valor={numero(cumulo.ids.length, 0)} secundario="los más débiles no están en el catálogo de Hoshi" />
-      {edad > 0 && <Dato etiqueta="Edad" valor={edad >= 1000 ? `${numero(edad / 1000, 2)} mil millones de años` : `${numero(edad, 0)} millones de años`} />}
+      {cumulo.edadMinMyr > 0 ? <Dato etiqueta="Edad" valor={`${rangoEdad(cumulo.edadMinMyr, cumulo.edadMaxMyr)} millones de años`} />
+        : edad > 0 && <Dato etiqueta="Edad" valor={edad >= 1000 ? `${numero(edad / 1000, 2)} mil millones de años` : `${numero(edad, 0)} millones de años`} />}
       {cumulo.metalicidad !== null && <Dato etiqueta="Metalicidad [Fe/H]" valor={numero(cumulo.metalicidad, 2)} />}
       {cumulo.catalogos?.length > 0 && <Dato etiqueta="Catálogos" valor={cumulo.catalogos.join(' · ')} />}
     </dl>

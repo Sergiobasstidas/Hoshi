@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { encuadreDeCumulo } from '../src/scene/datosCumulos.js';
+import { encuadreDeCumulo, rangoEdad } from '../src/scene/datosCumulos.js';
 
 const { cumulos, fuente } = JSON.parse(fs.readFileSync('public/data/cumulos.json', 'utf8'));
 const estrellas = new Map(JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).map(s => [s.i, s]));
@@ -24,4 +24,14 @@ test('el encuadre deja la cámara fuera del cúmulo, del lado del Sol', () => {
     const dentro = c.ids.some(id => { const s = estrellas.get(id); return Math.hypot(s.x - camara[0], s.y - camara[1], s.z - camara[2]) < distance * 0.2; });
     assert.ok(!dentro && Math.hypot(...camara) < Math.hypot(c.x, c.y, c.z), nombre);
   }
+});
+
+test('la edad va como rango: estudios dedicados y, si no, Hunt & Reffert 2023', () => {
+  const pleyades = cumulos.find(c => c.id === 'pleiades');
+  assert.match(pleyades.fuenteEdad, /Stauffer et al\. 1998/);
+  assert.equal(rangoEdad(pleyades.edadMinMyr, pleyades.edadMaxMyr), '110–130');
+  assert.equal(rangoEdad(1000, 1500), '1.000–1.500');
+  const sinEstudio = cumulos.find(c => c.id === 'ngc3532');
+  assert.match(sinEstudio.fuenteEdad, /Hunt & Reffert 2023/);
+  assert.ok(sinEstudio.edadMinMyr < sinEstudio.edadMaxMyr);
 });

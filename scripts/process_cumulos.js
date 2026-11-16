@@ -9,6 +9,8 @@ import { parse } from 'csv-parse/sync';
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
 import { empezarDescarga, pedir } from './catalog/red.js';
+import { EDADES_CURADAS } from './catalog/edades_cumulos.js';
+const HUNT2023 = 'data/raw/hunt2023/clusters.tsv';
 
 const VERSION = '260615';
 const MINIMO_EN_HOSHI = 3;
@@ -21,6 +23,30 @@ const NOMBRES = { hyades: 'Híades', pleiades: 'Pléyades', ngc2632: 'Pesebre', 
 const redondeo = valor => { const n = numero(valor); return n === null ? null : Number(n.toFixed(1)); };
 const numero = valor => { const n = Number(valor); return valor !== 'nan' && valor !== '' && Number.isFinite(n) ? n : null; };
 const catalogo = parse(fs.readFileSync('data/raw/ucc/UCC_cat.csv', 'utf8'), { columns: true });
+
+// Edad en rango de Hunt & Reffert 2023 (A&A 673, A114): percentiles 16 y 84 de su edad, para los cúmulos sin estudio
+// dedicado (scripts/catalog/edades_cumulos.js). Se cruza por nombre (los del UCC contra AllNames) y, si no, por posición:
+// el más cercano dentro del radio con la mitad de los miembros del UCC (al menos 0,2°) y con paralaje a menos de 0,3 mas.
+const lineasHunt = fs.readFileSync(HUNT2023, 'utf8').split('\n').filter(l => l.trim() && !l.startsWith('#'));
+const columnasHunt = lineasHunt[0].split('\t').map(c => c.trim());
+const hunt = lineasHunt.slice(3).map(l => { const v = l.split('\t'); return Object.fromEntries(columnasHunt.map((c, i) => [c, (v[i] || '').trim()])); })
+  .filter(h => h.Name && [h.logAge16, h.logAge84].every(v => v !== '' && Number.isFinite(Number(v))));
+const clave = nombre => nombre.toLowerCase().replace(/[\s_-]/g, '');
+const huntPorNombre = new Map(hunt.flatMap(h => (h.AllNames || h.Name).split(',').map(n => [clave(n), h])));
+function edadHunt(fila) {
+  let h = [fila.name, ...fila['Name(s)'].split(';')].map(n => huntPorNombre.get(clave(n))).find(Boolean);
+  if (!h) {
+    const ra = Number(fila.RA_ICRS), dec = Number(fila.DE_ICRS), radio = Math.max(0.2, (numero(fila.r_50) || 0) / 60);
+    let mejor = Infinity;
+    for (const c of hunt) {
+      const sep = Math.hypot((Number(c.RA_ICRS) - ra) * Math.cos(dec * Math.PI / 180), Number(c.DE_ICRS) - dec);
+      if (sep < mejor && sep < radio && Math.abs(Number(c.Plx) - Number(fila.Plx)) < 0.3) { mejor = sep; h = c; }
+    }
+  }
+  if (!h) return null;
+  const myr = log => Number((10 ** Number(log) / 1e6).toPrecision(3));
+  return { min: myr(h.logAge16), max: myr(h.logAge84), fuente: `Hunt & Reffert 2023, A&A 673, A114 (percentiles 16 y 84 de la edad de ${h.Name.replace(/_/g, ' ')})` };
+}
 
 // Identificador de Gaia DR3 de cada estrella de Hoshi: catálogo base, anfitrionas añadidas y enlaces de SIMBAD.
 const deGaia = new Map();
@@ -60,6 +86,8 @@ for (const fila of catalogo) {
     x: Number((d * Math.cos(dec) * Math.cos(ra)).toFixed(3)), y: Number((d * Math.cos(dec) * Math.sin(ra)).toFixed(3)), z: Number((d * Math.sin(dec)).toFixed(3)),
     d: Number(d.toFixed(1)), paralaje, r50Arcmin: r50, r50Pc: r50 ? Number((d * Math.tan(r50 / 60 * Math.PI / 180)).toFixed(2)) : null,
     miembros: numero(fila.N_membs), edadMyr: numero(fila['Age_[Myr]']), metalicidad: numero(fila['FeH_[dex]']), calidad: fila.C3,
+    // Rango de edad: estudios dedicados o, si no, Hunt & Reffert 2023; sin ninguno queda solo la edad del UCC.
+    ...(rango => rango ? { edadMinMyr: rango.min, edadMaxMyr: rango.max, fuenteEdad: rango.fuente } : {})(EDADES_CURADAS[fila.name] || edadHunt(fila)),
     // Movimiento propio medio (mas/año) y velocidad radial media (km/s) del cúmulo, publicados en el UCC.
     pmRa: redondeo(fila.pmRA), pmDec: redondeo(fila.pmDE), rv: redondeo(fila.Rv),
     ids,
