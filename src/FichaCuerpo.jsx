@@ -47,13 +47,14 @@ function Anillos() {
 
 // Ficha del Sol, un planeta, la Luna, una luna, una sonda o el sistema WR 140, en la columna lateral.
 // `sistema`: datos del modelo de WR 140 (App.jsx).
-export default function FichaCuerpo({ cuerpo, sistema }) {
+export default function FichaCuerpo({ cuerpo, sistema, irA }) {
   const tipo = tipoDe(cuerpo);
   const relato = textos.sistemaSolar[cuerpo.name];
   const textura = PLANET_TEXTURES[cuerpo.name];
   const esPlaneta = cuerpo.au !== undefined;
   return <>
     <h2 className="marca-hoshi" style={cuerpo.color ? { color: cuerpo.color } : undefined}>{cuerpo.name}</h2>
+    {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
     {tipo && <p className="ficha-estrella-tipo">{tipo}</p>}
     {relato && <p className="ficha-estrella-relato">{relato}</p>}
     <dl>

@@ -6,11 +6,11 @@ import { useSyncExternalStore } from 'react';
 export const LIMITE_BINOCULARES = 9;
 
 export const MODOS_BRILLO = [
-  { id: 'mapa', nombre: 'Mapa', texto: 'Todas las estrellas del catálogo, para orientarte. No es lo que verías a simple vista.' },
-  { id: 'ojo', nombre: 'Ojo humano', limite: 6, texto: 'Lo que verías a simple vista desde aquí. Lejos de todo, casi nada.' },
-  { id: 'binoculares', nombre: 'Binoculares', limite: LIMITE_BINOCULARES, texto: 'Como con binoculares: aparecen miles de estrellas que el ojo no alcanza.' },
+  { id: 'mapa', nombre: 'Mapa', texto: 'Todas las estrellas catalogadas, se vean o no desde aquí.' },
+  { id: 'ojo', nombre: 'A simple vista', limite: 6, texto: 'Cada estrella brilla como se vería desde donde estás. Solo aparecen las que alcanza el ojo en un cielo oscuro.' },
+  { id: 'binoculares', nombre: 'Binoculares', limite: LIMITE_BINOCULARES, texto: 'Como a simple vista, pero se ven estrellas 16 veces más débiles.' },
 ];
-// Sin nada guardado se parte en «Ojo humano» (pedido de Sergio, 07/11/2026); la clave cambió para que
+// Sin nada guardado se parte en «A simple vista» (pedido de Sergio, 07/11/2026); la clave cambió para que
 // también parta así un navegador que tenía otro modo guardado.
 const CLAVE = 'hoshi-cielo-3', INICIAL = 'ojo';
 const leerGuardado = () => {
@@ -29,7 +29,7 @@ export const useModoBrillo = () => useSyncExternalStore(oyente => { oyentes.add(
 export const parametrosBrillo = () => ({ fisico: actual.limite ? 1 : 0, limite: actual.limite ?? 6 });
 
 // Proxima Centauri (HSB 1436975 = HIP 70890; magnitud absoluta 15,4) es la única estrella que se nombra en
-// «Ojo humano» y «Binoculares» aunque no se alcance a ver (pedido de Sergio, 08/11/2026: es la más cercana
+// «A simple vista» y «Binoculares» aunque no se alcance a ver (pedido de Sergio, 08/11/2026: es la más cercana
 // al Sol y a simple vista solo se vería a menos de ~0,16 pc de ella). Su punto se dibuja apenas visible
 // mientras su nombre se ve (`nombreProxima.alpha`, que escribe VisualGuides.jsx y lee StarField.jsx).
 export const PROXIMA_HSB = 1436975;

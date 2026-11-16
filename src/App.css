@@ -65,6 +65,15 @@
 .search-dropdown li { display:grid; gap:5px; padding:10px; cursor:pointer; border-top:1px solid #ffffff10; }
 .search-dropdown li[aria-selected=true] { background:#1a303e; }
 .search-dropdown li span { color:#95a9ba; line-height:1.5; }
+.search-dropdown.sugerencias { margin-top:4px; padding-bottom:4px; }
+.apuntado { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); pointer-events:none; z-index:4; }
+.apuntado .aim-reticle { position:static; transform:none; }
+.apuntado-nombre { position:absolute; left:50%; transform:translateX(-50%); white-space:nowrap; font-size:11px; font-weight:300; letter-spacing:.04em; }
+.apuntado-nombre { top:30px; color:#cfe1ea; }
+.ficha-ir-a { display:inline-block; margin:2px 0 10px; padding:0; border:none; background:none; color:#9fc3d6; font:inherit; font-size:12px; font-weight:300; letter-spacing:.03em; cursor:pointer; }
+.ficha-ir-a:hover { color:#fff; text-decoration:underline; text-underline-offset:3px; }
+.search-dropdown.sugerencias li { font-weight:300; color:#cfd6df; border-top:none; padding:6px 10px; }
+.search-dropdown.sugerencias .sugerencias-titulo { cursor:default; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:#6f7b8a; padding:8px 10px 2px; }
 .star-identifiers { max-width:300px; overflow-wrap:anywhere; color:#9da7b8; }
 .aim-panel { top:190px; }
 @media (max-width:700px) { .star-search { top:86px; right:18px; width:min(260px,calc(100% - 36px)); }  .aim-panel { top:158px; } }

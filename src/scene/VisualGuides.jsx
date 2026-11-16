@@ -147,7 +147,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     publishOccluders('cuerpos', disks.filter(Boolean));
     const occluders = currentOccluders(camera, size);
     const labelElements = root.querySelector('[data-labels]').children;
-    // Con «Ojo humano» o «Binoculares», el nombre solo aparece si su estrella se alcanza a ver desde aquí
+    // Con «A simple vista» o «Binoculares», el nombre solo aparece si su estrella se alcanza a ver desde aquí
     // (magnitud aparente bajo el límite del modo, como en StarField.jsx): antes quedaban nombres sueltos.
     const brillo = parametrosBrillo();
     const visibleEnModo = label => {

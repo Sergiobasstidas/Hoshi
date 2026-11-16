@@ -1018,7 +1018,7 @@ test('De cerca, la línea de órbita es curva junto al planeta y pasa por él', 
   assert.ok(next < 20000, `${next.toFixed(0)} km`);
 });
 
-test('En Ojo humano y Binoculares, el nombre de una estrella sigue a su punto', async () => {
+test('A simple vista y en Binoculares, el nombre de una estrella sigue a su punto', async () => {
   const { nombreVisible } = await import('../src/scene/modosBrillo.js');
   // Deneb (M = −6,93) a 433 pc: magnitud aparente 1,25, visible a simple vista.
   assert.equal(nombreVisible(-6.93, 432.9, 6), 1);

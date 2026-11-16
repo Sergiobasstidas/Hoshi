@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 let pedido;
-const cargar = () => {
+export const cargar = () => {
   pedido ||= fetch('/data/cumulos.json').then(r => { if (!r.ok) throw Error('cumulos'); return r.json(); }).catch(error => { pedido = null; throw error; });
   return pedido;
 };

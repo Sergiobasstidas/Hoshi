@@ -20,7 +20,8 @@ import FreeFlight from './scene/FreeFlight';
 import StarAim from './scene/StarAim.jsx';
 import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, KM_TO_PC, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
-import { planetPosition } from './scene/solarEphemeris';
+import { EPHEMERIS_DATE, planetPosition } from './scene/solarEphemeris';
+import { PLANET_TEXTURES, bodyAxes } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
 import BinarySystem from './scene/BinarySystem';
 import { BINARY_EPOCH, BINARY_STATE, WR140_ORBIT } from './scene/binaryOrbit';
@@ -127,19 +128,23 @@ const TACTIL = typeof window !== 'undefined' && window.matchMedia?.('(pointer: c
 const EARTH = SOLAR_BODIES.find(body => body.name === 'Tierra');
 // Artículo del nombre en el título del visor: «al Sol», «a la Tierra», «a Marte», «a Sirius».
 const distanceTitle = name => `Distancia ${name === 'Sol' || name === 'centro galáctico' ? 'al' : name === 'Tierra' || name === 'Luna' ? 'a la' : 'a'} ${name}`;
-// Vista al cargar: la cámara a 7° sobre la eclíptica, mirando la Tierra con el Sol 25° a la
-// izquierda; se calcula desde la dirección del Sol en la fecha, así se ve igual cualquier día.
 // Cuánto más lejos queda la cámara al comparar con una estrella mayor que el Sol (1 = encuadre justo).
 const ALEJAMIENTO_COMPARACION = 1.7;
 // Si el radio nuevo difiere menos que este factor del radio de la estrella encuadrada, la cámara no se mueve.
 const RANGO_SIN_MOVER = 1.5;
+// Vista al cargar: la cámara sobre el centro de Chile (35° S, 71° O), con el norte de la Tierra
+// arriba. Usa el giro real de la Tierra en la fecha de carga (el mismo de su esfera), así Chile
+// queda al centro de día o de noche.
+const CHILE = { lat: -35, lon: -71 };
+const EARTH_AXES = bodyAxes(PLANET_TEXTURES.Tierra, EPHEMERIS_DATE);
 const START_DIRECTION = (() => {
-  const up = new THREE.Vector3(...ECLIPTIC_UP), sunward = new THREE.Vector3(...EARTH.position).negate().normalize();
-  const sunHorizontal = sunward.addScaledVector(up, -sunward.dot(up)).normalize();
-  const view = sunHorizontal.applyAxisAngle(up, -25 * Math.PI / 180).multiplyScalar(Math.cos(7 * Math.PI / 180)).addScaledVector(up, -Math.sin(7 * Math.PI / 180));
-  return view.negate().normalize();
+  const { x, y, z } = EARTH_AXES, lat = CHILE.lat * Math.PI / 180, lon = CHILE.lon * Math.PI / 180;
+  // Ejes de la esfera: X hacia la longitud 0, Y al polo norte, Z hacia la longitud 90° oeste.
+  return new THREE.Vector3(...x).multiplyScalar(Math.cos(lat) * Math.cos(lon))
+    .addScaledVector(new THREE.Vector3(...z), -Math.cos(lat) * Math.sin(lon))
+    .addScaledVector(new THREE.Vector3(...y), Math.sin(lat)).normalize();
 })();
-const INITIAL_VIEW = bodyView(EARTH);
+const INITIAL_VIEW = { ...bodyView(EARTH), up: EARTH_AXES.y };
 const START_POSITION = START_DIRECTION.clone().multiplyScalar(INITIAL_VIEW.distance).add(new THREE.Vector3(...EARTH.position)).toArray();
 
 // Avisa a la pantalla de carga (index.html) cuando todo está listo: catálogo de estrellas
@@ -234,9 +239,10 @@ export default function App() {
   const [estrellaVista, setEstrellaVista] = useState(null);
   const esComputador = useEsComputador();
   const verOrbitas = useOrbitas(), verZona = useZonaVisible(), verCumulos = useCumulosVisibles(), verRutas = useRutasSondas();
-  const datosCumulos = useCumulos(verCumulos);
   // Cúmulo elegido: encuadrado, con su ficha; sus miembros brillan algo más y el resto se atenúa un poco.
   const [cumulo, setCumulo] = useState(null);
+  // Los datos se piden con la capa encendida o al elegir un cúmulo en el buscador (la capa sigue apagada).
+  const datosCumulos = useCumulos(verCumulos || cumulo !== null);
   const miembrosCumulo = useMemo(() => cumulo ? new Set(cumulo.ids) : null, [cumulo]);
   const fichas = useFichas();
   const [direccionFicha, setDireccionFicha] = useState(1);
@@ -501,7 +507,7 @@ export default function App() {
   };
   // Estrella de la capa de fondo elegida en el buscador: se piden sus datos de Gaia DR3 y se viaja a su posición en la
   // capa. Magnitud y color para dibujarla de cerca, como en la capa: M_V = G + 5·log10(paralaje/100) − (G − V).
-  const visitarCapa = async fila => {
+  const visitarCapa = async (fila, alElegir = body => visitBody(body, true)) => {
     if (!capaEstrellas || !cameraRef.current) return;
     const datos = await datosCapa(fila).catch(() => null);
     if (!datos) return;
@@ -510,7 +516,45 @@ export default function App() {
     const m = datos.paralaje > 0 && Number.isFinite(datos.g) ? datos.g + 5 * Math.log10(datos.paralaje / 100) - gMenosV(datos.bpRp) : undefined;
     const star = { i: datos.hsb, n: nombre, x, y, z, d: datos.paralaje > 0 ? 1000 / datos.paralaje : Math.hypot(x, y, z), m, rgb: rgbDesdeBpRp(datos.bpRp), capa: datos };
     setShowPulsars(false);
-    visitBody(starBody(star, nombre), true);
+    alElegir(starBody(star, nombre));
+  };
+  // Elegido en el buscador: la cámara gira sin moverse hasta dejarlo al centro, queda marcado con su nombre y
+  // se abre su ficha; recién con «Ir a» se viaja como antes (visitBody o focusBody).
+  const [apuntado, setApuntado] = useState(null);
+  const apuntarA = (elegido, viajar) => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    const vista = bodyView(elegido);
+    const desde = camera.position.toArray().map((v, i) => v + origin[i]);
+    const distance = Math.max(Math.hypot(...desde.map((v, i) => v - vista.target[i])), vista.minDistance || 0);
+    setShowPulsars(false); setShowDiscoveries(false); setInspectedTarget(null); setDireccionFicha(1);
+    navigate({ id: 'apuntado', body: vista.body, target: vista.target, distance, minDistance: vista.minDistance }, { headingOnly: true });
+    setShowBodyPanel(true);
+    setApuntado({ body: vista.body, nombre: elegido.name, viajar });
+  };
+  // Un cúmulo elegido en el buscador: la cámara gira hacia su centro sin moverse, queda marcado y se abre su ficha;
+  // «Ir a» lo encuadra como al elegirlo en la escena (elegirCumulo).
+  const apuntarACumulo = elegido => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    const target = [elegido.x, elegido.y, elegido.z];
+    const desde = camera.position.toArray().map((v, i) => v + origin[i]);
+    setShowPulsars(false); setShowDiscoveries(false); setShowBodyPanel(false); setInspectedTarget(null);
+    navigate({ id: 'apuntado-cumulo', cumuloId: elegido.id, target, distance: Math.hypot(...desde.map((v, i) => v - target[i])) }, { headingOnly: true });
+    setCumulo(elegido);
+    setApuntado({ cumuloId: elegido.id, nombre: elegido.nombre, viajar: () => elegirCumulo(elegido) });
+  };
+  const apuntadoVigente = apuntado && (apuntado.cumuloId ? view.cumuloId === apuntado.cumuloId : view.body === apuntado.body) && !freeFlight ? apuntado : null;
+  // Al viajar, deja de estar apuntado: el «Ir a» y la marca se van.
+  const irAlApuntado = () => { if (apuntadoVigente) { setApuntado(null); apuntadoVigente.viajar(); } };
+  const elegirDesdeBuscador = result => {
+    if (result.capa) { visitarCapa(result.capa.fila, body => apuntarA(body, () => visitBody(body, true))); return; }
+    const star = starsById.get(result.id);
+    if (!star || !cameraRef.current) return;
+    if (star.n === 'Sol' || star.n === 'Sun') { apuntarA(SOLAR_BODIES[0], () => focusBody(SOLAR_BODIES[0])); return; }
+    const body = STELLAR_TARGETS.find(b => b.catalogueId === star.i)
+      || starBody(star, star.n || result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : ''));
+    apuntarA(body, () => visitBody(body, true));
   };
   const visitSearchResult = (result, sistema = false) => {
     if (result.capa) { visitarCapa(result.capa.fila); return; }
@@ -727,6 +771,8 @@ export default function App() {
   const cerrarRegion = () => { setRegionCerrada({ region: fichaRegion, vista: view }); setSoltadas(n => n + 1); };
   const datosWr140 = { separacionAu: BINARY_STATE.separationAu, fecha: BINARY_EPOCH, anosLuz: (panelBody?.distancePc ?? 0) / LIGHT_YEAR_PC,
     periastroAu: WR140_ORBIT.semiMajorAu * (1 - WR140_ORBIT.eccentricity), apoastroAu: WR140_ORBIT.semiMajorAu * (1 + WR140_ORBIT.eccentricity) };
+  // «Ir a» en la ficha, bajo el nombre, mientras lo elegido en el buscador sigue apuntado.
+  const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${apuntadoVigente.nombre}`, onIr: irAlApuntado } : null;
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
     onPointerDown={event => { inicioArrastre.current = event.target instanceof HTMLCanvasElement ? [event.clientX, event.clientY] : null; }}
     onPointerMove={event => {
@@ -737,7 +783,7 @@ export default function App() {
     }}
     onPointerUp={() => { inicioArrastre.current = null; }}
     onWheel={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
-    <Canvas onPointerMissed={() => { if (sondaElegida !== null && !traveling) soltarSonda(); }} camera={{ position: START_POSITION, up: ECLIPTIC_UP, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
+    <Canvas onPointerMissed={() => { if (sondaElegida !== null && !traveling) soltarSonda(); }} camera={{ position: START_POSITION, up: INITIAL_VIEW.up, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} frameloop="demand" gl={{ antialias: true, logarithmicDepthBuffer: true }}>
       <Reposo />
       <SceneReady catalogueReady={catalogueStatus !== 'loading'} />
@@ -771,7 +817,7 @@ export default function App() {
         fichaFoco={fichaFoco} />
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
-      <StarSearch onSelect={visitSearchResult} onSelectBody={focusBody} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
+      <StarSearch onSelect={elegirDesdeBuscador} onSelectCumulo={apuntarACumulo} onSelectBody={body => apuntarA(body, () => focusBody(body))} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
         elegida={estrellaFicha && temperaturaFicha ? { nombre: nombreFicha, color: colorLegible(temperaturaFicha) } : null} seleccion={seleccionEscena} />
       <BarraDistancia onViajar={viajarDesdeBarra} onSeguir={seguirBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
@@ -838,6 +884,10 @@ export default function App() {
           </optgroup>}
         </select>
       </label>
+      {apuntadoVigente && !traveling && <div className="apuntado">
+        <div className="aim-reticle" aria-hidden="true" />
+        <span className="apuntado-nombre">{apuntadoVigente.nombre}</span>
+      </div>}
       {aimTarget && aimTarget.kind !== 'sun' && <>
         <div className="aim-reticle" aria-hidden="true" />
       </>}
@@ -846,18 +896,18 @@ export default function App() {
         {orbitasFicha ? <OrbitasPar orbita={orbitasFicha} nombreVolver={nombreFicha} onVolver={() => { setDireccionFicha(-1); setOrbitasDe(null); }} />
           : fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
           onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
-          : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
+          : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} irA={irAFicha} />
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irAFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerOrbitas={() => { setDireccionFicha(1); setOrbitasDe(estrellaFicha.i); }}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
       {cumulo && datosCumulos && !(fichaPlaneta || estrellaFicha) && <FichaLateral clave={`cumulo:${cumulo.id}`} direccion={1} etiqueta={`Información de ${cumulo.nombre}`} onCerrar={() => setCumulo(null)}>
-        <FichaCumulo cumulo={cumulo} estrellaDe={starsById} fuente={datosCumulos.fuente} fuenteBrillantes={datosCumulos.fuenteBrillantes} onVerEstrella={star => visitSearchResult({ id: star.i, aliases: [star.n] })} />
+        <FichaCumulo cumulo={cumulo} irA={irAFicha} estrellaDe={starsById} fuente={datosCumulos.fuente} fuenteBrillantes={datosCumulos.fuenteBrillantes} onVerEstrella={star => visitSearchResult({ id: star.i, aliases: [star.n] })} />
       </FichaLateral>}
       {/* Planetas, lunas, el Sol y sistemas: la misma columna lateral que las estrellas (pedido de Sergio). */}
       {fichaCuerpo && <FichaLateral clave={`cuerpo:${panelBody.optionValue || panelBody.name}`} direccion={direccionFicha} etiqueta={`Información de ${panelBody.name}`}
           onCerrar={() => { setShowBodyPanel(false); setSoltadas(n => n + 1); }}>
-          <FichaCuerpo cuerpo={panelBody} sistema={panelBody.kind === 'system' ? datosWr140 : null} />
+          <FichaCuerpo cuerpo={panelBody} sistema={panelBody.kind === 'system' ? datosWr140 : null} irA={irAFicha} />
         </FichaLateral>}
       <MoonLabels focused={focusedBody} onSelect={focusBody} />
       <div data-labels className="scene-labels">

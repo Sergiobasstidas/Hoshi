@@ -14,7 +14,7 @@ test('Proxima (HSB 1436975, HIP 70890) es la del catálogo', () => {
   assert.equal(proxima.n, 'Proxima Centauri');
 });
 
-test('en Ojo humano, Proxima se nombra con la cámara a 3 años luz y Barnard no', () => {
+test('a simple vista, Proxima se nombra con la cámara a 3 años luz y Barnard no', () => {
   assert.equal(nombreEnModo(proxima, 3 * LIGHT_YEAR_PC, OJO), 1);
   assert.equal(nombreEnModo(barnard, 3 * LIGHT_YEAR_PC, OJO), 0);
 });

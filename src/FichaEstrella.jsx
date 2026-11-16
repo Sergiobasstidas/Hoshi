@@ -139,7 +139,7 @@ function ComparacionSol({ nombre, radio, temperatura }) {
 }
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas }) {
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas, irA }) {
   const { constelacion, hd, hip, hr, gliese, variable } = useConstelacion(star.i);
   const fichas = useFichas();
   const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
@@ -161,6 +161,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   const vista = comoSeVe(star);
   return <>
       <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{nombre}</h2>
+      {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
       {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${espectro.replace(/\.+\s*$/, '').trim()}`}</p>}
       {/* Texto propio de la estrella si lo tiene; si no, el de su tipo. */}
       {(textos.estrellas[star.n] || tipo || vista) && <p className="ficha-estrella-relato">{[textos.estrellas[star.n] || tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}

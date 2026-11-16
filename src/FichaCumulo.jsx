@@ -9,11 +9,12 @@ const numero = (valor, decimales = 1) => valor.toLocaleString('es-CL', { maximum
 
 // Ficha de un cúmulo: valores publicados en el Unified Cluster Catalogue, el rango de edad publicado (estudios dedicados
 // o Hunt & Reffert 2023; las citas están en scripts/catalog/edades_cumulos.js) y cuántos de sus miembros tiene Hoshi.
-export default function FichaCumulo({ cumulo, estrellaDe, fuente, fuenteBrillantes, onVerEstrella }) {
+export default function FichaCumulo({ cumulo, irA, estrellaDe, fuente, fuenteBrillantes, onVerEstrella }) {
   const brillantes = cumulo.ids.map(id => estrellaDe.get(id)).filter(star => star?.n).slice(0, 10);
   const edad = cumulo.edadMyr;
   return <div className="ficha-cumulo">
     <h2 className="marca-hoshi">{cumulo.nombre}</h2>
+    {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
     <p className="ficha-estrella-tipo">Cúmulo abierto{CONSTELACIONES[cumulo.constelacion] ? ` · ${CONSTELACIONES[cumulo.constelacion]}` : ''}</p>
     <p className="ficha-estrella-relato">{textos.cumulos[cumulo.id] || 'Un grupo de estrellas nacidas de la misma nube de gas, que todavía viajan juntas por la galaxia. Se reconocen como familia porque comparten distancia y movimiento en el cielo, medidos por el satélite Gaia.'}</p>
     <dl>
