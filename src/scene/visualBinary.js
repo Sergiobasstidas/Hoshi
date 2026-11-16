@@ -138,6 +138,15 @@ export function buildStarSystems(data, starsById) {
 }
 export const FRAME_LIMIT_AU = 2500;
 
+// Recta de un par ancho, anclada en la compañera: su vértice cercano queda en (0, 0, 0) del objeto.
+// Con los vértices relativos a la primaria, al acercarse a una compañera lejana (Proxima, a 11.000 UA)
+// la resta en precisión simple de la GPU movía ese extremo decenas de miles de km entre cuadros y la
+// recta temblaba. El ancla se suma en doble precisión en la matriz del objeto.
+export function rectaAncha(component) {
+  const { parentOffsetPc: padre, offsetPc: ancla } = component;
+  return { anchor: ancla, points: new Float32Array([...padre.map((v, i) => v - ancla[i]), 0, 0, 0]) };
+}
+
 // Registro de una compañera sin estrella propia en el catálogo, para poder fijarla y ver su ficha.
 export function estrellaDeComponente(system, c) {
   if (c.companion) return c.companion;
@@ -146,3 +155,7 @@ export function estrellaDeComponente(system, c) {
     m: Number.isFinite(c.pair.v) ? c.pair.v - 5 * Math.log10(star.d / 10) : undefined,
     x: position[0] + c.offsetPc[0], y: position[1] + c.offsetPc[1], z: position[2] + c.offsetPc[2], physics: null, datos: null, sistemaDe: system };
 }
+
+// Color de una estrella (0–255) tal como se ve su punto en el cielo: el rgb del catálogo; sin él, el de su
+// tipo espectral.
+export const colorCatalogo = (star, sp) => star?.rgb || companionColor(sp ?? star?.sp);

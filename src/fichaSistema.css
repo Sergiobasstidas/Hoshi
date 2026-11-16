@@ -1,0 +1,18 @@
+/* Sección «Sistema» de la ficha de estrella (FichaEstrella.jsx) y su esquema (EsquemaSistema.jsx). */
+.esquema-sistema { display: block; width: 100%; height: auto; margin: 2px 0 6px; overflow: visible; }
+.esquema-sistema-dato { fill: #8fd3ff; font-size: 8.5px; letter-spacing: .02em; }
+.esquema-sistema-nombre { fill: #7f8b9b; font-size: 8.5px; }
+.ficha-sistema-arbol { margin: 8px 0 0; padding: 0; list-style: none; }
+.ficha-sistema-arbol li { position: relative; padding: 0 0 10px 16px; }
+.ficha-sistema-arbol li::before { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; border-left: 1px solid #ffffff22; }
+.ficha-sistema-arbol li:last-child::before { bottom: auto; height: 10px; }
+.ficha-sistema-arbol li::after { content: ''; position: absolute; left: 3px; top: 10px; width: 8px; border-top: 1px solid #ffffff22; }
+.ficha-sistema-arbol p { margin: 0; color: #9aa6b4; font-size: 12px; }
+.ficha-sistema-arbol small { display: block; color: #7f8b9b; font-size: 10px; line-height: 1.5; }
+.ficha-sistema-signo { color: #7f8b9b; }
+.ficha-sistema-actual { color: #eef3fa; font-weight: 600; }
+.ficha-sistema-enlace { padding: 0; border: 0; background: none; color: #8fd3ff; font: inherit; cursor: pointer; }
+.ficha-sistema-enlace:hover, .ficha-sistema-enlace:focus-visible { color: #cfeaff; text-decoration: underline; text-underline-offset: 3px; outline: none; }
+.ficha-sistema-orbitas { margin-top: 2px; font-size: 11px; white-space: nowrap; }
+.ficha-sistema-orbitas::after { content: ' →'; }
+.ficha-sistema-nombre:hover, .ficha-sistema-nombre:focus-visible { filter: brightness(1.15); }

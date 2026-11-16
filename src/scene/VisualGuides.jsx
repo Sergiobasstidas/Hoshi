@@ -36,6 +36,8 @@ const FUNDIDO = 12;
 export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget, distanceTarget, fichaFoco = null }) {
   const elapsed = useRef(0);
   const visibleStars = useRef(new Set());
+  // Desplazamiento vertical (px) del nombre de cada compañera apilada bajo el de su primaria.
+  const desplazamientos = useRef(new Map());
   const labelAlpha = useRef(new Map());
   useFrame(({ camera, size }, delta) => {
     elapsed.current += delta;
@@ -161,13 +163,34 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const point = project(label.position, false, visibleStars.current.has(label.catalogueId));
       if (!point.visible) return;
       const width = label.width * 0.75;
-      candidates.push({ id: label.catalogueId, width,
+      const sistema = (label.star?.system || label.star?.sistemaDe)?.star.i;
+      candidates.push({ id: label.catalogueId, width, sistema,
         x: Math.max(8, Math.min(point.x + 9, size.width - width - 12)), y: point.y - 8,
         hovered: labelElements[i]?.matches(':hover'),
         distance: camera.position.distanceTo(vector.set(...label.position)
           .sub({ x: origin[0], y: origin[1], z: origin[2] })),
       });
     });
+    // Nombres encimados de un mismo sistema (Rigil Kentaurus y Toliman desde lejos): el de cada compañera
+    // se corre bajo el de la primaria, sin juntarlos. El desplazamiento se suaviza y tiene margen para
+    // soltarse, así no salta ni parpadea al girar o acercarse.
+    const metas = new Map();
+    for (const primaria of candidates.filter(c => c.id === c.sistema)) {
+      const companeras = candidates.filter(c => c.sistema === primaria.id && c.id !== primaria.id).sort((a, b) => a.y - b.y);
+      let fila = 0;
+      for (const c of companeras) {
+        const margen = desplazamientos.current.get(c.id) ? 6 : 0;
+        const pisan = Math.abs(c.y - primaria.y) < 16 + margen && c.x < primaria.x + primaria.width + 6 + margen && c.x + c.width + 6 + margen > primaria.x;
+        if (pisan) metas.set(c.id, primaria.y + 15 * ++fila - c.y);
+      }
+    }
+    for (const c of candidates) {
+      const actual = desplazamientos.current.get(c.id) || 0, meta = metas.get(c.id) || 0;
+      const siguiente = actual + (meta - actual) * (1 - Math.exp(-frameTime * 10));
+      if (Math.abs(siguiente) < 0.3 && !meta) desplazamientos.current.delete(c.id); else desplazamientos.current.set(c.id, siguiente);
+      c.y += desplazamientos.current.get(c.id) || 0;
+      c.apilado = metas.has(c.id);
+    }
     visibleStars.current = selectStarLabels(candidates, visibleStars.current, elegidaId, size.width < 700 ? 6 : 12);
     labels.forEach((label, i) => {
       const el = labelElements[i];
@@ -216,7 +239,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const bodyPixels = (label.body?.radiusKm || 0) * KM_TO_PC / Math.max(bodyDistance, camera.near)
         * size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
       const width = label.width * (label.kind === 'star' ? 0.75 : 1.2);
-      const box = { x: Math.max(8, Math.min(point.x + Math.min(bodyPixels, size.width/3) + 9, size.width - width - 12)), y: point.y - 8 };
+      const box = { x: Math.max(8, Math.min(point.x + Math.min(bodyPixels, size.width/3) + 9, size.width - width - 12)),
+        y: point.y - 8 + (label.kind === 'star' ? desplazamientos.current.get(label.catalogueId) || 0 : 0) };
       const labelDistance = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const covered = hiddenBehind({ x: box.x, y: box.y, width, height: 16 }, labelDistance, occluders, label.body?.name ?? label.text);
       // Las estrellas se funden al aparecer, al desaparecer y al quedar tapadas (antes, de golpe).

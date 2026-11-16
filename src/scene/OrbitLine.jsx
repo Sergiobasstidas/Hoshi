@@ -20,6 +20,11 @@ const STYLES = {
   float core = 1.0 - smoothstep(0.035, 0.10, across);
   float halo = exp(-across * across * 9.0) * (1.0 - smoothstep(0.6, 1.0, across));
   gl_FragColor = vec4(diffuseColor.rgb, alpha * (0.30 * core + 0.17 * halo));` },
+  // Brillo tenue para las órbitas de estrellas dobles: un halo estrecho y suave detrás de su trazo.
+  brillo: { width: 7, profile: `
+  if (abs(vUv.y) > 1.0) discard;
+  float across = abs(vUv.x);
+  gl_FragColor = vec4(diffuseColor.rgb, alpha * exp(-across * across * 4.0) * (1.0 - smoothstep(0.75, 1.0, across)));` },
   // Gaussiana de ≈ 1,6 px a media altura, sin borde: la línea se funde con el fondo.
   fina: { width: 6, profile: `
   if (abs(vUv.y) > 1.0) discard;

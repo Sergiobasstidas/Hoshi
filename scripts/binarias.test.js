@@ -156,3 +156,12 @@ test('La compañera queda sobre su órbita y a escala', () => {
   assert.ok(nearest / AU_TO_PC < orbit.a * 0.01);
   assert.ok(Math.hypot(...points[0].map((v, i) => v - points.at(-1)[i])) / AU_TO_PC < 1e-9);
 });
+
+test('La recta de un par ancho se ancla en la compañera para no temblar de cerca', async () => {
+  const { rectaAncha } = await import('../src/scene/visualBinary.js');
+  const component = { parentOffsetPc: [0, 0, 0], offsetPc: [0.031, -0.02, 0.037] };
+  const { anchor, points } = rectaAncha(component);
+  assert.deepEqual(anchor, component.offsetPc);
+  assert.deepEqual([...points.slice(3)], [0, 0, 0]);
+  for (let i = 0; i < 3; i++) assert.ok(Math.abs(points[i] + anchor[i] - component.parentOffsetPc[i]) < 1e-9);
+});

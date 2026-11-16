@@ -26,6 +26,8 @@
 .distance-panel, .scale-navigation { z-index: 20; }
 .scene-label.sun { color: #f4e7c8; }
 .companion-label { display: block; transform: translate(8px, -8px); color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); white-space: nowrap; text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
+.companion-extremo { position: relative; display: block; transform: translate(8px, -8px); color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); white-space: nowrap; text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
+.companion-extremo::before { content: ''; position: absolute; left: -10px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: var(--color); box-shadow: 0 0 4px var(--color); }
 .scene-label.star { color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); text-shadow: 0 1px 3px #000, 0 0 5px #b4d8ed38; }
 .scene-label.star .label-text { transition: transform .28s ease, color .28s ease; }
 .scene-label.star:hover .label-text, .scene-label.star .label-text:focus-visible { transform: scale(1.7856); color: #edf4ff; }

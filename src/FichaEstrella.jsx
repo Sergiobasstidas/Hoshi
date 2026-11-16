@@ -9,6 +9,10 @@ import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
 import { useFichas } from './useFichas';
 import { tipoEstelar } from './tipoEstelar';
+import { ORBITAS_ANIMADAS } from './scene/orbitasPar';
+import { gruposSistema } from './scene/gruposSistema';
+import EsquemaSistema from './EsquemaSistema';
+import './fichaSistema.css';
 
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
@@ -35,6 +39,44 @@ function componentesDelSistema(star, nombre) {
     star: estrellaDeComponente(sistema, c),
     detalle: unionDelPar(c, primaria),
   }))].filter(miembro => miembro.star !== star && miembro.nombre !== nombre);
+}
+
+// Sistema de la estrella: un esquema con la pareja que se orbita y las compañeras lejanas, y debajo los
+// dos grupos con sus nombres. Si el sistema no se puede agrupar (sin datos del par), queda la lista simple.
+function SeccionSistema({ star, nombre, miembros, onVerComponente, onVerOrbitas }) {
+  const { pares, lejanas } = gruposSistema(star.system || star.sistemaDe);
+  const esActual = m => m.star === star || m.nombre === nombre;
+  // Cada nombre en el color de su estrella en el cielo; la de la ficha, en negrita y sin enlace.
+  const nombreDe = m => {
+    const color = { color: `rgb(${m.color.join(', ')})` };
+    return esActual(m) ? <strong className="ficha-sistema-actual" style={color}>{m.nombre}</strong>
+      : <button className="ficha-sistema-enlace ficha-sistema-nombre" style={color} onClick={() => onVerComponente(m.star, m.nombre)}>{m.nombre}</button>;
+  };
+  const parEsquema = pares.find(p => p.periodo && p.a) || null;
+  const lejanasEsquema = lejanas.filter(l => !parEsquema || l.par === parEsquema || l.de === parEsquema.uno);
+  const conEsquema = (parEsquema || lejanasEsquema.length) && lejanasEsquema.length <= 3;
+  if (!pares.length && !lejanas.length) return <section>
+    <h3>Sistema</h3>
+    <ul className="ficha-estrella-planetas ficha-estrella-miembros">
+      {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{miembro.nombre}</button>
+        {miembro.detalle && <small>{miembro.detalle}</small>}</li>)}
+    </ul>
+  </section>;
+  return <section className="ficha-sistema">
+    <h3>Sistema</h3>
+    {conEsquema && <EsquemaSistema par={parEsquema} lejanas={parEsquema ? lejanasEsquema : lejanasEsquema.slice(0, 3)} actual={star} />}
+    <ul className="ficha-sistema-arbol">
+      {pares.map(p => <li key={p.clave}>
+        <p>{nombreDe(p.uno)} <span className="ficha-sistema-signo" aria-label="se orbita con">⟲</span> {nombreDe(p.otro)}</p>
+        {p.periodo && p.a && <small>Se orbitan cada {numero(p.periodo, 3)} años (distancia media {numero(p.a, 2)} UA)</small>}
+        {onVerOrbitas && ORBITAS_ANIMADAS[p.clave] && <button className="ficha-sistema-enlace ficha-sistema-orbitas" onClick={onVerOrbitas}>Ver órbitas</button>}
+      </li>)}
+      {lejanas.map(l => <li key={l.miembro.nombre}>
+        <p>{nombreDe(l.miembro)}</p>
+        <small>{l.par ? 'Viaja con el par' : <>Viaja junto a {nombreDe(l.de)}</>}{l.rho && ` · ${numero(l.rho, 2)} UA`}</small>
+      </li>)}
+    </ul>
+  </section>;
 }
 
 // Cómo se ve desde la Tierra, según su magnitud aparente.
@@ -97,7 +139,7 @@ function ComparacionSol({ nombre, radio, temperatura }) {
 }
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona }) {
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas }) {
   const { constelacion, hd, hip, hr, gliese, variable } = useConstelacion(star.i);
   const fichas = useFichas();
   const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
@@ -145,13 +187,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {(hd || hip || mas.gaia || variable) && <Dato etiqueta="Catálogos" valor={[variable, hd, hip, hr, gliese].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
       </dl>
       <MapaZonaHabitable star={star} nombre={nombre} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} comparar onMostrar={onZona} />
-      {miembros.length > 0 && <section>
-        <h3>Sistema</h3>
-        <ul className="ficha-estrella-planetas ficha-estrella-miembros">
-          {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{miembro.nombre}</button>
-            {miembro.detalle && <small>{miembro.detalle}</small>}</li>)}
-        </ul>
-      </section>}
+      {miembros.length > 0 && <SeccionSistema star={star} nombre={nombre} miembros={miembros} onVerComponente={onVerComponente} onVerOrbitas={onVerOrbitas} />}
       {planetas.length > 0 && <section>
         <h3>{planetas.length === 1 ? 'Un planeta conocido' : `${planetas.length} planetas conocidos`}</h3>
         <ul className="ficha-estrella-planetas">

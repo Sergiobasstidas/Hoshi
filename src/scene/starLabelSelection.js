@@ -4,7 +4,9 @@ export function selectStarLabels(candidates, previous, selectedId, limit = 12) {
   const byId = new Map(candidates.map(c => [c.id, c]));
   const chosen = [];
   const protectedLabel = c => c.id === selectedId || c.hovered;
-  const overlaps = (a,b) => a.x < b.x+b.width+18 && a.x+a.width+18 > b.x && Math.abs(a.y-b.y)<28;
+  // Dos nombres del mismo sistema apilados uno bajo otro (VisualGuides.jsx) no compiten por el lugar.
+  const apilados = (a,b) => a.sistema !== undefined && a.sistema === b.sistema && (a.apilado || b.apilado);
+  const overlaps = (a,b) => !apilados(a,b) && a.x < b.x+b.width+18 && a.x+a.width+18 > b.x && Math.abs(a.y-b.y)<28;
   const add = c => { if(c && chosen.length<limit && !chosen.some(other=>other.id===c.id))chosen.push(c); };
   add(byId.get(selectedId));
   candidates.filter(c=>c.hovered).forEach(add);

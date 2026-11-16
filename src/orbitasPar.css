@@ -1,0 +1,7 @@
+/* Página de órbitas de un par (OrbitasPar.jsx): el lienzo ocupa el ancho de la ficha. */
+.orbitas-lienzo { margin: 14px 0 0; aspect-ratio: 8 / 7; border: 1px solid #ffffff14; border-radius: 4px; overflow: hidden; }
+.orbitas-lienzo canvas { display: block; width: 100%; height: 100%; }
+.orbitas-controles { margin-top: 12px; }
+.orbitas-controles .ficha-estrella-accion { margin-top: 0; }
+.orbitas-grupo { margin-top: 12px; }
+.orbitas-grupo button[aria-pressed='true'] { color: #fff; border-color: #8fd3ff; }
