@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useProgress } from '@react-three/drei';
 import { cargaInicial, progresoCarga } from './progresoCarga';
 import * as THREE from 'three';
@@ -147,14 +147,20 @@ const START_POSITION = START_DIRECTION.clone().multiplyScalar(INITIAL_VIEW.dista
 // Respaldo: si en este tiempo no se pidió ninguna textura, la carga sigue sin esperarlas.
 const SIN_TEXTURAS_MS = 6000;
 function SceneReady({ catalogueReady }) {
-  const frames = useRef(0);
-  const { active, loaded, total } = useProgress();
+  const frames = useRef(0), ultimo = useRef(-1);
   // Con total = 0 todavía no se pidió ninguna textura: no cuentan como listas (la barra saltaba a 40 % al inicio).
-  const [sinTexturas, setSinTexturas] = useState(false);
-  useEffect(() => { const espera = setTimeout(() => setSinTexturas(true), SIN_TEXTURAS_MS); return () => clearTimeout(espera); }, []);
-  const texturesReady = !active && (total > 0 ? loaded >= total : sinTexturas);
-  useEffect(() => { progresoCarga('texturas', texturesReady ? 1 : total ? loaded / total : 0); }, [texturesReady, loaded, total]);
+  const sinTexturas = useRef(false);
+  const invalidate = useThree(state => state.invalidate);
+  useEffect(() => { const espera = setTimeout(() => { sinTexturas.current = true; invalidate(); }, SIN_TEXTURAS_MS); return () => clearTimeout(espera); }, [invalidate]);
+  // La escena se dibuja a pedido: cada cambio del cargador pide un cuadro para leerlo.
+  useEffect(() => useProgress.subscribe(() => invalidate()), [invalidate]);
+  // El avance de las texturas se lee en cada cuadro, no con una suscripción: el cargador lo cambia mientras
+  // se dibuja el componente que pide la textura (la Tierra), y actualizar otro componente ahí no está permitido.
   useFrame(() => {
+    const { active, loaded, total } = useProgress.getState();
+    const texturesReady = !active && (total > 0 ? loaded >= total : sinTexturas.current);
+    const avance = texturesReady ? 1 : total ? loaded / total : 0;
+    if (avance !== ultimo.current) { ultimo.current = avance; progresoCarga('texturas', avance); }
     if (!catalogueReady || !texturesReady) { frames.current = 0; return; }
     if (++frames.current === 2) { cargaInicial.lista = true; window.hoshiCargaLista?.(); }
   });
