@@ -2,10 +2,13 @@
 // brillo real desde la cámara, con la magnitud más débil que alcanza cada instrumento.
 import { useSyncExternalStore } from 'react';
 
+// Magnitud más débil que alcanzan los binoculares; también es el piso de «Mapa» (StarField.jsx).
+export const LIMITE_BINOCULARES = 9;
+
 export const MODOS_BRILLO = [
   { id: 'mapa', nombre: 'Mapa', texto: 'Todas las estrellas del catálogo, para orientarte. No es lo que verías a simple vista.' },
   { id: 'ojo', nombre: 'Ojo humano', limite: 6, texto: 'Lo que verías a simple vista desde aquí. Lejos de todo, casi nada.' },
-  { id: 'binoculares', nombre: 'Binoculares', limite: 9, texto: 'Como con binoculares: aparecen miles de estrellas que el ojo no alcanza.' },
+  { id: 'binoculares', nombre: 'Binoculares', limite: LIMITE_BINOCULARES, texto: 'Como con binoculares: aparecen miles de estrellas que el ojo no alcanza.' },
 ];
 // Sin nada guardado se parte en «Ojo humano» (pedido de Sergio, 07/11/2026); la clave cambió para que
 // también parta así un navegador que tenía otro modo guardado.

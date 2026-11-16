@@ -5,7 +5,7 @@ import { AU_TO_PC, LIGHT_YEAR_PC, SUN_RADIUS_PC, backgroundGain, skyExposure, sm
 import { STAR_STOP_PC } from './starHeading';
 import { buildStellarAppearance, stellarMarkerSize } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
-import { PROXIMA_HSB, nombreProxima, parametrosBrillo } from './modosBrillo';
+import { LIMITE_BINOCULARES, PROXIMA_HSB, nombreProxima, parametrosBrillo } from './modosBrillo';
 import StellarSurface from './StellarSurface';
 import { M_MIN, M_STEP, escalasDeGrupo, tablaColores } from './gaiaCapa.js';
 import { posicionesCapa } from './estrellasBin.js';
@@ -59,6 +59,11 @@ const vertexShader = `
     if (fisico > 0.5) {
       vAlpha = clamp(0.08 * pow(10.0, 0.4 * (limite - apparentMagnitude)), 0.0, 1.0) * ganancia;
       gl_PointSize = (clamp(2.5 + 1.6 * (limite - apparentMagnitude), 1.5, 34.0) + inspectionSize) * pixelRatio;
+    } else {
+      // «Mapa» muestra todo el catálogo y nunca queda más tenue ni más chico que «Binoculares»: cada estrella
+      // toma lo mayor entre su punto de mapa y su brillo real desde la cámara con el límite de los binoculares.
+      vAlpha = max(vAlpha, clamp(0.08 * pow(10.0, 0.4 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude)), 0.0, 1.0) * ganancia);
+      gl_PointSize = max(gl_PointSize, (clamp(2.5 + 1.6 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude), 1.5, 34.0) + inspectionSize) * pixelRatio);
     }
     // Miembros de un cúmulo elegido: visibles sea cual sea su magnitud o el modo de brillo, con un punto algo
     // mayor y un realce fijo (latido). Solo multiplicar el brillo no se nota: las brillantes ya están al tope
@@ -215,6 +220,10 @@ const unidoVertex = `
       float proxima = esCapa < 0.5 && length(position - proximaPos) < 1e-5 ? proximaAlpha : 0.0;
       vAlpha = max(vAlpha, proxima * 0.08 * gananciaK);
       gl_PointSize = max(gl_PointSize, proxima * 2.5 * pixelRatio);
+    } else {
+      // «Mapa» nunca queda más tenue ni más chico que «Binoculares» (mismo criterio que vertexShader).
+      vAlpha = max(vAlpha, clamp(0.08 * pow(10.0, 0.4 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude)), 0.0, 1.0) * gananciaK);
+      gl_PointSize = max(gl_PointSize, clamp(2.5 + 1.6 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude), 1.5, 34.0) * pixelRatio);
     }
     float saturation = max(1.0 - smoothstep(1.0, 3.0, apparentMagnitude), smoothstep(0.22, 0.5, vAlpha));
     vColor = mix(vec3(0.92), vividColor, saturation);
