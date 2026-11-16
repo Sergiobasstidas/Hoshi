@@ -1,5 +1,6 @@
 import { AU_TO_PC } from './scale.js';
 import { eccentricAnomaly } from './binaryOrbit.js';
+import { vividStellarColor } from './stellarAppearance.js';
 
 // Órbitas relativas de binarias visuales (compañera respecto de la primaria) con
 // elementos de ORB6. Véase docs/BINARIAS.md. Elementos: p en días, t en MJD,
@@ -156,6 +157,11 @@ export function estrellaDeComponente(system, c) {
     x: position[0] + c.offsetPc[0], y: position[1] + c.offsetPc[1], z: position[2] + c.offsetPc[2], physics: null, datos: null, sistemaDe: system };
 }
 
-// Color de una estrella (0–255) tal como se ve su punto en el cielo: el rgb del catálogo; sin él, el de su
-// tipo espectral.
-export const colorCatalogo = (star, sp) => star?.rgb || companionColor(sp ?? star?.sp);
+// Color de una estrella (0–255) para sus órbitas y su nombre: el mismo tono vivo de su punto en el cielo
+// (vividStellarColor, StarField.jsx) a brillo pleno, para que se distinga sobre el fondo oscuro. Parte del rgb
+// del catálogo; sin él, del de su tipo espectral.
+export function colorCatalogo(star, sp) {
+  const vivo = vividStellarColor(star?.rgb || companionColor(sp ?? star?.sp));
+  const maximo = Math.max(...vivo) || 1;
+  return vivo.map(v => Math.round(v / maximo * 255));
+}

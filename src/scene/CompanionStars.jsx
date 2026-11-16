@@ -34,13 +34,14 @@ function CompanionSystem({ system, origin, onElegir, elegido }) {
   const drawn = useMemo(() => system.components.filter(component => !component.companion), [system]);
   // Una curva por par ancho u órbita relativa; con masas, las dos órbitas en torno al
   // centro de masas del par.
-  // Cada órbita lleva el color de su estrella en el cielo; la recta de un par ancho queda gris.
+  // Cada órbita lleva el color de su estrella en el cielo, con un brillo detrás; la recta de un par ancho,
+  // el de la compañera, sin brillo.
   const paths = useMemo(() => system.components.flatMap(component => {
     const shifted = points => new Float32Array(points.flatMap(p => p.map((v, i) => v + component.parentOffsetPc[i])));
-    if (component.pair.k !== 'o') return component.unido ? [{ component, ...rectaAncha(component) }] : [];
+    const rgb = star => `rgb(${colorCatalogo(star).join(',')})`;
+    if (component.pair.k !== 'o') return component.unido ? [{ component, ...rectaAncha(component), tinte: rgb(estrellaDeComponente(system, component)) }] : [];
     const padre = component.pair.of === 'A' ? system.star : system.components.find(c => c.name === component.pair.of);
     const estrellaPadre = padre === system.star ? padre : padre && estrellaDeComponente(system, padre);
-    const rgb = star => `rgb(${colorCatalogo(star).join(',')})`;
     const companera = rgb(estrellaDeComponente(system, component));
     if (component.massRatio === null) return [{ component, points: shifted(companionOrbitPc(component.pair, system.position)), color: companera }];
     const orbits = barycentricOrbitsPc(component.pair, system.position, component.massRatio);
@@ -89,7 +90,7 @@ function CompanionSystem({ system, origin, onElegir, elegido }) {
     <group ref={lines}>
       {paths.map((path, i) => <line key={i} frustumCulled={false} position={path.anchor}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[path.points, 3]} /></bufferGeometry>
-        <lineBasicMaterial color={path.color || '#8fa3c4'} transparent opacity={0} depthWrite={false} />
+        <lineBasicMaterial color={path.color || path.tinte} transparent opacity={0} depthWrite={false} />
       </line>)}
     </group>
     {paths.map((path, i) => path.color && <OrbitLine key={`brillo-${i}`} ref={linea => { brillos.current[i] = linea; }} points={path.points}

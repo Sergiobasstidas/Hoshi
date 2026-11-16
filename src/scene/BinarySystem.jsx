@@ -3,6 +3,11 @@ import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending } from 'three';
 import { BINARY_STATE, binaryOrbitPoints } from './binaryOrbit';
 import { AU_TO_PC, smoothRange } from './scale';
+import OrbitLine from './OrbitLine';
+
+// Color de cada estrella (WR y O), el mismo para su punto y su órbita.
+const TONOS = [[0.72, 0.83, 1], [0.93, 0.91, 0.78]];
+const rgb = tono => `rgb(${tono.map(v => Math.round(v * 255)).join(',')})`;
 
 // Solo marcadores de ubicación: su diámetro en píxeles no representa un radio estelar.
 export default function BinarySystem({ position = [0, 0, 0] }) {
@@ -11,21 +16,25 @@ export default function BinarySystem({ position = [0, 0, 0] }) {
   const uniforms = useMemo(() => ({ pixelRatio: { value: 1 } }), []);
   const orbits = useMemo(() => ['wr', 'o'].map(key => new Float32Array(binaryOrbitPoints(key).flat())), []);
   const positions = useMemo(() => new Float32Array([...BINARY_STATE.wr, ...BINARY_STATE.o]), []);
-  const colors = useMemo(() => new Float32Array([0.72, 0.83, 1, 0.93, 0.91, 0.78]), []);
+  const colors = useMemo(() => new Float32Array(TONOS.flat()), []);
+  const brillos = useRef([]);
   useFrame(({ camera, gl }) => {
     const distance = Math.hypot(camera.position.x-position[0], camera.position.y-position[1], camera.position.z-position[2]);
     const opacity = 1 - smoothRange(distance / AU_TO_PC, 150, 800);
     group.current.visible = opacity > 0.01;
     group.current.children.forEach(line => { line.material.opacity = opacity * 0.3; });
+    brillos.current.forEach(brillo => { if (brillo) { brillo.material.opacity = 0.16 * opacity; brillo.visible = group.current.visible; } });
     material.current.uniforms.pixelRatio.value = gl.getPixelRatio();
   });
   return <group position={position}>
     <group ref={group}>
       {orbits.map((points, i) => <line key={i}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[points, 3]} /></bufferGeometry>
-        <lineBasicMaterial color={i === 0 ? '#839abf' : '#baaf8d'} transparent opacity={0.3} depthWrite={false} />
+        <lineBasicMaterial color={rgb(TONOS[i])} transparent opacity={0.3} depthWrite={false} />
       </line>)}
     </group>
+    {orbits.map((points, i) => <OrbitLine key={`brillo-${i}`} ref={brillo => { brillos.current[i] = brillo; }} points={points}
+      variant="brillo" color={rgb(TONOS[i])} visible />)}
     <points frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />

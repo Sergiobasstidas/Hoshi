@@ -6,6 +6,7 @@ import { AU_TO_PC, smoothRange } from './scale';
 import { planetOrbitPc } from './exoplanetOrbit';
 import { useOrbitas } from './guiasOrbitales';
 import OrbitLine from './OrbitLine';
+import { colorCatalogo } from './visualBinary';
 
 // Planetas de las anfitrionas del catálogo (NASA Exoplanet Archive). Órbitas y radios a
 // escala física; de lejos cada planeta es un marcador de tamaño fijo que no representa su
@@ -57,7 +58,7 @@ function PlanetSphere({ planet }) {
 
 function ActiveSystem({ system, origin, onSelect }) {
   const lines = useRef(), material = useRef(), points = useRef(), labels = useRef([]);
-  const starLines = useRef(), starLabels = useRef([]);
+  const starLines = useRef(), starLabels = useRef([]), starGlows = useRef([]);
   const orbitas = useOrbitas();
   const position = useMemo(() => system.position.map((v, i) => v - origin[i]), [system, origin]);
   // Las dos estrellas de un sistema circumbinario, cada una en su órbita en torno al
@@ -92,6 +93,8 @@ function ActiveSystem({ system, origin, onSelect }) {
       const pixels = system.binary.apoapsisPc / hostDistance * focal;
       const opacity = 0.5 * smoothRange(pixels, ...STAR_ORBIT_PIXELS);
       starLines.current.children.forEach(line => { line.material.opacity = opacity; line.visible = opacity > 0.004; });
+      // El brillo de cada órbita sigue a su trazo, como en las estrellas dobles (CompanionStars.jsx).
+      starGlows.current.forEach(glow => { if (glow) { glow.material.opacity = 0.16 * opacity / 0.45; glow.visible = opacity > 0.004; } });
       starLabels.current.forEach((label, i) => {
         if (!label) return;
         // El nombre se retira cuando la esfera de la estrella ya llena la vista.
@@ -111,9 +114,11 @@ function ActiveSystem({ system, origin, onSelect }) {
     {pair && <group ref={starLines} visible={orbitas}>
       {pair.map(component => <line key={component.name} frustumCulled={false}>
         <bufferGeometry><bufferAttribute attach="attributes-position" args={[component.orbit, 3]} /></bufferGeometry>
-        <lineBasicMaterial color={`rgb(${component.color.map(v => Math.round(v * 255)).join(',')})`} transparent opacity={0} depthWrite={false} />
+        <lineBasicMaterial color={`rgb(${colorCatalogo(component.star).join(',')})`} transparent opacity={0} depthWrite={false} />
       </line>)}
     </group>}
+    {pair?.map((component, i) => <OrbitLine key={`brillo-${component.name}`} ref={glow => { starGlows.current[i] = glow; }} points={component.orbit}
+      variant="brillo" color={`rgb(${colorCatalogo(component.star).join(',')})`} visible={orbitas} />)}
     {pair?.map((component, i) => <Html key={component.name} position={component.offsetPc} zIndexRange={[18, 10]} style={{ pointerEvents: 'none' }}>
       <span ref={element => { starLabels.current[i] = element; }} className="companion-label" style={{ opacity: 0, cursor: component.body ? 'pointer' : 'default' }}
         onClick={() => component.body && onSelect?.(component.body)}
