@@ -21,6 +21,8 @@ import StarAim from './scene/StarAim.jsx';
 import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, KM_TO_PC, LIGHT_YEAR_PC, MAX_VIEW_DISTANCE_PC, OORT_OUTER_PC, PLANETS, SCENE_FAR_PC, SUN_RADIUS_PC, VIEWS, orbitalPosition } from './scene/scale';
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
 import { EPHEMERIS_DATE, planetPosition } from './scene/solarEphemeris';
+import { GENITIVOS } from './scene/starSearch';
+import { nombreParaMostrar } from './scene/nombresEstrella';
 import { PLANET_TEXTURES, bodyAxes } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
 import BinarySystem from './scene/BinarySystem';
@@ -772,7 +774,7 @@ export default function App() {
   const datosWr140 = { separacionAu: BINARY_STATE.separationAu, fecha: BINARY_EPOCH, anosLuz: (panelBody?.distancePc ?? 0) / LIGHT_YEAR_PC,
     periastroAu: WR140_ORBIT.semiMajorAu * (1 - WR140_ORBIT.eccentricity), apoastroAu: WR140_ORBIT.semiMajorAu * (1 + WR140_ORBIT.eccentricity) };
   // «Ir a» en la ficha, bajo el nombre, mientras lo elegido en el buscador sigue apuntado.
-  const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${apuntadoVigente.nombre}`, onIr: irAlApuntado } : null;
+  const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${nombreParaMostrar(apuntadoVigente.nombre, GENITIVOS)}`, onIr: irAlApuntado } : null;
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
     onPointerDown={event => { inicioArrastre.current = event.target instanceof HTMLCanvasElement ? [event.clientX, event.clientY] : null; }}
     onPointerMove={event => {
@@ -886,7 +888,7 @@ export default function App() {
       </label>
       {apuntadoVigente && !traveling && <div className="apuntado">
         <div className="aim-reticle" aria-hidden="true" />
-        <span className="apuntado-nombre">{apuntadoVigente.nombre}</span>
+        <span className="apuntado-nombre">{nombreParaMostrar(apuntadoVigente.nombre, GENITIVOS)}</span>
       </div>}
       {aimTarget && aimTarget.kind !== 'sun' && <>
         <div className="aim-reticle" aria-hidden="true" />

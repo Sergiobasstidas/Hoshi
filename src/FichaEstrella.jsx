@@ -12,40 +12,65 @@ import { tipoEstelar } from './tipoEstelar';
 import { ORBITAS_ANIMADAS } from './scene/orbitasPar';
 import { gruposSistema } from './scene/gruposSistema';
 import EsquemaSistema from './EsquemaSistema';
+import { nombreParaMostrar } from './scene/nombresEstrella';
+import { GENITIVOS } from './scene/starSearch';
 import './fichaSistema.css';
 
 
+const mostrar = nombre => nombreParaMostrar(nombre, GENITIVOS);
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 
 // Lo que une a una compañera con su estrella, solo con los datos del sistema (star_systems): con órbita,
 // su período (p, en días) y semieje (a, en UA); en un par ancho, la separación proyectada (rho, en UA).
 // Las compañeras espectroscópicas ocultas no forman parte de `components` y no se listan.
-function unionDelPar(c, primaria) {
+function unionDelPar(c, nombrePrimaria) {
   const { pair } = c;
   const enana = /^[LTY]\d/.test(pair.sp || '') ? `Enana café ${pair.sp}` : null;
-  const padre = pair.of === 'A' ? primaria.n : `${primaria.n} ${pair.of}`;
+  const padre = mostrar(pair.of === 'A' ? nombrePrimaria : `${nombrePrimaria} ${pair.of}`);
   const enlace = pair.k === 'o' && pair.p > 0 && pair.a > 0 ? `Órbita de ${numero(pair.p / 365.25, 3)} años · ${numero(pair.a, 2)} UA`
     : pair.k !== 'o' && pair.rho > 0 ? `A ${numero(pair.rho, 2)} UA de ${padre} · viaja con el sistema` : null;
   return [enana, enlace].filter(Boolean).join(' · ') || null;
 }
 
 // Las demás estrellas de su sistema; una compañera sin registro propio se completa con el dato del par.
-function componentesDelSistema(star, nombre) {
+// `titulos`: id → título en el buscador (el mismo de su ficha), para las estrellas sin nombre propio (61 Cyg).
+function componentesDelSistema(star, nombre, titulos) {
   const sistema = star.system || star.sistemaDe;
   if (!sistema) return [];
   const primaria = sistema.star;
-  return [{ star: primaria, nombre: primaria.n || 'Estrella principal' }, ...sistema.components.map(c => ({
-    nombre: c.companion?.n || `${primaria.n} ${c.name}`,
+  const titulo = estrella => estrella && (titulos.get(estrella.i) || estrella.n);
+  const nombrePrimaria = titulo(primaria) || 'Estrella principal';
+  return [{ star: primaria, nombre: nombrePrimaria }, ...sistema.components.map(c => ({
+    nombre: titulo(c.companion) || `${nombrePrimaria} ${c.name}`,
     star: estrellaDeComponente(sistema, c),
-    detalle: unionDelPar(c, primaria),
+    detalle: unionDelPar(c, nombrePrimaria),
   }))].filter(miembro => miembro.star !== star && miembro.nombre !== nombre);
+}
+
+// Títulos del buscador de las estrellas de un sistema.
+function useTitulos(star) {
+  const sistema = star.system || star.sistemaDe;
+  const ids = sistema ? [sistema.star, ...sistema.components.map(c => c.companion)].filter(Boolean).map(s => s.i) : [];
+  const clave = ids.join(',');
+  const [titulos, setTitulos] = useState({ clave: null, mapa: new Map() });
+  useEffect(() => {
+    if (!clave) return undefined;
+    let activo = true;
+    const buscados = new Set(clave.split(',').map(Number));
+    indiceBusqueda().then(indice => {
+      const mapa = new Map(indice.filter(item => buscados.has(item.id)).map(item => [item.id, item.aliases[0]]));
+      if (activo) setTitulos({ clave, mapa });
+    }).catch(() => {});
+    return () => { activo = false; };
+  }, [clave]);
+  return titulos.clave === clave ? titulos.mapa : new Map();
 }
 
 // Sistema de la estrella: un esquema con la pareja que se orbita y las compañeras lejanas, y debajo los
 // dos grupos con sus nombres. Si el sistema no se puede agrupar (sin datos del par), queda la lista simple.
-function SeccionSistema({ star, nombre, miembros, onVerComponente, onVerOrbitas }) {
-  const { pares, lejanas } = gruposSistema(star.system || star.sistemaDe);
-  const esActual = m => m.star === star || m.nombre === nombre;
+function SeccionSistema({ star, nombre, miembros, titulos, onVerComponente, onVerOrbitas }) {
+  const { pares, lejanas } = gruposSistema(star.system || star.sistemaDe, estrella => mostrar(titulos.get(estrella.i) || estrella.n));
+  const esActual = m => m.star === star || m.nombre === mostrar(nombre);
   // Cada nombre en el color de su estrella en el cielo; la de la ficha, en negrita y sin enlace.
   const nombreDe = m => {
     const color = { color: `rgb(${m.color.join(', ')})` };
@@ -58,7 +83,7 @@ function SeccionSistema({ star, nombre, miembros, onVerComponente, onVerOrbitas 
   if (!pares.length && !lejanas.length) return <section>
     <h3>Sistema</h3>
     <ul className="ficha-estrella-planetas ficha-estrella-miembros">
-      {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{miembro.nombre}</button>
+      {miembros.map(miembro => <li key={miembro.nombre}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{mostrar(miembro.nombre)}</button>
         {miembro.detalle && <small>{miembro.detalle}</small>}</li>)}
     </ul>
   </section>;
@@ -152,7 +177,8 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   const masa = planetary?.[0]?.st?.m ?? datos?.massSolar;
   const espectro = star.sp || datos?.espectro;
   const fuentes = Object.entries({ temperatura: datos?.fuentes.temperatureK, radio: datos?.fuentes.radiusSolar, masa: datos?.fuentes.massSolar, luminosidad: datos?.fuentes.luminositySolar }).filter(([, fuente]) => fuente);
-  const miembros = componentesDelSistema(star, nombre);
+  const titulos = useTitulos(star);
+  const miembros = componentesDelSistema(star, nombre, titulos);
   const color = temperatura ? `rgb(${temperatureColor(temperatura).map(v => Math.round(v * 255)).join(', ')})` : '#fff';
   const luminosidad = physics?.luminositySolar ?? datos?.luminositySolar ?? mas.luminosidad;
   const anosLuz = star.d / LIGHT_YEAR_PC;
@@ -160,12 +186,12 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   const planetas = (planetary || []).flatMap(sistema => sistema.planets);
   const vista = comoSeVe(star);
   return <>
-      <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{nombre}</h2>
+      <h2 className="marca-hoshi" style={temperatura ? { color: colorLegible(temperatura) } : undefined}>{mostrar(nombre)}</h2>
       {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
       {tipo && <p className="ficha-estrella-tipo">{tipo.nombre}{` · ${espectro.replace(/\.+\s*$/, '').trim()}`}</p>}
       {/* Texto propio de la estrella si lo tiene; si no, el de su tipo. */}
       {(textos.estrellas[star.n] || tipo || vista) && <p className="ficha-estrella-relato">{[textos.estrellas[star.n] || tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
-      {radio > 0 && <ComparacionSol nombre={nombre} radio={radio} temperatura={temperatura || 5772} />}
+      {radio > 0 && <ComparacionSol nombre={mostrar(nombre)} radio={radio} temperatura={temperatura || 5772} />}
       {onVerSuperficie && physics && <div className="ficha-estrella-superficie"><button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button></div>}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
@@ -189,7 +215,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {(hd || hip || mas.gaia || variable) && <Dato etiqueta="Catálogos" valor={[variable, hd, hip, hr, gliese].filter(Boolean).join(' · ')} secundario={mas.gaia ? `Gaia DR3 ${mas.gaia}` : undefined} />}
       </dl>
       <MapaZonaHabitable star={star} nombre={nombre} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} comparar onMostrar={onZona} />
-      {miembros.length > 0 && <SeccionSistema star={star} nombre={nombre} miembros={miembros} onVerComponente={onVerComponente} onVerOrbitas={onVerOrbitas} />}
+      {miembros.length > 0 && <SeccionSistema star={star} nombre={nombre} miembros={miembros} titulos={titulos} onVerComponente={onVerComponente} onVerOrbitas={onVerOrbitas} />}
       {planetas.length > 0 && <section>
         <h3>{planetas.length === 1 ? 'Un planeta conocido' : `${planetas.length} planetas conocidos`}</h3>
         <ul className="ficha-estrella-planetas">

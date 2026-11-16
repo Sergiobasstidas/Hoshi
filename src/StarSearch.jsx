@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { buildSearchIndex, normalizeStarQuery, searchStars } from './scene/starSearch';
+import { GENITIVOS, buildSearchIndex, normalizeStarQuery, searchStars } from './scene/starSearch';
+import { nombreParaMostrar } from './scene/nombresEstrella';
 import { buscaNumeroDeCatalogo, indiceBusqueda, indiceNumeros } from './indiceBusqueda';
 import { buscarEnCapa } from './capaBusqueda';
 import { cargar as cargarCumulos } from './scene/datosCumulos';
@@ -92,12 +93,12 @@ export default function StarSearch({ onSelect, onSelectBody, onSelectCumulo, des
       setIndex(await indiceBusqueda());
     } catch {setError(true);}
   };
-  const select=result=>{if(result.cumulo)onSelectCumulo?.(result.cumulo);else if(result.body)onSelectBody(result.body);else onSelect(result.estrellaId!==undefined?{...result,id:result.estrellaId}:result);setQuery(result.aliases[0]);setOpen(false);setPropia(null);
+  const select=result=>{if(result.cumulo)onSelectCumulo?.(result.cumulo);else if(result.body)onSelectBody(result.body);else onSelect(result.estrellaId!==undefined?{...result,id:result.estrellaId}:result);setQuery(result.body||result.cumulo?result.aliases[0]:nombreParaMostrar(result.aliases[0],GENITIVOS));setOpen(false);setPropia(null);
     setTimeout(()=>setPropia(seleccionActual.current),100);};
   return <div className="star-search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}}>
     <label htmlFor="star-search-input" className="solo-lector">Buscar estrella</label>
-    <input id="star-search-input" role="combobox" autoComplete="off" className={elegida&&query===elegida.nombre?'con-estrella':undefined}
-      style={elegida&&query===elegida.nombre?{'--color-estrella':elegida.color}:undefined} aria-autocomplete="list" aria-expanded={open}
+    <input id="star-search-input" role="combobox" autoComplete="off" className={elegida&&query===nombreParaMostrar(elegida.nombre,GENITIVOS)?'con-estrella':undefined}
+      style={elegida&&query===nombreParaMostrar(elegida.nombre,GENITIVOS)?{'--color-estrella':elegida.color}:undefined} aria-autocomplete="list" aria-expanded={open}
       aria-controls="star-search-results" aria-activedescendant={open&&lista[active]?`star-result-${lista[active].id}`:undefined}
       placeholder="Buscar" value={query} onFocus={()=>{setActive(0);load();}} onClick={()=>setOpen(true)}
       onChange={e=>{setPropia(null);setQuery(e.target.value);setActive(0);setOpen(true);}}
@@ -123,7 +124,7 @@ export default function StarSearch({ onSelect, onSelectBody, onSelectCumulo, des
       <ul id="star-search-results" role="listbox">
         {results.map((result,i)=><li key={result.id} id={`star-result-${result.id}`} role="option" aria-selected={active===i}
           onMouseEnter={()=>setActive(i)} onMouseDown={e=>e.preventDefault()} onClick={()=>select(result)}>
-          <strong>{result.score>=3?'Quizás: ':''}{result.aliases[0]}</strong>
+          <strong>{result.score>=3?'Quizás: ':''}{result.body||result.cumulo?result.aliases[0]:nombreParaMostrar(result.aliases[0],GENITIVOS)}</strong>
           <span>{result.detalle??[result.matched,...result.aliases.filter(a=>a!==result.matched&&a!==result.aliases[0])].slice(0,4).join(' · ')}</span>
         </li>)}
       </ul>

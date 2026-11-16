@@ -133,7 +133,11 @@ for (const line of fs.readFileSync(ORBITS_PATH, 'utf8').split('\n')) {
 }
 
 // ---------- WDS: tipos espectrales y pares físicos sin órbita ----------
-const PHYSICAL = /[TVZ]/, NOT_PHYSICAL = /[SUYX]/;
+// O: el par tiene órbita en ORB6. Si esa órbita no se usa (grado > MAX_GRADE, como la de 61 Cyg AB), el par sigue
+// siendo físico: entra como par ancho, con la separación medida del WDS, solo si la compañera ya es una estrella del
+// catálogo (así no aparecen compañeras dibujadas nuevas por esta regla).
+const PHYSICAL = /[TVZ]/, NOT_PHYSICAL = /[SUYX]/, CON_ORBITA = /O/;
+const porOrbita = [];
 for (const line of fs.readFileSync(WDS_PATH, 'utf8').split('\n')) {
   if (!/^\d{5}[+-]\d{4}/.test(line)) continue;
   counts.wide++;
@@ -145,7 +149,8 @@ for (const line of fs.readFileSync(WDS_PATH, 'utf8').split('\n')) {
   const known = systems.get(rootByWds.get(wds))?.pairs.get(key);
   if (known) { if (spectral[1]) known.sp = spectral[1]; continue; }
   const notes = line.slice(107, 111);
-  if (!PHYSICAL.test(notes) || NOT_PHYSICAL.test(notes)) continue;
+  const soloPorOrbita = !PHYSICAL.test(notes) && CON_ORBITA.test(notes);
+  if ((!PHYSICAL.test(notes) && !soloPorOrbita) || NOT_PHYSICAL.test(notes)) continue;
   counts.widePhysical++;
   const rho = number(field(line, 53, 5)), theta = number(field(line, 43, 3)), year = number(field(line, 29, 4));
   // Un ángulo de posición negativo en WDS significa «desconocido».
@@ -165,9 +170,12 @@ for (const line of fs.readFileSync(WDS_PATH, 'utf8').split('\n')) {
   counts.wideMatched++;
   const rhoAu = rho * star.d;
   if (rhoAu > WIDE_MAX_AU) continue;
-  system(id, wds).pairs.set(key, { n: components[1], of: anchor(components[0]), k: 'w',
+  const par = { n: components[1], of: anchor(components[0]), k: 'w',
     pair: line.slice(10, 17).replace(/\s+/g, ' ').trim(), rho: +rhoAu.toPrecision(5), theta, year,
-    v1, v: v2, ...(spectral[1] ? { sp: spectral[1] } : {}) });
+    v1, v: v2, ...(spectral[1] ? { sp: spectral[1] } : {}) };
+  // Los que entran solo por su órbita se suman al final (después del MSC) y solo donde no hay otro par.
+  if (soloPorOrbita) { porOrbita.push({ id, wds, key, par: { ...par, soloPorOrbita } }); continue; }
+  system(id, wds).pairs.set(key, par);
   counts.wideKept++;
 }
 
@@ -229,6 +237,15 @@ for (const line of readMsc('systems.dat.gz')) {
   }
 }
 
+// ---------- Pares del WDS que entran solo por tener órbita en ORB6 (si su lugar está libre) ----------
+for (const { id, wds, key, par } of porOrbita) {
+  const entry = system(id, wds);
+  // Libre: ninguna componente del par nuevo aparece ya en otro (F no entra si ya está FG).
+  const letras = n => new Set(n.match(/[A-Z][a-z]*/g));
+  if (entry.pairs.has(key) || [...entry.pairs.values()].some(p => [...letras(p.n)].some(l => letras(par.n).has(l)))) continue;
+  entry.pairs.set(key, par);
+}
+
 // ---------- Masas de pares que el MSC no cubre: publicadas y SB9 ----------
 // SB9: en una binaria de doble línea K1/K2 = m2/m1, medido. La masa total sale de la
 // órbita visual (a³/P², con la distancia del catálogo); el reparto, de SB9.
@@ -264,25 +281,39 @@ for (const [id, entry] of systems) {
 // ---------- Jerarquía y compañeras ya presentes en el catálogo ----------
 const output = {};
 for (const [id, entry] of [...systems].sort((a, b) => a[0] - b[0])) {
-  const root = byId.get(id), placed = new Set(['A']), comps = [];
-  const pending = [...entry.pairs.values()].sort((a, b) => (a.k === 'o' ? a.a : a.rho) - (b.k === 'o' ? b.a : b.rho));
-  // Colocar primero los pares cuyo ancla ya existe; repetir hasta agotar.
-  for (let progress = true; progress;) {
-    progress = false;
-    for (const pair of pending) {
-      if (placed.has(pair.n) || !placed.has(pair.of)) continue;
-      placed.add(pair.n); comps.push(pair); progress = true;
+  const root = byId.get(id);
+  // Colocar primero los pares cuyo ancla ya existe; repetir hasta agotar. `contar`: solo en la pasada que queda.
+  const colocar = contar => {
+    const placed = new Set(['A']), comps = [];
+    const pending = [...entry.pairs.values()].sort((a, b) => (a.k === 'o' ? a.a : a.rho) - (b.k === 'o' ? b.a : b.rho));
+    for (let progress = true; progress;) {
+      progress = false;
+      for (const pair of pending) {
+        if (placed.has(pair.n) || !placed.has(pair.of)) continue;
+        placed.add(pair.n); comps.push(pair); progress = true;
+      }
     }
-  }
+    for (const pair of comps) {
+      // ¿La compañera es un registro propio del catálogo? Se busca cerca de la primaria,
+      // a una distancia parecida y con magnitud compatible.
+      delete pair.cid;
+      const reach = Math.max(5, 1.5 * (pair.k === 'o' ? pair.a * (1 + pair.e) : pair.rho) / root.d) + 0.001 / root.d * ARCSEC_PER_RAD;
+      const match = pair.of === 'A' && pair.v !== null ? nearest(root.ra, root.dec, Math.min(reach, 1200), pair.v, id) : null;
+      if (match && Math.abs(match.d - root.d) / root.d < 0.25) pair.cid = match.i;
+      // El MSC identifica cada componente: si tiene HIP o HD propio y está en el catálogo, es ese registro.
+      const listed = catalogueId(mscComponents.get(entry.wds)?.[pair.n]);
+      if (listed !== undefined && listed !== id) { if (contar && pair.cid !== listed) counts.mscCompanions++; pair.cid = listed; }
+    }
+    return { placed, comps };
+  };
+  let { placed, comps } = colocar(false);
+  // Un par que entró solo por tener órbita en ORB6 se queda solo si su compañera es una estrella del catálogo; si no,
+  // se quita y el sistema se vuelve a colocar sin él.
+  const sinEstrella = comps.filter(pair => pair.soloPorOrbita && pair.cid === undefined);
+  for (const [key, pair] of entry.pairs) if (sinEstrella.includes(pair)) entry.pairs.delete(key);
+  ({ placed, comps } = colocar(true));
   for (const pair of comps) {
-    // ¿La compañera es un registro propio del catálogo? Se busca cerca de la primaria,
-    // a una distancia parecida y con magnitud compatible.
-    const reach = Math.max(5, 1.5 * (pair.k === 'o' ? pair.a * (1 + pair.e) : pair.rho) / root.d) + 0.001 / root.d * ARCSEC_PER_RAD;
-    const match = pair.of === 'A' && pair.v !== null ? nearest(root.ra, root.dec, Math.min(reach, 1200), pair.v, id) : null;
-    if (match && Math.abs(match.d - root.d) / root.d < 0.25) pair.cid = match.i;
-    // El MSC identifica cada componente: si tiene HIP o HD propio y está en el catálogo, es ese registro.
-    const listed = catalogueId(mscComponents.get(entry.wds)?.[pair.n]);
-    if (listed !== undefined && listed !== id) { if (pair.cid !== listed) counts.mscCompanions++; pair.cid = listed; }
+    if (pair.soloPorOrbita) { counts.porOrbita = (counts.porOrbita || 0) + 1; delete pair.soloPorOrbita; }
     if (pair.v === null) delete pair.v;
     if (pair.v1 === null) delete pair.v1;
   }

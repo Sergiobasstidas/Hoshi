@@ -1,15 +1,16 @@
 import { buildSearchIndex } from './scene/starSearch';
 import { addCuratedSearchRows } from './scene/curatedStars';
+import { sumarVariablesEnOrden } from './scene/nombresEstrella';
 
 const json = url => fetch(url).then(r => { if (!r.ok) throw Error('index'); return r.json(); });
-// Suma a cada fila del catálogo los nombres de estrella variable, por ID. Si la estrella no tiene nombre
-// propio, el de variable va primero: se lee «VY CMa» en vez de «HIP 35793».
+// Suma a cada fila del catálogo los nombres de estrella variable, por ID, en su lugar (src/scene/nombresEstrella.js):
+// «VY CMa» va antes que los catálogos y «V1803 Cyg» después; el tercer valor de la fila dice cuántos nombres van
+// antes (propio, Bayer, Flamsteed y sistema planetario).
 function sumarVariables(rows, variables) {
   const porId = new Map(variables);
-  return rows.map(([id, aliases]) => {
+  return rows.map(([id, aliases, principales = 0]) => {
     const extra = porId.get(id);
-    if (!extra) return [id, aliases];
-    return [id, /^(HIP|HD|HR|Gl|GJ|AT-HYG) /.test(aliases[0]) ? [...extra, ...aliases] : [...aliases, ...extra]];
+    return [id, extra ? sumarVariablesEnOrden(aliases, extra, principales) : aliases];
   });
 }
 

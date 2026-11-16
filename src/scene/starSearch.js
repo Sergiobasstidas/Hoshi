@@ -20,6 +20,9 @@ const CONSTELACIONES = [
   ['tri', 'trianguli', 'triangulo'], ['tuc', 'tucanae', 'tucan'], ['uma', 'ursae majoris', 'osa mayor'], ['umi', 'ursae minoris', 'osa menor'], ['vel', 'velorum', 'vela'],
   ['vir', 'virginis', 'virgo'], ['vol', 'volantis', 'pez volador'], ['vul', 'vulpeculae', 'zorra'],
 ];
+// Genitivo latino por abreviatura IAU, con mayúsculas («cyg» → «Cygni», «cma» → «Canis Majoris»), para mostrar
+// las designaciones de Bayer y Flamsteed como se conocen (nombresEstrella.js).
+export const GENITIVOS = new Map(CONSTELACIONES.map(([abreviatura, genitivo]) => [abreviatura, genitivo.replace(/\b[a-z]/g, letra => letra.toUpperCase())]));
 // Los nombres largos primero, para que «osa mayor» no quede como «osa» + «mayor».
 const FRASES = CONSTELACIONES.flatMap(([abreviatura, genitivo, nombres]) => [genitivo, ...nombres.split('|')].map(frase => [frase, abreviatura]))
   .sort((a, b) => b[0].length - a[0].length);
