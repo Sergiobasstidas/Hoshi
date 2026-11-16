@@ -65,15 +65,16 @@ function moonTexture(url, onReady) {
   }
   return entry.texture;
 }
-// Orientación de cada luna con mapa en la fecha de carga (polo y meridiano cero de la IAU).
-const orientationCache = new Map();
-function moonQuaternion(code) {
-  if (!orientationCache.has(code)) {
-    const { x, y, z } = moonAxes(code, EPHEMERIS_DATE);
-    orientationCache.set(code, new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(
+// Orientación de cada luna con mapa en la fecha de carga: polo de la IAU y meridiano cero hacia el planeta,
+// desde donde se dibuja la luna (moonTextures.js).
+const orientationCache = new WeakMap();
+function moonQuaternion(body) {
+  if (!orientationCache.has(body.offsetPc)) {
+    const { x, y, z } = moonAxes(body.moon.code, EPHEMERIS_DATE, body.offsetPc.map(value => -value));
+    orientationCache.set(body.offsetPc, new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(
       new Vector3(...x), new Vector3(...y), new Vector3(...z))));
   }
-  return orientationCache.get(code);
+  return orientationCache.get(body.offsetPc);
 }
 const WHITE = new Color('white');
 // El puntero de R3F arranca en el centro de la pantalla y se queda donde fue el último movimiento, aunque
@@ -157,7 +158,7 @@ function MoonGroup({ planet, moons, origin }) {
       mesh.material.map = null;
       mesh.material.needsUpdate = true;
       mesh.userData.textured = false;
-      if (moonTextureUrl(body.moon.code)) mesh.quaternion.copy(moonQuaternion(body.moon.code));
+      if (moonTextureUrl(body.moon.code)) mesh.quaternion.copy(moonQuaternion(body));
       else mesh.quaternion.identity();
     });
     nearState.current = near;

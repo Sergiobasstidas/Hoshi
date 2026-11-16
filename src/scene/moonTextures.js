@@ -36,8 +36,17 @@ const MOONS = {
 export const moonTextureUrl = code => MOONS[code] ? MOON_TEXTURE_ROOT + MOONS[code].archivo : null;
 
 // Ejes de la esfera de la luna en la fecha (mismo convenio que bodyAxes de planetTextures.js).
-export function moonAxes(code, date) {
+// Todas las lunas con mapa giran sincrónicas: su meridiano cero mira al planeta. El W de la IAU sigue a la
+// luna real, pero Hoshi la dibuja con elementos orbitales medios, que se desfasan con los años (en Mimas,
+// decenas de grados). Con `haciaPlaneta` (de la luna al planeta, desde donde se dibuja) el meridiano cero
+// se toma de esa dirección y el polo sigue siendo el de la IAU.
+export function moonAxes(code, date, haciaPlaneta) {
   const d = date.getTime() / 86400000 + 2440587.5 - 2451545.0;
   const [ra, dec, w] = MOONS[code].iau(d / 36525, d);
-  return bodyAxes({ pole: [ra, dec], spin: [((w % 360) + 360) % 360, 0] }, date);
+  const ejes = bodyAxes({ pole: [ra, dec], spin: [((w % 360) + 360) % 360, 0] }, date);
+  if (!haciaPlaneta) return ejes;
+  const polo = ejes.y, k = haciaPlaneta[0] * polo[0] + haciaPlaneta[1] * polo[1] + haciaPlaneta[2] * polo[2];
+  const m = haciaPlaneta.map((v, i) => v - k * polo[i]), largo = Math.hypot(...m);
+  const x = m.map(v => v / largo);
+  return { x, y: polo, z: [x[1] * polo[2] - x[2] * polo[1], x[2] * polo[0] - x[0] * polo[2], x[0] * polo[1] - x[1] * polo[0]] };
 }
