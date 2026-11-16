@@ -114,7 +114,7 @@ function DiscoEstrella({ id, cx, r, color }) {
   const lado = r * 2.36;
   return <g>
     <filter id={`${id}-tinte`} colorInterpolationFilters="sRGB">
-      <feColorMatrix type="matrix" values={[cr, cg, cb].map(c => `${0.8 * c} ${1.2 * c} 0 0 ${0.24 * c}`).join('  ') + '  0 0 0 1 0'} />
+      <feColorMatrix type="matrix" values={[cr, cg, cb].map(c => `${1.05 * c} ${1.6 * c} 0 0 ${0.3 * c}`).join('  ') + '  0 0 0 1 0'} />
     </filter>
     <clipPath id={`${id}-disco`}><circle cx={cx} cy={38} r={r} /></clipPath>
     <circle cx={cx} cy={38} r={r} fill={`rgb(${color.map(v => Math.round(v * 255)).join(', ')})`} />
@@ -165,6 +165,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
       {/* Texto propio de la estrella si lo tiene; si no, el de su tipo. */}
       {(textos.estrellas[star.n] || tipo || vista) && <p className="ficha-estrella-relato">{[textos.estrellas[star.n] || tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
       {radio > 0 && <ComparacionSol nombre={nombre} radio={radio} temperatura={temperatura || 5772} />}
+      {onVerSuperficie && physics && <div className="ficha-estrella-superficie"><button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button></div>}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
           <i className="ficha-estrella-color" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
@@ -196,7 +197,6 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
           </li>)}
         </ul>
       </section>}
-      {onVerSuperficie && physics && <button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button>}
       {fuentes.length > 0 && <p className="ficha-estrella-fuente">Datos: {[...new Set(fuentes.map(([, fuente]) => fuente))].join(' · ')}</p>}
   </>;
 }

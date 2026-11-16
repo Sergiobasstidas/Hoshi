@@ -3,8 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { temperatureColor } from './stellarPhysics';
 import { SUN_RADIUS_PC } from './scale';
-import { GRANULE_LIFETIME_S, MAX_ACTIVE_REGIONS, SUNSPOT, TIME_ACCELERATION, activeRegions, granulationLook, granulesPerRadius, limbDarkening, showsSunspots, surfaceActivity } from './stellarSurfaceModel';
-import PlasmaLoops from './PlasmaLoops';
+import { GRANULE_LIFETIME_S, LANE_COOLING_K, TIME_ACCELERATION, granulationLook, granulesPerRadius, limbDarkening, surfaceActivity } from './stellarSurfaceModel';
 import { cromosferaCargada, playSolarChromosphere, solarChromosphereMap } from './solarChromosphereMap';
 import simplex3d from './shaders/simplex3d.glsl?raw';
 import { FILTRO_POR_DEFECTO, filtroPorId, useFiltroEstelar } from './filtroEstelar';
@@ -21,7 +20,6 @@ const centro = new THREE.Vector3();
 const CORONA_RADII = 5;
 // Un gránulo completa su ciclo en una vida media acelerada.
 const BOIL_RATE = Math.PI / (GRANULE_LIFETIME_S / TIME_ACCELERATION);
-const SPOT_GRID = 7;
 // Giro máximo (rad/s) con que los rayos siguen a la cámara: un giro rápido no los acelera.
 const CALM_TURN_RATE = 0.35;
 const SOLAR_GRANULES = granulesPerRadius(5772, 1);
@@ -48,15 +46,13 @@ const surfaceFragment = `
   uniform float convection;
   uniform float contrast;
   uniform float laneWidth;
-  uniform float spots;
   uniform float limb;
   uniform float glare;
   uniform float halpha;
   uniform float euv;
   uniform float structure;
   uniform vec3 temperatureTint;
-  uniform vec3 umbraTint;
-  uniform vec4 regions[${MAX_ACTIVE_REGIONS}];
+  uniform vec3 coolTint;
   uniform sampler2D chromosphereMap;
   uniform float chromosphereReal;
   uniform float chromosphereVideo;
@@ -127,30 +123,9 @@ const surfaceFragment = `
     // La rotación real (≈ 25 días) es imperceptible incluso acelerada: no se anima.
     vec3 rotating = p;
 
-    // Manchas en las regiones activas de la estrella (compartidas con los arcos de plasma).
-    vec3 y = p * ${SPOT_GRID.toFixed(1)};
-    float best = 8.0, umbraRadius = 0.0; vec3 centre = vec3(0.0, 1.0, 0.0);
-    for (int i = 0; i < ${MAX_ACTIVE_REGIONS}; i++) {
-      float separation = distance(p, regions[i].xyz);
-      if (regions[i].w > 0.0 && separation < best) { best = separation; centre = regions[i].xyz; umbraRadius = regions[i].w; }
-    }
-    float present = step(best, 4.0);
-    vec3 delta = centre - p, id = hash33(centre * 17.0 + 3.0);
-    float penumbraRadius = umbraRadius * ${SUNSPOT.penumbraRadiusRatio.toFixed(3)};
-    float r = length(delta) * (1.0 + 0.2 * snoise(y * 3.0 + id * 10.0));
-    float edge = max(footprint, 0.0006);
-    float umbra = present * (1.0 - smoothstep(umbraRadius - edge, umbraRadius + edge, r));
-    float penumbra = present * (1.0 - smoothstep(penumbraRadius - edge, penumbraRadius + edge, r));
-    // Filamentos radiales de la penumbra alrededor del centro de la mancha.
-    vec3 east = normalize(cross(p, vec3(0.0, 1.0, 0.0)));
-    float angle = atan(dot(delta, cross(p, east)), dot(delta, east));
-    float filaments = snoise(vec3(cos(angle), sin(angle), id.z * 9.0) * 7.0 + vec3(0.0, 0.0, r / max(penumbraRadius, 0.0001)));
-    float spotIntensity = mix(1.0, ${SUNSPOT.penumbraIntensity.toFixed(2)} + 0.1 * filaments, penumbra);
-    spotIntensity = mix(spotIntensity, ${SUNSPOT.umbraIntensity.toFixed(2)} + 0.06 * snoise(y * 14.0), umbra);
-
     // Granulación: celdas brillantes poligonales separadas por carriles oscuros estrechos.
     // Se desvanece cuando un gránulo ocupa menos de unos píxeles, como en una imagen real.
-    float resolved = (1.0 - smoothstep(0.3, 0.8, footprint * granules)) * convection * (1.0 - penumbra);
+    float resolved = (1.0 - smoothstep(0.3, 0.8, footprint * granules)) * convection;
     float granulation = 1.0, lane = 1.0;
     if (resolved > 0.002) {
       vec3 x = rotating * granules;
@@ -164,33 +139,29 @@ const surfaceFragment = `
     }
 
     float mu = max(0.0, dot(normalize(eyeNormal), normalize(eyeDirection)));
-    float intensity = granulation * spotIntensity * (1.0 - limb * (1.0 - mu));
-    // Los carriles, las manchas y el borde son más fríos: cambian de color además de oscurecerse.
-    float cooling = clamp(umbra + 0.3 * penumbra + 0.25 * resolved * (1.0 - lane), 0.0, 1.0);
-    vec3 colour = mix(temperatureTint, umbraTint, cooling);
+    float intensity = granulation * (1.0 - limb * (1.0 - mu));
+    // Los carriles y el borde son más fríos: cambian de color además de oscurecerse.
+    float cooling = clamp(0.25 * resolved * (1.0 - lane), 0.0, 1.0);
+    vec3 colour = mix(temperatureTint, coolTint, cooling);
     colour *= mix(vec3(1.0), vec3(1.0, 0.86, 0.72), 0.6 * limb * (1.0 - mu));
-    // Luz blanca con contraste realzado, como se presentan las imágenes de alta resolución:
-    // lo oscuro se satura hacia el color propio de la estrella. Es un realce de presentación.
+    // Luz blanca con un leve realce: lo oscuro se satura algo hacia el color propio de la estrella,
+    // sin alejar el centro del disco del color de su temperatura.
     float shade = clamp(intensity * 0.9, 0.0, 1.0);
-    vec3 white = pow(colour, vec3(mix(9.0, 1.2, smoothstep(0.35, 0.95, shade)))) * shade;
+    vec3 white = pow(colour, vec3(mix(2.0, 1.0, smoothstep(0.35, 0.95, shade)))) * shade;
 
-    // Regiones activas en torno a las manchas, comunes a las vistas H-alfa y ultravioleta.
     // Cada capa de filtro se calcula solo si se ve (su peso es mayor que 0): con peso 0 la mezcla
     // la descarta igual, así que el resultado no cambia y la GPU se ahorra ese ruido.
     vec3 q = rotating * structure;
-    float activity = convection * present * (1.0 - smoothstep(penumbraRadius, penumbraRadius * 5.0, r));
     vec3 swirl = vec3(0.0);
     if (halpha > 0.0 || euv > 0.0) swirl = vec3(snoise(q * 7.0), snoise(q * 7.0 + 11.0), snoise(q * 7.0 + 23.0));
 
     // H-alfa: cromosfera. Fibrillas a la escala de la red supergranular (≈ 30 Mm),
-    // playas brillantes junto a las manchas y filamentos oscuros alargados.
+    // sin regiones activas inventadas.
     vec3 alpha = vec3(0.0);
     if (halpha > 0.0) {
     float fibrils = snoise(q * 34.0 + 1.9 * swirl) * 0.6
       + snoise(q * 85.0 + 3.2 * swirl + vec3(0.0, time * 0.02, 0.0)) * 0.4 * (1.0 - smoothstep(0.3, 0.9, footprint * structure * 85.0));
-    float plage = activity * smoothstep(-0.35, 0.35, snoise(q * 19.0 + 2.0 * swirl));
-    float chromosphere = 0.45 + convection * (0.36 * fibrils + 0.6 * plage * (0.6 + 0.4 * fibrils));
-    chromosphere *= (1.0 - 0.75 * umbra) * (1.0 - 0.3 * (1.0 - mu));
+    float chromosphere = (0.45 + convection * 0.36 * fibrils) * (1.0 - 0.3 * (1.0 - mu));
     alpha = rampRed(chromosphere);
     // Donde está disponible se muestra el mapa real del Sol (NASA, 304 Å) en lugar del
     // dibujo; en otras estrellas es un sustituto solar, atenuado si no hay convección.
@@ -201,42 +172,28 @@ const surfaceFragment = `
     alpha = mix(alpha, observed, chromosphereReal * smoothstep(0.1, 0.6, convection));
     }
 
-    // Ultravioleta extremo (como SDO/AIA a 171–193 Å): corona. Disco oscuro de grano fino con
-    // puntos brillantes, regiones activas muy brillantes de las que salen abanicos de plasma
-    // siguiendo el campo magnético, agujeros coronales oscuros y borde más brillante.
-    // Composición de tres bandas (211, 193 y 171 Å en rojo, verde y azul), como las imágenes
-    // combinadas del SDO: el color indica temperatura. Dorado y blanco = plasma más caliente
-    // de las regiones activas; azul = plasma más templado en el extremo de los abanicos.
+    // Ultravioleta extremo (como SDO/AIA a 171–193 Å): corona en calma. Disco oscuro de grano fino
+    // con puntos brillantes, agujeros coronales oscuros y borde más brillante, sin regiones activas
+    // inventadas. Composición de tres bandas (211, 193 y 171 Å en rojo, verde y azul).
     vec3 ultraviolet = vec3(0.0);
     if (euv > 0.0) {
     float grain = 0.5 + 0.5 * snoise(q * 70.0 + swirl) * (1.0 - smoothstep(0.3, 0.9, footprint * structure * 70.0));
     float points = pow(max(0.0, snoise(q * 42.0 + 3.0)), 8.0);
-    float reach = 0.12 + penumbraRadius * 9.0;
-    float bend = angle + 1.5 * sin(id.x * 6.2832) * r / max(reach, 0.0001);
-    vec3 around = vec3(cos(bend), sin(bend), id.z * 5.0);
-    float fan = pow(0.5 + 0.5 * snoise(around * 7.0 + vec3(0.0, 0.0, r * 5.0 - time * 0.01)), 2.5)
-      * (0.55 + 0.45 * snoise(around * 19.0 + vec3(0.0, 0.0, r * 3.0)));
-    float core = 1.0 - smoothstep(penumbraRadius * 0.4, penumbraRadius * 3.0, r);
-    float spread = 1.0 - smoothstep(penumbraRadius * 1.5, reach, r);
     float hole = smoothstep(0.2, 0.5, snoise(q * 1.3 + 77.0)) * smoothstep(0.15, 0.6, abs(p.y));
     // Corona en calma: mosaico verde azulado y oliva, más oscuro que las regiones activas.
     float patches = 0.5 + 0.5 * snoise(q * 3.5 + 0.6 * swirl + 19.0);
     vec3 calm = mix(vec3(0.04, 0.12, 0.15), vec3(0.24, 0.24, 0.1), patches);
     vec3 quiet = mix(calm * (0.55 + 0.75 * grain), vec3(0.01, 0.02, 0.14), 0.94 * hole);
-    vec3 strands = mix(vec3(0.3, 0.48, 1.0), vec3(1.0, 0.72, 0.22), smoothstep(0.0, 0.65, spread)) * spread * max(fan, 0.0) * 1.5;
-    ultraviolet = quiet * (1.0 - 0.55 * convection * present * spread)
-      + convection * (points * (1.0 - hole) * vec3(0.9, 0.85, 0.6) + present * (strands + 1.25 * core * vec3(1.0, 0.95, 0.8)))
+    ultraviolet = quiet
+      + convection * points * (1.0 - hole) * vec3(0.9, 0.85, 0.6)
       + 0.55 * pow(1.0 - mu, 3.0) * vec3(0.85, 0.75, 0.25);
     }
 
-    // Magnetograma (como SDO/HMI): gris donde el campo es débil; cada región activa es un par
-    // de polaridades, blanca (hacia fuera) y negra (hacia dentro), a uno y otro lado de la mancha.
+    // Magnetograma (como SDO/HMI): gris de campo débil; sin regiones activas inventadas.
     vec3 magnetic = vec3(0.0);
     if (magnet > 0.0) {
-    float side = clamp(dot(-delta, east) / max(penumbraRadius * 2.0, 0.0001), -1.0, 1.0);
-    float strength = clamp(1.5 * activity + penumbra, 0.0, 1.0) * (id.y > 0.5 ? 1.0 : -1.0);
     // Gris medio de la imagen (0,5 en sRGB), pasado a luz lineal como el resto del sombreador.
-    magnetic = vec3(pow(clamp(0.5 + 0.45 * side * strength + 0.03 * convection * snoise(q * 60.0), 0.0, 1.0), 2.2));
+    magnetic = vec3(pow(clamp(0.5 + 0.03 * convection * snoise(q * 60.0), 0.0, 1.0), 2.2));
     }
     vec3 filtered = mix(mix(mix(white, alpha, halpha), ultraviolet, euv), magnetic, magnet);
     if (sdo > 0.0) {
@@ -378,24 +335,22 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   // en el mismo cuadro, para que pasar de una estrella a otra no recompile nada ni muestre estados intermedios.
   const propias = useMemo(() => {
     const radio = granulacionSolar ? 1 : radiusPc / SUN_RADIUS_PC;
-    const { convection, spots } = surfaceActivity(temperatureK);
+    const { convection } = surfaceActivity(temperatureK);
     const granules = granulesPerRadius(temperatureK, radio);
     // Contraste y ancho de carriles según el tipo de estrella; en la comparación, los del Sol.
     const look = granulacionSolar ? { contrast: 1, lane: 0.13 } : granulationLook(temperatureK, radio);
-    const manchas = !granulacionSolar && showsSunspots(radio);
-    const active = manchas ? activeRegions(temperatureK, radio) : [];
-    return { convection, spots: manchas ? spots : 0, granules, look, active, temperatureK };
+    return { convection, granules, look, temperatureK };
   }, [temperatureK, radiusPc, granulacionSolar]);
   const [uniforms] = useState(() => {
     const shared = { time: { value: 0 }, glare: { value: 1 }, halpha: { value: 0 }, euv: { value: 0 }, structure: { value: 1 },
       convection: { value: 1 }, temperatureTint: { value: new THREE.Color() } };
     return {
-      surface: { ...shared, spots: { value: 0 }, limb: { value: 0.6 }, contrast: { value: 1 }, laneWidth: { value: 0.13 },
-        granules: { value: SOLAR_GRANULES }, regions: { value: Array.from({ length: MAX_ACTIVE_REGIONS }, () => new THREE.Vector4(0, 1, 0, 0)) },
+      surface: { ...shared, limb: { value: 0.6 }, contrast: { value: 1 }, laneWidth: { value: 0.13 },
+        granules: { value: SOLAR_GRANULES },
         chromosphereMap: { value: null }, chromosphereReal: { value: 0 }, chromosphereVideo: { value: 0 },
         magnet: { value: 0 }, sdo: { value: 0 }, sdoMap: { value: null }, sdoMapAnterior: { value: null }, sdoFundido: { value: 1 }, sdoFlatAnterior: { value: 0 }, sdoVideoAnterior: { value: 0 }, sdoRadius: { value: 0.8 }, sdoFlat: { value: 0 }, sdoVideo: { value: 0 },
         sdoToward: { value: new THREE.Vector3(0, 0, 1) }, sdoUp: { value: new THREE.Vector3(0, 1, 0) }, sdoRight: { value: new THREE.Vector3(1, 0, 0) },
-        boil: { value: BOIL_RATE }, umbraTint: { value: new THREE.Color() } },
+        boil: { value: BOIL_RATE }, coolTint: { value: new THREE.Color() } },
       corona: { ...shared, extent: { value: CORONA_RADII }, sdoTint: { value: new THREE.Color() }, sdoTintMix: { value: 0 },
         calmRight: { value: new THREE.Vector3(1, 0, 0) }, calmUp: { value: new THREE.Vector3(0, 1, 0) } },
     };
@@ -403,10 +358,9 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   useLayoutEffect(() => {
     const superficie = surface.current?.uniforms;
     if (!superficie) return;
-    const { convection, spots, granules, look, active } = propias;
+    const { convection, granules, look } = propias;
     const tint = (color, temperature) => color.setRGB(...temperatureColor(temperature), THREE.SRGBColorSpace);
     superficie.convection.value = convection;
-    superficie.spots.value = spots;
     superficie.granules.value = granules;
     superficie.contrast.value = look.contrast;
     superficie.laneWidth.value = look.lane;
@@ -415,16 +369,14 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     superficie.structure.value = Math.max(0.08, Math.min(3, granules / SOLAR_GRANULES));
     // Los gránulos grandes evolucionan más despacio; aproximación, no medida por estrella.
     superficie.boil.value = BOIL_RATE * Math.max(0.15, Math.min(2, Math.sqrt(granules / SOLAR_GRANULES)));
-    superficie.regions.value.forEach((region, i) => (active[i] ? region.set(...active[i].direction, active[i].umbraRadius) : region.set(0, 1, 0, 0)));
     tint(superficie.temperatureTint.value, temperatureK);
-    tint(superficie.umbraTint.value, temperatureK - SUNSPOT.umbraCoolingK);
+    tint(superficie.coolTint.value, temperatureK - LANE_COOLING_K);
   }, [propias, temperatureK]);
   const modoPrevio = useRef(solar);
   const group = useRef();
   // Orientación de la cámara respecto de la estrella, seguida a velocidad limitada.
   const calm = useRef(null);
   // Estado del filtro que también leen los arcos de plasma en cada fotograma.
-  const view = useRef({ time: 0, glare: 1, halpha: 0, euv: 0, real: 0 });
   // Canal y fecha de la imagen del SDO cuyos ejes ya se pasaron al sombreador.
   const sdoFrame = useRef('');
   // Los filtros son del Sol: las demás estrellas se ven siempre en luz visible, con el color de su temperatura.
@@ -455,8 +407,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     shared.chromosphereReal.value = map ? 1 : 0;
     shared.chromosphereVideo.value = maps?.videoReady ? 1 : 0;
     if (solar) playSolarChromosphere(capa === 'cromosfera');
-    view.current.real = map ? 1 : 0;
-    view.current.time = shared.time.value = halo.time.value = clock.elapsedTime % 3600;
+    shared.time.value = halo.time.value = clock.elapsedTime % 3600;
     // Transición breve entre la vista deslumbrada y la filtrada.
     // Al pasar del Sol a otra estrella (o al revés) el aspecto cambia de golpe, sin fundidos del filtro.
     const salto = modoPrevio.current !== solar;
@@ -465,7 +416,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
     if (salto) shared.sdoFundido.value = 1;
     [['glare', filtroVisible === 'ninguno'], ['halpha', capa === 'cromosfera'], ['euv', capa === 'corona']].forEach(([name, on]) => {
       shared[name].value += ((on ? 1 : 0) - shared[name].value) * step;
-      view.current[name] = halo[name].value = shared[name].value;
+      halo[name].value = shared[name].value;
     });
     shared.magnet.value += ((capa === 'magnetica' ? 1 : 0) - shared.magnet.value) * step;
     // Imagen del SDO del canal elegido, solo en el Sol y cuando ya cargó.
@@ -499,9 +450,6 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
       shared.sdoRight.value.copy(frame.right).applyQuaternion(toLocal);
       shared.sdoRadius.value = frame.diskRadius;
     }
-    // Sobre la imagen real no se dibujan arcos de plasma inventados.
-    view.current.halpha *= 1 - shared.sdo.value;
-    view.current.euv *= 1 - shared.sdo.value;
     if (group.current) {
       const local = group.current.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(camera.quaternion);
       if (!calm.current) calm.current = local.clone();
@@ -515,7 +463,6 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
       <sphereGeometry args={[1, 128, 96]} />
       <shaderMaterial ref={surface} uniforms={uniforms.surface} vertexShader={surfaceVertex} fragmentShader={surfaceFragment} toneMapped={false} />
     </mesh>
-    <PlasmaLoops regions={propias.active} tint={uniforms.surface.temperatureTint.value} view={view} />
     <mesh raycast={() => null}>
       <sphereGeometry args={[CORONA_RADII, 48, 32]} />
       <shaderMaterial ref={corona} uniforms={uniforms.corona} vertexShader={coronaVertex} fragmentShader={coronaFragment}

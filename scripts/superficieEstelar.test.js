@@ -7,11 +7,10 @@ test('la superficie animada es más activa en estrellas frías y casi lisa en la
   assert.equal(fria.convection, 1);
   assert.equal(sol.convection, 1);
   assert.ok(caliente.convection < 0.15 && caliente.convection > 0);
-  assert.ok(fria.spots > sol.spots && sol.spots > caliente.spots);
   for (let t = 2500; t < 40000; t += 250) {
     const a = surfaceActivity(t), b = surfaceActivity(t + 250);
-    assert.ok(b.convection <= a.convection && b.spots <= a.spots);
-    assert.ok(a.convection >= 0 && a.convection <= 1 && a.spots >= 0 && a.spots <= 1);
+    assert.ok(b.convection <= a.convection);
+    assert.ok(a.convection >= 0 && a.convection <= 1);
   }
 });
 
@@ -32,30 +31,9 @@ test('la granulación reproduce la escala solar y crece en las gigantes', async 
   assert.ok(granulesPerRadius(NaN, NaN) > 0 && granulesPerRadius(3000, 2000) >= 2);
 });
 
-test('las regiones activas son deterministas y respetan los rangos solares', async () => {
-  const { activeRegions, MAX_ACTIVE_REGIONS, SUNSPOT, LOOP } = await import('../src/scene/stellarSurfaceModel.js');
-  const sol = activeRegions(5772, 1);
-  assert.deepEqual(sol, activeRegions(5772, 1));
-  assert.ok(sol.length > 0 && sol.length <= MAX_ACTIVE_REGIONS);
-  for (const region of sol) {
-    const [x, y, z] = region.direction;
-    assert.ok(Math.abs(Math.hypot(x, y, z) - 1) < 1e-12);
-    const latitude = Math.abs(Math.asin(y)) * 180 / Math.PI;
-    assert.ok(latitude >= 5 - 1e-9 && latitude <= SUNSPOT.maxLatitudeDeg + 1e-9);
-    assert.ok(region.umbraRadius * 695.7 >= SUNSPOT.umbraRadiusMm[0] - 1e-9 && region.umbraRadius * 695.7 <= SUNSPOT.umbraRadiusMm[1] + 1e-9);
-    for (const loop of region.loops) {
-      assert.ok(loop.separation * 695.7 >= LOOP.separationMm[0] - 1e-9 && loop.separation * 695.7 <= LOOP.separationMm[1] + 1e-9);
-      assert.ok(loop.height * 695.7 <= LOOP.maxHeightMm + 1e-9);
-    }
-  }
-  // Una estrella caliente sin envoltura convectiva no tiene regiones activas.
-  assert.equal(activeRegions(9900, 1.7).length, 0);
-});
-
 test('la granulación cambia con el tipo de estrella', async () => {
-  const { granulationLook, showsSunspots } = await import('../src/scene/stellarSurfaceModel.js');
+  const { granulationLook } = await import('../src/scene/stellarSurfaceModel.js');
   const sol = granulationLook(5772, 1), enanaM = granulationLook(3200, 0.2), supergigante = granulationLook(3600, 764);
   assert.ok(Math.abs(sol.contrast - 1) < 1e-9 && sol.lane === 0.13);
   assert.ok(enanaM.contrast < 0.6 && supergigante.contrast > 1 && supergigante.lane > 0.4);
-  assert.ok(showsSunspots(1) && !showsSunspots(764));
 });

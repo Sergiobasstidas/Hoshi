@@ -1,11 +1,15 @@
 /* Panel de la estrella: columna a todo el alto a la izquierda, que se funde con la escena. Solo
    el logo queda por encima; el tramo del fundido deja pasar el puntero hacia la escena. */
-.scene-overlay .logo-hoshi { z-index: 80; }
+.scene-overlay .logo-hoshi { z-index: 80; transition: opacity .3s ease; }
+/* Con una ficha abierta el logo se oculta y la columna sube hasta arriba (salvo la hoja inferior del celular). */
+@media (min-width: 701px), (orientation: landscape) and (max-height: 500px) {
+  .scene-overlay:has(.ficha-estrella) .logo-hoshi { opacity: 0; pointer-events: none; }
+}
 .ficha-estrella { position: absolute; inset: 0 auto 0 0; z-index: 70; width: 414px; pointer-events: none;
   background: linear-gradient(90deg, #02040afd 0%, #02040afa 74%, #02040a00 100%); color: #c6d1de; font-size: 12px; line-height: 1.6; }
-.ficha-estrella-contenido { position: absolute; top: 74px; bottom: 0; left: 0; box-sizing: border-box; width: 345px; padding: 14px 12px 28px 36px; overflow-y: auto; -webkit-mask-image: linear-gradient(180deg, #0000, #000 16px); mask-image: linear-gradient(180deg, #0000, #000 16px); pointer-events: auto; scrollbar-width: thin; scrollbar-color: #ffffff26 transparent; }
-.ficha-estrella h2 { margin: 0; padding-right: 8px; color: #f2f6ff; font-size: 27px; line-height: 1.2; letter-spacing: .03em; overflow-wrap: anywhere; }
-.ficha-estrella-cerrar { position: absolute; z-index: 1; top: 40px; left: 292px; pointer-events: auto; width: 26px; height: 26px; border: 1px solid #ffffff2e; border-radius: 50%; background: transparent; color: #c6d1de; font-size: 15px; line-height: 1; cursor: pointer; }
+.ficha-estrella-contenido { position: absolute; top: 16px; bottom: 0; left: 0; box-sizing: border-box; width: 345px; padding: 14px 12px 28px 36px; overflow-y: auto; -webkit-mask-image: linear-gradient(180deg, #0000, #000 16px); mask-image: linear-gradient(180deg, #0000, #000 16px); pointer-events: auto; scrollbar-width: thin; scrollbar-color: #ffffff26 transparent; }
+.ficha-estrella h2 { margin: 0; padding-right: 44px; color: #f2f6ff; font-size: 27px; line-height: 1.2; letter-spacing: .03em; overflow-wrap: anywhere; }
+.ficha-estrella-cerrar { position: absolute; z-index: 1; top: 18px; left: 292px; pointer-events: auto; width: 26px; height: 26px; border: 1px solid #ffffff2e; border-radius: 50%; background: transparent; color: #c6d1de; font-size: 15px; line-height: 1; cursor: pointer; }
 .ficha-estrella-cerrar:hover, .ficha-estrella-cerrar:focus-visible { color: #fff; border-color: #ffffff80; outline: none; }
 .ficha-estrella-tipo { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #ffffff2b; color: #8fd3ff; font-size: 11px; letter-spacing: .08em; }
 .ficha-estrella-relato { margin: 10px 0 0; color: #b4c0ce; }
@@ -18,8 +22,8 @@
 .ficha-estrella-comparacion svg { display: block; width: 100%; max-width: 276px; height: auto; margin: 0 auto; }
 .ficha-estrella-comparacion figcaption { display: flex; justify-content: space-around; max-width: 276px; margin: 0 auto; color: #7f8b9b; font-size: 11.4px; }
 .ficha-estrella-comparacion p { margin: 6px 0 0; text-align: center; color: #b4c0ce; font-size: 13.2px; }
-.ficha-estrella section { margin-top: 18px; }
-.ficha-estrella h3 { margin: 0 0 8px; color: #7f8b9b; font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+.ficha-estrella section { margin-top: 22px; }
+.ficha-estrella h3 { margin: 0 0 10px; color: #c3ccd8; font-size: 13px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
 .ficha-estrella-planetas { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .ficha-estrella-planetas button, .ficha-estrella-planetas span { display: block; padding: 3px 8px; border: 1px solid #ffffff1f; border-radius: 999px; background: transparent; color: #c6d1de; font: inherit; font-size: 10.5px; }
 .ficha-estrella-planetas button { cursor: pointer; }
@@ -28,6 +32,8 @@
 .ficha-estrella-miembros small { display: block; margin: 2px 0 0 9px; color: #7f8b9b; font-size: 9.5px; }
 .ficha-estrella-planetas button:hover, .ficha-estrella-planetas button:focus-visible { color: #fff; border-color: #8fd3ff; outline: none; }
 .ficha-estrella-accion { display: inline-block; margin-top: 14px; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; pointer-events: auto; }
+.ficha-estrella-superficie { text-align: center; }
+.ficha-estrella-superficie .ficha-estrella-accion { margin-top: 10px; }
 .ficha-estrella-accion:hover, .ficha-estrella-accion:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
 
 @media (min-width: 901px) and (pointer: fine) {
@@ -45,7 +51,7 @@
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .ficha-estrella { inset: 0; width: auto; height: auto; background: #02040af5; }
-  .ficha-estrella-contenido { top: 60px; width: 100%; padding: 12px 56px 20px 24px; }
+  .ficha-estrella-contenido { top: 16px; width: 100%; padding: 12px 56px 20px 24px; }
   .ficha-estrella-cerrar { top: 16px; left: auto; right: 18px; }
 }
 
