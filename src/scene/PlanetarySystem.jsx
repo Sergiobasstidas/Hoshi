@@ -5,7 +5,7 @@ import { AdditiveBlending, Color, SRGBColorSpace, Vector3 } from 'three';
 import { AU_TO_PC, smoothRange } from './scale';
 import { planetOrbitPc } from './exoplanetOrbit';
 import { useOrbitas } from './guiasOrbitales';
-import OrbitLine from './OrbitLine';
+import OrbitLine, { ORBIT_LINE_COLOR } from './OrbitLine';
 import { colorCatalogo } from './visualBinary';
 
 // Planetas de las anfitrionas del catálogo (NASA Exoplanet Archive). Órbitas y radios a
@@ -65,6 +65,10 @@ function ActiveSystem({ system, origin, onSelect }) {
   // centro de masas (el punto del catálogo). Las esferas las dibuja StarField.
   const pair = system.binary?.components || null;
   const orbits = useMemo(() => system.planets.map(planet => planetOrbitPc(planet, system.sky, 1024, planet.offsetPc)), [system]);
+  // Órbitas de los planetas en el tono vivo de su estrella (como las estrellas dobles); sin color de catálogo, azules. Se
+  // escala al canal más alto del azul de siempre (0,79) para que el brillo sea comparable.
+  const colorOrbitas = system.star?.rgb
+    ? `rgb(${colorCatalogo(system.star).map(v => Math.round(v * 0.79)).join(',')})` : ORBIT_LINE_COLOR;
   const attributes = useMemo(() => ({
     position: new Float32Array(system.planets.flatMap(planet => planet.offsetPc)),
     color: new Float32Array(system.planets.flatMap(planet => planet.color)),
@@ -109,7 +113,7 @@ function ActiveSystem({ system, origin, onSelect }) {
   });
   return <group position={position}>
     <group ref={lines}>
-      {orbits.map((orbit, i) => <OrbitLine key={system.planets[i].n} points={orbit} />)}
+      {orbits.map((orbit, i) => <OrbitLine key={system.planets[i].n} points={orbit} color={colorOrbitas} />)}
     </group>
     {pair && <group ref={starLines} visible={orbitas}>
       {pair.map(component => <line key={component.name} frustumCulled={false}>
