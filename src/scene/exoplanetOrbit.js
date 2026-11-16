@@ -158,13 +158,21 @@ export function planetOrbitPc(planet, sky, samples = 1024, near = null) {
   const step = 2 * Math.PI / samples;
   let anomalies = Array.from({ length: samples + 1 }, (_, i) => i * step);
   if (near) {
+    // La curva pasa exactamente por el planeta con un solo vértice en su anomalía. Antes se subdividía
+    // su entorno en tramos 64 veces más cortos: desde lejos esos tramos medían menos de un píxel, su
+    // dirección en pantalla quedaba al azar y los halos de 22 px se sumaban en una mancha (un «anillo»).
     const distance = E => Math.hypot(...planetOffsetAu(E, planet, sky).map((v, i) => v * AU_TO_PC - near[i]));
     let center = 0;
     for (let i = 1; i < samples; i++) if (distance(i * step) < distance(center * step)) center = i;
-    const fine = Array.from({ length: 4 * 64 + 1 }, (_, k) => (center - 2) * step + k * step / 64)
-      .map(E => ((E % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
-    anomalies = [...new Set([...anomalies.filter(E => Math.abs(((E - center * step + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) > 2 * step), ...fine])]
-      .sort((a, b) => a - b);
+    let lo = (center - 1) * step, hi = (center + 1) * step;
+    for (let k = 0; k < 60; k++) {
+      const m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3;
+      if (distance(m1) < distance(m2)) hi = m2; else lo = m1;
+    }
+    const planeta = (((lo + hi) / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+    // Sin vértices de la malla a menos de medio paso del planeta: ningún tramo queda mucho más corto que el resto.
+    const lejos = E => Math.abs(((E - planeta + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) > step / 2;
+    anomalies = [...anomalies.slice(0, samples).filter(lejos), planeta].sort((a, b) => a - b);
     anomalies.push(anomalies[0] + 2 * Math.PI);
   }
   const points = new Float32Array(anomalies.length * 3);
