@@ -416,9 +416,11 @@ export function auditar(D, { simbadHip, simbadGj, separaciones }) {
     // Derivados: x, y, z y magnitud absoluta
     const radio = Math.hypot(s.x, s.y, s.z);
     if (s.d > 0 && Math.abs(radio - s.d) / s.d > 1e-5) dif(s, 'DERIVADO', 'x, y, z', { valor_actual: r3(radio), valor_propuesto: r3(s.d), regla: '|x, y, z| = distancia', veredicto: 'Corregir' });
-    if (at && at.mag !== '' && s.d > 0 && s.i < 100_000_000 && !String(usada).startsWith('NASA')) {
-      const m = Number(at.mag) - 5 * Math.log10(s.d / 10);
-      if (Math.abs(m - s.m) > 0.011) dif(s, 'DERIVADO', 'magnitud absoluta', { valor_actual: s.m, valor_propuesto: r3(m), fuente_propuesta: 'V de AT-HYG y la distancia en uso', regla: 'M = V − 5 log10(d/10)', veredicto: 'Corregir' });
+    // V de AT-HYG, o la medida que la reemplaza (hsb_enlaces.csv, campo v) cuando la de AT-HYG es de otro objeto.
+    const vCorregida = D.registro.get(s.i)?.vCorregida;
+    if (at && (at.mag !== '' || vCorregida) && s.d > 0 && s.i < 100_000_000 && !String(usada).startsWith('NASA')) {
+      const m = Number(vCorregida || at.mag) - 5 * Math.log10(s.d / 10);
+      if (Math.abs(m - s.m) > 0.011) dif(s, 'DERIVADO', 'magnitud absoluta', { valor_actual: s.m, valor_propuesto: r3(m), fuente_propuesta: vCorregida ? 'V corregida (hsb_enlaces.csv) y la distancia en uso' : 'V de AT-HYG y la distancia en uso', regla: 'M = V − 5 log10(d/10)', veredicto: 'Corregir' });
     }
   }
 

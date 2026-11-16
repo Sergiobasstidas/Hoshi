@@ -35,14 +35,16 @@ export function empezarDescarga(paso) {
   fs.mkdirSync(`${RAIZ}/${paso}`, { recursive: true });
 }
 
-// pedir(paso, url, { method, body, signal, aceptar }) → texto de la respuesta.
-// `aceptar(texto, respuesta)` decide si la respuesta es válida (por omisión, respuesta.ok).
+// pedir(paso, url, { method, body, signal, aceptar, soloSiFalta }) → texto de la respuesta.
+// `aceptar(texto, respuesta)` decide si la respuesta es válida (por omisión, respuesta.ok). Con `soloSiFalta`, al
+// descargar se usa lo guardado si ya está (sin error) y solo se pide lo que falta.
 export async function pedir(paso, url, opciones = {}) {
-  const { aceptar, ...fetchOpciones } = opciones;
+  const { aceptar, soloSiFalta, ...fetchOpciones } = opciones;
   const cuerpo = fetchOpciones.body === undefined ? '' : String(fetchOpciones.body);
   const clave = huella(url, cuerpo);
   const archivo = `${RAIZ}/${paso}/${clave}.txt`;
-  if (DESCARGAR) {
+  const guardado0 = soloSiFalta && fs.existsSync(archivo) ? fs.readFileSync(archivo, 'utf8') : null;
+  if (DESCARGAR && !(guardado0 !== null && !guardado0.startsWith('ERROR\n'))) {
     let texto, error = null;
     try {
       const r = await fetch(url, fetchOpciones);

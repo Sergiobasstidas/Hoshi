@@ -207,6 +207,8 @@ export function fusionarBase(stars, { registro, gaia, hip, espectros, cns5 = nul
     else if (gaiaUtil(g) && !gaiaCede(g, deHip || c5)) { out = applyDistance(out, Number((1000 / num(g.parallax)).toPrecision(7)), FUENTE.gaia); fd = FUENTE.gaia; }
     else if (deHip) { out = applyDistance(out, Number((1000 / deHip.plx).toPrecision(7)), FUENTE.hip); fd = FUENTE.hip; }
     else if (c5) { out = applyDistance(out, Number((1000 / c5.plx).toPrecision(7)), c5.fuente); fd = c5.fuente; }
+    // V medida que reemplaza la de AT-HYG (hsb_enlaces.csv, campo v): la magnitud absoluta sale de ella y de la distancia.
+    if (r.vCorregida !== undefined && r.vCorregida !== '') out = { ...out, m: Number((Number(r.vCorregida) - 5 * Math.log10(out.d / 10)).toFixed(3)) };
     let fc = r.origen === 'anfitriona' ? 'anfitriona' : 'Hipparcos/Tycho (AT-HYG)';
     if (gaiaUtil(g, { paraColor: true })) {
       const c = Number(bvDesdeBpRp(num(g.bp_rp)).toFixed(3));

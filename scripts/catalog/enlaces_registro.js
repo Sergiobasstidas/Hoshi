@@ -11,6 +11,7 @@
 //   nombre    nombre propio de la estrella en la app
 //   sp        tipo espectral (cuando el de SIMBAD no calza con el color medido y otro sí)
 //   posicion  «gaia»: la posición es la de su Gaia en J2000 aunque esté a más de 10″ (enlace comprobado)
+//   v         magnitud V aparente medida (SIMBAD, con su referencia en el motivo) cuando la de AT-HYG es de otro objeto
 import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 
@@ -37,6 +38,7 @@ export function corregirFila(fila, c) {
   if ('nombre' in c) { fila.nombre = c.nombre; fila.nombreCorregido = true; }
   if ('sp' in c) fila.spCorregido = c.sp;
   if ('posicion' in c) fila.posicion = c.posicion;
+  if ('v' in c) fila.vCorregida = c.v;
   if ('tmass' in c) fila.tmassCorregido = c.tmass;
   if (c.igual_a) fila.estado = 'retirada';
   return true;

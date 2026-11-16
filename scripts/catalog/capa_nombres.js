@@ -16,15 +16,16 @@
 //    con letra de componente («HD 1234 B») sirve aunque el catálogo tenga «HD 1234».
 // Las consultas van por tandas fijas, para que se puedan repetir sin red aunque la capa cambie: SIMBAD pide todos los
 // Gaia de los lotes (data/catalog/hsb_gaia, que solo crecen), por zona del cielo (HEALPix nivel 2 del source_id, 192
-// zonas) en grupos de hasta 5.000 source_id ordenados, y aparte, en su propia tanda, los pocos de la capa que no vienen
-// de un lote; Gaia, por rango de source_id (HEALPix nivel 1, 48 rangos), toda la tabla de Tycho-2.
+// zonas) en grupos de hasta 5.000 source_id ordenados; Gaia, por rango de source_id (HEALPix nivel 1, 48 rangos), toda
+// la tabla de Tycho-2. Los pocos de la capa que no vienen de un lote son estrellas del registro: sus nombres salen de
+// su fila (HD, HIP, HR, GJ y nombre), sin consulta, así una corrección del registro no cambia ninguna consulta.
 //   HOSHI_RED=descargar node scripts/catalog/capa_nombres.js      baja las consultas y escribe el archivo
 //   node scripts/catalog/capa_nombres.js [--informe <carpeta>]    sin red; con --informe, además informe.md y .json
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
-import { DESCARGAR, empezarDescarga, pedir } from './red.js';
+import { DESCARGAR, pedir } from './red.js';
 import { vFromGaia } from './photometry.js';
 
 const REGISTRO = './data/catalog/hsb_registro.csv', LOTES = './data/catalog/hsb_gaia', CAPA_HSB = './public/data/estrellas-hsb.bin';
@@ -56,6 +57,19 @@ const tieneLetra = n => /\d ?[A-Z][a-z]?$/.test(n);
 
 const leerCsvGz = ruta => parse(zlib.gunzipSync(fs.readFileSync(ruta)).toString('utf8'), { columns: true, skip_empty_lines: true });
 
+// Los cuatro lotes de la primera carga (07–08/11/2026) se consultan juntos, por zona; cada lote posterior, aparte
+// (también por zona), así un lote nuevo solo agrega consultas y no cambia las guardadas.
+const LOTES_BASE = new Set(['lote-2026-11-07.csv.gz', 'lote-2026-11-07-2.csv.gz', 'lote-2026-11-08.csv.gz', 'lote-2026-11-08-2.csv.gz']);
+function gruposDeLotes() {
+  const grupos = new Map(), vistos = new Set();
+  for (const nombre of fs.readdirSync(LOTES).filter(f => f.endsWith('.csv.gz')).sort()) {
+    const grupo = LOTES_BASE.has(nombre) ? 'base' : nombre;
+    if (!grupos.has(grupo)) grupos.set(grupo, []);
+    for (const r of leerCsvGz(`${LOTES}/${nombre}`)) if (r.gaia_dr3 && !vistos.has(r.gaia_dr3)) { vistos.add(r.gaia_dr3); grupos.get(grupo).push(r.gaia_dr3); }
+  }
+  return [...grupos.values()];
+}
+
 // Gaia DR3 de cada número de lote.
 function gaiaDeLotes() {
   const gaiaDe = new Map();
@@ -80,14 +94,16 @@ const comparar = (a, b) => { const x = BigInt(a), y = BigInt(b); return x < y ? 
 async function consultar(paso, url, query, cabecera) {
   if (DESCARGAR) fs.mkdirSync(`./data/raw/red/${paso}`, { recursive: true });
   return pedir(paso, url, { method: 'POST', signal: AbortSignal.timeout(600000),
-    body: new URLSearchParams({ request: 'doQuery', lang: 'adql', format: 'csv', query }), aceptar: (t, r) => r.ok && t.startsWith(cabecera) });
+    body: new URLSearchParams({ request: 'doQuery', lang: 'adql', format: 'csv', query }), aceptar: (t, r) => r.ok && t.startsWith(cabecera), soloSiFalta: true });
 }
 
 // SIMBAD: Map source_id → { oid, ra, dec, V, ids: [identificador] }.
-async function bajarSimbad(deLotes, extra, tiempos) {
-  const zonas = new Map();
-  for (const id of deLotes) { const z = zona(id, 2); if (!zonas.has(z)) zonas.set(z, []); zonas.get(z).push(id); }
-  const grupos = [...[...zonas.keys()].sort((a, b) => a - b).map(z => zonas.get(z)), extra].filter(l => l.length);
+async function bajarSimbad(porLote, tiempos) {
+  const grupos = porLote.flatMap(ids => {
+    const zonas = new Map();
+    for (const id of ids) { const z = zona(id, 2); if (!zonas.has(z)) zonas.set(z, []); zonas.get(z).push(id); }
+    return [...zonas.keys()].sort((a, b) => a - b).map(z => zonas.get(z));
+  }).filter(l => l.length);
   const salida = new Map();
   const filtro = LIKES.map(l => `i.id LIKE '${l}'`).join(' OR ');
   for (const grupo of grupos) {
@@ -152,10 +168,9 @@ export async function armar() {
   const ids = capa.filter(e => e.gaia).map(e => e.gaia);
   const deLotes = [...new Set(gaiaDeLotes().values())];
   const enLotes = new Set(deLotes);
-  const extra = capa.filter(e => e.gaia && !enLotes.has(e.gaia)).map(e => e.gaia);
-  if (DESCARGAR) { empezarDescarga('capa_simbad'); empezarDescarga('capa_tycho'); }
+  const filaRegistro = new Map(parse(fs.readFileSync(REGISTRO, 'utf8'), { columns: true }).map(f => [Number(f.hsb), f]));
   const t0 = Date.now();
-  const simbad = await bajarSimbad(deLotes, extra, tiempos);
+  const simbad = await bajarSimbad(gruposDeLotes(), tiempos);
   const tSimbad = (Date.now() - t0) / 1000;
   const t1 = Date.now();
   const tycho = await bajarTycho(tiempos);
@@ -184,6 +199,15 @@ export async function armar() {
       }
     }
     const tycGaia = tycho.get(gaia);
+    // Estrella del registro (no de un lote): sus nombres son los de su fila.
+    if (!enLotes.has(gaia) && filaRegistro.has(hsb)) {
+      const f = filaRegistro.get(hsb);
+      simbadVale = false;
+      for (const id of [f.nombre && `NAME ${f.nombre}`, f.hr && `HR ${f.hr}`, f.hd && `HD ${f.hd}`, f.hip && `HIP ${f.hip}`, f.gl].filter(Boolean)) {
+        const n = nombreDe(id);
+        if (n) nombres.set(clave(n.nombre), n);
+      }
+    }
     if (simbadVale) for (const id of s.ids) {
       const n = nombreDe(id);
       if (!n) continue;

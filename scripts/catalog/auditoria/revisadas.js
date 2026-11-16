@@ -52,7 +52,7 @@ const NOTAS = {
     2323395: 'Sadalsuud: supergigante G0Ib poco luminosa; 0,2 mag fuera del rango',
     2384866: 'Sadalmelik: supergigante G2Ib poco luminosa; 0,2 mag fuera del rango',
     2403906: 'Ancha: es gigante (G8III–IV); la clase II de su tipo exagera la luminosidad',
-    2550981: 'HD 224598: la magnitud de AT-HYG (V 11,41) viene del HIP 118240, que es otro objeto a 62″; con la paralaje de Gaia (176 pc) la alerta es por esa V, no por la distancia',
+    2550981: 'HD 224598: la V de AT-HYG (11,41) venía del HIP 118240, otro objeto a 62″; Hoshi usa ahora la V de SIMBAD (8,34)',
     101346210: 'Elias 2-24: estrella T Tauri joven dentro de la nube de ρ Ophiuchi; el polvo de la nube la oscurece varias magnitudes',
   },
   'MAG/COLOR': {
@@ -60,10 +60,12 @@ const NOTAS = {
     2111238: 'Cygnus X-1: enrojecida por polvo (E(B−V) ~1); la diferencia es de la extinción, no de un error',
     2289559: 'Solaris: el B−V de Hipparcos (1,61) no calza con una K5; el de Gaia (1,01) sí',
     521604: 'Red Rectangle: la nebulosa bipolar suma luz; V y G no son de la misma región',
-    2550981: 'HD 224598: el Gaia es el correcto (SIMBAD da V ≈ 8,4 para él y está a 0,1″); la V 11,41 de AT-HYG viene del HIP 118240, que es otro objeto a 62″. Pendiente: una regla para tomar la V de Gaia cuando la de AT-HYG es de otro objeto',
+    2550981: 'HD 224598: el Gaia es el correcto (a 0,1″); la V 11,41 de AT-HYG viene del HIP 118240, que es otro objeto a 62″. Hoshi usa ahora la V de SIMBAD (8,34; hsb_enlaces.csv, campo v), que calza con Gaia',
   },
 };
 
+// Estrellas variables (nombre del GCVS vía SIMBAD): su V cambia con el tiempo.
+const variables = new Set(JSON.parse(fs.readFileSync('public/data/star-search-variables.json', 'utf8')).map(([hsb]) => Number(hsb)));
 const distancia = new Map(JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).map(s => [s.i, s.d]));
 
 function decision(d) {
@@ -74,6 +76,7 @@ function decision(d) {
   if (d.tipo === 'COLOR-FALTA') return ['C', 'sin color medido ni tipo espectral: no hay con qué darle color; se dibuja como B−V 0'];
   if (d.tipo === 'MAG/COLOR' && /tope/.test(d.regla)) return ['D', 'B−V en el tope de la conversión (M8.5V de Pecaut & Mamajek 2013)'];
   if (d.tipo === 'ALERTA-MAG-TIPO') return ['E', nota || 'alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato'];
+  if (d.tipo === 'MAG/COLOR' && d.dato === 'V (mag)' && !nota && variables.has(Number(d.hsb))) return ['G', 'estrella variable: su V cambia con el tiempo; el enlace con Gaia se comprobó por posición (≤ 1″) y movimiento propio (gaia_revisar.js)'];
   if (d.tipo === 'MAG/COLOR') return ['G', nota || `${d.regla}: no se cambian datos`];
   if (d.tipo === 'POS' && d.veredicto === 'Decide Sergio') return ['F', 'a más de 10″ de su Gaia y el brillo no calza (±0,5 mag): enlace dudoso, se deja la posición'];
   // Decisiones I–O (aprobadas por Sergio el 08/11/2026, HSB-10).

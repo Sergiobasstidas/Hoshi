@@ -29,6 +29,8 @@ export async function proponer() {
     const k = `${hsb}|${campo}`;
     if (!propuestas.has(k)) propuestas.set(k, { hsb, campo, valor, motivo });
   };
+  // Estrellas con nombre de estrella variable del GCVS (vía SIMBAD; public/data/star-search-variables.json).
+  const variables = new Set(JSON.parse(fs.readFileSync('public/data/star-search-variables.json', 'utf8')).map(([hsb]) => Number(hsb)));
   const malos = difs.filter(d => d.veredicto === 'Enlace malo');
   // Gaia propuestos: un mismo Gaia para dos estrellas no se aplica.
   const gaiaPedido = new Map();
@@ -51,6 +53,10 @@ export async function proponer() {
     } else if (d.tipo === 'ID-CONFLICTO' && d.dato === 'HD según SIMBAD') {
       if (d.valor_propuesto.includes(' / ')) { sinAplicar.push({ ...d, porque: 'SIMBAD da más de un HD para el objeto' }); continue; }
       poner(hsb, 'hd', d.valor_propuesto, `SIMBAD: el HD del objeto de HIP ${r?.hip} (antes ${d.valor_actual})`);
+    } else if (d.tipo === 'MAG/COLOR' && d.dato === 'V (mag)' && variables.has(hsb)) {
+      // Una estrella variable cambia de brillo: la diferencia de V no prueba que el Gaia sea de otro objeto. Su enlace lo
+      // revisa gaia_revisar.js por posición y movimiento propio.
+      sinAplicar.push({ ...d, porque: 'estrella variable: la V cambia con el tiempo; el enlace se revisa por posición y movimiento propio (gaia_revisar.js)' });
     } else if ((d.tipo === 'MAG/COLOR' && d.dato === 'V (mag)') || (d.tipo === 'POS' && d.dato.includes('Gaia'))) {
       // El Gaia es de otro objeto: se quita (si SIMBAD da el correcto, esa propuesta tiene prioridad).
       poner(hsb, 'gaia_dr3', '', `el Gaia ${r?.gaia_dr3} es de otro objeto (${d.tipo}: ${d.regla})`);

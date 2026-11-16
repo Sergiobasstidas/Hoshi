@@ -4,6 +4,8 @@ Respuestas de servicios externos guardadas tal cual por `scripts/catalog/red.js`
 
 Las consultas que fallaron al descargar se guardan como error y se repiten igual sin red (el paso omite lo mismo que omitió al descargar).
 
+Con la opción `soloSiFalta` de `pedir` (usada por `capa_nombres.js`, `gaia_revisar.js` y la consulta `v_simbad`), una descarga usa lo ya guardado y solo pide lo que falta.
+
 Licencias y condiciones de uso: las de cada servicio (SIMBAD/CDS, NASA Exoplanet Archive, MAST, Gaia/ESA, JMMC), citadas en el encabezado de cada paso.
 
 ## `espectros` — `scripts/catalog/build_espectros_simbad.js`
@@ -42,6 +44,8 @@ Servicio: SIMBAD (CDS), TAP. Consultas: 2 (0 con error). Descarga: 2026-11-08T00
 | `10393dd6686ebc183880dcd3f820d6b95e2f0e6a.txt` | simbad.harvard.edu | 3225490 | `811cca037a533a5bf291d3becb8af66ccee0714a3882647ec7d4ab485e458491` |
 
 ## `oficiales` — `scripts/process_stellar_official.js`
+
+Descarga repetida el 16/11/2026 (2026-11-16T15:10:24Z – 15:18:36Z): 59 consultas, 9 con error (las mismas 9 consultas a MAST que agotaron el tiempo el 08/11/2026). Las huellas y sha256 de cada respuesta están en `oficiales/indice.json` (sha256 `14532457c01d3ca5b876b92de14bd2d7ae1ed4286fd428b776a15d3b4fe51fd1`); la tabla de abajo es de la descarga del 08/11/2026.
 
 Servicio: NASA Exoplanet Archive, MAST (TIC v8.2), SIMBAD y Gaia DR3 (ARI Heidelberg). Consultas: 59 (9 con error: tiempo agotado en MAST). Descarga: 2026-11-08T00:12:49Z – 2026-11-08T00:22:44Z. Total: 1383576 bytes.
 
@@ -109,6 +113,8 @@ Servicio: NASA Exoplanet Archive, MAST (TIC v8.2), SIMBAD y Gaia DR3 (ARI Heidel
 
 ## `fichas` — `scripts/process_fichas.js`
 
+Descarga repetida el 16/11/2026 (2026-11-16T15:10:16Z – 15:10:22Z) con la tabla `pscomppars` de ese día: 8 consultas, 0 con error. Las huellas y sha256 de cada respuesta están en `fichas/indice.json` (sha256 `af889007c0c90b6a8ee1d75d8ce00a9fdc087266d8ae61a1c589294317316916`); la tabla de abajo es de la descarga del 08/11/2026.
+
 Servicio: NASA Exoplanet Archive, SIMBAD y Gaia DR3 (ESA). Consultas: 8 (0 con error). Descarga: 2026-11-08T00:23:40Z – 2026-11-08T00:23:58Z. Total: 1696760 bytes.
 
 | Archivo | Servicio | Bytes | sha256 |
@@ -172,7 +178,7 @@ Astrometría y fotometría de Gaia DR3 (`gaiadr3.gaia_source`: posición, parala
 | `ba0f2d0168134a689413176fb486b9dffb70ffb8.txt` | gaia.ari.uni-heidelberg.de | 42066 | `686330a169cfdda1817d2f1c1352804a0eebd3c27a0873ef571fc7b6b3a651cb` |
 | `bfb26e3849c382dd525c4f3f30c895151f541b50.txt` | gaia.ari.uni-heidelberg.de | 36138 | `b8e467185d087e72921a761c934b3bf727546c7245abb9525f6e1edb9e997514` |
 
-El 09/11/2026 se repitió la descarga (`HOSHI_RED=descargar node scripts/catalog/gaia_local.js`) por las correcciones de enlace de HD 224598 (HSB 2550981) y de GJ 3885, GJ 94, GJ 3101, GJ 4277 A y GJ 333.2 A; las respuestas de los lotes anteriores salieron iguales.
+El 09/11/2026 se repitió la descarga (`HOSHI_RED=descargar node scripts/catalog/gaia_local.js`) por las correcciones de enlace de HD 224598 (HSB 2550981) y de GJ 3885, GJ 94, GJ 3101, GJ 4277 A y GJ 333.2 A, y otra vez ese día por los 34 enlaces de la revisión `gaia_revisar`; las respuestas de los lotes anteriores salieron iguales.
 
 ## `capa_simbad` y `capa_tycho` — `scripts/catalog/capa_nombres.js`
 
@@ -181,7 +187,7 @@ Nombres oficiales de las estrellas de la capa de fondo (Gaia DR3 y GCNS), para `
 - `capa_simbad`: SIMBAD (CDS), TAP en simbad.harvard.edu. Para cada Gaia DR3 de los lotes (`data/catalog/hsb_gaia`, que solo crecen) y, en una tanda aparte, los pocos de la capa que no vienen de un lote: el objeto cuyo identificador es «Gaia DR3 <source_id>», su posición y su V (`allfluxes`) y sus identificadores HD, HR, SAO, BD, CD, CPD, TYC, HIP, GJ, Gl, WDS, V* y NAME (no se piden TIC). Tandas por zona del cielo (HEALPix nivel 2 del `source_id`) de hasta 5.000 `source_id` en orden, así que sacar una estrella de la capa no cambia ninguna consulta. Consultas: 354 (0 con error), 163,7 MB, de 2026-11-09T03:57:17Z a 2026-11-09T04:11:02Z.
 - `capa_tycho`: Gaia DR3 en el TAP de ARI Heidelberg, cruce oficial con Tycho-2 (`gaiadr3.tycho2tdsc_merge_best_neighbour`: `source_id` y `original_ext_source_id`), en 48 rangos de `source_id` (HEALPix nivel 1), toda la tabla. Consultas: 48 (0 con error), 82,8 MB, de 2026-11-09T04:11:07Z a 2026-11-09T04:12:39Z.
 
-Huellas y sha256 de cada respuesta en `capa_simbad/indice.json` (sha256 `83ccadb104e6702e4b99f92df04f6a62c7c3dac604367e3b258e94da212403db`) y `capa_tycho/indice.json` (sha256 `1d9d31f47ea0da5e3c5e7c6bee1c10e3ac20c5b8d7e2f9e68c49b2875d31531a`).
+El 16/11/2026 entró un lote nuevo (`lote-2026-11-16`, 1 estrella): desde entonces cada lote posterior a la primera carga se consulta en sus propias tandas, así que bastó una consulta nueva (`dfddc79c34adada3133c845099eaa542271a348b.txt`, 310 bytes, sha256 `75133a2fd08c9447d2e6f442309cf1c8dcd5e10ec6c6f29ccb452c42fa4a7522`); las estrellas de la capa que no vienen de un lote toman sus nombres de su fila del registro, sin consulta. Huellas y sha256 de cada respuesta en `capa_simbad/indice.json` (sha256 `acad0ef0645a2d6ada82463f0289ecaec8deab9b34cbcd4cc5232570195cbe00`) y `capa_tycho/indice.json` (sha256 `1d9d31f47ea0da5e3c5e7c6bee1c10e3ac20c5b8d7e2f9e68c49b2875d31531a`).
 
 ## `anfitrionas_gaia` — consulta del conteo de anfitrionas que faltan (E-01)
 
@@ -214,3 +220,11 @@ Desde el 16/11/2026 las tablas del NASA Exoplanet Archive que usa el catálogo s
 | `gaia_anfitriones` | `779856121d416faf0fde7355f05113b1e2282dd9.txt` | gaia.ari.uni-heidelberg.de | 3903 | `b75a61bc7fc0ec76ff81669e5446c7030f7413d2d890f9bb3d6a10144319c09f` |
 
 `process_fichas.js` y `process_stellar_official.js` siguen con sus propias consultas a NASA guardadas en `fichas` y `oficiales` (no cambiaron).
+
+## `gaia_revisar` — `scripts/catalog/auditoria/gaia_revisar.js`
+
+Revisión de las estrellas del catálogo con `gaia_revisar = 1`: SIMBAD (simbad.harvard.edu) para el Gaia DR3 de su HIP, HD o GJ (tabla `ident`), y Gaia DR3 en el TAP de ARI Heidelberg para su posición, movimiento propio, paralaje y fotometría. Consultas: 6 (0 con error), 2026-11-16T15:34:39Z – 16:13:51Z, 105.143 bytes, desde el Mac de Sergio (`HOSHI_RED=descargar node scripts/catalog/auditoria/gaia_revisar.js`; las 3 últimas, tras enlazar las primeras 34 estrellas, solo con lo que faltaba). Huellas y sha256 en `gaia_revisar/indice.json` (sha256 `70c8a6468d4706634c81fe99108a3914bfb4eff531040f5a35cc9f511a3b37d0`).
+
+## `v_simbad` — magnitud V medida de las estrellas con el HIP quitado
+
+SIMBAD (simbad.harvard.edu), tabla `flux` (filtro V, con su error y referencia) de las 14 estrellas a las que la auditoría quitó un HIP que era de otro objeto, para el campo `v` de `data/catalog/hsb_enlaces.csv`. Además, APASS DR9 (VizieR II/336, espejo vizier.cfa.harvard.edu) alrededor de HD 224598: la estrella está, pero sin V. Consultas: 2 (0 con error), 2026-11-16. Huellas y sha256 en `v_simbad/indice.json` (sha256 `8a87fa5bd40e2bee437a3606516a589e96a660c462c0fcbd86f1523faca94441`).
