@@ -1,10 +1,13 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { AdditiveBlending } from 'three';
 import { smoothRange } from './scale';
 import { barycentricOrbitsPc, companionOrbitPc, estrellaDeComponente, rectaAncha, colorCatalogo } from './visualBinary';
 import OrbitLine from './OrbitLine';
+import { indiceBusqueda } from '../indiceBusqueda';
+import { nombreParaMostrar } from './nombresEstrella';
+import { GENITIVOS } from './starSearch';
 
 // Componentes de sistemas múltiples (ORB6 y WDS). Al acercarse, cada compañera deja de
 // coincidir con el punto del catálogo. Los puntos son marcadores: su tamaño indica
@@ -55,6 +58,19 @@ function CompanionSystem({ system, origin, onElegir, elegido }) {
   const extremos = useMemo(() => paths.map((path, i) => ({ path, i })).filter(({ path }) => path.component.pair.k !== 'o' && path.component.companion)
     .map(({ path, i }) => ({ i, component: path.component, color: `rgb(${colorCatalogo(path.component.companion).join(',')})` })), [paths]);
   const marcas = useRef([]);
+  // Compañera con registro propio pero sin nombre propio (61 Cygni B): el título de su ficha y del buscador. El número
+  // WDS queda solo para las compañeras sin registro.
+  const [titulos, setTitulos] = useState(() => new Map());
+  useEffect(() => {
+    const buscados = new Set(extremos.filter(({ component }) => !component.companion.n).map(({ component }) => component.companion.i));
+    if (!buscados.size) return;
+    let vigente = true;
+    indiceBusqueda().then(indice => {
+      if (vigente) setTitulos(new Map(indice.filter(item => buscados.has(item.id)).map(item => [item.id, nombreParaMostrar(item.aliases[0], GENITIVOS)])));
+    }, () => {});
+    return () => { vigente = false; };
+  }, [extremos]);
+  const nombreExtremo = component => component.companion.n || titulos.get(component.companion.i) || component.label;
   const attributes = useMemo(() => ({
     position: new Float32Array(drawn.flatMap(component => component.offsetPc)),
     color: new Float32Array(drawn.flatMap(component => component.color.map(v => v / 255))),
@@ -72,7 +88,10 @@ function CompanionSystem({ system, origin, onElegir, elegido }) {
       const brillo = brillos.current[i];
       if (brillo) { brillo.material.opacity = 0.16 * line.material.opacity / 0.45; brillo.visible = line.visible; }
       const marca = marcas.current[i];
-      if (marca) marca.style.opacity = line.visible && !nombreVisible(marca.textContent) ? Math.min(1, line.material.opacity / 0.1).toFixed(3) : '0';
+      if (marca) {
+        marca.style.opacity = line.visible && !nombreVisible(marca.textContent) ? Math.min(1, line.material.opacity / 0.1).toFixed(3) : '0';
+        marca.style.pointerEvents = marca.style.opacity > 0.5 ? 'auto' : 'none';
+      }
     });
     drawn.forEach((component, i) => {
       const distance = range(component);
@@ -96,7 +115,8 @@ function CompanionSystem({ system, origin, onElegir, elegido }) {
     {paths.map((path, i) => path.color && <OrbitLine key={`brillo-${i}`} ref={linea => { brillos.current[i] = linea; }} points={path.points}
       variant="brillo" color={path.color} visible />)}
     {extremos.map(({ i, component, color }) => <Html key={`extremo-${component.name}`} position={component.offsetPc} zIndexRange={[18, 10]} style={{ pointerEvents: 'none' }}>
-      <span ref={element => { marcas.current[i] = element; }} className="companion-extremo" style={{ opacity: 0, '--color': color }}>{component.companion.n || component.label}</span>
+      <span ref={element => { marcas.current[i] = element; }} className="companion-extremo" style={{ opacity: 0, '--color': color }} title="Doble clic: fijarla"
+        onDoubleClick={() => onElegir?.(component.companion, nombreExtremo(component))}>{nombreExtremo(component)}</span>
     </Html>)}
     {drawn.length > 0 && <points ref={points} frustumCulled={false}>
       <bufferGeometry>
