@@ -22,7 +22,7 @@
 .scene-label { position: absolute; top: 0; left: 0; opacity: 0; font-size: calc(12px * var(--escala-nombres, 1)); white-space: nowrap; text-shadow: 0 1px 5px #000, 0 0 3px #000; user-select: none; pointer-events: auto; }
 .label-text { display: block; transform-origin: left center; transition: transform .15s; background: transparent; padding: 1px 2px; }
 .scene-label:hover { z-index: 10; opacity: 1 !important; }
-.scene-label:hover .label-text { transform: scale(1.2); background: transparent; color: #edf4ff; }
+.scene-label:hover .label-text { transform: scale(1.45); background: transparent; color: #edf4ff; }
 .distance-panel, .scale-navigation { z-index: 20; }
 .scene-label.sun { color: #f4e7c8; }
 .companion-label { display: block; transform: translate(8px, -8px); color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); white-space: nowrap; text-shadow: 0 1px 3px #000, 0 0 5px #000; user-select: none; }
@@ -30,7 +30,7 @@
 .companion-extremo::before { content: ''; position: absolute; left: -10px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: var(--color); box-shadow: 0 0 4px var(--color); }
 .scene-label.star { color: #b5becd; font-size: calc(9px * var(--escala-nombres, 1)); text-shadow: 0 1px 3px #000, 0 0 5px #b4d8ed38; }
 .scene-label.star .label-text { transition: transform .28s ease, color .28s ease; }
-.scene-label.star:hover .label-text, .scene-label.star .label-text:focus-visible { transform: scale(1.7856); color: #edf4ff; }
+.scene-label.star:hover .label-text, .scene-label.star .label-text:focus-visible { transform: scale(2.1); color: #edf4ff; }
 .scene-label.is-target { z-index: 11; }
 .scene-label.is-target .label-text { color: #b8e6ed; background: transparent; }
 .label-text:disabled { cursor: default; }
@@ -119,6 +119,8 @@
 .dial-titulo{font-size:7px;letter-spacing:.17em;color:#a9c0cb;max-width:150px;margin:0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .dial-lectura strong{font-weight:300;font-size:23px;font-variant-numeric:tabular-nums;color:#c0d9de;}
 .dial-lectura small{font-size:9px;color:#a0b6c1;font-variant-numeric:tabular-nums;margin-top:6px;}
+.dial-lectura.con-km{top:54px;}
+.dial-km{display:grid;gap:1px;margin-top:9px;color:#a0b6c1;font-variant-numeric:tabular-nums;}.dial-km b{font-weight:300;font-size:13px;white-space:nowrap;}.dial-km em{font-style:normal;font-size:8px;letter-spacing:.12em;color:#8ca5b4;}
 .dial-instruccion{position:absolute;bottom:0;left:-20px;right:-20px;font-size:7px;letter-spacing:.08em;}
 .dial-instruccion button{background:none;border:0;color:#96b5c1;font:inherit;font-size:9px;cursor:pointer;padding:5px;}
 .dial-instruccion button:disabled{cursor:default;color:#8a9ca6;}

@@ -82,6 +82,7 @@ import { parConOrbita } from './scene/orbitasPar';
 import FiltrosSol from './FiltrosSol';
 import FichaLateral from './FichaLateral';
 import FichaCumulo from './FichaCumulo';
+import { fijarApuntadoEscena } from './scene/apuntadoEscena';
 import Cumulos from './scene/Cumulos';
 import { encuadreDeCumulo, useCumulos } from './scene/datosCumulos';
 import { useFichas } from './useFichas';
@@ -547,6 +548,9 @@ export default function App() {
     setApuntado({ cumuloId: elegido.id, nombre: elegido.nombre, viajar: () => elegirCumulo(elegido) });
   };
   const apuntadoVigente = apuntado && (apuntado.cumuloId ? view.cumuloId === apuntado.cumuloId : view.body === apuntado.body) && !freeFlight ? apuntado : null;
+  // Mientras dura la marca, la etiqueta normal del mismo objeto se oculta: queda solo el nombre bajo la marca.
+  const marcaVisible = apuntadoVigente && !traveling ? apuntadoVigente : null;
+  useEffect(() => { fijarApuntadoEscena(marcaVisible); }, [marcaVisible]);
   // Al viajar, deja de estar apuntado: el «Ir a» y la marca se van.
   const irAlApuntado = () => { if (apuntadoVigente) { setApuntado(null); apuntadoVigente.viajar(); } };
   const elegirDesdeBuscador = result => {
@@ -707,7 +711,8 @@ export default function App() {
     else if (id === 'heliosfera') setShowHeliosphere(visible => !visible);
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
-  const cerrarFicha = () => { setOrbitasDe(null); setEstrellaVista(null); setShowBodyPanel(false); releaseAim(); setSoltadas(n => n + 1); };
+  // Al cerrar la ficha también se suelta lo apuntado en el buscador: se van la marca y su nombre, y vuelve la etiqueta normal.
+  const cerrarFicha = () => { setOrbitasDe(null); setEstrellaVista(null); setShowBodyPanel(false); setApuntado(null); releaseAim(); setSoltadas(n => n + 1); };
   const elegirCumulo = elegido => {
     setShowPulsars(false); setShowDiscoveries(false); setShowBodyPanel(false); setInspectedTarget(null);
     navigate({ id: 'cumulo', target: [elegido.x, elegido.y, elegido.z], ...encuadreDeCumulo(elegido, starsById, cameraRef.current?.fov) });
@@ -774,7 +779,14 @@ export default function App() {
   const datosWr140 = { separacionAu: BINARY_STATE.separationAu, fecha: BINARY_EPOCH, anosLuz: (panelBody?.distancePc ?? 0) / LIGHT_YEAR_PC,
     periastroAu: WR140_ORBIT.semiMajorAu * (1 - WR140_ORBIT.eccentricity), apoastroAu: WR140_ORBIT.semiMajorAu * (1 + WR140_ORBIT.eccentricity) };
   // «Ir a» en la ficha, bajo el nombre, mientras lo elegido en el buscador sigue apuntado.
+  // Solo en la ficha de lo apuntado: si después se elige otra cosa en la escena (sin mover la cámara), su ficha no
+  // muestra el «Ir a» de la elección anterior.
   const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${nombreParaMostrar(apuntadoVigente.nombre, GENITIVOS)}`, onIr: irAlApuntado } : null;
+  const irASi = coincide => (irAFicha && coincide ? irAFicha : null);
+  const apuntadoEs = otro => Boolean(otro && apuntadoVigente?.body && (otro === apuntadoVigente.body
+    || (otro.star && otro.star === apuntadoVigente.body.star) || (!otro.star && !apuntadoVigente.body.star && otro.name === apuntadoVigente.body.name)));
+  const estrellaApuntada = estrella => Boolean(estrella && apuntadoVigente?.body?.star
+    && (estrella === apuntadoVigente.body.star || (estrella.i !== undefined && estrella.i === apuntadoVigente.body.star.i)));
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
     onPointerDown={event => { inicioArrastre.current = event.target instanceof HTMLCanvasElement ? [event.clientX, event.clientY] : null; }}
     onPointerMove={event => {
@@ -898,18 +910,18 @@ export default function App() {
         {orbitasFicha ? <OrbitasPar orbita={orbitasFicha} nombreVolver={nombreFicha} onVolver={() => { setDireccionFicha(-1); setOrbitasDe(null); }} />
           : fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
           onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
-          : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} irA={irAFicha} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irAFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
+          : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} irA={irASi(estrellaApuntada(estrellaFicha))} />
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irASi(estrellaApuntada(estrellaFicha))} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerOrbitas={() => { setDireccionFicha(1); setOrbitasDe(estrellaFicha.i); }}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
-      {cumulo && datosCumulos && !(fichaPlaneta || estrellaFicha) && <FichaLateral clave={`cumulo:${cumulo.id}`} direccion={1} etiqueta={`Información de ${cumulo.nombre}`} onCerrar={() => setCumulo(null)}>
-        <FichaCumulo cumulo={cumulo} irA={irAFicha} estrellaDe={starsById} fuente={datosCumulos.fuente} fuenteBrillantes={datosCumulos.fuenteBrillantes} onVerEstrella={star => visitSearchResult({ id: star.i, aliases: [star.n] })} />
+      {cumulo && datosCumulos && !(fichaPlaneta || estrellaFicha) && <FichaLateral clave={`cumulo:${cumulo.id}`} direccion={1} etiqueta={`Información de ${cumulo.nombre}`} onCerrar={() => { setCumulo(null); setApuntado(null); }}>
+        <FichaCumulo cumulo={cumulo} irA={irASi(cumulo.id === apuntadoVigente?.cumuloId)} estrellaDe={starsById} fuente={datosCumulos.fuente} fuenteBrillantes={datosCumulos.fuenteBrillantes} onVerEstrella={star => visitSearchResult({ id: star.i, aliases: [star.n] })} />
       </FichaLateral>}
       {/* Planetas, lunas, el Sol y sistemas: la misma columna lateral que las estrellas (pedido de Sergio). */}
       {fichaCuerpo && <FichaLateral clave={`cuerpo:${panelBody.optionValue || panelBody.name}`} direccion={direccionFicha} etiqueta={`Información de ${panelBody.name}`}
-          onCerrar={() => { setShowBodyPanel(false); setSoltadas(n => n + 1); }}>
-          <FichaCuerpo cuerpo={panelBody} sistema={panelBody.kind === 'system' ? datosWr140 : null} irA={irAFicha} />
+          onCerrar={() => { setShowBodyPanel(false); setApuntado(null); setSoltadas(n => n + 1); }}>
+          <FichaCuerpo cuerpo={panelBody} sistema={panelBody.kind === 'system' ? datosWr140 : null} irA={irASi(apuntadoEs(panelBody))} />
         </FichaLateral>}
       <MoonLabels focused={focusedBody} onSelect={focusBody} />
       <div data-labels className="scene-labels">

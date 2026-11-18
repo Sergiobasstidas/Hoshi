@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { etiquetaApuntada } from './apuntadoEscena';
 import { Html } from '@react-three/drei';
 import { smoothRange } from './scale';
 import { MIEMBROS_PARA_NOMBRE } from './datosCumulos';
@@ -18,7 +19,8 @@ export default function Cumulos({ datos, origin, elegido, onElegir }) {
     for (const cumulo of visibles) {
       const elemento = nombres.current.get(cumulo.id);
       if (!elemento) continue;
-      const visible = cumulo.id === elegido?.id || cumulo.id === resaltado?.id ? 1 : lejosDelSol;
+      // Elegido en el buscador: su nombre va bajo la marca (apuntadoEscena.js), no se repite aquí.
+      const visible = etiquetaApuntada({ cumulo: cumulo.id }) ? 0 : cumulo.id === elegido?.id || cumulo.id === resaltado?.id ? 1 : lejosDelSol;
       elemento.style.opacity = visible.toFixed(3);
       elemento.style.pointerEvents = visible > 0.3 ? 'auto' : 'none';
     }

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { etiquetaApuntada } from './apuntadoEscena';
 import { AU_TO_PC, KM_TO_PC, LIGHT_YEAR_PC, LIGHT_DAY_PC, lightDayRulerOpacity, smoothRange, oortLabelOpacity, starLabelOpacity } from './scale';
 import { SOLAR_BODIES } from './solarBodies';
 import { BINARY_STATE } from './binaryOrbit';
@@ -249,7 +250,9 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         alpha = previousAlpha + ((covered ? 0 : alpha) - previousAlpha) * (1 - Math.exp(-FUNDIDO * frameTime));
         labelAlpha.current.set(label.catalogueId, alpha);
       }
-      const visible = point.visible && alpha > 0.015 && (label.kind === 'star' || !covered);
+      // Lo elegido en el buscador ya lleva su nombre bajo la marca (apuntadoEscena.js): su etiqueta no se repite.
+      const apuntada = etiquetaApuntada(label.kind === 'star' ? { estrella: label.catalogueId } : { nombre: label.text });
+      const visible = point.visible && alpha > 0.015 && (label.kind === 'star' || !covered) && !apuntada;
       if (label.catalogueId === PROXIMA_HSB) nombreProxima.alpha = visible ? alpha : 0;
       el.style.opacity = visible ? alpha : 0;
       el.style.visibility = visible ? 'visible' : 'hidden';

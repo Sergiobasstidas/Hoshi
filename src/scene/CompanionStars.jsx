@@ -5,6 +5,7 @@ import { AdditiveBlending } from 'three';
 import { smoothRange } from './scale';
 import { barycentricOrbitsPc, companionOrbitPc, estrellaDeComponente, rectaAncha, colorCatalogo } from './visualBinary';
 import OrbitLine from './OrbitLine';
+import { etiquetaApuntada } from './apuntadoEscena';
 import { indiceBusqueda } from '../indiceBusqueda';
 import { nombreParaMostrar } from './nombresEstrella';
 import { GENITIVOS } from './starSearch';
@@ -89,7 +90,8 @@ function CompanionSystem({ system, origin, onElegir, elegido }) {
       if (brillo) { brillo.material.opacity = 0.16 * line.material.opacity / 0.45; brillo.visible = line.visible; }
       const marca = marcas.current[i];
       if (marca) {
-        marca.style.opacity = line.visible && !nombreVisible(marca.textContent) ? Math.min(1, line.material.opacity / 0.1).toFixed(3) : '0';
+        const apuntada = etiquetaApuntada({ estrella: component.companion?.i });
+        marca.style.opacity = line.visible && !apuntada && !nombreVisible(marca.textContent) ? Math.min(1, line.material.opacity / 0.1).toFixed(3) : '0';
         marca.style.pointerEvents = marca.style.opacity > 0.5 ? 'auto' : 'none';
       }
     });
