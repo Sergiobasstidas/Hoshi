@@ -4,7 +4,8 @@ import { anoActual, anomaliaEn, cruces, escalas, proximoPaso, relativa, velocida
 import './orbitasPar.css';
 import { colorCatalogo } from './scene/visualBinary';
 
-const SEGUNDOS_POR_VUELTA = 24, ANOS_RASTRO = 9;
+// Una vuelta cada 24 s sea cual sea el período; la estela cubre la misma fracción de la órbita que 9 años en Alfa Centauri.
+const SEGUNDOS_POR_VUELTA = 24, FRACCION_RASTRO = 9 / 79.76;
 const BASE = { centro: [143, 179, 255], fg: [231, 234, 240], tenue: [139, 148, 167] };
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const decimal = (valor, digitos = 1) => valor.toLocaleString('es-CL', { minimumFractionDigits: digitos, maximumFractionDigits: digitos });
@@ -57,7 +58,7 @@ function crearAnimacion(canvas, lecturas, orbita, estado) {
     const n = 40;
     let antes = null;
     for (let i = 0; i <= n; i++) {
-      const r = relativa(orbita, anomaliaEn(orbita, estado.t - ANOS_RASTRO * (1 - i / n))), p = S([r[0] * f, r[1] * f]);
+      const r = relativa(orbita, anomaliaEn(orbita, estado.t - FRACCION_RASTRO * orbita.periodo * (1 - i / n))), p = S([r[0] * f, r[1] * f]);
       if (antes) {
         ctx.strokeStyle = rgba(color, 0.9 * Math.pow(i / n, 1.7)); ctx.lineWidth = 1.6;
         ctx.beginPath(); ctx.moveTo(antes[0], antes[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
@@ -149,7 +150,9 @@ function crearAnimacion(canvas, lecturas, orbita, estado) {
     ctx.setLineDash([2, 5]); ctx.strokeStyle = rgba(COLOR.fg, 0.28); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(pP[0], pP[1]); ctx.lineTo(pC[0], pC[1]); ctx.stroke(); ctx.setLineDash([]);
 
-    // Centro de masa: cruz fina y su nombre al costado de la recta que une a las estrellas.
+    // Centro de masa: cruz fina y su nombre al costado de la recta que une a las estrellas. Sin masas medidas no se
+    // conoce: se muestra la órbita relativa, sin él.
+    if (orbita.masas) {
     ctx.strokeStyle = rgba(COLOR.centro, 0.95); ctx.lineWidth = 1; ctx.beginPath();
     ctx.moveTo(pM[0] - 6, pM[1]); ctx.lineTo(pM[0] + 6, pM[1]); ctx.moveTo(pM[0], pM[1] - 6); ctx.lineTo(pM[0], pM[1] + 6); ctx.stroke();
     // Normal a la recta entre las estrellas, del lado más cercano a la que tenía (sin voltear de golpe).
@@ -161,6 +164,7 @@ function crearAnimacion(canvas, lecturas, orbita, estado) {
     const tc = 'centro de masa', wc = ctx.measureText(tc).width;
     ctx.fillStyle = rgba(COLOR.centro, 0.9);
     ctx.fillText(tc, Math.max(6, Math.min(W - wc - 6, pM[0] + nx * 15 - wc * (1 - nx) / 2)), Math.max(12, Math.min(H - 6, pM[1] + ny * 15 + 4 + 3 * ny)));
+    }
 
     estrella(pC, COLOR.companera, 4.5);
     estrella(pP, COLOR.primaria, 5.5);
@@ -204,11 +208,13 @@ export default function OrbitasPar({ orbita, onVolver, nombreVolver }) {
   const [andando, setAndando] = useState(() => !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches));
   const [vista, setVista] = useState('centro');
   const [masas, setMasas] = useState('reales');
-  const [m1, m2] = orbita.masas, { primaria, companera } = orbita;
+  // Sin masas medidas de cada estrella: órbita relativa, la principal fija y la compañera girando a su alrededor.
+  const relativaSola = !orbita.masas;
+  const [m1, m2] = orbita.masas || [1, 0], { primaria, companera } = orbita;
   const Q = { reales: m2 / (m1 + m2), iguales: 0.5, diez: 1 / 11 };
   // La animación se crea una vez por par; los botones le cambian el estado sin volver a renderizar el lienzo.
   useEffect(() => {
-    const creada = crearAnimacion(lienzo.current, lecturas.current, orbita, { t: anoActual(), andando, kp: 0, kMeta: 0, qMeta: m2 / (m1 + m2) });
+    const creada = crearAnimacion(lienzo.current, lecturas.current, orbita, { t: anoActual(), andando, kp: relativaSola ? 1 : 0, kMeta: relativaSola ? 1 : 0, qMeta: m2 / (m1 + m2) });
     animacion.current = creada;
     return () => { creada.detener(); animacion.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- el estado inicial se toma solo al crearla
@@ -223,9 +229,12 @@ export default function OrbitasPar({ orbita, onVolver, nombreVolver }) {
     {onVolver && <button className="ficha-estrella-volver" onClick={onVolver}>← {nombreVolver}</button>}
     <h2 className="marca-hoshi">Órbitas</h2>
     <p className="ficha-estrella-tipo">{primaria.nombre} y {companera.nombre}</p>
-    <p className="ficha-estrella-relato">{primaria.nombre} y {companera.nombre} giran en torno al mismo punto, su centro de masa, y dan una vuelta cada {decimal(orbita.periodo)} años.</p>
+    <p className="ficha-estrella-relato">{relativaSola
+      ? <>{companera.nombre} gira en torno a {primaria.nombre} y da una vuelta cada {decimal(orbita.periodo)} años.</>
+      : <>{primaria.nombre} y {companera.nombre} giran en torno al mismo punto, su centro de masa, y dan una vuelta cada {decimal(orbita.periodo)} años.</>}</p>
     <div className="orbitas-lienzo">
-      <canvas ref={lienzo} role="img" aria-label={`${primaria.nombre} y ${companera.nombre} recorren dos elipses que comparten un foco: el centro de masa, que siempre queda entre las dos.`} />
+      <canvas ref={lienzo} role="img" aria-label={relativaSola ? `${companera.nombre} recorre una elipse con ${primaria.nombre} en un foco.`
+        : `${primaria.nombre} y ${companera.nombre} recorren dos elipses que comparten un foco: el centro de masa, que siempre queda entre las dos.`} />
     </div>
     <dl>
       <Dato etiqueta="Año"><span ref={el => { lecturas.current.ano = el; }} /></Dato>
@@ -236,18 +245,20 @@ export default function OrbitasPar({ orbita, onVolver, nombreVolver }) {
       <button className="ficha-estrella-accion" onClick={() => { const sigue = !andando; actuar(e => { e.andando = sigue; }); setAndando(sigue); }}>{andando ? 'Pausa' : 'Seguir'}</button>
       <Opciones titulo="Ir a" opciones={[['hoy', 'Hoy'], ['cerca', `Más cerca · ${Math.floor(cerca)}`], ['lejos', `Más lejos · ${Math.floor(lejos)}`]]}
         onElegir={clave => ir({ hoy: anoActual(), cerca, lejos }[clave])} />
-      <Opciones titulo="Vista" opciones={[['centro', 'Centro de masa'], ['primaria', `Desde ${primaria.nombre}`]]} activa={vista}
-        onElegir={clave => { actuar(e => { e.kMeta = clave === 'centro' ? 0 : 1; }); setVista(clave); }} />
-      <Opciones titulo="Masas" opciones={[['reales', 'Reales'], ['iguales', 'Iguales'], ['diez', `${primaria.nombre} ×10`]]} activa={masas}
-        onElegir={clave => { actuar(e => { e.qMeta = Q[clave]; }); setMasas(clave); }} />
+      {!relativaSola && <Opciones titulo="Vista" opciones={[['centro', 'Centro de masa'], ['primaria', `Desde ${primaria.nombre}`]]} activa={vista}
+        onElegir={clave => { actuar(e => { e.kMeta = clave === 'centro' ? 0 : 1; }); setVista(clave); }} />}
+      {!relativaSola && <Opciones titulo="Masas" opciones={[['reales', 'Reales'], ['iguales', 'Iguales'], ['diez', `${primaria.nombre} ×10`]]} activa={masas}
+        onElegir={clave => { actuar(e => { e.qMeta = Q[clave]; }); setMasas(clave); }} />}
     </div>
     <section>
       <h3>Cómo se mueven</h3>
       <ul className="ficha-lista">
+        {relativaSola ? <li>Vista desde {primaria.nombre}, {companera.nombre} recorre una elipse con {primaria.nombre} en un foco. Es la órbita que publican los catálogos.</li> : <>
         <li>Las dos estrellas giran en torno al centro de masa y siempre quedan en lados opuestos de ese punto, sobre la misma recta.</li>
         <li>Cada elipse es la misma órbita a otro tamaño. La de {primaria.nombre} es más chica porque tiene más masa; con masas iguales serían idénticas.</li>
         <li>Las elipses se cruzan en los círculos chicos, pero no pueden chocar: cuando una estrella pasa por un cruce, la otra está al otro lado del centro de masa.</li>
         <li>Vista desde {primaria.nombre}, {companera.nombre} recorre una sola elipse con {primaria.nombre} en un foco. Es la órbita que publican los catálogos.</li>
+        </>}
         <li>En el acercamiento máximo se mueven {decimal(velocidadRelativa(orbita, 0) / velocidadRelativa(orbita, Math.PI), 1)} veces más rápido que cuando están más lejos.</li>
       </ul>
     </section>
@@ -259,7 +270,7 @@ export default function OrbitasPar({ orbita, onVolver, nombreVolver }) {
         <Dato etiqueta="Distancia media" valor={`${decimal(orbita.a)} UA`} />
         <Dato etiqueta="Más cerca" valor={`${decimal(rp)} UA`} secundario={mesYAno(cerca)} />
         <Dato etiqueta="Más lejos" valor={`${decimal(ra)} UA`} secundario={String(Math.floor(lejos))} />
-        <Dato etiqueta="Masas" valor={`${decimal(m1, 2)} y ${decimal(m2, 2)} M☉`} />
+        {!relativaSola && <Dato etiqueta="Masas" valor={`${decimal(m1, 2)} y ${decimal(m2, 2)} M☉`} />}
         <Dato etiqueta="1 UA" valor="Distancia de la Tierra al Sol" />
       </dl>
     </section>

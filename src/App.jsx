@@ -767,8 +767,9 @@ export default function App() {
     ? { position: [estrellaDeFicha.x, estrellaDeFicha.y, estrellaDeFicha.z], id: estrellaDeFicha.i }
     : (estrellaDeFicha || (showBodyPanel && panelBody?.kind === 'system')) && panelBody?.position ? { position: panelBody.position, id: estrellaDeFicha?.i ?? null } : null;
   // La página de órbitas solo sigue abierta mientras la ficha sea de la misma estrella.
-  if (orbitasDe !== null && (fichaPlaneta || estrellaFicha?.i !== orbitasDe)) setOrbitasDe(null);
-  const orbitasFicha = !fichaPlaneta && estrellaFicha && orbitasDe === estrellaFicha.i ? parConOrbita(estrellaFicha) : null;
+  // `orbitasDe`: la estrella de la ficha, el par (nombre en ORB6) y los nombres de sus dos estrellas, tal como los muestra la ficha.
+  if (orbitasDe !== null && (fichaPlaneta || estrellaFicha?.i !== orbitasDe.i)) setOrbitasDe(null);
+  const orbitasFicha = !fichaPlaneta && estrellaFicha && orbitasDe?.i === estrellaFicha.i ? parConOrbita(estrellaFicha, orbitasDe.clave, orbitasDe.nombres) : null;
   const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text : panelBody?.name;
   // Una sola columna lateral a la vez. Estrella, exoplaneta, cúmulo y etapa mandan; después el cuerpo
   // enfocado (planeta, luna, Sol, sonda o WR 140), luego la región y al final los púlsares.
@@ -905,14 +906,14 @@ export default function App() {
       {aimTarget && aimTarget.kind !== 'sun' && <>
         <div className="aim-reticle" aria-hidden="true" />
       </>}
-      {(fichaPlaneta || estrellaFicha) && <FichaLateral clave={fichaPlaneta ? `planeta:${nombreFicha}` : orbitasFicha ? `orbitas:${estrellaFicha.i}` : `estrella:${estrellaFicha.i}`} direccion={direccionFicha}
+      {(fichaPlaneta || estrellaFicha) && <FichaLateral clave={fichaPlaneta ? `planeta:${nombreFicha}` : orbitasFicha ? `orbitas:${orbitasFicha.clave}` : `estrella:${estrellaFicha.i}`} direccion={direccionFicha}
         etiqueta={orbitasFicha ? `Órbitas de ${orbitasFicha.primaria.nombre} y ${orbitasFicha.companera.nombre}` : `Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {orbitasFicha ? <OrbitasPar orbita={orbitasFicha} nombreVolver={nombreFicha} onVolver={() => { setDireccionFicha(-1); setOrbitasDe(null); }} />
           : fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
           onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
           : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} irA={irASi(estrellaApuntada(estrellaFicha))} />
           : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irASi(estrellaApuntada(estrellaFicha))} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
-            onVerOrbitas={() => { setDireccionFicha(1); setOrbitasDe(estrellaFicha.i); }}
+            onVerOrbitas={(clave, nombres) => { setDireccionFicha(1); setOrbitasDe({ i: estrellaFicha.i, clave, nombres }); }}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
       {cumulo && datosCumulos && !(fichaPlaneta || estrellaFicha) && <FichaLateral clave={`cumulo:${cumulo.id}`} direccion={1} etiqueta={`Información de ${cumulo.nombre}`} onCerrar={() => { setCumulo(null); setApuntado(null); }}>

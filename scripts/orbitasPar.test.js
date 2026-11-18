@@ -33,3 +33,19 @@ test('Las dos estrellas quedan en lados opuestos del centro de masa', () => {
   assert.ok(Math.abs(escalas(1, q).primaria) < 1e-12);
   assert.equal(cruces(orbita, q).length, 2);
 });
+
+test('Ver órbitas: con masas medidas giran en torno al centro de masa; sin ellas, órbita relativa', async () => {
+  const { masasMedidas, orbitaCompleta } = await import('../src/scene/orbitasPar.js');
+  const par = nombre => Object.values(systems).flatMap(s => s.comps).find(c => c.pair === nombre);
+  const conSistema = (pairData, i) => parConOrbita({ system: { star: { i, n: 'A' }, components: [{ name: 'B', pair: pairData, companion: { i: i + 1, n: 'B' } }] } });
+  assert.deepEqual(orbita.masas, [1.0788, 0.9092], 'Alfa Centauri: Akeson et al. 2021');
+  const sirio = conSistema(par('AGC 1'), 10);
+  assert.deepEqual(sirio.masas, [2.063, 1.018], 'Sirio: Bond et al. 2017');
+  const rasalhague = par('MCY 4');
+  assert.ok(orbitaCompleta(rasalhague));
+  assert.equal(masasMedidas(rasalhague), null);
+  assert.equal(conSistema(rasalhague, 20).masas, null, 'Rasalhague: órbita relativa');
+  // Las masas del MSC (fotometría o modelos) no cuentan como medidas.
+  const msc = Object.values(systems).flatMap(s => s.comps).find(c => c.k === 'o' && c.mc === 'vv' && c.pair !== 'RHD 1');
+  assert.equal(masasMedidas(msc), null);
+});

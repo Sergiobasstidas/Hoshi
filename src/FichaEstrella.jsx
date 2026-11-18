@@ -9,7 +9,7 @@ import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
 import { useFichas } from './useFichas';
 import { tipoEstelar } from './tipoEstelar';
-import { ORBITAS_ANIMADAS } from './scene/orbitasPar';
+import { orbitaCompleta } from './scene/orbitasPar';
 import { gruposSistema } from './scene/gruposSistema';
 import EsquemaSistema from './EsquemaSistema';
 import { nombreParaMostrar } from './scene/nombresEstrella';
@@ -94,7 +94,7 @@ function SeccionSistema({ star, nombre, miembros, titulos, onVerComponente, onVe
       {pares.map(p => <li key={p.clave}>
         <p>{nombreDe(p.uno)} <span className="ficha-sistema-signo" aria-label="se orbita con">⟲</span> {nombreDe(p.otro)}</p>
         {p.periodo && p.a && <small>Se orbitan cada {numero(p.periodo, 3)} años (distancia media {numero(p.a, 2)} UA)</small>}
-        {onVerOrbitas && ORBITAS_ANIMADAS[p.clave] && <button className="ficha-sistema-enlace ficha-sistema-orbitas" onClick={onVerOrbitas}>Ver órbitas</button>}
+        {onVerOrbitas && orbitaCompleta(p.pair) && <button className="ficha-sistema-enlace ficha-sistema-orbitas" onClick={() => onVerOrbitas(p.clave, [p.uno.nombre, p.otro.nombre])}>Ver órbitas</button>}
       </li>)}
       {lejanas.map(l => <li key={l.miembro.nombre}>
         <p>{nombreDe(l.miembro)}</p>

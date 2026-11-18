@@ -1,35 +1,46 @@
 import { eccentricAnomaly } from './binaryOrbit.js';
-
-// Pares con órbita que tienen animación de sus órbitas en la ficha, por nombre del par en ORB6.
-// Las masas son las dinámicas publicadas con la órbita (Akeson et al. 2021, tabla 6).
-export const ORBITAS_ANIMADAS = {
-  'RHD 1': { masas: [1.0788, 0.9092], fuente: 'Akeson et al. 2021 (ORB6)' },
-};
+import { MASAS_DINAMICAS } from './masasDinamicas.js';
+import { estrellaDeComponente } from './visualBinary.js';
 
 const DIAS_ANO = 365.25;
 const mjdAAno = mjd => 2000 + (mjd - 51544.5) / DIAS_ANO;
 export const AU_ANO_A_KMS = 4.740470463;
 
-// El par con órbita animada del sistema de la estrella, con los nombres de las dos estrellas.
-// Se guarda por sistema para que la página no reinicie su animación en cada render.
+// ¿Tiene el par su órbita completa (ORB6: P, a, e, i, Ω, ω y T)? Las de grado 5 («indeterminadas») no cuentan.
+const ELEMENTOS = ['p', 'a', 'e', 'i', 'node', 'w', 't'];
+export const orbitaCompleta = pair => pair?.k === 'o' && ELEMENTOS.every(k => Number.isFinite(pair[k])) && pair.p > 0 && pair.a > 0 && pair.grade !== 5;
+// Masas medidas de cada estrella: la lista curada (masasDinamicas.js) o las medidas que trae star_systems.json (publicadas
+// o de SB9). Sin ellas, null: se anima la órbita relativa.
+export function masasMedidas(pair) {
+  if (MASAS_DINAMICAS[pair.pair]) return MASAS_DINAMICAS[pair.pair];
+  return (pair.mc === 'pub' || pair.mc === 'sb9') && pair.m1 > 0 && pair.m2 > 0 ? [pair.m1, pair.m2] : null;
+}
+
+// El par con órbita de la estrella, por el nombre del par en ORB6 (`clave`; sin ella, el primero con órbita completa),
+// con los nombres de las dos estrellas (`nombres`, los de la ficha). Se guarda por sistema y par para que la página no
+// reinicie su animación en cada render.
 const guardadas = new WeakMap();
-export function parConOrbita(star) {
+export function parConOrbita(star, clave = null, nombres = null) {
   const sistema = star?.system || star?.sistemaDe;
   if (!sistema) return null;
-  if (!guardadas.has(sistema)) guardadas.set(sistema, crearPar(sistema));
-  return guardadas.get(sistema);
+  if (!guardadas.has(sistema)) guardadas.set(sistema, new Map());
+  const pares = guardadas.get(sistema);
+  if (!pares.has(clave)) pares.set(clave, crearPar(sistema, clave, nombres));
+  return pares.get(clave);
 }
-function crearPar(sistema) {
-  const componente = sistema.components.find(c => c.pair.k === 'o' && ORBITAS_ANIMADAS[c.pair.pair]);
+function crearPar(sistema, clave, nombres) {
+  const componente = sistema.components.find(c => orbitaCompleta(c.pair) && (clave === null || c.pair.pair === clave));
   if (!componente) return null;
-  const { pair } = componente, extra = ORBITAS_ANIMADAS[pair.pair];
-  const primaria = sistema.star;
+  const { pair } = componente, primaria = sistema.star;
+  const padre = pair.of === 'A' ? null : sistema.components.find(c => c.name === pair.of);
+  const estrellaPrincipal = padre ? estrellaDeComponente(sistema, padre) : primaria;
+  const nombrePrincipal = nombres?.[0] || estrellaPrincipal?.n || (padre ? `${primaria.n} ${pair.of}` : primaria.n) || 'Estrella principal';
   return {
     clave: `${primaria.i}:${pair.pair}`,
-    primaria: { star: primaria, nombre: primaria.n },
-    companera: { star: componente.companion, nombre: componente.companion?.n || `${primaria.n} ${componente.name}` },
+    primaria: { star: estrellaPrincipal, nombre: nombrePrincipal },
+    companera: { star: componente.companion || estrellaDeComponente(sistema, componente), nombre: nombres?.[1] || componente.companion?.n || `${primaria.n} ${componente.name}` },
     periodo: pair.p / DIAS_ANO, periastro: mjdAAno(pair.t), e: pair.e, a: pair.a,
-    masas: extra.masas, fuente: extra.fuente,
+    masas: masasMedidas(pair), fuente: 'Sixth Catalog of Orbits of Visual Binary Stars (ORB6)',
   };
 }
 
