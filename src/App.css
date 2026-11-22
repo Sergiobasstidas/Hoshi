@@ -43,14 +43,12 @@
 .light-year-ruler { position: absolute; inset: 0; width: 100%; height: 100%; color: #b9c0ca; opacity: 0; }
 .light-year-ruler text { fill: currentColor; font-family: monospace; font-size: 14px; letter-spacing: .03em; }
 .oort-note { position: absolute; bottom: 72px; left: 30px; opacity: 0; font: calc(11px * var(--escala-nombres, 1)) monospace; color: #94a0b1; }
-.scene-footer { position: absolute; bottom: 22px; left: 30px; right: 30px; display: flex; justify-content: space-between; gap: 20px; color: #636e7e; font-size: 10px; line-height: 1.6; }
 @media (max-width: 700px) {
   .aim-panel { top: 142px; right: 18px; max-width: calc(100% - 36px); }
   .body-selector { top: 20px; right: 18px; flex-direction: column; align-items: end; gap: 4px; }
 
   .distance-panel { top: 24px; left: 24px; }
   .scale-navigation { top: auto; bottom: 66px; left: 18px; right: auto; }
-  .scene-footer { left: 18px; right: 18px; bottom: 15px; }
   .scale-navigation { flex-wrap: wrap; right: 18px; }
   .oort-note { bottom: 115px; left: 18px; }
 }
@@ -126,9 +124,8 @@
 .dial-instruccion button:disabled{cursor:default;color:#8a9ca6;}
 .dial-teclado{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:50%;bottom:30px;}
 .dial-velocidad:has(input:focus-visible) .dial-fondo{stroke:#94c7d5;}
-.scene-footer{padding-right:0}
 
-@media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.navigation-hint{display:none!important}.scene-footer{font-size:8px;max-width:100px}.scene-footer:has(.flight-hint){display:block}}
+@media(max-width:700px){.barra-distancia{right:18px;--superior:300px;--inferior:115px;width:56px;}.escala-vista{right:66px;font-size:10px}.dial-velocidad{transform:translateX(-50%) scale(.8);transform-origin:bottom center;bottom:12px}.distance-panel{top:20px}.marca-hoshi{font-size:12px}.navigation-hint{display:none!important}}
 @media(max-height:650px){.barra-distancia{--superior:155px;--inferior:70px}.dial-velocidad{transform:translateX(-50%) scale(.75);transform-origin:bottom center;bottom:6px}}
 @media(prefers-reduced-motion:reduce){.scene-label.star .label-text,.escala-linea{transition:none}}
 
@@ -144,8 +141,7 @@
 @media(max-width:420px){.visores-vuelo{transform:translateX(-50%) scale(.8);}}
 @media(max-height:650px) and (min-width:701px){.visores-vuelo{transform:scale(.86);bottom:20px;}}
 @media(max-height:650px) and (max-width:700px){.visores-vuelo{transform:translateX(-50%) scale(.8625);bottom:20px;}}
-/* Pie: ayuda de controles y, debajo, el copyright en la esquina inferior derecha. */
-@media(min-width:701px){.scene-footer{left:auto;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}
+@media(min-width:701px){
   .oort-note{bottom:250px}.galaxy-loading{bottom:262px}}
 
 /* Planetas del sistema solar al estilo de NASA Eyes: nombre blanco en mayúsculas espaciadas

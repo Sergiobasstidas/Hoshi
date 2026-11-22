@@ -960,9 +960,6 @@ export default function App() {
       <AvisoCelular />
       <PantallaCompleta />
       {traveling && !view.journey?.comparacion && <p className="subtitulo-escena visible" role="status">{TACTIL ? 'Arrastra la escena para detener el viaje' : 'Arrastra, gira la rueda o Esc: detener el viaje'}</p>}
-      <footer className="scene-footer">
-        <span>© 2026 Sergio Bastidas</span>
-      </footer>
     </div>
   </main>;
 }

@@ -1,5 +1,5 @@
-/* Esquina inferior derecha en una grilla: modo de visión y pantalla completa en la misma fila, y
-   debajo el copyright, todos con el mismo margen derecho. */
+/* Esquina inferior derecha en una grilla: modo de visión y pantalla completa en la misma fila, con el
+   mismo margen derecho. */
 .selector-brillo { position: absolute; right: 70px; bottom: 48px; z-index: 22; display: grid; justify-items: center; gap: 4px; font-size: 10px; pointer-events: auto; }
 .selector-brillo > span { color: #7c8796; }
 .selector-brillo > div { box-sizing: border-box; height: 32px; display: flex; align-items: stretch; gap: 2px; padding: 3px; border: 1px solid #7f9aa952; border-radius: 9px; background: #04080ed9; }

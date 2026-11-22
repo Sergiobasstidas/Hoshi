@@ -30,8 +30,6 @@
   .escala-vista { font-size: 12px; }
   .galaxy-loading { bottom: 110px; font-size: 12px; }
   .visores-vuelo { left: 12px; right: 12px; bottom: 10px; width: auto; }
-  .scene-footer { max-width: none; font-size: 11px; bottom: 82px; }
-  .scene-footer > span:last-child { display: none; }
 
 }
 
@@ -54,8 +52,6 @@
   .barra-distancia { --superior: 96px; --inferior: 30px; font-size: 11px; }
   .visores-vuelo { left: 12px; bottom: 10px; width: min(360px, calc(100% - 110px)); }
   .galaxy-loading,.oort-note { bottom: 80px; left: 18px; font-size: 12px; }
-  .scene-footer { left: auto; right: 90px; bottom: 8px; max-width: 45%; font-size: 11px; flex-direction: column; align-items: flex-end; text-align: right; }
-  .scene-footer > span:last-child { display: none; }
 }
 
 /* Visores en píldoras: título corto en una línea, cifra con su unidad y una barra fina en lugar
@@ -113,7 +109,7 @@
    No se aplica a los nombres de la escena, que se colocan en píxeles desde la cámara. */
 @media (min-width: 901px) and (pointer: fine) {
   :root { --zoom-ui: 1.3; }
-  .distance-panel,.scale-navigation,.body-selector,.star-search,.visores-vuelo,.scene-footer,.aim-panel,.credito-sdo,.barra-distancia,.galaxy-loading { zoom: var(--zoom-ui); }
+  .distance-panel,.scale-navigation,.body-selector,.star-search,.visores-vuelo,.aim-panel,.credito-sdo,.barra-distancia,.galaxy-loading { zoom: var(--zoom-ui); }
   /* El logo sigue la ventana tal cual; el resto crece más despacio (escalaInterfaz.js). */
   .logo-hoshi { zoom: var(--zoom-logo, 1.3); }
   /* Visores más chicos que el resto, para que no dominen la esquina. */
