@@ -80,3 +80,6 @@ data/raw/hipparcos/*
 
 # Tabla de cúmulos de Hunt & Reffert 2023 (7 MB): se descarga con npm run descargar:red
 data/raw/hunt2023/
+
+# Miembros de cúmulos globulares (Vasiliev & Baumgardt 2021, Zenodo 4891252; Hunt & Reffert 2023): se descargan
+data/raw/globulares/

@@ -8,6 +8,7 @@
 //                    error de la otra fuente): se anota y no se cambia nada;
 //   «Enlace malo»    el cruce entre catálogos está mal o falta: se arregla en la identidad y se vuelve a comparar.
 import { vFromGaia } from '../photometry.js';
+import { GLOBULARES } from '../globulares.js';
 import { filaCns5 } from '../fusion.js';
 import { Cielo, aJ2000, num, separacion } from './fuentes.js';
 import { rangoMv } from './magnitudes.js';
@@ -61,7 +62,9 @@ export function auditar(D, { simbadHip, simbadGj, separaciones }) {
   }
   const sistemaDe = s => enSistema.get(s.i)?.sistema ?? (D.registro.get(s.i)?.primaria_hsb ? Number(D.registro.get(s.i).primaria_hsb) : s.i);
   const anfitriona = new Map(D.exo.filter(e => e.i !== null && e.i !== undefined).map(e => [e.i, e]));
-  const fuentesCuradas = new Set([...D.curadas.values()].map(c => c.fuente));
+  // También la distancia de los miembros de un cúmulo globular: la del cúmulo, una paralaje de grupo publicada
+  // (globulares.js; D-014), no una distancia sin medida.
+  const fuentesCuradas = new Set([...[...D.curadas.values()].map(c => c.fuente), ...GLOBULARES.map(g => g.fuenteDistancia)]);
 
   // ---------- Identificadores repetidos dentro del catálogo ----------
   const usos = { hip: new Map(), hd: new Map(), gl: new Map(), gaia: new Map(), tmass: new Map() };

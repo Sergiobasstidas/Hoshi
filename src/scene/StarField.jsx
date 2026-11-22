@@ -7,7 +7,7 @@ import { buildStellarAppearance, stellarMarkerSize } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
 import { LIMITE_BINOCULARES, PROXIMA_HSB, nombreProxima, parametrosBrillo } from './modosBrillo';
 import StellarSurface from './StellarSurface';
-import { M_MIN, M_STEP, escalasDeGrupo, tablaColores } from './gaiaCapa.js';
+import { M_MIN, M_STEP, capaOculta, escalasDeGrupo, tablaColores } from './gaiaCapa.js';
 import { posicionesCapa } from './estrellasBin.js';
 import { geometriaSoltada } from './geometriaGpu.js';
 
@@ -279,6 +279,8 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     const claseBase = new Uint8Array(total);
     catalogo.forEach((star, k) => { claseBase[k] = star.n === 'Sol' || star.n === 'Sun' ? CLASE.oculta : star.n ? CLASE.nombre : CLASE.fondo; });
     claseBase.fill(CLASE.capa, nCat);
+    // Fuentes de la capa que ya se dibujan desde el catálogo (miembros de cúmulos globulares): ocultas en su lugar.
+    if (capa) capa.colores.forEach((byte, k) => { if (capaOculta(byte)) claseBase[nCat + k] = CLASE.oculta; });
     const colores = tablaColores();
     const escalas = [capa ? escalasDeGrupo(capa.magnitudes, capa.colores, Float32Array.from({ length: 256 }, (_, b) => colores[4 * b + 3])) : { areaScale: 1, energyScale: 1 },
       escalasCatalogo(catalogo.filter((s, k) => claseBase[k] === CLASE.fondo)),

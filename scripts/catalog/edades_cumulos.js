@@ -17,6 +17,9 @@ const IC2391 = 'Barrado y Navascués, Stauffer & Jayawardhana 2004, ApJ 614, 386
 const ALFA_PERSEI = 'Stauffer et al. 1999, ApJ 527, 219 (límite del litio, 90 ± 10 Myr) y Galindo-Guil et al. 2022, A&A 664, A70 (límite del litio, 75 ± 5 Myr)';
 // NGC 2547: límite del litio. Jeffries & Oliveira 2005, MNRAS 358, 13 (34–36 Myr, con 10 % de precisión).
 const NGC2547 = 'Jeffries & Oliveira 2005, MNRAS 358, 13 (límite del litio, 35 Myr ± 10 %)';
+// Omega Centauri (NGC 5139): Clontz et al. 2024, ApJ 977, 14 (oMEGACat IV): isócronas de más de 8.100 subgigantes, la
+// mayoría entre 10 y 13 mil millones de años (media 12,08).
+const OMEGA_CEN = 'Clontz et al. 2024, ApJ 977, 14 (oMEGACat IV: isócronas de más de 8.100 subgigantes; media 12,08 mil millones de años)';
 // Blanco 1: límite del litio. Juarez et al. 2014, ApJ 795, 143 (126 +13/−14 Myr; 114 +9/−10 Myr corrigiendo la actividad magnética).
 const BLANCO1 = 'Juarez et al. 2014, ApJ 795, 143 (límite del litio, 126 +13/−14 Myr; 114 +9/−10 Myr con la actividad magnética)';
 
@@ -29,4 +32,5 @@ export const EDADES_CURADAS = {
   melotte20: { min: 75, max: 90, fuente: ALFA_PERSEI },
   ngc2547: { min: 32, max: 38, fuente: NGC2547 },
   blanco1: { min: 114, max: 126, fuente: BLANCO1 },
+  ngc5139: { min: 10000, max: 13000, fuente: OMEGA_CEN },
 };

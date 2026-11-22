@@ -23,7 +23,7 @@
 //   byte = round((M − M_MIN) / M_STEP), recortado a 0..255
 //   M    = M_MIN + byte · M_STEP          (M_MIN = −12, M_STEP = 0,125 → cubre −12 … +19,875)
 // Cuantización de BP−RP:
-//   byte = round((BP−RP − C_MIN) / C_STEP), recortado a 0..254
+//   byte = round((BP−RP − C_MIN) / C_STEP), recortado a 0..253 (254 queda para «oculta», ver gaiaCapa.js)
 //   BP−RP = C_MIN + byte · C_STEP         (C_MIN = −1, C_STEP = 0,035 → cubre −1 … +7,89)
 //   byte = 255 significa «sin color en Gaia».
 
@@ -105,6 +105,9 @@ const knownSourceIds = new Set();
 const idBySourceId = new Map();
 const withoutId = [];
 for (const s of hoshiStars) {
+  // Los miembros de cúmulos globulares (build_globulares.js) no se sacan de la capa: build_estrellas.js los deja en su
+  // lugar como ocultos, para que no cambien los índices de la capa.
+  if (s.dataOrigin === 'globular') continue;
   const extra = registryGaia.get(s.i);
   if (extra && extra !== gaiaById.get(s.i)) { knownSourceIds.add(extra); idBySourceId.set(extra, s.i); }
   if (!gaiaById.has(s.i) && extra) gaiaById.set(s.i, extra);
@@ -308,7 +311,7 @@ stars.forEach((s, k) => {
 
   const absMag = s.g + 5 * Math.log10(s.plx) - 10;
   buffer[magOffset + k] = clamp(Math.round((absMag - M_MIN) / M_STEP), 0, 255);
-  buffer[colorOffset + k] = s.bprp === null ? C_NONE : clamp(Math.round((s.bprp - C_MIN) / C_STEP), 0, 254);
+  buffer[colorOffset + k] = s.bprp === null ? C_NONE : clamp(Math.round((s.bprp - C_MIN) / C_STEP), 0, 253);
 });
 
 fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });

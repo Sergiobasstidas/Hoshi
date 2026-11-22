@@ -18,7 +18,8 @@ const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8
 const lotes = leerLotes();
 // Versiones anteriores del registro: solo AT-HYG v3.2 y anfitrionas (ae0565b) y con AT-HYG v4.0 (eb4e1a1).
 const VERSIONES = ['ae0565b', 'eb4e1a1'];
-const ORIGENES_NUEVOS = ['athyg_v40', 'cns5'];
+// Orígenes de las estrellas que entraron después de la carga base: AT-HYG v4.0, CNS5 y miembros de cúmulos globulares.
+const ORIGENES_NUEVOS = ['athyg_v40', 'cns5', 'globular'];
 
 const registroDe = commit => {
   try {

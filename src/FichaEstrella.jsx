@@ -14,6 +14,7 @@ import { gruposSistema } from './scene/gruposSistema';
 import EsquemaSistema from './EsquemaSistema';
 import { nombreParaMostrar } from './scene/nombresEstrella';
 import { GENITIVOS } from './scene/starSearch';
+import { magnitudesFicha } from './scene/magnitudesFicha';
 import './fichaSistema.css';
 
 
@@ -106,8 +107,9 @@ function SeccionSistema({ star, nombre, miembros, titulos, onVerComponente, onVe
 
 // Cómo se ve desde la Tierra, según su magnitud aparente.
 function comoSeVe(star) {
-  if (!Number.isFinite(star.m) || !(star.d > 0)) return null;
-  const magnitud = star.m + 5 * Math.log10(star.d / 10);
+  const magnitudes = magnitudesFicha(star);
+  if (!magnitudes) return null;
+  const magnitud = magnitudes.aparente;
   const frase = magnitud < 0 ? 'Desde la Tierra es una de las estrellas más brillantes del cielo nocturno.'
     : magnitud < 3 ? 'Desde la Tierra se ve a simple vista, incluso desde la ciudad.'
     : magnitud < 6 ? 'Desde la Tierra se ve a simple vista solo con cielo oscuro.'
@@ -164,7 +166,8 @@ function ComparacionSol({ nombre, radio, temperatura }) {
 }
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas, irA }) {
+// `cumuloDe`: cúmulo globular del que es miembro ({ nombre, d }): se muestra la distancia del cúmulo (build_globulares.js).
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas, irA, cumuloDe = null }) {
   const { constelacion, hd, hip, hr, gliese, variable } = useConstelacion(star.i);
   const fichas = useFichas();
   const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
@@ -181,7 +184,8 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
   const miembros = componentesDelSistema(star, nombre, titulos);
   const color = temperatura ? `rgb(${temperatureColor(temperatura).map(v => Math.round(v * 255)).join(', ')})` : '#fff';
   const luminosidad = physics?.luminositySolar ?? datos?.luminositySolar ?? mas.luminosidad;
-  const anosLuz = star.d / LIGHT_YEAR_PC;
+  const magnitudes = magnitudesFicha(star, cumuloDe);
+  const anosLuz = (magnitudes?.distanciaPc ?? star.d) / LIGHT_YEAR_PC;
   const tipo = tipoEstelar(espectro);
   const planetas = (planetary || []).flatMap(sistema => sistema.planets);
   const vista = comoSeVe(star);
@@ -201,8 +205,10 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {masa > 0 && <Dato etiqueta="Masa" valor={`${numero(masa)} M☉`} />}
         {luminosidad > 0 && <Dato etiqueta="Luminosidad" valor={`${numero(luminosidad)} L☉`} />}
         {vista && <Dato etiqueta="Magnitud aparente" valor={numero(vista.aparente, 3)} />}
-        {Number.isFinite(star.m) && <Dato etiqueta="Magnitud absoluta" valor={numero(star.m, 3)} />}
-        <Dato etiqueta="Distancia al Sol" valor={`${numero(anosLuz, anosLuz < 100 ? 3 : 2)} años luz`} />
+        {magnitudes && <Dato etiqueta="Magnitud absoluta" valor={numero(magnitudes.absoluta, 3)} />}
+        {/* Miembro de un cúmulo globular: la distancia del cúmulo, con 3 cifras como en su ficha. */}
+        <Dato etiqueta="Distancia al Sol" valor={`${numero(anosLuz, cumuloDe || anosLuz < 100 ? 3 : 2)} años luz`}
+          secundario={cumuloDe ? `${numero(cumuloDe.d / 1000, 3)} kpc · distancia del cúmulo ${cumuloDe.nombre}` : undefined} />
         {constelacion && <Dato etiqueta="Constelación" valor={constelacion} />}
         {mas.paralaje > 0 && <Dato etiqueta="Paralaje" valor={`${numero(mas.paralaje)}${mas.paralajeError ? ` ± ${numero(mas.paralajeError, 2)}` : ''} mas`} />}
         {mas.edad > 0 && <Dato etiqueta="Edad" valor={`${numero(mas.edad, 2)} mil millones de años`} secundario="Sol: 4,6" />}

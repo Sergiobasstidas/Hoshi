@@ -35,3 +35,23 @@ test('la edad va como rango: estudios dedicados y, si no, Hunt & Reffert 2023', 
   assert.match(sinEstudio.fuenteEdad, /Hunt & Reffert 2023/);
   assert.ok(sinEstudio.edadMinMyr < sinEstudio.edadMaxMyr);
 });
+
+test('Omega Centauri (NGC 5139): globular, con sus miembros a la distancia del cúmulo y en el buscador', async () => {
+  const { buscarCumulos } = await import('../src/scene/buscarCumulos.js');
+  const omega = cumulos.find(c => c.id === 'ngc5139');
+  assert.equal(omega?.tipo, 'globular');
+  assert.ok(omega.ids.length >= 4000, `${omega.ids.length} miembros`);
+  assert.equal(omega.constelacion, 'Cen');
+  assert.equal(omega.d, 5250);
+  assert.deepEqual([omega.edadMinMyr, omega.edadMaxMyr], [10000, 13000]);
+  assert.equal(omega.metalicidad, null);
+  assert.equal(omega.radioEnFicha, false);
+  // En 3D: cada miembro a su profundidad, centrados en la distancia del cúmulo.
+  const distancias = omega.ids.map(id => estrellas.get(id).d).sort((a, b) => a - b);
+  const mediana = distancias[distancias.length >> 1];
+  assert.ok(Math.abs(mediana - omega.d) < 0.005 * omega.d, `mediana ${mediana}`);
+  assert.ok(distancias.at(-1) - distancias[0] > 20, `rango ${distancias[0]}–${distancias.at(-1)}`);
+  for (const q of ['Omega Centauri', 'ω Centauri', 'Omega Cen', 'NGC 5139', 'Caldwell 80', 'Omega Centauro', 'ω Cen', 'Melotte 118', 'Mel 118', 'GCl 24']) {
+    assert.equal(buscarCumulos({ cumulos }, q)[0]?.cumulo.id, 'ngc5139', q);
+  }
+});

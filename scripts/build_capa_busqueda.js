@@ -21,10 +21,12 @@ import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import { parse } from 'csv-parse/sync';
 import { SALIDA as NOMBRES, estrellasCapa } from './catalog/capa_nombres.js';
+import { leerEnlaces } from './catalog/enlaces_registro.js';
 import { normalizeStarQuery } from '../src/scene/starSearch.js';
 import { claveCatalogo, ordenNombres, tipoNombre } from '../src/scene/capaNombres.js';
 
 const CARPETA = './public/data/capa';
+const GLOBULARES = './data/catalog/added_globulares.json';
 const GAIA_1M = './data/raw/gaia/gaia_dr3_1m.csv.gz', GCNS = './data/raw/gcns/gcns_main.csv.gz';
 export const POR_DATOS = 4096, POR_NUMEROS = 16384;
 
@@ -46,12 +48,18 @@ function trozos(lista, max, corte = x => x) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const capa = estrellasCapa();
+  // Fuentes de la capa que ahora son un miembro de un cúmulo globular del catálogo (su número de lote quedó «igual a»
+  // él, build_globulares.js): siguen en su lugar, pero sin nombres, sin Gaia DR3 en los datos y con su HSB apuntando a
+  // ninguna fila (−1). Así no aparecen en el buscador y no cambia el resto de los trozos.
+  const globulares = new Set(fs.existsSync(GLOBULARES) ? JSON.parse(fs.readFileSync(GLOBULARES, 'utf8')).stars.map(s => s.i) : []);
+  const lotesOcultos = new Set(leerEnlaces().filter(f => f.campo === 'igual_a' && globulares.has(Number(f.valor))).map(f => Number(f.hsb)));
+  const oculta = new Set(capa.map((e, k) => (lotesOcultos.has(e.hsb) ? k : -1)).filter(k => k >= 0));
   const indiceDe = new Map(capa.map((e, k) => [e.hsb, k]));
   const nombresDe = new Map();
   for (const f of parse(zlib.gunzipSync(fs.readFileSync(NOMBRES)).toString('utf8'), { columns: true })) {
     const k = indiceDe.get(Number(f.hsb));
     if (k === undefined) throw new Error(`HSB ${f.hsb} de ${NOMBRES} no está en la capa`);
-    nombresDe.set(k, ordenNombres(f.nombres.split('|')));
+    if (!oculta.has(k)) nombresDe.set(k, ordenNombres(f.nombres.split('|')));
   }
   // Astrometría y fotometría de Gaia DR3.
   const quiero = new Set(capa.map(e => e.gaia).filter(Boolean)), astro = new Map();
@@ -102,7 +110,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   trozosTyc.forEach((t, j) => escribir(`tyc-${j}.json`, { t: t.map(f => `${f[0]}-${f[1]}-${f[2]}`), i: t.map(f => f[3]), p: t.map(f => p(`TYC ${f[0]}-${f[1]}-${f[2]}`, f[3])) }));
 
   // --- HSB → fila (el HSB como diferencia con el anterior del trozo) ---
-  const hsb = orden.map((e, f) => [e.hsb, f]).sort((a, b) => a[0] - b[0]);
+  const hsb = orden.map((e, f) => [e.hsb, oculta.has(e.k) ? -1 : f]).sort((a, b) => a[0] - b[0]);
   const trozosHsb = trozos(hsb, POR_NUMEROS);
   trozosHsb.forEach((t, j) => escribir(`hsb-${j}.json`, { h: t.map((f, k) => (k ? f[0] - t[k - 1][0] : f[0])), i: t.map(f => f[1]) }));
 
@@ -114,14 +122,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const parte = orden.slice(j * POR_DATOS, (j + 1) * POR_DATOS);
     primeros.push(parte[0].gaia || '');
     // source_id: el primero entero (texto) y después la diferencia con el anterior (cabe en un número de JavaScript).
+    const visible = e => e.gaia && !oculta.has(e.k);
     const s = parte.map((e, k) => {
-      if (!e.gaia) return null;
-      if (!k || !parte[k - 1].gaia) return e.gaia;
+      if (!visible(e)) return null;
+      if (!k || !visible(parte[k - 1])) return e.gaia;
       const dif = BigInt(e.gaia) - BigInt(parte[k - 1].gaia);
       if (dif <= 0n || dif > MAX_DIF) throw new Error(`Diferencia de source_id fuera de rango: ${e.gaia}`);
       return Number(dif);
     });
-    const filas = parte.map(e => { const a = astro.get(e.gaia); if (!a) sinAstro++; return { e, a }; });
+    const filas = parte.map(e => { const a = oculta.has(e.k) ? null : astro.get(e.gaia); if (!a) sinAstro++; return { e, a }; });
     escribir(`datos-${j}.json`, {
       s, k: filas.map(f => f.e.k), h: filas.map(f => f.e.hsb),
       g: filas.map(f => fijo(f.a?.g)), p: filas.map(f => fijo(f.a?.plx)), e: filas.map(f => fijo(f.a?.err)), c: filas.map(f => fijo(f.a?.bpRp)),

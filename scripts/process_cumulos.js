@@ -10,6 +10,7 @@ import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet';
 import { compressors } from 'hyparquet-compressors';
 import { empezarDescarga, pedir } from './catalog/red.js';
 import { EDADES_CURADAS } from './catalog/edades_cumulos.js';
+import { ADDED_GLOBULARES_JSON, GLOBULARES, PROBABILIDAD_MIN } from './catalog/globulares.js';
 const HUNT2023 = 'data/raw/hunt2023/clusters.tsv';
 
 const VERSION = '260615';
@@ -30,7 +31,8 @@ const catalogo = parse(fs.readFileSync('data/raw/ucc/UCC_cat.csv', 'utf8'), { co
 const lineasHunt = fs.readFileSync(HUNT2023, 'utf8').split('\n').filter(l => l.trim() && !l.startsWith('#'));
 const columnasHunt = lineasHunt[0].split('\t').map(c => c.trim());
 const hunt = lineasHunt.slice(3).map(l => { const v = l.split('\t'); return Object.fromEntries(columnasHunt.map((c, i) => [c, (v[i] || '').trim()])); })
-  .filter(h => h.Name && [h.logAge16, h.logAge84].every(v => v !== '' && Number.isFinite(Number(v))));
+  // Sin los globulares (Type g): su ajuste de isócronas falla en ellos (a NGC 5139 le da 1,7 mil millones de años).
+  .filter(h => h.Name && h.Type !== 'g' && [h.logAge16, h.logAge84].every(v => v !== '' && Number.isFinite(Number(v))));
 const clave = nombre => nombre.toLowerCase().replace(/[\s_-]/g, '');
 const huntPorNombre = new Map(hunt.flatMap(h => (h.AllNames || h.Name).split(',').map(n => [clave(n), h])));
 function edadHunt(fila) {
@@ -121,10 +123,34 @@ for (const fila of parse(respuesta, { columns: true })) {
   cumulo.ids.push(id);
   (cumulo.brillantesSimbad ||= {})[id] = fila.link_bibcode;
 }
+// Cúmulos globulares (scripts/catalog/globulares.js): el UCC solo trae cúmulos abiertos. Centro, movimiento propio,
+// velocidad radial y distancia publicados (en globulares.js); miembros, los de Vasiliev & Baumgardt 2021 que
+// build_globulares.js sumó al catálogo, con el radio que contiene la mitad de los dibujados (solo para el encuadre; la
+// ficha no lo muestra). Se agregan después de la consulta a SIMBAD para no cambiarla.
+const globularesAñadidos = fs.existsSync(ADDED_GLOBULARES_JSON) ? JSON.parse(fs.readFileSync(ADDED_GLOBULARES_JSON, 'utf8')) : { stars: [], meta: {} };
+for (const g of GLOBULARES) {
+  const ids = globularesAñadidos.stars.filter(m => m.cumulo === g.id && estrellas.has(m.i)).map(m => m.i);
+  const vasiliev = fs.readFileSync(`data/raw/globulares/catalogues/${g.vasiliev}`, 'utf8').split('\n').filter(l => l.trim() && !l.startsWith('#'));
+  const d = g.distanciaPc, ra = g.centro[0] * Math.PI / 180, dec = g.centro[1] * Math.PI / 180;
+  const radio = globularesAñadidos.meta.radios?.[g.id] || {};
+  cumulos.push({
+    id: g.id, nombre: g.nombre, tipo: 'globular', otrosNombres: [], catalogosFijos: g.catalogos, constelacionFija: g.constelacion,
+    x: Number((d * Math.cos(dec) * Math.cos(ra)).toFixed(3)), y: Number((d * Math.cos(dec) * Math.sin(ra)).toFixed(3)), z: Number((d * Math.sin(dec)).toFixed(3)),
+    d, paralaje: null, fuenteDistancia: g.fuenteDistancia, r50Arcmin: radio.r50Arcmin ?? null, r50Pc: radio.r50Pc ?? null, radioEnFicha: false,
+    miembros: vasiliev.filter(l => Number(l.trim().split(/\s+/)[16]) > PROBABILIDAD_MIN).length, probabilidadMiembros: PROBABILIDAD_MIN,
+    edadMyr: null, metalicidad: null, calidad: null,
+    ...(EDADES_CURADAS[g.id] ? { edadMinMyr: EDADES_CURADAS[g.id].min, edadMaxMyr: EDADES_CURADAS[g.id].max, fuenteEdad: EDADES_CURADAS[g.id].fuente } : {}),
+    pmRa: g.pm[0], pmDec: g.pm[1], rv: g.rv,
+    fuente: 'Gaia EDR3, catálogo de estrellas de cúmulos globulares de la Vía Láctea',
+    ids,
+  });
+}
 for (const c of cumulos) {
   c.ids.sort((a, b) => estrellas.get(a).m - estrellas.get(b).m);
-  c.constelacion = masRepetida(c.ids);
-  c.catalogos = designaciones(c.otrosNombres).filter(n => n !== c.nombre);
+  c.constelacion = masRepetida(c.ids) || c.constelacionFija || null;
+  delete c.constelacionFija;
+  c.catalogos = c.catalogosFijos || designaciones(c.otrosNombres).filter(n => n !== c.nombre);
+  delete c.catalogosFijos;
   delete c.otrosNombres;
 }
 cumulos.sort((a, b) => b.ids.length - a.ids.length);

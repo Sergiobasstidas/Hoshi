@@ -26,6 +26,11 @@ if (fs.existsSync(identityPath)) {
 if (fs.existsSync(addedPath)) for (const star of JSON.parse(fs.readFileSync(addedPath, 'utf8')).stars) {
   if (ids.has(star.i)) index.push([star.i, star.alias]);
 }
+// Miembros de cúmulos globulares añadidos (data/catalog/added_globulares.json): su Gaia DR3 y su número HSB.
+const globularesPath = 'data/catalog/added_globulares.json';
+if (fs.existsSync(globularesPath)) for (const star of JSON.parse(fs.readFileSync(globularesPath, 'utf8')).stars) {
+  if (ids.has(star.i)) index.push([star.i, [...star.alias, `HSB ${star.i}`]]);
+}
 // Estrellas que entraron desde el registro HSB (AT-HYG v4.0 y CNS5): nombre propio y luego números de catálogo
 // (Gliese, HIP, HD, TYC, Gaia DR3, 2MASS), como dice la regla de nombres del catálogo HSB.
 const registroPath = 'data/catalog/hsb_registro.csv';

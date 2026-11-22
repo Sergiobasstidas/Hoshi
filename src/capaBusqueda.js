@@ -81,7 +81,8 @@ export async function buscarEnCapa(texto, limite = 8) {
       // HSB como diferencia con el anterior del trozo.
       const t = await pedir(`hsb-${j}.json`, d => { let h = 0; return { ...d, h: d.h.map(v => (h += v)) }; });
       const k = t.h.indexOf(Number(hsb[1]));
-      if (k >= 0) salida.push(resultado(t.i[k], `HSB ${hsb[1]}`, 0, nombrePrincipal(await datosCapa(t.i[k]))));
+      // −1: fuente oculta (ya se dibuja desde el catálogo; build_capa_busqueda.js).
+      if (k >= 0 && t.i[k] >= 0) salida.push(resultado(t.i[k], `HSB ${hsb[1]}`, 0, nombrePrincipal(await datosCapa(t.i[k]))));
     }
   }
   if (gaia || hsb) return salida;

@@ -6,21 +6,30 @@ import textos from '../data/processed/textos_fichas.json';
 import './cumulos.css';
 
 const numero = (valor, decimales = 1) => valor.toLocaleString('es-CL', { maximumFractionDigits: decimales });
+// Con 3 cifras significativas: la distancia de un cúmulo globular no tiene más precisión (paralaje ±0,01 mas ≈ ±280 pc).
+const tresCifras = valor => valor.toLocaleString('es-CL', { maximumSignificantDigits: 3 });
 
 // Ficha de un cúmulo: valores publicados en el Unified Cluster Catalogue, el rango de edad publicado (estudios dedicados
 // o Hunt & Reffert 2023; las citas están en scripts/catalog/edades_cumulos.js) y cuántos de sus miembros tiene Hoshi.
+// Los cúmulos globulares (tipo «globular», scripts/catalog/globulares.js) traen su propia fuente y la distancia del cúmulo.
 export default function FichaCumulo({ cumulo, irA, estrellaDe, fuente, fuenteBrillantes, onVerEstrella }) {
   const brillantes = cumulo.ids.map(id => estrellaDe.get(id)).filter(star => star?.n).slice(0, 10);
   const edad = cumulo.edadMyr;
+  const globular = cumulo.tipo === 'globular';
+  const relatoPorDefecto = globular
+    ? 'Un cúmulo globular: una esfera de cientos de miles de estrellas muy viejas, unidas por su propia gravedad, que orbita la galaxia fuera de su disco.'
+    : 'Un grupo de estrellas nacidas de la misma nube de gas, que todavía viajan juntas por la galaxia. Se reconocen como familia porque comparten distancia y movimiento en el cielo, medidos por el satélite Gaia.';
   return <div className="ficha-cumulo">
     <h2 className="marca-hoshi">{cumulo.nombre}</h2>
     {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
-    <p className="ficha-estrella-tipo">Cúmulo abierto{CONSTELACIONES[cumulo.constelacion] ? ` · ${CONSTELACIONES[cumulo.constelacion]}` : ''}</p>
-    <p className="ficha-estrella-relato">{textos.cumulos[cumulo.id] || 'Un grupo de estrellas nacidas de la misma nube de gas, que todavía viajan juntas por la galaxia. Se reconocen como familia porque comparten distancia y movimiento en el cielo, medidos por el satélite Gaia.'}</p>
+    <p className="ficha-estrella-tipo">{globular ? 'Cúmulo globular' : 'Cúmulo abierto'}{CONSTELACIONES[cumulo.constelacion] ? ` · ${CONSTELACIONES[cumulo.constelacion]}` : ''}</p>
+    <p className="ficha-estrella-relato">{textos.cumulos[cumulo.id] || relatoPorDefecto}</p>
     <dl>
-      <Dato etiqueta="Distancia al Sol" valor={`${numero(cumulo.d / LIGHT_YEAR_PC, 0)} años luz`} secundario={`${numero(cumulo.d, 0)} pc · paralaje media ${numero(cumulo.paralaje, 3)} mas`} />
-      {cumulo.r50Pc > 0 && <Dato etiqueta="Radio con la mitad de los miembros" valor={`${numero(cumulo.r50Pc / LIGHT_YEAR_PC)} años luz`} secundario={`${numero(cumulo.r50Arcmin)}′ en el cielo`} />}
-      {cumulo.miembros > 0 && <Dato etiqueta="Miembros en el catálogo" valor={numero(cumulo.miembros, 0)} secundario="con probabilidad de pertenencia mayor que 50 %" />}
+      {globular
+        ? <Dato etiqueta="Distancia al Sol" valor={`${tresCifras(cumulo.d / LIGHT_YEAR_PC)} años luz`} secundario={`${tresCifras(cumulo.d / 1000)} kpc`} />
+        : <Dato etiqueta="Distancia al Sol" valor={`${numero(cumulo.d / LIGHT_YEAR_PC, 0)} años luz`} secundario={`${numero(cumulo.d, 0)} pc · paralaje media ${numero(cumulo.paralaje, 3)} mas`} />}
+      {cumulo.r50Pc > 0 && cumulo.radioEnFicha !== false && <Dato etiqueta="Radio con la mitad de los miembros" valor={`${numero(cumulo.r50Pc / LIGHT_YEAR_PC)} años luz`} secundario={`${numero(cumulo.r50Arcmin)}′ en el cielo`} />}
+      {cumulo.miembros > 0 && <Dato etiqueta="Miembros en el catálogo" valor={numero(cumulo.miembros, 0)} secundario={`con probabilidad de pertenencia mayor que ${numero((cumulo.probabilidadMiembros ?? 0.5) * 100, 0)} %`} />}
       <Dato etiqueta="Miembros en Hoshi" valor={numero(cumulo.ids.length, 0)} secundario="los más débiles no están en el catálogo de Hoshi" />
       {cumulo.edadMinMyr > 0 ? <Dato etiqueta="Edad" valor={`${rangoEdad(cumulo.edadMinMyr, cumulo.edadMaxMyr)} millones de años`} />
         : edad > 0 && <Dato etiqueta="Edad" valor={edad >= 1000 ? `${numero(edad / 1000, 2)} mil millones de años` : `${numero(edad, 0)} millones de años`} />}
@@ -33,7 +42,7 @@ export default function FichaCumulo({ cumulo, irA, estrellaDe, fuente, fuenteBri
         {brillantes.map(star => <li key={star.i}><button className="enlace-ficha" onClick={() => onVerEstrella(star)}>{star.n}</button></li>)}
       </ul>
     </>}
-    <p className="ficha-estrella-fuente">Datos: {fuente}. Miembros cruzados con Hoshi por su identificador de Gaia DR3.
+    <p className="ficha-estrella-fuente">Datos: {cumulo.fuente || fuente}. Miembros cruzados con Hoshi por su identificador de Gaia DR3.
       {cumulo.brillantesSimbad && ` Miembros brillantes que Gaia no mide bien: ${fuenteBrillantes} (${[...new Set(Object.values(cumulo.brillantesSimbad))].join(', ')}).`}</p>
   </div>;
 }

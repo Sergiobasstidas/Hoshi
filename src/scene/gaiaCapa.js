@@ -10,6 +10,10 @@ const HEADER_BYTES = 16;
 // Cuantización (ver el encabezado de scripts/process_gaia.js).
 export const M_MIN = -12, M_STEP = 0.125;
 export const C_MIN = -1, C_STEP = 0.035, C_NONE = 255;
+// Byte de color 254: fuente de la capa que ya se dibuja desde el catálogo (un miembro de un cúmulo globular,
+// build_globulares.js). Conserva su lugar para que no cambien los índices de la capa, pero no se dibuja ni se busca.
+export const C_OCULTA = 254;
+export const capaOculta = colorByte => colorByte === C_OCULTA;
 
 export function leerGaia(buffer) {
   const view = new DataView(buffer);

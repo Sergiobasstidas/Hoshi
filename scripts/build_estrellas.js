@@ -14,13 +14,14 @@
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
-import { leerGaia } from '../src/scene/gaiaCapa.js';
+import { C_OCULTA, leerGaia } from '../src/scene/gaiaCapa.js';
 import { ESTRELLAS_FIRMA, ESTRELLAS_VERSION, MAX_POR_CELDA, codificarValor } from '../src/scene/estrellasBin.js';
 import { leerEnlaces } from './catalog/enlaces_registro.js';
 
 const STARS = './data/processed/stars_15pc.json', CAPA = './data/processed/gaia-1m.bin';
 const ORDEN = './data/catalog/gaia_capa_orden.txt.gz', REGISTRO = './data/catalog/hsb_registro.csv', LOTES = './data/catalog/hsb_gaia';
 const ENLAZADAS = './data/catalog/hsb_capa_enlazadas.csv';
+const GLOBULARES = './data/catalog/added_globulares.json';
 const SALIDA = './public/data/estrellas.bin.gz', SALIDA_HSB = './public/data/estrellas-hsb.bin';
 
 // Octree sobre las posiciones: celdas cúbicas de hasta MAX_POR_CELDA estrellas y de lado ≤ MAX_LADO_PC; además, cerca
@@ -78,21 +79,30 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // enlazó; si esa estrella está en el catálogo, la fuente no entra (sería la misma estrella dos veces).
   const fuentes = zlib.gunzipSync(fs.readFileSync(ORDEN)).toString('utf8').trim().split('\n');
   if (fuentes.length !== todas.n) throw new Error(`gaia_capa_orden: ${fuentes.length} filas para ${todas.n} estrellas`);
-  const deGaia = new Map();
+  const deGaia = new Map(), loteDe = new Map();
   for (const r of parse(fs.readFileSync(REGISTRO, 'utf8'), { columns: true })) if (r.gaia_dr3 && r.estado === 'activa') deGaia.set(r.gaia_dr3, Number(r.hsb));
   for (const nombre of fs.readdirSync(LOTES).filter(f => f.endsWith('.csv.gz')).sort()) {
     // El registro manda: un Gaia que una corrección de enlace le dio a una estrella del registro conserva ese número.
-    for (const r of parse(zlib.gunzipSync(fs.readFileSync(`${LOTES}/${nombre}`)).toString('utf8'), { columns: true })) if (!deGaia.has(r.gaia_dr3)) deGaia.set(r.gaia_dr3, Number(r.hsb));
+    for (const r of parse(zlib.gunzipSync(fs.readFileSync(`${LOTES}/${nombre}`)).toString('utf8'), { columns: true })) {
+      loteDe.set(r.gaia_dr3, Number(r.hsb));
+      if (!deGaia.has(r.gaia_dr3)) deGaia.set(r.gaia_dr3, Number(r.hsb));
+    }
   }
   const enlazada = new Map(parse(fs.readFileSync(ENLAZADAS, 'utf8'), { columns: true }).map(r => [r.gaia_dr3, Number(r.hsb)]));
   const enCatalogo = new Set(hsb);
   // Números de lote que la auditoría dio por iguales a otra estrella (data/catalog/hsb_enlaces.csv, igual_a).
   const igualA = new Map(leerEnlaces().filter(f => f.campo === 'igual_a').map(f => [Number(f.hsb), Number(f.valor)]));
+  const globulares = new Set(fs.existsSync(GLOBULARES) ? JSON.parse(fs.readFileSync(GLOBULARES, 'utf8')).stars.map(s => s.i) : []);
+  const ocultas = new Set();
   const quedan = [], hsbFuente = [];
   let quitadas = 0, sinNumero = 0;
   for (let k = 0; k < todas.n; k++) {
     // Fuera: las enlazadas con una estrella del catálogo y las que son el Gaia DR3 de una (ya se dibujan desde el catálogo).
     const h = enlazada.get(fuentes[k]) ?? (enCatalogo.has(deGaia.get(fuentes[k])) ? deGaia.get(fuentes[k]) : igualA.get(deGaia.get(fuentes[k])));
+    // Miembro de un cúmulo globular que pasó de la capa al catálogo: conserva su lugar (no cambian los índices de la capa
+    // ni los trozos del buscador), marcado como oculto (C_OCULTA) y con su número de lote: no se dibuja, y
+    // build_capa_busqueda.js no lo deja en el buscador.
+    if (h !== undefined && globulares.has(h)) { ocultas.add(k); quedan.push(k); hsbFuente.push(loteDe.get(fuentes[k]) ?? 0); continue; }
     if (h !== undefined && enCatalogo.has(h)) { quitadas++; continue; }
     const numero = deGaia.get(fuentes[k]) ?? h;
     if (numero === undefined) sinNumero++;
@@ -102,7 +112,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const posiciones = new Float32Array(3 * g), magnitudes = new Uint8Array(g), colores = new Uint8Array(g);
   quedan.forEach((k, j) => {
     posiciones.set(todas.posiciones.subarray(3 * k, 3 * k + 3), 3 * j);
-    magnitudes[j] = todas.magnitudes[k]; colores[j] = todas.colores[k];
+    magnitudes[j] = todas.magnitudes[k]; colores[j] = ocultas.has(k) ? C_OCULTA : todas.colores[k];
   });
   const lista = celdas(posiciones, g);
   const q = new Uint16Array(g * 3), mg = new Uint8Array(g), cg = new Uint8Array(g), orden = new Uint32Array(g);
@@ -147,6 +157,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   fs.writeFileSync(SALIDA_HSB, Buffer.from(hsbCapa.buffer));
   const critico = zlib.gzipSync(archivo.subarray(0, finCatalogo), { level: 9 }).length;
   console.log(`✓ ${SALIDA}: ${(comprimido.length / 1048576).toFixed(2)} MB (sin comprimir ${(archivo.length / 1048576).toFixed(2)} MB; hasta el fin del catálogo ${(finCatalogo / 1048576).toFixed(2)} MB, ${(critico / 1048576).toFixed(2)} MB con gzip); catálogo ${n} (${extra.length} valores en float64), capa ${g} en ${lista.length} celdas; error máx. de posición ${(errMax * 206264.8).toFixed(1)} UA`);
-  console.log(`✓ ${SALIDA_HSB}: ${g} números HSB; sin número: ${sinNumero}; fuentes que ya son una estrella del catálogo (no entran): ${quitadas}`);
+  console.log(`✓ ${SALIDA_HSB}: ${g} números HSB; sin número: ${sinNumero}; fuentes que ya son una estrella del catálogo (no entran): ${quitadas}; ocultas en su lugar (miembros de globulares): ${ocultas.size}`);
   console.log(`  Error máximo de posición de la capa (UA): < 10 pc ${(errTramo[0] * 206264.8).toFixed(3)}, 10–100 pc ${(errTramo[1] * 206264.8).toFixed(2)}, 100–1.000 pc ${(errTramo[2] * 206264.8).toFixed(1)}, > 1.000 pc ${(errTramo[3] * 206264.8).toFixed(1)}`);
 }

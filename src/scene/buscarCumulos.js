@@ -7,9 +7,11 @@ const ALIAS = {
   pleiades: ['Pleiades', 'Siete Cabritas'],
   hyades: ['Hyades'],
   ngc2632: ['Praesepe', 'Colmena', 'Beehive'],
+  ngc5139: ['ω Centauri', 'Omega Cen', 'Omega Centauro', 'ω Cen', 'Mel 118'],
 };
 
-const normalizar = texto => texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+// «ω» se lee «omega»: «ω Cen» no queda como «cen».
+const normalizar = texto => texto.toLowerCase().replace(/ω/g, 'omega').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
 
 // Todos los nombres con que se encuentra un cúmulo; el primero es el que se muestra.
 export function nombresDeCumulo(cumulo) {

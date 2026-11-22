@@ -17,6 +17,12 @@ const archivos = prefijo => fs.readdirSync(CARPETA).filter(f => f.startsWith(pre
 const capa = estrellasCapa();
 const indiceDe = new Map(capa.map((e, k) => [e.hsb, k]));
 const filas = parse(zlib.gunzipSync(fs.readFileSync(SALIDA)).toString('utf8'), { columns: true }).map(f => ({ hsb: Number(f.hsb), gaia: f.gaia_dr3, nombres: f.nombres.split('|') }));
+// Fuentes de la capa que pasaron a un cúmulo globular del catálogo (número de lote «igual a» un miembro): siguen en su
+// lugar, pero el buscador no las tiene (build_capa_busqueda.js).
+const miembros = new Set(JSON.parse(fs.readFileSync('data/catalog/added_globulares.json', 'utf8')).stars.map(s => s.i));
+const { leerEnlaces } = await import('./catalog/enlaces_registro.js');
+const lotesOcultos = new Set(leerEnlaces().filter(f => f.campo === 'igual_a' && miembros.has(Number(f.valor))).map(f => Number(f.hsb)));
+const oculta = k => lotesOcultos.has(capa[k].hsb);
 
 test('los archivos del buscador de la capa calzan con hsb_capa_nombres.csv.gz y con la capa', () => {
   const m = leer('manifiesto.json');
@@ -34,12 +40,12 @@ test('los archivos del buscador de la capa calzan con hsb_capa_nombres.csv.gz y 
   });
   assert.equal(datos.length, capa.length);
   assert.deepEqual(datos.map(d => d.k).sort((a, b) => a - b), capa.map((_, k) => k));
-  for (const d of datos) { assert.equal(d.h, capa[d.k].hsb); assert.equal(d.s, capa[d.k].gaia); }
+  for (const d of datos) { assert.equal(d.h, capa[d.k].hsb); assert.equal(d.s, oculta(d.k) ? null : capa[d.k].gaia); }
   const conGaia = datos.filter(d => d.s).map(d => BigInt(d.s));
   assert.ok(conGaia.every((s, j) => !j || s > conGaia[j - 1]), 'datos fuera del orden de Gaia DR3');
   archivos('datos-').forEach((f, j) => assert.equal(m.gaia[j], datos[j * m.porDatos].s || ''));
   const filaDe = new Map(datos.map((d, f) => [d.k, f]));
-  const esperados = new Map(filas.map(f => [indiceDe.get(f.hsb), ordenNombres(f.nombres).join('|')]));
+  const esperados = new Map(filas.filter(f => !lotesOcultos.has(f.hsb)).map(f => [indiceDe.get(f.hsb), ordenNombres(f.nombres).join('|')]));
   for (const d of datos) assert.equal(d.n, esperados.get(d.k) || '', `índice ${d.k}`);
   // Cada nombre está en su archivo de búsqueda con la fila de su estrella.
   const porNombre = new Map();
@@ -47,7 +53,7 @@ test('los archivos del buscador de la capa calzan con hsb_capa_nombres.csv.gz y 
   const porTyc = new Map();
   for (const f of archivos('tyc-')) { const d = leer(f); d.t.forEach((t, k) => porTyc.set(`TYC ${t}`, d.i[k])); }
   let cuenta = 0;
-  for (const f of filas) for (const n of f.nombres) {
+  for (const f of filas.filter(f => !lotesOcultos.has(f.hsb))) for (const n of f.nombres) {
     assert.equal((tipoNombre(n) === 'TYC' ? porTyc : porNombre).get(n), filaDe.get(indiceDe.get(f.hsb)), n);
     cuenta++;
   }
@@ -55,7 +61,7 @@ test('los archivos del buscador de la capa calzan con hsb_capa_nombres.csv.gz y 
   // HSB de toda la capa (como diferencias), cada uno con su fila.
   const hsb = archivos('hsb-').flatMap(f => { const d = leer(f); let h = 0; return d.h.map((v, k) => [h += v, d.i[k]]); });
   assert.equal(hsb.length, capa.length);
-  for (const [h, f] of hsb) assert.equal(datos[f].h, h);
+  for (const [h, f] of hsb) assert.equal(f === -1 ? lotesOcultos.has(h) : datos[f].h === h, true, `HSB ${h}`);
   assert.ok(![...porNombre.keys(), ...porTyc.keys()].some(n => /^TIC\b/.test(n)));
 });
 

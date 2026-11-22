@@ -46,7 +46,10 @@ for (const lote of fs.readdirSync('data/catalog/hsb_gaia').filter(f => f.endsWit
   for (const l of zlib.gunzipSync(fs.readFileSync(`data/catalog/hsb_gaia/${lote}`)).toString('utf8').split('\n').slice(1)) { const c = l.split(','); if (c[1] && !deGaia.has(c[1])) deGaia.set(c[1], Number(c[0])); }
 }
 const igualA = new Map(fs.readFileSync('data/catalog/hsb_enlaces.csv', 'utf8').split('\n').slice(1).map(l => l.split(',')).filter(c => c[1] === 'igual_a').map(c => [Number(c[0]), Number(c[2])]));
-const alCatalogo = g => idsCatalogo.has(enlazadas.get(g)) || idsCatalogo.has(deGaia.get(g)) || idsCatalogo.has(igualA.get(deGaia.get(g)));
+// Los miembros de cúmulos globulares que estaban en la capa no se quitan: quedan en su lugar, ocultos (build_estrellas.js).
+const miembrosGlobulares = new Set(JSON.parse(fs.readFileSync('data/catalog/added_globulares.json', 'utf8')).stars.map(s => s.i));
+const estrellaDe = g => [enlazadas.get(g), deGaia.get(g), igualA.get(deGaia.get(g))].find(h => idsCatalogo.has(h));
+const alCatalogo = g => { const h = estrellaDe(g); return h !== undefined && !miembrosGlobulares.has(h); };
 const capa = leerCapa(buffer, cabecera, finCatalogo);
 const antes = leerGaia(abrir('data/processed/gaia-1m.bin'));
 
@@ -73,10 +76,12 @@ test('ninguna fuente dibujada en la capa está enlazada a una estrella del catá
 test('la capa de fondo conserva magnitud y color, y su posición se mueve muy poco', () => {
   // Mismos (magnitud, color) en otro orden, menos las fuentes que ya son una estrella del catálogo.
   const histo = (m, c) => { const h = new Uint32Array(65536); for (let k = 0; k < m.length; k++) h[(m[k] << 8) | c[k]]++; return h; };
-  const ahora = histo(capa.magnitudes, capa.colores), previo = histo(antes.magnitudes, antes.colores);
+  // Las ocultas (byte de color 254, miembros de globulares) cuentan como quitadas.
+  const visibles = [...capa.colores.keys()].filter(k => capa.colores[k] !== 254);
+  const ahora = histo(visibles.map(k => capa.magnitudes[k]), visibles.map(k => capa.colores[k])), previo = histo(antes.magnitudes, antes.colores);
   let faltan = 0;
   for (let k = 0; k < 65536; k++) { assert.ok(ahora[k] <= previo[k]); faltan += previo[k] - ahora[k]; }
-  assert.equal(faltan, antes.n - capa.n);
+  assert.equal(faltan, antes.n - visibles.length);
   const pos = posicionesCapa(capa, [0, 0, 0]);
   // Celdas de hasta 4.096 estrellas y 256 pc de lado: el error es como mucho medio paso (lado / 65535) por eje.
   for (const [, , , lado, primera, cantidad] of capa.celdas) {
@@ -104,4 +109,28 @@ test('cada estrella de la capa tiene su número HSB, propio y distinto de los de
   const enCatalogo = hsb.filter(h => idsCatalogo.has(h));
   assert.equal(enCatalogo.length, 0, `estrellas de la capa que ya están en el catálogo: ${[...enCatalogo.slice(0, 10)].join(', ')}`);
   assert.equal(new Set(hsb).size, hsb.length, 'número HSB repetido dentro de la capa');
+});
+
+test('las fuentes de la capa que pasaron a un cúmulo globular quedan en su lugar, ocultas y fuera del buscador', async () => {
+  const { C_OCULTA, capaOculta } = await import('../src/scene/gaiaCapa.js');
+  const { leerEnlaces } = await import('./catalog/enlaces_registro.js');
+  const globulares = new Set(JSON.parse(fs.readFileSync('data/catalog/added_globulares.json', 'utf8')).stars.map(s => s.i));
+  const lotes = new Set(leerEnlaces().filter(f => f.campo === 'igual_a' && globulares.has(Number(f.valor))).map(f => Number(f.hsb)));
+  const hsbCapa = new Uint32Array(fs.readFileSync('public/data/estrellas-hsb.bin').buffer.slice(0));
+  const ocultas = [...hsbCapa.keys()].filter(k => lotes.has(hsbCapa[k]));
+  assert.ok(ocultas.length > 0);
+  // No se dibujan: el byte de color es el de «oculta» (StarField les da la clase oculta) y nadie más lo usa.
+  for (const k of ocultas) assert.ok(capaOculta(capa.colores[k]), `capa ${k}`);
+  assert.equal(capa.colores.filter(c => c === C_OCULTA).length, ocultas.length);
+  // No se buscan: sin Gaia DR3 ni nombres en los datos y su HSB no apunta a una fila.
+  const manifiesto = JSON.parse(fs.readFileSync('public/data/capa/manifiesto.json', 'utf8'));
+  for (let j = 0; j * manifiesto.porDatos < manifiesto.n; j++) {
+    const t = JSON.parse(fs.readFileSync(`public/data/capa/datos-${j}.json`, 'utf8'));
+    t.k.forEach((k, f) => { if (ocultas.includes(k)) assert.ok(t.s[f] === null && t.n[f] === '' && t.g[f] === null, `datos de la capa ${k}`); });
+  }
+  for (let j = 0; j < manifiesto.hsb.length; j++) {
+    const t = JSON.parse(fs.readFileSync(`public/data/capa/hsb-${j}.json`, 'utf8'));
+    let h = 0;
+    t.h.forEach((d, f) => { h += d; if (lotes.has(h)) assert.equal(t.i[f], -1, `HSB ${h}`); });
+  }
 });

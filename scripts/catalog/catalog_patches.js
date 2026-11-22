@@ -1,14 +1,15 @@
 // scripts/catalog/catalog_patches.js
 // Parches que scripts/process_stars.js aplica al catálogo base sin modificar AT-HYG:
 // distancias corregidas con Gaia DR3, distancias curadas de supergigantes (distancias_curadas.js) y
-// anfitrionas de exoplanetas añadidas.
-// Los generan build_distance_corrections.js y build_added_hosts.js en data/catalog/.
+// anfitrionas de exoplanetas y miembros de cúmulos globulares añadidos.
+// Los generan build_distance_corrections.js, build_added_hosts.js y build_globulares.js en data/catalog/.
 
 import fs from 'node:fs';
 import { DISTANCIAS_CURADAS } from './distancias_curadas.js';
 
 const CORRECTIONS_JSON = './data/catalog/distance_corrections.json';
 const ADDED_HOSTS_JSON = './data/catalog/added_hosts.json';
+const ADDED_GLOBULARES_JSON = './data/catalog/added_globulares.json';
 
 // Posición y magnitud absoluta con la distancia nueva: misma dirección, otra longitud.
 // `ds` declara la fuente de la distancia cuando no es la de AT-HYG.
@@ -23,6 +24,8 @@ export function applyDistance(star, dNew, source) {
 // detallada (src), el ID Gaia y los alias quedan en added_hosts.json.
 export function hostToStar(host) {
   const { i, n, x, y, z, d, m, c, sp, rgb, h, dataOrigin, src } = host;
+  // Miembro de un cúmulo globular (build_globulares.js): la distancia es la del cúmulo, con su fuente.
+  if (dataOrigin === 'globular') return { i, n, x, y, z, d, m, c, sp, rgb, dataOrigin, ds: host.ds, cumulo: host.cumulo };
   return { i, n, x, y, z, d, m, c, sp, rgb, h, dataOrigin, ds: /Gaia/.test(src.d) ? 'Gaia DR3' : 'NASA Exoplanet Archive' };
 }
 
@@ -41,5 +44,5 @@ export function loadPatches() {
   const read = (file, key) => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8'))[key] : [];
   // Las distancias curadas reemplazan a cualquier otra de la misma estrella.
   const curadas = new Set(DISTANCIAS_CURADAS.map(c => c.i));
-  return { corrections: [...read(CORRECTIONS_JSON, 'correcciones').filter(c => !curadas.has(c.i)), ...DISTANCIAS_CURADAS], added: read(ADDED_HOSTS_JSON, 'stars') };
+  return { corrections: [...read(CORRECTIONS_JSON, 'correcciones').filter(c => !curadas.has(c.i)), ...DISTANCIAS_CURADAS], added: [...read(ADDED_HOSTS_JSON, 'stars'), ...read(ADDED_GLOBULARES_JSON, 'stars')] };
 }

@@ -60,7 +60,7 @@ export default function StarSearch({ onSelect, onSelectBody, onSelectCumulo, des
       .map(result=>({...result,body:unicos[Number(result.id.slice(7))]}));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- la lista se recrea en cada render; basta con sus nombres.
   },[nombresDestinos,query]);
-  const deCumulos=useMemo(()=>buscarCumulos(cumulos,query).map(fila=>({...fila,detalle:['Cúmulo abierto',...fila.aliases.slice(1,3)].join(' · ')})),[cumulos,query]);
+  const deCumulos=useMemo(()=>buscarCumulos(cumulos,query).map(fila=>({...fila,detalle:[fila.cumulo?.tipo==='globular'?'Cúmulo globular':'Cúmulo abierto',...fila.aliases.slice(1,3)].join(' · ')})),[cumulos,query]);
   const results=useMemo(()=>{
     const nombres=new Set(cuerpos.map(result=>normalizeStarQuery(result.aliases[0])));
     const deCapa=capa.query===query?capa.results:[];
