@@ -2,7 +2,7 @@
    «Viajar a…»; los visores circulares pasan a dos píldoras bajas con cifra y barra. */
 .pildora-barra { display: none; }
 .menu-explorar { display: none; position: absolute; pointer-events: auto; z-index: 21; }
-.menu-explorar select { width: 100%; padding: 8px 10px; color: #d5dbe4; background: #080d15; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
+.menu-explorar select { width: 100%; padding: 8px 10px; color: #d5dbe4; background: #12161c80; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
 
 /* Al deslizar el dedo por la escala lateral solo debe verse la onda, sin el resaltado de
    selección ni el sombreado del toque que pone el navegador. */

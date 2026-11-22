@@ -6,7 +6,7 @@
   .scene-overlay .scale-navigation, .scene-overlay .body-selector { display: none; }
 
   .scene-overlay .star-search { top: 28px; right: auto; left: 50%; width: min(340px, calc(100vw - 720px)); transform: translateX(-50%); }
-  .scene-overlay .star-search input { padding: 9px 16px; border-color: #7f9aa952; border-radius: 999px; background: #080d15d9; text-overflow: ellipsis; }
+  .scene-overlay .star-search input { padding: 9px 16px; border-color: #7f9aa952; border-radius: 999px; background: #12161c80; text-overflow: ellipsis; }
   .scene-overlay .star-search input:focus { outline: none; border-color: #aac8dca6; }
   .scene-overlay .search-dropdown { margin-top: 6px; border-radius: 10px; }
 
@@ -14,7 +14,7 @@
   .controles-computador button { font: inherit; cursor: pointer; }
   .controles-computador button:focus-visible { outline: 1px solid #aac8dc; outline-offset: 1px; }
 
-  .controles-grupo { position: relative; display: flex; gap: 2px; padding: 3px; border: 1px solid #7f9aa952; border-radius: 9px; background: #04080ed9; }
+  .controles-grupo { position: relative; display: flex; gap: 2px; padding: 3px; border: 1px solid #7f9aa952; border-radius: 9px; background: #12161c80; }
   .controles-grupo > button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 0; border-radius: 6px; background: transparent; color: #9fb2c0; white-space: nowrap; transition: color .2s, background .2s; }
   .controles-grupo > button:hover { color: #e6ebf3; }
   .controles-grupo > button.abierto { color: #e6ebf3; background: #e6ebf31a; }
@@ -26,11 +26,11 @@
   .controles-flecha { font-size: 9px; opacity: .7; transition: transform .2s; }
   .abierto .controles-flecha { transform: rotate(180deg); }
 
-  .controles-exoplanetas { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border: 1px solid #f2c46b8c; border-radius: 9px; background: #04080ed9; color: #f2c46b; white-space: nowrap; transition: color .2s, border-color .2s; }
+  .controles-exoplanetas { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border: 1px solid #f2c46b8c; border-radius: 9px; background: #12161c80; color: #f2c46b; white-space: nowrap; transition: color .2s, border-color .2s; }
   .controles-exoplanetas:hover { color: #ffe2a6; border-color: #f2c46b; }
   .controles-exoplanetas.encendido { color: #ffe2a6; box-shadow: inset 0 -2px 0 #f2c46b; }
 
-  .controles-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; box-sizing: border-box; max-height: calc(100vh / var(--zoom-ui, 1) - 96px); overflow: auto; display: grid; gap: 1px; padding: 8px; border: 1px solid #7f9aa966; border-radius: 10px; background: #060a10f0; box-shadow: 0 12px 36px #00000080; }
+  .controles-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; box-sizing: border-box; max-height: calc(100vh / var(--zoom-ui, 1) - 96px); overflow: auto; display: grid; gap: 1px; padding: 8px; border: 1px solid #7f9aa966; border-radius: 10px; background: #12161c80; box-shadow: 0 12px 36px #00000080; }
   .controles-panel h3 { margin: 6px 8px 4px; color: #7c8796; font-size: 9.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
   .controles-fila { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 5px; background: transparent; color: #9fb2c0; text-align: left; }
   .controles-fila > span { margin-right: auto; }

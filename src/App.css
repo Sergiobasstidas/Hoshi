@@ -5,7 +5,8 @@
 .eyebrow span, .oort-note span { color: #4b5565; padding: 0 8px; }
 .distance-detail { margin-top: 6px; font-size: 13px; color: #758192; font-variant-numeric: tabular-nums; }
 .body-selector { position: absolute; top: 76px; right: 28px; display: flex; align-items: center; gap: 10px; font-size: 11px; color: #9da7b8; pointer-events: auto; z-index: 20; }
-.body-selector select { padding: 7px 10px; color: #d5dbe4; background: #080d15; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
+.body-selector select { padding: 7px 10px; color: #d5dbe4; background: #12161c80; border: 1px solid #ffffff26; border-radius: 4px; font: inherit; }
+.menu-explorar select option, .body-selector select option { background: #12161c; color: #d5dbe4; }
 
 .binary-guides { position: absolute; inset: 0; pointer-events: none; }
 .binary-label { position: absolute; top: 0; left: 0; font-size: 12px; color: #d2dcec; text-shadow: 0 1px 5px #000; }
@@ -35,7 +36,7 @@
 .scene-label.is-target .label-text { color: #b8e6ed; background: transparent; }
 .label-text:disabled { cursor: default; }
 .aim-reticle { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); border: 1px solid #89c9d18c; border-radius: 50%; }
-.aim-panel { position: absolute; right: 28px; top: 125px; display: grid; gap: 6px; padding: 12px; background: #080d15df; border: 1px solid #89c9d133; border-radius: 4px; color: #afc4d0; font-size: 11px; pointer-events: auto; z-index: 20; }
+.aim-panel { position: absolute; right: 28px; top: 125px; display: grid; gap: 6px; padding: 12px; background: #12161c80; border: 1px solid #89c9d133; border-radius: 4px; color: #afc4d0; font-size: 11px; pointer-events: auto; z-index: 20; }
 .aim-panel strong { font-weight: 500; color: #c7e3e8; }
 .aim-panel button { margin-top: 4px; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; }
 .aim-panel button:hover, .aim-panel button:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
@@ -55,9 +56,9 @@
 
 .star-search { position:absolute; top:119px; right:28px; width:300px; pointer-events:auto; z-index:35; font-size:11px; }
 .star-search label { display:block; color:#9da7b8; margin-bottom:5px; }
-.star-search input { box-sizing:border-box; width:100%; padding:9px 10px; border:1px solid #ffffff30; border-radius:4px; background:#080d15f5; color:#d5dbe4; font:inherit; }
+.star-search input { box-sizing:border-box; width:100%; padding:9px 10px; border:1px solid #ffffff30; border-radius:4px; background:#12161c80; color:#d5dbe4; font:inherit; }
 .star-search input:focus { outline:1px solid #80aabb; }
-.search-dropdown { background:#080d15fa; border:1px solid #ffffff30; border-radius:4px; max-height:55vh; overflow:auto; }
+.search-dropdown { background:#12161c80; border:1px solid #ffffff30; border-radius:4px; max-height:55vh; overflow:auto; }
 .search-dropdown [role=status] { padding:8px 10px; color:#8e9aa9; }
 .search-dropdown ul { list-style:none; padding:0; margin:0; }
 .search-dropdown li { display:grid; gap:5px; padding:10px; cursor:pointer; border-top:1px solid #ffffff10; }
@@ -171,7 +172,7 @@
 .sobrevuelo:hover span { opacity: 1; }
 /* Pantalla completa: abajo a la derecha, entre la escala lateral y el pie, como en un reproductor de vídeo. */
 .pantalla-completa { position: absolute; right: 30px; bottom: 92px; z-index: 22; width: 32px; height: 32px; padding: 6px; display: grid; place-items: center;
-  pointer-events: auto; cursor: pointer; color: #9fb2c0; background: rgba(4, 8, 14, .55); border: 1px solid rgba(127, 154, 169, .35); border-radius: 6px; transition: color .2s, border-color .2s; }
+  pointer-events: auto; cursor: pointer; color: #9fb2c0; background: #12161c80; border: 1px solid rgba(127, 154, 169, .35); border-radius: 6px; transition: color .2s, border-color .2s; }
 .pantalla-completa:hover, .pantalla-completa:focus-visible { color: #e6ebf3; border-color: rgba(200, 220, 235, .7); }
 .pantalla-completa svg { width: 100%; height: 100%; }
 @media (max-width: 700px) { .pantalla-completa { right: 14px; bottom: 84px; } }
