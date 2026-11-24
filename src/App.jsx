@@ -652,7 +652,7 @@ export default function App() {
     if (!star || !cameraRef.current) return;
     if (star.n === 'Sol' || star.n === 'Sun') { apuntarA(SOLAR_BODIES[0], () => focusBody(SOLAR_BODIES[0])); return; }
     const body = STELLAR_TARGETS.find(b => b.catalogueId === star.i)
-      || starBody(star, star.n || result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : ''));
+      || starBody(star, star.n || nombreEstrella(star) || result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : ''));
     enfocarEstrella(body, body.name);
   };
   // Un exoplaneta elegido en el buscador: se apunta como a cualquier cuerpo y «Ir a» viaja a él. Sin radio no hay
@@ -668,7 +668,7 @@ export default function App() {
     if(!star || !cameraRef.current)return;
     setShowPulsars(false);
     const body=STELLAR_TARGETS.find(b=>b.catalogueId===star.i) || (star.n==='Sol'?SOLAR_BODIES[0]
-      : starBody(star, star.n||result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : '')));
+      : starBody(star, star.n || nombreEstrella(star) || result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : '')));
     // El Sol desde el buscador: se viaja a él y se abre su ficha, como con cualquier cuerpo.
     if (star.n === 'Sol' || star.n === 'Sun') { focusBody(SOLAR_BODIES[0]); return; }
     visitBody(body, true, sistema);
@@ -728,9 +728,12 @@ export default function App() {
   ], [stars, STELLAR_TARGETS, probeBodies, showHeliosphere, estrellasContexto]);
   // Objetivo del visor de distancia: el rumbo fijado; en vuelo libre, la estrella
   // inspeccionada o el Sol; en las demás vistas, lo que queda centrado.
+  // Un nombre «HSB …» tomado antes de que cargara el índice del buscador pasa al nombre de la estrella cuando llega (useTitulos
+  // vuelve a dibujar App), sin repetir el viaje.
+  const nombreVigente = (nombre, star) => (star && /^HSB \d/.test(nombre || '') ? nombreEstrella(star) : nombre);
   const distanceTarget = aimTarget?.kind === 'star' ? { name: aimTarget.text, position: aimTarget.position }
     : freeFlight ? inspectedTarget ? { name: inspectedTarget.text, position: inspectedTarget.position } : null
-    : view.body ? { name: view.body.name, position: view.body.position }
+    : view.body ? { name: nombreVigente(view.body.name, view.body.star), position: view.body.position }
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;
   // Botones de escalas y modos: en el computador quedan a la vista vuelo libre, Sol y filtro, y el
@@ -894,7 +897,8 @@ export default function App() {
   const globularDeFicha = useMemo(() => (estrellaFicha && datosCumulosFicha?.cumulos.find(c => c.tipo === 'globular' && c.ids.includes(estrellaFicha.i))) || null,
     [estrellaFicha, datosCumulosFicha]);
   const orbitasFicha = !fichaPlaneta && estrellaFicha && orbitasDe?.i === estrellaFicha.i ? parConOrbita(estrellaFicha, orbitasDe.clave, orbitasDe.nombres) : null;
-  const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text || nombreEstrella(estrellaVista.star) : panelBody?.name;
+  const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? nombreVigente(estrellaVista.text, estrellaVista.star) || nombreEstrella(estrellaVista.star)
+    : nombreVigente(panelBody?.name, panelBody?.star);
   // Una sola columna lateral a la vez. Estrella, exoplaneta, cúmulo y etapa mandan; después el cuerpo
   // enfocado (planeta, luna, Sol, sonda o WR 140), luego la región y al final los púlsares.
   const otraFicha = Boolean(fichaPlaneta || estrellaFicha || cumulo || etapaElegida !== null);
@@ -906,7 +910,7 @@ export default function App() {
   // «Ir a» en la ficha, bajo el nombre, mientras lo elegido en el buscador sigue apuntado.
   // Solo en la ficha de lo apuntado: si después se elige otra cosa en la escena (sin mover la cámara), su ficha no
   // muestra el «Ir a» de la elección anterior.
-  const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${nombreParaMostrar(apuntadoVigente.nombre, GENITIVOS)}`, onIr: irAlApuntado } : null;
+  const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${nombreParaMostrar(nombreVigente(apuntadoVigente.nombre, apuntadoVigente.body?.star), GENITIVOS)}`, onIr: irAlApuntado } : null;
   const irASi = coincide => (irAFicha && coincide ? irAFicha : null);
   // «Ir a» también en la ficha de una estrella abierta sin viajar (clic en la escena o en la lista del sistema), mientras
   // la cámara no esté ya en ella. Las anfitrionas llegan como desde Exoplanetas: con el sistema planetario encuadrado.
@@ -951,7 +955,13 @@ export default function App() {
       {/* Clic en cualquier estrella del campo: su ficha; doble clic: viajar (anfitrionas, con la llegada de Exoplanetas). */}
       <SeleccionEstrellas estrellas={stars} origin={origin} activo={!showPulsars && !binaryBody && !showDiscoveries}
         onElegir={star => enfocarEstrella(star, nombreEstrella(star))} onVacio={() => { clicSinEstrella.current = performance.now(); }}
-        onViajar={star => { if (!traveling) visitBody(starBody(star, nombreEstrella(star)), true, Boolean(star.planetary)); }} />
+        onViajar={star => {
+          if (traveling) return;
+          const nombre = nombreEstrella(star);
+          // Sin el índice, el nombre es «HSB …»: se pide y la ficha toma el nombre propio al llegar (nombreVigente).
+          if (/^HSB \d/.test(nombre)) indiceBusqueda().catch(() => {});
+          visitBody(starBody(star, nombre), true, Boolean(star.planetary));
+        }} />
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />
       {showPulsars && <PulsarMap origin={origin} />}
       <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} catalogo={stars} capa={capaEstrellas} origin={origin}
@@ -1042,7 +1052,7 @@ export default function App() {
       </label>
       {apuntadoVigente && !traveling && <div className="apuntado">
         <div className="aim-reticle" aria-hidden="true" />
-        <span className="apuntado-nombre">{nombreParaMostrar(apuntadoVigente.nombre, GENITIVOS)}</span>
+        <span className="apuntado-nombre">{nombreParaMostrar(nombreVigente(apuntadoVigente.nombre, apuntadoVigente.body?.star), GENITIVOS)}</span>
       </div>}
       {aimTarget && aimTarget.kind !== 'sun' && <>
         <div className="aim-reticle" aria-hidden="true" />

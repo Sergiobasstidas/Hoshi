@@ -58,3 +58,60 @@ test('celdas por clase: enanas como el Sol, gigantes con miles, supergigantes co
   assert.deepEqual(Object.keys(aspectoPorClase('gigante')).sort(), ['fino', 'suave', 'variacion']);
   assert.equal(claseSuperficie({ physics: { temperatureK: 4389 }, sp: 'K3II-III', m: -3.2, d: 151 }), 'gigante');
 });
+
+test('una componente de binaria anfitriona sin radio propio queda como marcador; la anfitriona conserva su radio', () => {
+  const par = { i: 1, sp: 'M4V+DA', m: 12, c: 1.5, d: 20 };
+  const a = { ...par, n: 'DP Leo A', physics: null }, b = { ...par, n: 'DP Leo B', physics: null };
+  for (const r of [par, a, b]) r.components = [a, b];
+  assert.equal(fisicaDibujo(a), null);
+  assert.equal(fisicaDibujo(b), null);
+  assert.ok(fisicaDibujo(par)?.radiusSolar > 0);
+  const conRadio = { ...a, physics: { radiusSolar: 0.2, temperatureK: 3100 } };
+  conRadio.components = [conRadio, b];
+  assert.equal(fisicaDibujo(conRadio), conRadio.physics);
+});
+
+test('carbono, S y Wolf-Rayet (y LBV, hipergigante): la letra sale de la temperatura; enanas blancas, subenanas y O como antes', () => {
+  // La Superba (C-N5, M_V ≈ −2,7): gigante, no enana.
+  assert.equal(claseDibujo('C-N5', -2.7, 2650, 213), 'gigante');
+  const uuAur = fisicaDibujo({ sp: 'C-N5-', m: -2.4, c: 2.6, d: 400 });
+  assert.equal(uuAur.clase, 'gigante');
+  assert.ok(uuAur.radiusSolar > 40, `${uuAur.radiusSolar}`);
+  assert.equal(claseDibujo('S6+/1e', -1, 2700, 180), 'gigante');
+  assert.equal(claseDibujo('WC8', -6, 40000, 340), 'gigante');
+  assert.equal(claseDibujo('LBV', -8, 30000, 2300), 'hipergigante');
+  // Una enana de carbono débil sigue siendo enana.
+  assert.equal(claseDibujo('dC', 10, 4500, 100), 'enana');
+  assert.equal(claseDibujo('DA2.9', 11, 17000, 5), 'enanaBlanca');
+  assert.equal(claseDibujo('sdB5', 4, 30000, 200), 'subenana');
+  assert.equal(claseDibujo('O9.5V', -4, 32000, 400), 'enana');
+});
+
+test('el radio típico no traga la órbita medida de una compañera; el medido no se toca', () => {
+  // HD 166126: supergigante típica de ~98 R☉ y compañera B a 0,23 UA.
+  const star = { i: 2, sp: 'K0Ib', m: -4.5, c: 1.1, d: 300 };
+  star.system = { star, components: [{ pair: { of: 'A', k: 'o', a: 0.23, e: 0 } }, { pair: { of: 'A', k: 'w' } }] };
+  const f = fisicaDibujo(star);
+  assert.ok(Math.abs(f.radiusSolar - 0.4 * 0.23 * 215.03) < 0.5, `${f.radiusSolar}`);
+  // La compañera con órbita propia también queda limitada por su periastro.
+  const companera = { i: 3, sp: 'G8III', m: 0.5, d: 50 };
+  const primaria = { i: 4, sp: 'G8III', m: 0.5, d: 50 };
+  companera.sistemaDe = { star: primaria, components: [{ companion: companera, pair: { of: 'A', k: 'o', a: 0.1, e: 0.5 } }] };
+  assert.ok(Math.abs(fisicaDibujo(companera).radiusSolar - 0.4 * 0.05 * 215.03) < 0.2);
+  const medida = { i: 5, sp: 'K0Ib', m: -4.5, d: 300, datos: { radiusSolar: 90 } };
+  medida.system = star.system;
+  assert.equal(fisicaDibujo(medida).radiusSolar, 90);
+});
+
+test('una LBV (Eta Carinae) se dibuja como hipergigante a unos 15.000 K; la ficha no cambia', () => {
+  assert.equal(claseDibujo('LBV', -1, 5000, 2300), 'hipergigante');
+  const eta = fisicaDibujo({ sp: 'LBV', m: -1.2, c: 0.6, d: 2300 });
+  assert.equal(eta.clase, 'hipergigante');
+  assert.equal(eta.temperatureK, 15000);
+  assert.ok(eta.dibujo && eta.radiusSolar > 50, `${eta.radiusSolar}`);
+  // Con temperatura en los datos oficiales, esa manda.
+  assert.equal(fisicaDibujo({ sp: 'LBV', m: -1.2, d: 2300, datos: { temperatureK: 20000 } }).temperatureK, 20000);
+  // La física publicada (la ficha) no se toca.
+  const physics = { radiusSolar: 100, temperatureK: 30000 };
+  assert.equal(fisicaDibujo({ sp: 'LBV', physics }), physics);
+});

@@ -34,6 +34,10 @@ const NOMBRE_LEJOS = [80, 120];
 const FICHA_CERCA = [1, 2];
 // Rapidez (1/s) con que los nombres aparecen y desaparecen al taparse o destaparse (≈ 200 ms).
 const FUNDIDO = 12;
+// Clave del disco que tapa nombres (labelOcclusion.js): las estrellas por número de catálogo, así el disco de la estrella
+// visitada y su etiqueta coinciden aunque una lleve el alias del buscador («Tau Phe») y la otra su nombre («Tau Phoenicis»).
+const claveDisco = x => x?.star ? `estrella:${x.star.i}` : x?.kind === 'star' && x.catalogueId !== undefined ? `estrella:${x.catalogueId}`
+  : x?.body?.name ?? x?.name ?? x?.text;
 
 const SIN_CONTEXTO = new Set();
 // `contexto`: ids de las estrellas del sistema donde se está (App.jsx), que conservan su nombre como la elegida.
@@ -144,10 +148,10 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       return disk && { ...disk, center: position.map((value, axis) => value - origin[axis]), radiusPc };
     };
     const disks = labels.filter(label => label.body?.radiusKm)
-      .map(label => sphereOf(label.body.name, label.position, label.body.radiusKm * KM_TO_PC));
+      .map(label => sphereOf(claveDisco(label), label.position, label.body.radiusKm * KM_TO_PC));
     for (const target of [focusedBody, aimTarget]) {
       const radiusPc = fisicaDibujo(target?.star)?.radiusPc;
-      if (radiusPc) disks.push(sphereOf(target.name ?? target.text, target.position, radiusPc));
+      if (radiusPc) disks.push(sphereOf(claveDisco(target), target.position, radiusPc));
     }
     publishOccluders('cuerpos', disks.filter(Boolean));
     const occluders = currentOccluders(camera, size);
@@ -245,7 +249,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const box = { x: Math.max(8, Math.min(point.x + Math.min(bodyPixels, size.width/3) + 9, size.width - width - 12)),
         y: point.y - 8 + (label.kind === 'star' ? desplazamientos.current.get(label.catalogueId) || 0 : 0) };
       const labelDistance = camera.position.distanceTo(vector.set(...label.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
-      const covered = hiddenBehind({ x: box.x, y: box.y, width, height: 16 }, labelDistance, occluders, label.body?.name ?? label.text);
+      const covered = hiddenBehind({ x: box.x, y: box.y, width, height: 16 }, labelDistance, occluders, claveDisco(label));
       // Las estrellas se funden al aparecer, al desaparecer y al quedar tapadas (antes, de golpe).
       if (label.kind === 'star') {
         const previousAlpha = labelAlpha.current.get(label.catalogueId) || 0;

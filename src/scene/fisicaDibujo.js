@@ -30,6 +30,7 @@ const RADIO_GIGANTE = [[2900, 120], [3250, 90], [3550, 60], [3850, 45], [3950, 3
 const RADIO_SUPERGIGANTE = [[3400, 700], [3700, 500], [4200, 250], [5000, 150], [6000, 100], [7500, 80], [10000, 65],
   [15000, 45], [25000, 25], [35000, 20]];
 const RADIO_ENANA_BLANCA = 0.013;
+const TEMPERATURA_LBV = 15000;
 
 const LETRAS = 'OBAFGKM';
 // Subtipo numérico del tipo espectral («K3II-III» → 53), o null.
@@ -45,9 +46,15 @@ const letraDe = temperatura => temperatura > 30000 ? 'O' : temperatura > 10000 ?
 // que una enana de su letra (LIMITE_ENANA), si no enana.
 export function claseDibujo(sp, absoluta, temperatura, distanciaPc) {
   if (/^(WD|D[ABCOQZX])/.test(sp?.trim() || '')) return 'enanaBlanca';
+  // Variables luminosas azules (Eta Carinae): hipergigantes, aunque el tipo no traiga clase de luminosidad.
+  if (/^LBV/.test(sp?.trim() || '')) return 'hipergigante';
   const clase = sp ? claseLuminosidad(sp) : null;
   const creible = clase && !(['Hipergigante', 'Supergigante', 'Gigante', 'Subgigante'].includes(clase) && tipoContradiceBrillo(sp, absoluta, distanciaPc));
-  const letra = (sp && sp.trim().replace(/^(?:[eu]?sd|d)(?:\/(?:[eu]?sd|d))*/, '')[0]) || letraDe(temperatura);
+  // Tipos sin letra de la secuencia (carbono y S: C, N, R, S; LBV; Wolf-Rayet): la letra de su temperatura.
+  const inicial = sp && sp.trim().replace(/^(?:[eu]?sd|d)(?:\/(?:[eu]?sd|d))*/, '')[0];
+  // Si su temperatura es la de una O (Wolf-Rayet, LBV calientes), el límite de las B: las O no tienen uno.
+  const deSecuencia = inicial && LETRAS.includes(inicial);
+  const letra = deSecuencia ? inicial : letraDe(temperatura) === 'O' && sp ? 'B' : letraDe(temperatura);
   const brillante = Number.isFinite(absoluta) && absoluta < (LIMITE_ENANA[letra] ?? -Infinity);
   if (creible) {
     const nombre = { Hipergigante: 'hipergigante', Supergigante: 'supergigante', Gigante: 'gigante', Subgigante: 'subgigante', VI: 'subenana', V: 'enana' }[clase];
@@ -72,6 +79,8 @@ export function radioTipico(clase, temperatura) {
 function temperaturaDibujo(star, evolucionada) {
   if (star.datos?.temperatureK > 0) return star.datos.temperatureK;
   const sp = star.sp || star.datos?.espectro;
+  // Una LBV sin otra temperatura: unos 15.000 K, solo para el dibujo (el color de su punto sale de su B−V).
+  if (/^LBV/.test(sp?.trim() || '')) return TEMPERATURA_LBV;
   const blanca = sp?.trim().match(/^(?:WD|D[ABCOQZX])\D*(\d+(?:\.\d+)?)?/);
   if (blanca) return blanca[1] ? 50400 / Math.max(0.5, Number(blanca[1])) : 10000;
   const s = subtipo(sp);
@@ -80,11 +89,25 @@ function temperaturaDibujo(star, evolucionada) {
   return Number.isFinite(bv) && bv !== 0 ? Math.max(2400, Math.min(40000, bvATemperatura(bv))) : 5772;
 }
 
+// Periastro (UA) más chico entre las órbitas medidas de las compañeras de la estrella (visualBinary.js): las que giran
+// en torno a ella como primaria y, si es una compañera, la suya. Infinity si no tiene.
+const UA_POR_RADIO_SOLAR = 149597870.7 / SUN_RADIUS_KM;
+function periastroMinimoAu(star) {
+  const pares = [];
+  if (star.system) for (const c of star.system.components) if (c.pair?.of === 'A') pares.push(c.pair);
+  if (star.sistemaDe) for (const c of star.sistemaDe.components) if (c.companion === star || c.estrella === star) pares.push(c.pair);
+  const periastros = pares.filter(p => p?.k === 'o' && p.a > 0).map(p => p.a * (1 - (p.e || 0)));
+  return periastros.length ? Math.min(...periastros) : Infinity;
+}
+
 // Física con la forma de star.physics y `dibujo: true` cuando el radio es típico. Memorizada por estrella.
 const memoria = new WeakMap();
 export function fisicaDibujo(star) {
   if (!star) return null;
   if (star.physics) return star.physics;
+  // Componente de una binaria anfitriona sin radio propio (buildHostBinary, exoplanetOrbit.js): copia el tipo, el color y
+  // los datos del par, que no son suyos. Queda como marcador, sin esfera.
+  if (star.components?.includes(star)) return null;
   if (memoria.has(star)) return memoria.get(star);
   const sp = star.sp || star.datos?.espectro;
   const previa = temperaturaDibujo(star, false);
@@ -92,7 +115,9 @@ export function fisicaDibujo(star) {
   const evolucionada = ['gigante', 'supergigante', 'hipergigante'].includes(clase);
   const temperatureK = evolucionada ? temperaturaDibujo(star, true) : previa;
   // Radio de los datos oficiales sin temperatura (fisicaOficial pide los dos): es medido o de catálogo, se respeta.
-  const radiusSolar = star.datos?.radiusSolar > 0 ? star.datos.radiusSolar : radioTipico(clase, temperatureK);
+  // El radio típico no puede tragar la órbita medida de una compañera: como mucho 0,4 veces su periastro más chico.
+  const tope = 0.4 * periastroMinimoAu(star) * UA_POR_RADIO_SOLAR;
+  const radiusSolar = star.datos?.radiusSolar > 0 ? star.datos.radiusSolar : Math.min(radioTipico(clase, temperatureK), tope);
   const fisica = { temperatureK, radiusSolar, radiusKm: radiusSolar * SUN_RADIUS_KM, radiusPc: radiusSolar * SUN_RADIUS_KM * KM_TO_PC,
     luminositySolar: null, clase, dibujo: !(star.datos?.radiusSolar > 0), status: 'dibujo' };
   memoria.set(star, fisica);
