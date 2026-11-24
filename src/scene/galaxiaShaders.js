@@ -58,6 +58,7 @@ export const marchaFragment = /* glsl */`
   const float GDES = ${f(GRUMOS.desfase2)}, GP2 = ${f(GRUMOS.peso2)}, GNORMA = ${f(GRUMOS.norma)};
   const float HOMBRO = ${f(TONO.hombro)}, FFUERA = ${f(TONO.factorFuera)}, FDENTRO = ${f(TONO.factorDentro)};
   const int TOPE_PASOS = ${PASOS_TOPE_GLSL};
+  const float PROY_MAX = 0.8, LOD_LISO = 4.0;
 
   float ss(float a, float b, float x) { float t = clamp((x - a) / (b - a), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
   float primitiva(float z, float h) { return sign(z) * (1.0 - exp(-abs(z) / h)) * 0.5; }
@@ -124,14 +125,27 @@ export const marchaFragment = /* glsl */`
         float zw = alabeo(pm.xy);
         float fl = ensanche(R);
         float za = pa.z - zw, zb = o.z + d.z * tb - zw;
-        vec2 uv = uvMapa(pm.xy);
+        // A: la planta se lee donde el rayo cruza el plano medio (con tope PROY_MAX): sin eso, desde arriba los rayos oblicuos
+        // leían la planta detallada a varias alturas y la imagen quedaba con rayas radiales.
+        vec2 pp = pm.xy;
+        if (uModeloB < 0.5 && abs(d.z) > 1e-3) {
+          vec2 off = d.xy * ((pm.z - zw) / d.z);
+          float lo = length(off);
+          if (lo > PROY_MAX) off *= PROY_MAX / lo;
+          pp -= off;
+        }
+        vec2 uv = uvMapa(pp);
         float pie = max(tm * uPixAng, 0.5 * dt * length(d.xy));
-        vec3 E = textureLod(uEmision, uv, log2(max(pie / uTexelE, 1.0))).rgb * uEscalaE;
+        float lodE = log2(max(pie / uTexelE, 1.0));
+        vec3 E = textureLod(uEmision, uv, lodE).rgb * uEscalaE;
+        // El disco grueso y el bulbo son lisos: leen una planta muy suavizada (A; en B ya es lisa).
+        vec3 El = uModeloB < 0.5 ? textureLod(uEmision, uv, lodE + LOD_LISO).rgb * uEscalaE : E;
         vec3 pol = textureLod(uPolvo, uv, log2(max(pie / uTexelP, 1.0))).rgb;
         float borde = 1.0 - ss(0.42, 0.50, length(uv - 0.5));
         if (uModeloB < 0.5) borde *= ss(0.045, 0.075, length((uv - vec2(0.5, 0.945)) * vec2(1.3, 1.0)));
         vec3 corr = uModeloB > 0.5 ? vec3(1.0) : min(pow(vec3(1.0 + 2.0 * pol.g), EXT), vec3(1.0 / 0.35));
         E *= corr * (borde * uLuz);
+        El *= corr * (borde * uLuz);
         float tau = decodTau(pol.r);
         float fJ = 0.8 * pol.b;
         float hP = uModeloB > 0.5 ? mix(HPMIN, HPMAX, pol.g) : HPOLVO;
@@ -145,7 +159,8 @@ export const marchaFragment = /* glsl */`
         float iBul = integralTramo(za, zb, dt, hBulbo(pb));
         float iPol = integralTramo(za, zb, dt, hP * fl);
         float wE = ss(CE0, CE1, tm), wD = ss(CD0, CD1, tm);
-        float perfil = (1.0 - fy - wb) * ((1.0 - fT) * iDel + fT * iGru) + fy * iJov + wb * iBul;
+        float perfil = (1.0 - fy - wb) * (1.0 - fT) * iDel + fy * iJov;
+        float perfilLiso = (1.0 - fy - wb) * fT * iGru + wb * iBul;
         float tauV = tau * iPol * wD * ss(BUR0, BUR1, length(pm - SOL));
         if (uGrumos > 0.5) {
           float g1 = (texture(uRuido, pm / GE1).r - 0.5) * 6.0;
@@ -156,7 +171,7 @@ export const marchaFragment = /* glsl */`
         }
         vec3 tc = tauV * EXT;
         vec3 fr = mix(1.0 - 0.5 * tc, (1.0 - exp(-tc)) / max(tc, vec3(1e-4)), step(vec3(1e-4), tc));
-        C += T * E * (perfil * wE) * fr;
+        C += T * (E * perfil + El * perfilLiso) * wE * fr;
         T *= exp(-tc);
         t = tb;
         if (max(T.r, max(T.g, T.b)) < 0.01) break;

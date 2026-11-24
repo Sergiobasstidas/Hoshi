@@ -19,7 +19,7 @@ export const PERFIL = {
   burbuja: [0.08, 0.20],                                                  // Burbuja Local (Pelgrims et al. 2020; Zucker et al. 2022), kpc
 };
 export const EXT_RGB = [0.891, 1.0, 1.236];                                // Cardelli, Clayton y Mathis 1989, R_V = 3,1, a 610/550/465 nm
-export const CERCA = { emision: [1.0, 3.0], polvo: [0.03, 0.05] };         // kpc desde la cámara (ilustrativo)
+export const CERCA = { emision: [1.5, 4.0], polvo: [0.03, 0.05] };         // kpc desde la cámara (ilustrativo)
 export const PASO = { cz: 0.5, hMin: 0.15, ct: 0.25, tMin: 0.03, dtMin: 0.01, dtMax: 4.0, dh: { pc: 1.0, tel: 1.5 }, nMax: { pc: 48, tel: 32 } };
 export const PASOS_TOPE_GLSL = 64;                                         // tope fijo del bucle del sombreador (uPasosMax ≤ 64)
 export const PRESUPUESTO = { pc: 8e6, tel: 3e6, quieto: 4 };              // muestras por cuadro; ×4 una vez con la cámara quieta
@@ -182,21 +182,23 @@ export function interiorGalaxia(cam) {
 }
 // Luminancia del cielo fuera de la banda desde la cámara: la menor entre rayos a ±ALTURA_NEGRO de latitud en 4 acimuts.
 // Con los polos (el borrador) el cielo a 20–30° quedaba como un velo pardo: el disco grueso y el bulbo se ven hasta ahí.
-export const ALTURA_NEGRO = 20 * D2R;
-export function brilloPolo(cam, mapa, opciones = {}) {
+// Fuerza del punto negro: con 1,4 el cielo fuera de la banda queda oscuro desde dentro del disco (sin neblina parda).
+export const NEGRO = 1.6;
+export const ALTURA_NEGRO = 12 * D2R;
+export function brilloPolo(cam, mapa, { altura = ALTURA_NEGRO, ...opciones } = {}) {
   let menor = Infinity;
   for (const signo of [1, -1]) for (let k = 0; k < 4; k++) {
-    const a = k * Math.PI / 2 + Math.PI / 4, c = Math.cos(ALTURA_NEGRO);
-    const r = integrarRayo(cam, [c * Math.cos(a), c * Math.sin(a), signo * Math.sin(ALTURA_NEGRO)], mapa, { ...opciones, jitter: 0.5 });
+    const a = k * Math.PI / 2 + Math.PI / 4, c = Math.cos(altura);
+    const r = integrarRayo(cam, [c * Math.cos(a), c * Math.sin(a), signo * Math.sin(altura)], mapa, { ...opciones, jitter: 0.5 });
     menor = Math.min(menor, lum(r.C));
   }
   return menor;
 }
 // N = negro·ι·expo·brilloPolo: lo que se resta en luminancia antes del hombro (los polos quedan negros con negro = 1).
-export function puntoNegro(cam, mapa, { negro = 1, expo = 1, ...opciones } = {}) {
+export function puntoNegro(cam, mapa, { negro = NEGRO, expo = 1, altura = ALTURA_NEGRO, ...opciones } = {}) {
   const iota = interiorGalaxia(cam);
   if (negro <= 0 || iota <= 0) return { iota, N: 0 };
-  return { iota, N: negro * iota * expo * brilloPolo(cam, mapa, opciones) };
+  return { iota, N: negro * iota * expo * brilloPolo(cam, mapa, { ...opciones, altura }) };
 }
 // Color de pantalla de un rayo (sin el tramado): igual que el final del sombreador de marcha.
 export function tono(C, { expo = 1, N = 0, iota = 0 } = {}) {
@@ -208,7 +210,7 @@ export function tono(C, { expo = 1, N = 0, iota = 0 } = {}) {
 
 // ---- Parámetros de cada cuadro (los usa GalaxiaVolumen.jsx; todo es función de la pose, sin estado) ----
 // camara: { position: {x,y,z}, elementos: camera.matrixWorld.elements, fov (grados), aspecto }; lienzo: [W, H] del drawing buffer.
-export function parametrosCuadro({ camara, origin, lienzo, telefono = false, quieto = false, muestras = null, mapa = null, negro = 1, expo = 1, barra = -18.1 * D2R }) {
+export function parametrosCuadro({ camara, origin, lienzo, telefono = false, quieto = false, muestras = null, mapa = null, negro = NEGRO, alturaNegro = ALTURA_NEGRO, expo = 1, barra = -18.1 * D2R }) {
   const o = camaraGalactica(camara.position, origin);
   const base = baseCamara(camara.elementos);
   const tanY = Math.tan(camara.fov * D2R / 2), tan = [tanY * camara.aspecto, tanY];
@@ -217,7 +219,7 @@ export function parametrosCuadro({ camara, origin, lienzo, telefono = false, qui
   const nMedio = pasosMedios(o, base, tan, { nMax, dh });
   const s = escalaPorPresupuesto(lienzo[0], lienzo[1], Math.max(nMedio, 1), presupuesto);
   const ancho = Math.max(1, Math.round(lienzo[0] * s)), alto = Math.max(1, Math.round(lienzo[1] * s));
-  const { iota, N } = mapa ? puntoNegro(o, mapa, { negro, expo, nMax, dh, barra }) : { iota: interiorGalaxia(o), N: 0 };
+  const { iota, N } = mapa ? puntoNegro(o, mapa, { negro, altura: alturaNegro, expo, nMax, dh, barra }) : { iota: interiorGalaxia(o), N: 0 };
   return { o, base, tan, nMax, dh, nMedio, s, ancho, alto, pixAng: 2 * tanY / alto, iota, N };
 }
 

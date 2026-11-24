@@ -9,7 +9,9 @@ export function dibujarVolumen({ gl, camera, origin, marcha, objetivo, recursos,
     if (objetivo.width !== tamano.x || objetivo.height !== tamano.y) objetivo.setSize(tamano.x, tamano.y);
     camera.updateMatrixWorld();
     const p = parametrosCuadro({ camara: { position: camera.position, elementos: camera.matrixWorld.elements, fov: camera.fov, aspecto: camera.aspect },
-      origin, lienzo: [tamano.x, tamano.y], telefono: TACTIL, mapa: recursos.mapa, barra: barra });
+      origin, lienzo: [tamano.x, tamano.y], telefono: TACTIL, mapa: recursos.mapa, barra: barra,
+      // B queda como se mostró: punto negro 1 a ±20°.
+      ...(recursos.ruido && { negro: 1, alturaNegro: 20 * Math.PI / 180 }) });
     if (typeof window !== 'undefined') window.__galaxiaF7 = { o: p.o, s: p.s, nMedio: p.nMedio, N: p.N, iota: p.iota, ancho: p.ancho, alto: p.alto };
     const u = marcha.material.uniforms;
     u.uCam.value.set(...p.o);
