@@ -1,0 +1,22 @@
+{
+ "N": 2048,
+ "escalaE": 4.7025,
+ "cmzSigma": 221.1,
+ "avCentroSinCmz": 12.95,
+ "avCentro": 25,
+ "sigmaEstelarSol": 40.4,
+ "sigmaGasSol": 12.38,
+ "hPolvoSol": 0.1557,
+ "avPlanoSolMagKpc": 1.66,
+ "colorIntegrado": [
+  1.311,
+  1,
+  0.82
+ ],
+ "color5000K": [
+  1.289,
+  1,
+  0.795
+ ],
+ "luzTotalLsol": 32400000000
+}

@@ -1,0 +1,14 @@
+{
+ "fuente": "gaia-milky-way-2025.jpg (ESA/Gaia/DPAC, Stefan Payne-Wardenaar; CC BY-SA 3.0 IGO)",
+ "N": 1024,
+ "barraGrados": -17.97,
+ "tauMedio": {
+  "2000": 1.148,
+  "4000": 0.611,
+  "8122": 0.162,
+  "12000": 0.05,
+  "15000": 0.019
+ },
+ "tCaraMedia": 0.926,
+ "lumSol": 0.097101
+}
