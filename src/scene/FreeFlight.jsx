@@ -6,6 +6,7 @@ import { constrainFlight } from './navigation.js';
 import { advanceFlight, createFlightInertia, FLIGHT_KEYS, isFlightTypingTarget } from './flightMotion';
 import { approachSpeed, stopBeforeTarget, STAR_STOP_PC } from './starHeading';
 import { stellarStopDistance } from './stellarPhysics';
+import { fisicaDibujo } from './fisicaDibujo';
 
 // Mando táctil: un dedo mira y dos dedos pellizcan para acercarse o alejarse.
 const PELLIZCO_SEGUNDOS = 2.5;
@@ -20,7 +21,7 @@ export default function FreeFlight({ velocidadSolicitada, onSpeedChange, initial
     const body = !target && initialBody?.kind !== 'system' ? initialBody : null;
     const position = target?.position || body?.position;
     motion.current.target = position ? new Vector3(...position).sub(new Vector3(...origin)) : null;
-    motion.current.stopDistance = stellarStopDistance(target?.star?.physics)
+    motion.current.stopDistance = stellarStopDistance(fisicaDibujo(target?.star))
       ?? (body?.radiusKm ? body.radiusKm * KM_TO_PC * 1.15 : STAR_STOP_PC);
   }, [aimTarget, inspectedTarget, initialBody, origin]);
   useEffect(() => {

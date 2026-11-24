@@ -79,6 +79,7 @@ import AvisoCelular from './AvisoCelular';
 import MenuVer from './MenuVer';
 import ControlesComputador from './ControlesComputador';
 import { colorLegible, fisicaOficial } from './scene/stellarPhysics';
+import { fisicaDibujo } from './scene/fisicaDibujo';
 import FichaEstrella from './FichaEstrella';
 import FichaCapa from './FichaCapa';
 import { datosCapa, nombrePrincipal, posicionEnCapa } from './capaBusqueda';
@@ -347,7 +348,8 @@ export default function App() {
   const visitBody = (elegido, fromSearch = false, sistema = false) => {
     let body = elegido;
     if (elegido.kind === 'star' && elegido.star) {
-      const physics = elegido.star.physics;
+      // Radio medido o de catálogo; si no hay, uno típico de su tipo, solo para llegar a su superficie (fisicaDibujo.js).
+      const physics = fisicaDibujo(elegido.star);
       if (physics && !sistema) body = { kind: 'star', name: elegido.name, position: elegido.position, star: elegido.star, radiusKm: physics.radiusKm,
         source: physics.source, distanceSource: elegido.distanceSource, identifiers: elegido.identifiers };
       else if (physics) body = { ...elegido, radiusKm: physics.radiusKm };
@@ -453,7 +455,7 @@ export default function App() {
   // planetas, llega mirando el plano orbital abierto en vez de canto.
   const starBody = (star, name, identifiers) => ({
     kind:'star',name:name || nombreEstrella(star),star,position:[star.x,star.y,star.z],
-    radiusKm:star.physics?.radiusKm,source:star.physics?.source || star.source,distanceSource:star.distanceSource,
+    radiusKm:fisicaDibujo(star)?.radiusKm,source:star.physics?.source || star.source,distanceSource:star.distanceSource,
     companionViewDistance:Math.max((star.system?.framePc || 0) * 3.2, ...(star.planetary || []).map(system => system.framePc * ARRIVAL_FRAME_FACTOR)),
     viewDirection:star.planetary?.[0].viewDirection, viewUp:star.planetary?.[0].viewUp,
     identifiers,

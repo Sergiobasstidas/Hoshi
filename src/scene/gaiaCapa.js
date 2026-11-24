@@ -64,7 +64,7 @@ export function bvDesdeBpRp(bpRp) {
 }
 
 // Las mismas fórmulas que scripts/process_stars.js: Ballesteros (2012) y Tanner Helland.
-const bvATemperatura = bv => 4600 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62));
+export const bvATemperatura = bv => 4600 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62));
 function temperaturaARgb(temp) {
   const t = temp / 100;
   let r, g, b;

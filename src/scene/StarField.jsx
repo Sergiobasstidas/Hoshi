@@ -7,6 +7,7 @@ import { buildStellarAppearance, stellarMarkerSize } from './stellarAppearance';
 import { catalogueGalaxyGain } from './galaxy.js';
 import { LIMITE_BINOCULARES, PROXIMA_HSB, nombreProxima, parametrosBrillo } from './modosBrillo';
 import StellarSurface from './StellarSurface';
+import { claseSuperficie, fisicaDibujo } from './fisicaDibujo';
 import { M_MIN, M_STEP, capaOculta, escalasDeGrupo, tablaColores } from './gaiaCapa.js';
 import { posicionesCapa } from './estrellasBin.js';
 import { geometriaSoltada } from './geometriaGpu.js';
@@ -384,15 +385,17 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
   );
 }
 
-// Estrella enfocada o de partida: marcador anclado y, con radio y temperatura, su esfera.
+// Estrella enfocada o de partida: marcador anclado y su esfera.
 function AnchoredStar({ star, origin, gain }) {
   const stars = useMemo(() => [star], [star]);
   // Restar la traslación del objeto de la cámara con doble precisión en CPU.
   // Un punto centrado en cero conserva precisión de UA al llegar desde coordenadas Float32.
   const anchor = useMemo(() => [star.x - origin[0], star.y - origin[1], star.z - origin[2]], [star, origin]);
+  // Radio medido o de catálogo; si no hay, uno típico de su tipo, solo para dibujarla (fisicaDibujo.js).
+  const fisica = fisicaDibujo(star);
   return <>
-    <StarGroup gain={gain} stars={stars} named origin={origin} anchor={anchor} physicalRadius={star.physics?.radiusPc} />
-    {star.physics && <StellarSurface position={anchor} radiusPc={star.physics.radiusPc} temperatureK={star.physics.temperatureK} />}
+    <StarGroup gain={gain} stars={stars} named origin={origin} anchor={anchor} physicalRadius={fisica?.radiusPc} />
+    {fisica && <StellarSurface position={anchor} radiusPc={fisica.radiusPc} temperatureK={fisica.temperatureK} clase={claseSuperficie(star)} />}
   </>;
 }
 // Una binaria anfitriona de planetas circumbinarios se dibuja como sus dos estrellas, cada

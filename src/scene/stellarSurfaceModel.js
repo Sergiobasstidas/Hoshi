@@ -74,3 +74,23 @@ export function limbDarkening(temperatureK) {
   const [t0, u0] = LIMB_TABLE[upper - 1], [t1, u1] = LIMB_TABLE[upper];
   return u0 + (u1 - u0) * (temperature - t0) / (t1 - t0);
 }
+
+// Celdas por radio según la clase de luminosidad (presentación, no medida por estrella): enanas, subenanas y subgigantes
+// con la escala física, muy fina (la del Sol, ≈ 535 por radio); gigantes con miles de celdas en la cara visible (entre
+// 20 y 60 por radio: la escala física de las gigantes de más de unos 50 R☉ dejaba un mosaico de un par de cientos de
+// polígonos, captura de Hassaleh de Sergio, 23/11/2026); supergigantes e hipergigantes con pocas celdas grandes.
+export function granulosPorClase(temperatureK, radiusSolar, clase) {
+  const fisica = granulesPerRadius(temperatureK, radiusSolar);
+  if (clase === 'gigante') return clamp(fisica, 20, 60);
+  if (clase === 'supergigante' || clase === 'hipergigante') return clamp(fisica, 2, 6);
+  return fisica;
+}
+
+// Aspecto de la granulación fuera del Sol (en el Sol todo vale 0 y no cambia nada): `suave` ensancha y aclara los
+// carriles y curva los bordes para que no se vean polígonos; `variacion` agrega manchas amplias y suaves de brillo;
+// `fino` agrega una granulación más pequeña dentro de las celdas grandes.
+export function aspectoPorClase(clase) {
+  if (clase === 'supergigante' || clase === 'hipergigante') return { suave: 1, variacion: 0.12, fino: 1 };
+  if (clase === 'gigante') return { suave: 0.7, variacion: 0.07, fino: 0.7 };
+  return { suave: 0.35, variacion: 0.03, fino: 0 };
+}

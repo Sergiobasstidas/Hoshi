@@ -13,6 +13,7 @@ import { kuiperFadeOut, kuiperOpacity } from './kuiper';
 import { barraDesdeDistancia, medidaDistancia, textoDistancia } from './escalaNavegacion.js';
 import { presenciaLunas } from './moonBodies';
 import { currentOccluders, hiddenBehind, publishOccluders, screenDisk } from './labelOcclusion.js';
+import { fisicaDibujo } from './fisicaDibujo';
 
 const format = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 });
 const vector = new THREE.Vector3();
@@ -100,7 +101,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const remaining = camera.position.distanceTo(vector.set(...aimTarget.position)
         .sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const readout = root.querySelector('[data-aim-distance]');
-      if (readout) readout.textContent = `A ${textoDistancia(remaining)} ${aimTarget.star?.physics && remaining < 0.01 * AU_TO_PC ? 'del centro' : 'de la cámara'}`;
+      if (readout) readout.textContent = `A ${textoDistancia(remaining)} ${fisicaDibujo(aimTarget.star) && remaining < 0.01 * AU_TO_PC ? 'del centro' : 'de la cámara'}`;
     }
 
     const project = (position, local = false, retained = false) => {
@@ -145,7 +146,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     const disks = labels.filter(label => label.body?.radiusKm)
       .map(label => sphereOf(label.body.name, label.position, label.body.radiusKm * KM_TO_PC));
     for (const target of [focusedBody, aimTarget]) {
-      const radiusPc = target?.star?.physics?.radiusPc;
+      const radiusPc = fisicaDibujo(target?.star)?.radiusPc;
       if (radiusPc) disks.push(sphereOf(target.name ?? target.text, target.position, radiusPc));
     }
     publishOccluders('cuerpos', disks.filter(Boolean));

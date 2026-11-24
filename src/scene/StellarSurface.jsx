@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { temperatureColor } from './stellarPhysics';
 import { SUN_RADIUS_PC } from './scale';
-import { GRANULE_LIFETIME_S, LANE_COOLING_K, TIME_ACCELERATION, granulationLook, granulesPerRadius, limbDarkening, surfaceActivity } from './stellarSurfaceModel';
+import { GRANULE_LIFETIME_S, LANE_COOLING_K, TIME_ACCELERATION, aspectoPorClase, granulationLook, granulesPerRadius, granulosPorClase, limbDarkening, surfaceActivity } from './stellarSurfaceModel';
 import { cromosferaCargada, playSolarChromosphere, solarChromosphereMap } from './solarChromosphereMap';
 import simplex3d from './shaders/simplex3d.glsl?raw';
 import { FILTRO_POR_DEFECTO, filtroPorId, useFiltroEstelar } from './filtroEstelar';
@@ -46,6 +46,9 @@ const surfaceFragment = `
   uniform float convection;
   uniform float contrast;
   uniform float laneWidth;
+  uniform float suave;
+  uniform float variacion;
+  uniform float fino;
   uniform float limb;
   uniform float glare;
   uniform float halpha;
@@ -129,14 +132,24 @@ const surfaceFragment = `
     float granulation = 1.0, lane = 1.0;
     if (resolved > 0.002) {
       vec3 x = rotating * granules;
-      x += 0.3 * vec3(snoise(x * 0.5), snoise(x * 0.5 + 17.3), snoise(x * 0.5 + 41.7));
+      // Fuera del Sol (suave > 0) los bordes se curvan más y los carriles son más anchos y claros: sin polígonos.
+      x += (0.3 + 0.45 * suave) * vec3(snoise(x * 0.5), snoise(x * 0.5 + 17.3), snoise(x * 0.5 + 41.7));
       vec2 nearest = cellDistances(x, time * boil);
       float border = nearest.y - nearest.x;
-      lane = smoothstep(0.0, laneWidth, border);
+      lane = smoothstep(0.0, mix(laneWidth, min(0.6, laneWidth * 1.6), suave), border);
       // Gránulo algo más brillante hacia su centro, con variación entre gránulos; contrast vale 1 en el Sol.
-      float cell = (1.0 - 0.07 * contrast + 0.16 * contrast * smoothstep(0.0, 0.55, border)) * (1.0 + 0.07 * contrast * snoise(x * 0.8 + 5.0));
-      granulation = mix(1.0, mix(1.0 - 0.42 * contrast, cell, lane) / 0.97, resolved);
+      float cell = (1.0 - 0.07 * contrast + 0.16 * contrast * smoothstep(0.0, 0.55 + 0.6 * suave, border)) * (1.0 + 0.07 * contrast * snoise(x * 0.8 + 5.0));
+      // Granulación más pequeña dentro de las celdas grandes (gigantes y supergigantes), solo si se alcanza a ver.
+      float finoVisible = fino * (1.0 - smoothstep(0.3, 0.8, footprint * granules * 3.3));
+      // Ruido suave en dos escalas, sin bordes: no dibuja polígonos dentro de las celdas.
+      if (finoVisible > 0.002) {
+        vec3 y = x * 3.3 + vec3(13.7, 0.0, time * boil * 0.05);
+        cell *= 1.0 + 0.09 * contrast * finoVisible * (0.65 * snoise(y) + 0.35 * snoise(y * 2.3 + 4.1));
+      }
+      granulation = mix(1.0, mix(1.0 - 0.42 * contrast * (1.0 - 0.25 * suave), cell, lane) / 0.97, resolved);
     }
+    // Variaciones amplias y suaves de brillo (fuera del Sol): se ven también con el disco entero.
+    if (variacion > 0.0) granulation *= 1.0 + variacion * (0.65 * snoise(rotating * 1.7 + vec3(0.0, time * 0.003, 0.0)) + 0.35 * snoise(rotating * 4.3 + 9.1));
 
     float mu = max(0.0, dot(normalize(eyeNormal), normalize(eyeDirection)));
     float intensity = granulation * (1.0 - limb * (1.0 - mu));
@@ -328,7 +341,8 @@ const coronaFragment = `
 // Malla unitaria trasladada con doble precisión en CPU; radio nunca ampliado por píxeles.
 // `solar`: es el Sol, el único con imágenes reales del SDO. `granulacionSolar`: una estrella en el lugar
 // del Sol para comparar tamaños; su superficie se ve con el detalle del Sol y sin manchas inventadas.
-export default function StellarSurface({ position, radiusPc, temperatureK, solar = false, granulacionSolar = false }) {
+// `clase`: clase de luminosidad para el tamaño de las celdas (fisicaDibujo.js); sin ella (el Sol), la escala física.
+export default function StellarSurface({ position, radiusPc, temperatureK, solar = false, granulacionSolar = false, clase = null }) {
   const surface = useRef();
   const corona = useRef();
   // Propiedades que dependen de la estrella; los uniformes se crean una vez y solo cambian sus valores,
@@ -336,16 +350,17 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   const propias = useMemo(() => {
     const radio = granulacionSolar ? 1 : radiusPc / SUN_RADIUS_PC;
     const { convection } = surfaceActivity(temperatureK);
-    const granules = granulesPerRadius(temperatureK, radio);
+    const granules = granulacionSolar || !clase ? granulesPerRadius(temperatureK, radio) : granulosPorClase(temperatureK, radio, clase);
     // Contraste y ancho de carriles según el tipo de estrella; en la comparación, los del Sol.
     const look = granulacionSolar ? { contrast: 1, lane: 0.13 } : granulationLook(temperatureK, radio);
-    return { convection, granules, look, temperatureK };
-  }, [temperatureK, radiusPc, granulacionSolar]);
+    const aspecto = granulacionSolar || !clase ? { suave: 0, variacion: 0, fino: 0 } : aspectoPorClase(clase);
+    return { convection, granules, look, aspecto, temperatureK };
+  }, [temperatureK, radiusPc, granulacionSolar, clase]);
   const [uniforms] = useState(() => {
     const shared = { time: { value: 0 }, glare: { value: 1 }, halpha: { value: 0 }, euv: { value: 0 }, structure: { value: 1 },
       convection: { value: 1 }, temperatureTint: { value: new THREE.Color() } };
     return {
-      surface: { ...shared, limb: { value: 0.6 }, contrast: { value: 1 }, laneWidth: { value: 0.13 },
+      surface: { ...shared, limb: { value: 0.6 }, contrast: { value: 1 }, laneWidth: { value: 0.13 }, suave: { value: 0 }, variacion: { value: 0 }, fino: { value: 0 },
         granules: { value: SOLAR_GRANULES },
         chromosphereMap: { value: null }, chromosphereReal: { value: 0 }, chromosphereVideo: { value: 0 },
         magnet: { value: 0 }, sdo: { value: 0 }, sdoMap: { value: null }, sdoMapAnterior: { value: null }, sdoFundido: { value: 1 }, sdoFlatAnterior: { value: 0 }, sdoVideoAnterior: { value: 0 }, sdoRadius: { value: 0.8 }, sdoFlat: { value: 0 }, sdoVideo: { value: 0 },
@@ -358,12 +373,15 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   useLayoutEffect(() => {
     const superficie = surface.current?.uniforms;
     if (!superficie) return;
-    const { convection, granules, look } = propias;
+    const { convection, granules, look, aspecto } = propias;
     const tint = (color, temperature) => color.setRGB(...temperatureColor(temperature), THREE.SRGBColorSpace);
     superficie.convection.value = convection;
     superficie.granules.value = granules;
     superficie.contrast.value = look.contrast;
     superficie.laneWidth.value = look.lane;
+    superficie.suave.value = aspecto.suave;
+    superficie.variacion.value = aspecto.variacion;
+    superficie.fino.value = aspecto.fino;
     superficie.limb.value = limbDarkening(temperatureK);
     // Las estructuras magnéticas se escalan como los gránulos; aproximación sin dato por estrella.
     superficie.structure.value = Math.max(0.08, Math.min(3, granules / SOLAR_GRANULES));
