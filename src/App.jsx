@@ -9,7 +9,7 @@ import { PUBLISHED_STELLAR_PHYSICS } from './scene/publishedStellarPhysics.js';
 import StarField from './scene/StarField';
 import { cargarEstrellas } from './scene/cargaEstrellas';
 import SolarSystem from './scene/SolarSystem';
-import { Reposo } from './scene/reposo';
+import { Reposo, mantenerActivo } from './scene/reposo';
 import OortCloud from './scene/OortCloud';
 import Heliosphere from './scene/Heliosphere';
 import { HELIOSPHERE_LABELS, HELIOSPHERE_VIEW } from './scene/heliosphereShape';
@@ -22,7 +22,13 @@ import { AU_TO_PC, BODY_CAMERA_NEAR_PC, ECLIPTIC_UP, KM_TO_PC, LIGHT_YEAR_PC, MA
 import { SOLAR_BODIES, MOON, bodyView } from './scene/solarBodies';
 import { EPHEMERIS_DATE, planetPosition } from './scene/solarEphemeris';
 import { GENITIVOS } from './scene/starSearch';
-import { nombreParaMostrar } from './scene/nombresEstrella';
+import { nombreEstrella, nombreParaMostrar } from './scene/nombresEstrella';
+import { sumarTitulos, useTitulos } from './scene/titulos';
+import SeleccionEstrellas from './scene/SeleccionEstrellas';
+import EnfoqueCamara, { ReanclarCamara } from './scene/EnfoqueCamara';
+import MarcaApuntada from './scene/MarcaApuntada';
+import { centroDeOrbita, cortarGiro, giroCortado } from './scene/enfoque';
+import { indiceBusqueda } from './indiceBusqueda';
 import { PLANET_TEXTURES, bodyAxes } from './scene/planetTextures';
 import { identifyStellarTargets, stellarTargets, WR140_ID } from './scene/stellarTargets';
 import BinarySystem from './scene/BinarySystem';
@@ -195,6 +201,8 @@ export default function App() {
     let active = true;
     // Los planetas viajan aparte del bundle; si fallan, el catálogo se muestra sin ellos.
     const planets = fetch('/data/exoplanets.json').then(response => response.ok ? response.json() : null).catch(() => null);
+    // Títulos de anfitrionas y estrellas de sistemas múltiples para nombrarlas (nombreEstrella); no detienen la carga.
+    fetch('/data/titulos.json').then(response => response.ok ? response.json() : []).then(sumarTitulos, () => {});
     // El catálogo se pide como archivo estático: importarlo como módulo hace que vite lo transforme
     // con source map y el servidor de desarrollo llega a ~4 GB de RAM.
     const json = url => fetch(url).then(response => { if (!response.ok) throw new Error(url); return response.json(); });
@@ -240,6 +248,9 @@ export default function App() {
   const [solApuntado, setSolApuntado] = useState(false);
   // Un clic en el nombre abre su ficha sin mover la cámara; el doble clic viaja a ella.
   const [estrellaVista, setEstrellaVista] = useState(null);
+  // Enfoque de cámara (EnfoqueCamara.jsx): la estrella elegida a la que gira la cámara y que queda fija al centro.
+  const [enfoque, setEnfoque] = useState(null);
+  const [girandoEnfoque, setGirandoEnfoque] = useState(false);
   const esComputador = useEsComputador();
   const verOrbitas = useOrbitas(), verZona = useZonaVisible(), verCumulos = useCumulosVisibles(), verRutas = useRutasSondas();
   // Cúmulo elegido: encuadrado, con su ficha; sus miembros brillan algo más y el resto se atenúa un poco.
@@ -268,7 +279,9 @@ export default function App() {
   const { probes: probeBodies } = useProbes();
   const localMoons = moonBodies.filter(body => body.planet === moonHost(view.body));
   const localStars = (hostStar?.planetary || []).flatMap(system => (system.binary?.components || []).filter(component => component.body).map(component => component.body));
-  const hostName = exoplanetBody && (hostStar.n || exoplanetBody.system.name);
+  // Nombres de estrellas (nombreEstrella): se vuelve a dibujar cuando llegan los títulos.
+  useTitulos();
+  const hostName = exoplanetBody && (nombreEstrella(hostStar) || exoplanetBody.system.name);
   // Sonda elegida (o de cuyo sobrevuelo se ve el planeta de entonces): su ruta se ve aunque «Rutas de sondas» esté apagado.
   // Ficha de la heliosfera, el cinturón de Kuiper, la nube de Oort o las estrellas cercanas: al elegir su
   // vista en «Viajar a» o al hacer clic en su nombre en la escena. Se cierra con ×.
@@ -315,6 +328,8 @@ export default function App() {
     const rotation = camera.quaternion.toArray();
     transitionRef.current = null;
     releaseAim();
+    setEnfoque(null);
+    setGirandoEnfoque(false);
     setSolApuntado(false);
     setEstrellaVista(null);
     setCumulo(null);
@@ -418,7 +433,7 @@ export default function App() {
   // la vista (una sonda cuenta como una sola, se vea su sobrevuelo o una etapa), la sonda, la estrella o
   // el cúmulo de la ficha, el vuelo libre (salir volando es irse) y cada vez que se suelta algo (×, Esc).
   useEffect(() => {
-    const tecla = event => { if (event.key === 'Escape') setSoltadas(n => n + 1); };
+    const tecla = event => { if (event.key === 'Escape') { setSoltadas(n => n + 1); setEnfoque(null); } };
     window.addEventListener('keydown', tecla);
     return () => window.removeEventListener('keydown', tecla);
   }, []);
@@ -437,7 +452,7 @@ export default function App() {
   // Estrella como destino: encuadra su sistema (compañeras o planetas) y, si tiene
   // planetas, llega mirando el plano orbital abierto en vez de canto.
   const starBody = (star, name, identifiers) => ({
-    kind:'star',name,star,position:[star.x,star.y,star.z],
+    kind:'star',name:name || nombreEstrella(star),star,position:[star.x,star.y,star.z],
     radiusKm:star.physics?.radiusKm,source:star.physics?.source || star.source,distanceSource:star.distanceSource,
     companionViewDistance:Math.max((star.system?.framePc || 0) * 3.2, ...(star.planetary || []).map(system => system.framePc * ARRIVAL_FRAME_FACTOR)),
     viewDirection:star.planetary?.[0].viewDirection, viewUp:star.planetary?.[0].viewUp,
@@ -547,20 +562,78 @@ export default function App() {
     setCumulo(elegido);
     setApuntado({ cumuloId: elegido.id, nombre: elegido.nombre, viajar: () => elegirCumulo(elegido) });
   };
-  const apuntadoVigente = apuntado && (apuntado.cumuloId ? view.cumuloId === apuntado.cumuloId : view.body === apuntado.body) && !freeFlight ? apuntado : null;
+  // Una estrella enfocada (enfocarEstrella) sigue elegida mientras su ficha esté abierta, también en vuelo libre.
+  const apuntadoVigente = apuntado && (apuntado.enfoque ? estrellaVista?.star === apuntado.body.star
+    : (apuntado.cumuloId ? view.cumuloId === apuntado.cumuloId : view.body === apuntado.body) && !freeFlight) ? apuntado : null;
   // Mientras dura la marca, la etiqueta normal del mismo objeto se oculta: queda solo el nombre bajo la marca.
   const marcaVisible = apuntadoVigente && !traveling ? apuntadoVigente : null;
   useEffect(() => { fijarApuntadoEscena(marcaVisible); }, [marcaVisible]);
   // Al viajar, deja de estar apuntado: el «Ir a» y la marca se van.
   const irAlApuntado = () => { if (apuntadoVigente) { setApuntado(null); apuntadoVigente.viajar(); } };
+  // Una estrella elegida (clic en el punto o en su nombre, buscador, compañera o miembro del sistema en la ficha): la
+  // cámara gira sin moverse hasta dejarla en el centro de lo que se ve, se abre su ficha y queda fija al centro
+  // (EnfoqueCamara.jsx). «Ir a» o doble clic viaja. En órbita, el centro de la órbita pasa a un punto en la dirección de
+  // la estrella, a la misma distancia que el anterior: arrastrar mira a otro lado sin mover la cámara años luz.
+  // Sin el índice del buscador cargado, una estrella sin nombre propio se llamaría «HSB …»: se espera a que cargue
+  // (una sola vez) para que el título sea su nombre más conocido.
+  const enfocarEstrella = (elegido, nombre) => {
+    const enfocar = n => {
+      const camera = cameraRef.current;
+      if (!camera) return;
+      const body = elegido.kind === 'star' && elegido.position ? elegido
+        : STELLAR_TARGETS.find(b => b.catalogueId === elegido.i) || starBody(elegido, n);
+      const star = body.star || elegido;
+      if (enfoque && !giroCortado(enfoque) && enfoque.star === star) return; // la misma estrella: no se suelta ni se repite
+      setDireccionFicha(1);
+      const ficha = { kind: 'star', star, catalogueId: star.i, text: n, position: body.position };
+      // Durante un viaje («Ir a», «Viajar a»), elegir una estrella solo abre su ficha: no corta el viaje ni gira.
+      if (traveling) { setEstrellaVista(ficha); return; }
+      setShowPulsars(false); setShowDiscoveries(false); setInspectedTarget(null);
+      releaseAim(); setSolApuntado(false); setCumulo(null);
+      setEstrellaVista(ficha);
+      // La vista no cambia de cuerpo: el origen de la escena no se mueve (moverlo recalcula un millón de posiciones) y
+      // los límites de la órbita siguen siendo los de la vista. Solo «Ir a» viaja a la estrella.
+      setApuntado({ body, nombre: body.name, viajar: () => visitBody(body, true), enfoque: true });
+      if (freeFlight) { setEnfoque({ posicion: body.position, libre: true, star }); return; }
+      // El centro de la órbita queda en la dirección de la estrella a la misma distancia que el anterior: al volver los
+      // controles, la cámara no se mueve.
+      transitionRef.current = null;
+      setGirandoEnfoque(true);
+      setEnfoque({ posicion: body.position, libre: false, star, centro: view.target || SOLAR_ORIGIN });
+    };
+    if (nombre && !/^HSB \d/.test(nombre)) { enfocar(nombre); return; }
+    indiceBusqueda().then(() => enfocar(nombreEstrella(elegido.star || elegido)), () => enfocar(nombre));
+  };
+  // Fin del giro (o giro cortado por el usuario): en órbita, el centro de la órbita queda en la dirección final.
+  const alGirarEnfoque = (adelante, pedido) => {
+    const camera = cameraRef.current;
+    if (camera && !pedido.libre) {
+      const centro = centroDeOrbita(camera.position.toArray().map((v, i) => v + origin[i]), adelante.toArray(), pedido.centro);
+      setView(v => ({ ...v, target: centro, journey: undefined }));
+      setGirandoEnfoque(false);
+    }
+    if (giroCortado(pedido)) setEnfoque(actual => (actual === pedido ? null : actual));
+  };
+  // El usuario toma la cámara durante el giro (arrastre, rueda, teclado o toque): se corta donde está.
+  const cortarEnfoque = () => { if (enfoque && girandoEnfoque) cortarGiro(enfoque, mantenerActivo); };
+  const soltarEnfoque = () => setEnfoque(null);
+  // Clic en el vacío (sin estrella y sin otro objeto de la escena): suelta la fijación y quita la selección.
+  const clicSinEstrella = useRef(0);
   const elegirDesdeBuscador = result => {
-    if (result.capa) { visitarCapa(result.capa.fila, body => apuntarA(body, () => visitBody(body, true))); return; }
+    if (result.capa) { visitarCapa(result.capa.fila, body => enfocarEstrella(body, body.name)); return; }
     const star = starsById.get(result.id);
     if (!star || !cameraRef.current) return;
     if (star.n === 'Sol' || star.n === 'Sun') { apuntarA(SOLAR_BODIES[0], () => focusBody(SOLAR_BODIES[0])); return; }
     const body = STELLAR_TARGETS.find(b => b.catalogueId === star.i)
       || starBody(star, star.n || result.aliases[0], result.aliases.slice(0, 10).join(' · ') + (result.aliases.length > 10 ? ' · …' : ''));
-    apuntarA(body, () => visitBody(body, true));
+    enfocarEstrella(body, body.name);
+  };
+  // Un exoplaneta elegido en el buscador: se apunta como a cualquier cuerpo y «Ir a» viaja a él. Sin radio no hay
+  // esfera a la que acercarse: se apunta a su estrella.
+  const elegirPlanetaDesdeBuscador = ({ nombre, estrellaId }) => {
+    const planeta = (starsById.get(estrellaId)?.planetary || []).flatMap(s => s.planets).find(p => p.n === nombre);
+    if (planeta?.body) apuntarA(planeta.body, () => focusBody(planeta.body));
+    else elegirDesdeBuscador({ id: estrellaId, aliases: [] });
   };
   const visitSearchResult = (result, sistema = false) => {
     if (result.capa) { visitarCapa(result.capa.fila); return; }
@@ -597,6 +670,15 @@ export default function App() {
   // Archivo de descubrimientos con la columna de la zona habitable (la misma cuenta que las fichas).
   const datosDescubrimientos = useMemo(() => discoveries.data
     && marcarZona(discoveries.data, new Set([...zonasPorEstrella.values()].flat())), [discoveries.data, zonasPorEstrella]);
+  // Estrellas del sistema de lo que se mira o de la ficha abierta (etiquetas de contexto).
+  const estrellaBaseContexto = estrellaVista?.star || hostStar || null;
+  const estrellasContexto = useMemo(() => {
+    if (!estrellaBaseContexto) return [];
+    const sistema = estrellaBaseContexto.system || estrellaBaseContexto.sistemaDe;
+    const miembros = sistema ? [sistema.star, ...sistema.components.map(c => c.companion).filter(Boolean)] : [];
+    return [...new Set([estrellaBaseContexto, ...miembros])];
+  }, [estrellaBaseContexto]);
+  const idsContexto = useMemo(() => new Set(estrellasContexto.map(s => s.i)), [estrellasContexto]);
   const labels = useMemo(() => [
     { kind: 'moon', text: `Luna · ${(Math.round(MOON.distanceKm / 100) * 100).toLocaleString('es-CL')} km de la Tierra`, position: MOON.position, width:230, body:MOON },
     { kind: 'sun', text: 'Sol', position: [0, 0, 0], width: 34, body: SOLAR_BODIES[0] },
@@ -609,7 +691,14 @@ export default function App() {
     ...stars.filter(s => s.n && s.n !== 'Sol' && s.n !== 'Sun').sort((a,b) => a.d - b.d)
       .map(s => ({ kind: 'star', star: s, catalogueId: s.i, text: s.n, position: [s.x, s.y, s.z], width: s.n.length * 6 + 10,
         body: STELLAR_TARGETS.find(target => target.catalogueId === s.i) })),
-  ], [stars, STELLAR_TARGETS, probeBodies, showHeliosphere]);
+    // Estrellas del sistema donde se está (la de la ficha, la del planeta o la compañera y su primaria): llevan su nombre
+    // aunque no tengan uno de etiqueta, para poder volver a ellas con un clic (TOI-4156 desde TOI-4156 B).
+    ...estrellasContexto.filter(s => !s.n && Number.isFinite(s.i)).map(s => {
+      const text = nombreEstrella(s);
+      return { kind: 'star', star: s, catalogueId: s.i, text, position: [s.x, s.y, s.z], width: text.length * 6 + 10, contexto: true,
+        body: STELLAR_TARGETS.find(target => target.catalogueId === s.i) };
+    }),
+  ], [stars, STELLAR_TARGETS, probeBodies, showHeliosphere, estrellasContexto]);
   // Objetivo del visor de distancia: el rumbo fijado; en vuelo libre, la estrella
   // inspeccionada o el Sol; en las demás vistas, lo que queda centrado.
   const distanceTarget = aimTarget?.kind === 'star' ? { name: aimTarget.text, position: aimTarget.position }
@@ -712,7 +801,7 @@ export default function App() {
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
   // Al cerrar la ficha también se suelta lo apuntado en el buscador: se van la marca y su nombre, y vuelve la etiqueta normal.
-  const cerrarFicha = () => { setOrbitasDe(null); setEstrellaVista(null); setShowBodyPanel(false); setApuntado(null); releaseAim(); setSoltadas(n => n + 1); };
+  const cerrarFicha = () => { setEnfoque(null); setOrbitasDe(null); setEstrellaVista(null); setShowBodyPanel(false); setApuntado(null); releaseAim(); setSoltadas(n => n + 1); };
   const elegirCumulo = elegido => {
     setShowPulsars(false); setShowDiscoveries(false); setShowBodyPanel(false); setInspectedTarget(null);
     navigate({ id: 'cumulo', target: [elegido.x, elegido.y, elegido.z], ...encuadreDeCumulo(elegido, starsById, cameraRef.current?.fov) });
@@ -725,6 +814,7 @@ export default function App() {
   };
   // Una estrella del mismo sistema: la ficha pasa a mostrar su información sin mover la cámara.
   const verComponenteDesdeFicha = (star, nombre) => {
+    if (Number.isFinite(star.x)) { enfocarEstrella(star, nombre); return; }
     setDireccionFicha(1);
     setEstrellaVista({ kind: 'star', star, catalogueId: star.i, text: nombre, position: [star.x, star.y, star.z] });
   };
@@ -774,7 +864,7 @@ export default function App() {
   const globularDeFicha = useMemo(() => (estrellaFicha && datosCumulosFicha?.cumulos.find(c => c.tipo === 'globular' && c.ids.includes(estrellaFicha.i))) || null,
     [estrellaFicha, datosCumulosFicha]);
   const orbitasFicha = !fichaPlaneta && estrellaFicha && orbitasDe?.i === estrellaFicha.i ? parConOrbita(estrellaFicha, orbitasDe.clave, orbitasDe.nombres) : null;
-  const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text : panelBody?.name;
+  const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? estrellaVista.text || nombreEstrella(estrellaVista.star) : panelBody?.name;
   // Una sola columna lateral a la vez. Estrella, exoplaneta, cúmulo y etapa mandan; después el cuerpo
   // enfocado (planeta, luna, Sol, sonda o WR 140), luego la región y al final los púlsares.
   const otraFicha = Boolean(fichaPlaneta || estrellaFicha || cumulo || etapaElegida !== null);
@@ -788,12 +878,18 @@ export default function App() {
   // muestra el «Ir a» de la elección anterior.
   const irAFicha = apuntadoVigente && !traveling ? { texto: `Ir a ${nombreParaMostrar(apuntadoVigente.nombre, GENITIVOS)}`, onIr: irAlApuntado } : null;
   const irASi = coincide => (irAFicha && coincide ? irAFicha : null);
+  // «Ir a» también en la ficha de una estrella abierta sin viajar (clic en la escena o en la lista del sistema), mientras
+  // la cámara no esté ya en ella. Las anfitrionas llegan como desde Exoplanetas: con el sistema planetario encuadrado.
+  // Con la cámara solo girada hacia ella (vista «apuntado», el buscador) todavía no se llegó.
+  const irAEstrellaVista = estrellaVista?.star && !traveling && (view.body?.star !== estrellaVista.star || view.id === 'apuntado') && Number.isFinite(estrellaVista.star.x)
+    ? { texto: `Ir a ${nombreFicha}`, onIr: () => { const s = estrellaVista.star; visitBody(starBody(s, nombreFicha), true, Boolean(s.planetary)); } } : null;
   const apuntadoEs = otro => Boolean(otro && apuntadoVigente?.body && (otro === apuntadoVigente.body
     || (otro.star && otro.star === apuntadoVigente.body.star) || (!otro.star && !apuntadoVigente.body.star && otro.name === apuntadoVigente.body.name)));
   const estrellaApuntada = estrella => Boolean(estrella && apuntadoVigente?.body?.star
     && (estrella === apuntadoVigente.body.star || (estrella.i !== undefined && estrella.i === apuntadoVigente.body.star.i)));
   return <main className={`hoshi${showDiscoveries ? ' modo-descubrimientos' : ''}${datosLinea ? ' con-linea' : ''}`}
-    onPointerDown={event => { inicioArrastre.current = event.target instanceof HTMLCanvasElement ? [event.clientX, event.clientY] : null; }}
+    onPointerDown={event => { inicioArrastre.current = event.target instanceof HTMLCanvasElement ? [event.clientX, event.clientY] : null; if (event.target instanceof HTMLCanvasElement) cortarEnfoque(); }}
+    onKeyDown={cortarEnfoque}
     onPointerMove={event => {
       const inicio = inicioArrastre.current;
       if (!traveling || !inicio || !event.buttons || Math.hypot(event.clientX - inicio[0], event.clientY - inicio[1]) < ARRASTRE_PX) return;
@@ -801,20 +897,31 @@ export default function App() {
       detenerViaje();
     }}
     onPointerUp={() => { inicioArrastre.current = null; }}
-    onWheel={event => { if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
-    <Canvas onPointerMissed={() => { if (sondaElegida !== null && !traveling) soltarSonda(); }} camera={{ position: START_POSITION, up: INITIAL_VIEW.up, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
+    onWheel={event => { if (event.target instanceof HTMLCanvasElement) cortarEnfoque(); if (traveling && event.target instanceof HTMLCanvasElement) detenerViaje(); }}>
+    <Canvas onPointerMissed={() => {
+      if (sondaElegida !== null && !traveling) soltarSonda();
+      // Clic en el vacío (ni estrella ni otro objeto): suelta la fijación y quita la selección. El fin de un arrastre no cuenta.
+      if (enfoque && performance.now() - clicSinEstrella.current < 400) cerrarFicha();
+    }} camera={{ position: START_POSITION, up: INITIAL_VIEW.up, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} frameloop="demand" gl={{ antialias: true, logarithmicDepthBuffer: true }}>
       <Reposo />
       <SceneReady catalogueReady={catalogueStatus !== 'loading'} />
       <color attach="background" args={['#020305']} />
-      {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={releaseAim} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && <OrbitControls ref={controlsRef} target={orbitTarget}
+      {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={() => { releaseAim(); if (enfoque?.libre) soltarEnfoque(); }} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && !girandoEnfoque && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}
         enablePan={false} enableDamping dampingFactor={GIRO_AMORTIGUAMIENTO} rotateSpeed={GIRO_RATON} zoomSpeed={1.35}
         onStart={() => { transitionRef.current = null; setSolApuntado(false); }} />}
-      {!freeFlight && !traveling && <ZoomSuave controlsRef={controlsRef} />}
-      {!freeFlight && !traveling && giraSola && <GiroLento controlsRef={controlsRef} />}
+      {!freeFlight && !traveling && !girandoEnfoque && <ZoomSuave controlsRef={controlsRef} />}
+      {!freeFlight && !traveling && !girandoEnfoque && !apuntadoVigente?.enfoque && giraSola && <GiroLento controlsRef={controlsRef} />}
       <CameraNavigation view={view} showPulsars={showPulsars} transitionRef={transitionRef} origin={origin} onComplete={arriveFree => { setTraveling(false); setFreeFlight(arriveFree); document.activeElement?.blur(); }} />
+      <ReanclarCamara origin={origin} activo={!view.journey} />
+      <EnfoqueCamara pedido={enfoque} origin={origin} alGirar={alGirarEnfoque} />
+      <MarcaApuntada posicion={apuntadoVigente?.body?.position ?? (apuntadoVigente?.cumuloId ? view.target : null)} origin={origin} />
       <StarAim target={aimTarget} origin={origin} onRelease={releaseAim} cameraRef={cameraRef} />
+      {/* Clic en cualquier estrella del campo: su ficha; doble clic: viajar (anfitrionas, con la llegada de Exoplanetas). */}
+      <SeleccionEstrellas estrellas={stars} origin={origin} activo={!traveling && !showPulsars && !binaryBody}
+        onElegir={star => enfocarEstrella(star, nombreEstrella(star))} onVacio={() => { clicSinEstrella.current = performance.now(); }}
+        onViajar={star => visitBody(starBody(star, nombreEstrella(star)), true, Boolean(star.planetary))} />
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />
       {showPulsars && <PulsarMap origin={origin} />}
       <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} catalogo={stars} capa={capaEstrellas} origin={origin}
@@ -822,7 +929,7 @@ export default function App() {
       {verCumulos && datosCumulos && !binaryBody && !showPulsars && <Cumulos datos={datosCumulos} origin={origin}
         elegido={cumulo} onElegir={elegirCumulo} />}
       {binaryBody && <BinarySystem />}
-      {!binaryBody && <CompanionStars onElegir={(star, nombre) => visitBody(starBody(star, nombre), true)} systems={BINARY_SYSTEMS} origin={origin}
+      {!binaryBody && <CompanionStars onElegir={(star, nombre) => enfocarEstrella(star, nombre)} systems={BINARY_SYSTEMS} origin={origin}
         elegidos={[fichaFoco?.id, aimTarget?.catalogueId]} />}
       {verZona && estrellaZona && <FranjaHabitable key={estrellaZona.i} star={estrellaZona} origin={origin} fichas={fichas} />}
       {!binaryBody && <PlanetarySystems systems={PLANETARY_SYSTEMS} origin={origin} onSelect={focusBody} />}
@@ -833,10 +940,10 @@ export default function App() {
         <OortCloud origin={origin} /><SolarSystem origin={origin} probeSelected={sondaElegida} onSelect={focusBody} onAim={apuntarASonda} probeThen={sondaEntonces} /><KuiperBelt origin={origin} /><Heliosphere origin={origin} hidden={!showHeliosphere} />
       </group>
       <VisualGuides overlayRef={overlayRef} labels={labels} focusedBody={panelBody} origin={origin} binary={Boolean(binaryBody)} aimTarget={aimTarget} distanceTarget={distanceTarget?.position}
-        fichaFoco={fichaFoco} />
+        fichaFoco={fichaFoco} contexto={idsContexto} />
     </Canvas>
     <div ref={overlayRef} className="scene-overlay">
-      <StarSearch onSelect={elegirDesdeBuscador} onSelectCumulo={apuntarACumulo} onSelectBody={body => apuntarA(body, () => focusBody(body))} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
+      <StarSearch onSelect={elegirDesdeBuscador} onSelectCumulo={apuntarACumulo} onSelectPlaneta={elegirPlanetaDesdeBuscador} onSelectBody={body => apuntarA(body, () => focusBody(body))} destinos={[...localStars, ...localPlanets, ...moonBodies, ...NAVIGATION_TARGETS, ...probeBodies]}
         elegida={estrellaFicha && temperaturaFicha ? { nombre: nombreFicha, color: colorLegible(temperaturaFicha) } : null} seleccion={seleccionEscena} />
       <BarraDistancia onViajar={viajarDesdeBarra} onSeguir={seguirBarra} />
       <div className="visores-vuelo"><DialDistancia titulo={distanceTitle(distanceTarget?.name || 'Sol')} />
@@ -914,9 +1021,10 @@ export default function App() {
         etiqueta={orbitasFicha ? `Órbitas de ${orbitasFicha.primaria.nombre} y ${orbitasFicha.companera.nombre}` : `Información de ${nombreFicha}`} onCerrar={cerrarFicha}>
         {orbitasFicha ? <OrbitasPar orbita={orbitasFicha} nombreVolver={nombreFicha} onVolver={() => { setDireccionFicha(-1); setOrbitasDe(null); }} />
           : fichaPlaneta ? <FichaPlaneta planeta={exoplanetBody.planet} sistema={exoplanetBody.system} nombreEstrella={hostName}
-          onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona} />
+          onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona}
+          irA={irASi(exoplanetBody === apuntadoVigente?.body)} />
           : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} irA={irASi(estrellaApuntada(estrellaFicha))} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irASi(estrellaApuntada(estrellaFicha))} cumuloDe={globularDeFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irASi(estrellaApuntada(estrellaFicha)) || irAEstrellaVista} cumuloDe={globularDeFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerOrbitas={(clave, nombres) => { setDireccionFicha(1); setOrbitasDe({ i: estrellaFicha.i, clave, nombres }); }}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}
@@ -932,10 +1040,10 @@ export default function App() {
       <div data-labels className="scene-labels">
         {labels.map((label, i) => <span key={i} className={`scene-label ${label.kind}${aimTarget === label ? ' is-target' : ''}`} style={{ color: label.color }}
           {...label.kind === 'probe' && { onPointerEnter: () => { probeHighlight.code = label.code; }, onPointerLeave: () => { probeHighlight.code = null; } }}>
-          {label.kind === 'star' ? <button className="label-text" onClick={() => { setDireccionFicha(1); setEstrellaVista(label); }} onDoubleClick={() => aimAtStar(label)}
+          {label.kind === 'star' ? <button className="label-text" onClick={() => enfocarEstrella(label.star, label.text)} onDoubleClick={() => aimAtStar(label)}
             onKeyDown={event => {
               if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); aimAtStar(label); }
-            }} title="Clic: ver su ficha · Doble clic: viajar a ella">{label.text}</button>
+            }} title="Clic: centrarla y ver su ficha · Doble clic: viajar a ella">{label.text}</button>
             : label.kind === 'probe' ? <button className="label-text" onClick={() => focusBody(label.body)} title={`Acercarse a ${label.body.name}`}>{label.text}<span className="label-detalle"> · {label.detail}</span></button>
             : label.body ? <button className="label-text" onClick={() => focusBody(label.body)} title={`Acercarse a ${label.body.name}`}>{label.text}</button>
             : REGION_DE_ETIQUETA[label.kind] ? <button className="label-text"
