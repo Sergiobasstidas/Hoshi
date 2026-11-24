@@ -32,17 +32,19 @@ const ordenar = a => [...a].sort((x, y) => x - y);
 export const percentil = (valores, k) => (valores.length ? ordenar(valores)[Math.min(valores.length - 1, Math.floor(k * valores.length))] : null);
 
 // Envuelve renderer.render para medir el tiempo de GPU (EXT_disjoint_timer_query_webgl2) y guardar renderer.info mientras
-// `medicion.activa`. Devuelve la función que lo deja como estaba.
+// `medicion.activa`. Una consulta por cuadro: se abre en la primera pasada (las del volumen de la galaxia van a un render
+// target antes de la escena) y se cierra al dibujar en la pantalla. Devuelve la función que lo deja como estaba.
 export function envolverRender(renderer, medicion) {
   const ctx = renderer.getContext(), ext = ctx.getExtension('EXT_disjoint_timer_query_webgl2');
   const original = renderer.render;
   medicion.ctx = ctx; medicion.ext = ext;
+  let abierta = null;
   renderer.render = (escena, camara) => {
-    let consulta = null;
-    if (ext && medicion.activa) { consulta = ctx.createQuery(); ctx.beginQuery(ext.TIME_ELAPSED_EXT, consulta); }
+    const aPantalla = renderer.getRenderTarget() === null;
+    if (ext && medicion.activa && !abierta) { abierta = ctx.createQuery(); ctx.beginQuery(ext.TIME_ELAPSED_EXT, abierta); }
     original.call(renderer, escena, camara);
-    if (consulta) { ctx.endQuery(ext.TIME_ELAPSED_EXT); medicion.consultas.push(consulta); }
-    if (medicion.activa) {
+    if (abierta && aPantalla) { ctx.endQuery(ext.TIME_ELAPSED_EXT); medicion.consultas.push(abierta); abierta = null; }
+    if (medicion.activa && aPantalla) {
       const i = renderer.info;
       medicion.info = { dibujos: i.render.calls, puntos: i.render.points, triangulos: i.render.triangles, texturas: i.memory.textures, geometrias: i.memory.geometries };
     }

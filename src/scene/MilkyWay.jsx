@@ -4,6 +4,12 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC, buildGalaxyParticles, galaxyOpacity, galaxyFacing, galaxyPlaneFade } from './galaxy.js';
 import { solarDistance } from './scale.js';
+import GalaxiaVolumen from './GalaxiaVolumen.jsx';
+import { GALAXIA_F7, SIN_F7 } from '../f7/opciones.js';
+import modeloB from '../f7/modeloB.json';
+
+// F-07: con ?f7=a o ?f7=b la imagen plana y las partículas se reemplazan por el volumen (GalaxiaVolumen.jsx).
+const VOLUMEN = GALAXIA_F7 === 'a' || GALAXIA_F7 === 'b';
 
 const vertex = `
   varying vec2 vUv;
@@ -57,6 +63,7 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
   const [asset,setAsset]=useState(null);
   const group=useRef(), disc=useRef(), points=useRef(), sunLabel=useRef(), centerLabel=useRef();
   const lastVisible=useRef(false);
+  const opacidadVolumen=useRef(0);
   const rotation=useMemo(()=>new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
     new THREE.Vector3(...GALACTIC_X),new THREE.Vector3(...GALACTIC_Y),new THREE.Vector3(...GALACTIC_Z))),[]);
   useEffect(()=>{
@@ -87,7 +94,9 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
     const alpha=galaxyOpacity(distance)*(muted?.22:1)*dim;
     const visible=alpha>.001;
     if(asset && lastVisible.current!==visible){lastVisible.current=visible;onStatus(visible?'visible':'ready');}
-    if(group.current)group.current.visible=visible;
+    if(group.current)group.current.visible=visible && !VOLUMEN && !SIN_F7.has('galaxia');
+    opacidadVolumen.current=SIN_F7.has('galaxia')?0:alpha;
+    if(points.current)points.current.visible=!SIN_F7.has('particulas');
     if(disc.current){
       disc.current.uniforms.opacity.value=alpha*galaxyPlaneFade(camera.position,origin);
       // De canto se atenúa el disco: la atenuación se redujo un 45 % (pedido de Sergio, 31/10/2026).
@@ -95,8 +104,8 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
       disc.current.uniforms.face.value=face;
       // A ángulos rasantes las muestras se acumulan en menos píxeles. Comprimir
       // su exposición para evitar convertir el disco en una línea blanca.
-      points.current.uniforms.opacity.value=alpha*(1-.78*EDGE_DIMMING*(1-galaxyFacing(camera.position,origin)));
-      points.current.uniforms.viewportHeight.value=size.height*gl.getPixelRatio();
+      points.current.material.uniforms.opacity.value=alpha*(1-.78*EDGE_DIMMING*(1-galaxyFacing(camera.position,origin)));
+      points.current.material.uniforms.viewportHeight.value=size.height*gl.getPixelRatio();
     }
     for(const label of [sunLabel.current,centerLabel.current])if(label){
       label.style.opacity=String(muted?0:alpha);
@@ -106,19 +115,21 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
   if(!asset)return null;
   const {samples}=asset;
   return <>
+    {VOLUMEN && <GalaxiaVolumen variante={GALAXIA_F7} origin={origin} opacidad={opacidadVolumen}
+      escalaE={GALAXIA_F7==='b'?modeloB.escalaE:1} barraGrados={GALAXIA_F7==='b'?modeloB.barraGrados??-28:undefined} />}
     <group ref={group} position={GALAXY_CENTER.map((v,i)=>v-origin[i])} quaternion={rotation}>
       <mesh rotation={[0,0,-Math.PI/2]} frustumCulled={false}>
         <planeGeometry args={[GALAXY_IMAGE_WIDTH_PC,GALAXY_IMAGE_WIDTH_PC]} />
         <shaderMaterial ref={disc} uniforms={uniforms} vertexShader={vertex} fragmentShader={fragment}
           transparent depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} />
       </mesh>
-      <points frustumCulled={false}>
+      <points ref={points} frustumCulled={false}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[samples.position,3]}/>
           <bufferAttribute attach="attributes-tint" args={[samples.color,3]}/>
           <bufferAttribute attach="attributes-extent" args={[samples.sizes,1]}/>
         </bufferGeometry>
-        <shaderMaterial ref={points} uniforms={pointUniforms} vertexShader={pointVertex} fragmentShader={pointFragment}
+        <shaderMaterial uniforms={pointUniforms} vertexShader={pointVertex} fragmentShader={pointFragment}
           transparent depthWrite={false} blending={THREE.AdditiveBlending}/>
       </points>
     </group>
