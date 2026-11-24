@@ -50,11 +50,12 @@ test('radios típicos crecen de enana a supergigante', () => {
   for (const t of [3600, 4500, 5800]) assert.ok(radioTipico('enana', t) < radioTipico('gigante', t) && radioTipico('gigante', t) < radioTipico('supergigante', t));
 });
 
-test('celdas por clase: enanas como el Sol, gigantes con miles, supergigantes con pocas', () => {
-  assert.equal(granulosPorClase(5772, 1, 'enana'), granulesPerRadius(5772, 1));
-  const hassaleh = granulosPorClase(4389, 122, 'gigante');
-  assert.ok(hassaleh >= 20 && 2 * Math.PI * hassaleh ** 2 > 2000, `${hassaleh}`);
-  assert.ok(granulosPorClase(3600, 727, 'supergigante') <= 6);
+test('celdas fuera del Sol: nunca menos por radio que en el Sol, sea cual sea el tamaño', () => {
+  const sol = granulesPerRadius(5772, 1);
+  assert.equal(granulosPorClase(5772, 1), sol);
+  assert.equal(granulosPorClase(4389, 122), sol);
+  assert.equal(granulosPorClase(3600, 727), sol);
+  assert.ok(granulosPorClase(3200, 0.3) > sol);
   assert.deepEqual(Object.keys(aspectoPorClase('gigante')).sort(), ['fino', 'suave', 'variacion']);
   assert.equal(claseSuperficie({ physics: { temperatureK: 4389 }, sp: 'K3II-III', m: -3.2, d: 151 }), 'gigante');
 });

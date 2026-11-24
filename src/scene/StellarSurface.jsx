@@ -341,7 +341,7 @@ const coronaFragment = `
 // Malla unitaria trasladada con doble precisión en CPU; radio nunca ampliado por píxeles.
 // `solar`: es el Sol, el único con imágenes reales del SDO. `granulacionSolar`: una estrella en el lugar
 // del Sol para comparar tamaños; su superficie se ve con el detalle del Sol y sin manchas inventadas.
-// `clase`: clase de luminosidad para el tamaño de las celdas (fisicaDibujo.js); sin ella (el Sol), la escala física.
+// `clase`: clase de luminosidad para el aspecto de las celdas (fisicaDibujo.js); sin ella (el Sol), el aspecto solar.
 export default function StellarSurface({ position, radiusPc, temperatureK, solar = false, granulacionSolar = false, clase = null }) {
   const surface = useRef();
   const corona = useRef();
@@ -350,7 +350,7 @@ export default function StellarSurface({ position, radiusPc, temperatureK, solar
   const propias = useMemo(() => {
     const radio = granulacionSolar ? 1 : radiusPc / SUN_RADIUS_PC;
     const { convection } = surfaceActivity(temperatureK);
-    const granules = granulacionSolar || !clase ? granulesPerRadius(temperatureK, radio) : granulosPorClase(temperatureK, radio, clase);
+    const granules = granulacionSolar || !clase ? granulesPerRadius(temperatureK, radio) : granulosPorClase(temperatureK, radio);
     // Contraste y ancho de carriles según el tipo de estrella; en la comparación, los del Sol.
     const look = granulacionSolar ? { contrast: 1, lane: 0.13 } : granulationLook(temperatureK, radio);
     const aspecto = granulacionSolar || !clase ? { suave: 0, variacion: 0, fino: 0 } : aspectoPorClase(clase);

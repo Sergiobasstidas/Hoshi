@@ -75,15 +75,13 @@ export function limbDarkening(temperatureK) {
   return u0 + (u1 - u0) * (temperature - t0) / (t1 - t0);
 }
 
-// Celdas por radio según la clase de luminosidad (presentación, no medida por estrella): enanas, subenanas y subgigantes
-// con la escala física, muy fina (la del Sol, ≈ 535 por radio); gigantes con miles de celdas en la cara visible (entre
-// 20 y 60 por radio: la escala física de las gigantes de más de unos 50 R☉ dejaba un mosaico de un par de cientos de
-// polígonos, captura de Hassaleh de Sergio, 23/11/2026); supergigantes e hipergigantes con pocas celdas grandes.
-export function granulosPorClase(temperatureK, radiusSolar, clase) {
-  const fisica = granulesPerRadius(temperatureK, radiusSolar);
-  if (clase === 'gigante') return clamp(fisica, 20, 60);
-  if (clase === 'supergigante' || clase === 'hipergigante') return clamp(fisica, 2, 6);
-  return fisica;
+// Celdas por radio fuera del Sol (presentación, no medida por estrella): nunca menos que en el Sol (≈ 535 por radio).
+// Así el mosaico aparece a la misma distancia aparente en todas las estrellas, recién al acercarse mucho, como en el Sol:
+// con la escala física, las gigantes y supergigantes quedaban con unas pocas decenas de celdas por radio y se veían
+// polígonos enormes desde una distancia media (capturas de Hassaleh de Sergio, 23 y 24/11/2026).
+const GRANULOS_SOL = granulesPerRadius(SOLAR_TEMPERATURE_K, 1);
+export function granulosPorClase(temperatureK, radiusSolar) {
+  return Math.max(granulesPerRadius(temperatureK, radiusSolar), GRANULOS_SOL);
 }
 
 // Aspecto de la granulación fuera del Sol (en el Sol todo vale 0 y no cambia nada): `suave` ensancha y aclara los
