@@ -5,7 +5,8 @@
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
-import { besselianYearToMjd } from '../src/scene/visualBinary.js';
+import { besselianYearToMjd, skyOffset } from '../src/scene/visualBinary.js';
+import { eccentricAnomaly } from '../src/scene/binaryOrbit.js';
 import { parseComponents } from './multiplicity.js';
 import { PUBLISHED_BINARY_MASSES } from './published_binary_masses.js';
 
@@ -94,10 +95,12 @@ const system = (id, wds) => {
   if (wds && !rootByWds.has(wds)) rootByWds.set(wds, id);
   return systems.get(id);
 };
+const orb6SinCruce = [];
 for (const line of fs.readFileSync(ORBITS_PATH, 'utf8').split('\n')) {
   if (!/^\d{6}\.\d{2}[+-]\d{6}/.test(line)) continue;
   counts.orbits++;
-  const period = number(field(line, 82, 11)), periodUnit = line[92];
+  // El período ocupa las columnas 81–92: en algunas líneas el primer dígito cae en la 81.
+  const period = number(line.slice(80, 92).trim()), periodUnit = line[92];
   const axis = number(field(line, 106, 9)), axisUnit = line[114];
   const inclination = number(field(line, 126, 8)), node = number(field(line, 144, 8));
   const epoch = number(field(line, 163, 12)), epochUnit = line[174];
@@ -114,7 +117,12 @@ for (const line of fs.readFileSync(ORBITS_PATH, 'utf8').split('\n')) {
   if (!days || !arcsec || mjd === null || !components) { counts.incomplete++; continue; }
   const id = byHip.get(number(field(line, 59, 6))) ?? byHd.get(number(field(line, 52, 6)));
   const star = byId.get(id);
-  if (!star || !(star.d > 0)) { counts.unmatched++; continue; }
+  if (!star || !(star.d > 0)) {
+    // Sin cruce por HIP/HD (40 Eri BC: HD 26976 no es una estrella del catálogo): se intenta después por el WDS.
+    orb6SinCruce.push({ wds: field(line, 20, 10), components, period, days, axis, arcsec, mjd, eccentricity, inclination, node, omega, grade,
+      ref: field(line, 238, 8), code: line.slice(30, 37).replace(/\s+/g, ' ').trim(), nodeKnown: line[151] === '*' || line[151] === 'q' });
+    counts.unmatched++; continue;
+  }
   // a[UA] = segundos de arco × distancia del catálogo en pc.
   const axisAu = axis * arcsec * star.d;
   const mass = axisAu ** 3 / (period * days / 365.25) ** 2;
@@ -278,6 +286,40 @@ for (const [id, entry] of systems) {
   }
 }
 
+// ---------- Órbitas sin cruce por HIP/HD, por el WDS ----------
+// Una órbita de un subpar (STF 518 BC en Keid) cuyo HIP/HD no es una estrella del catálogo entra por el código WDS
+// del sistema. Si el sistema tiene el subpar como un solo punto ancho («BC», centro de luz) y además la medida de Y
+// sola («AC»), ese punto pasa a ser X, la primaria del subpar (ORB6: C gira en torno a B): X se coloca en Y menos el
+// vector de la órbita en el año de la medida de Y, e Y pasa a girar en torno a X.
+for (const o of orb6SinCruce) {
+  const id = rootByWds.get(o.wds), root = byId.get(id), entry = id !== undefined && systems.get(id);
+  if (!root || !(root.d > 0) || !entry || o.components.length !== 2) continue;
+  const [x, y] = o.components;
+  const axisAu = o.axis * o.arcsec * root.d, mass = axisAu ** 3 / (o.period * o.days / 365.25) ** 2;
+  if (!(o.grade >= 1 && o.grade <= MAX_GRADE) || mass < MASS_RANGE[0] || mass > MASS_RANGE[1]) continue;
+  const elementos = { k: 'o', pair: o.code, p: +(o.period * o.days).toPrecision(9), t: +o.mjd.toFixed(3), e: o.eccentricity, a: +axisAu.toPrecision(6),
+    i: o.inclination, node: o.node, w: o.omega, nodeKnown: o.nodeKnown, grade: o.grade, ref: o.ref, mass: +mass.toPrecision(3) };
+  const pares = [...entry.pairs.values()];
+  const compuesto = pares.find(pair => pair.n === x + y && pair.k !== 'o'), conY = pares.find(pair => pair.n === y && pair.k !== 'o');
+  if (compuesto && conY && conY.of === compuesto.of && Number.isFinite(conY.theta)) {
+    // Y respecto de X en el año de la medida de Y (este, norte en UA).
+    const mjd = besselianYearToMjd(conY.year || 2000);
+    const { east, north } = skyOffset(elementos, eccentricAnomaly(2 * Math.PI * (mjd - elementos.t) / elementos.p, elementos.e));
+    const t = conY.theta * Math.PI / 180;
+    const xEste = conY.rho * Math.sin(t) - east, xNorte = conY.rho * Math.cos(t) - north;
+    entry.pairs.delete(`${compuesto.of}>${compuesto.n}`);
+    entry.pairs.delete(`${conY.of}>${conY.n}`);
+    const { sp, v, year } = compuesto;
+    entry.pairs.set(`${conY.of}>${x}`, { ...compuesto, n: x, rho: +Math.hypot(xEste, xNorte).toPrecision(6),
+      theta: +((Math.atan2(xEste, xNorte) * 180 / Math.PI + 360) % 360).toFixed(1), year: conY.year ?? year,
+      compuesto: compuesto.n, rhoCompuesto: compuesto.rho, ...(sp ? { sp } : {}), ...(v !== undefined ? { v } : {}) });
+    entry.pairs.set(`${x}>${y}`, { n: y, of: x, ...elementos, ...(conY.sp ? { sp: conY.sp } : {}), ...(conY.v !== undefined ? { v: conY.v } : {}), rhoCompuesto: conY.rho });
+    counts.porWds = (counts.porWds || 0) + 1;
+  } else if (pares.some(pair => pair.n === x) || x === 'A') {
+    if (!entry.pairs.has(`${x}>${y}`)) { entry.pairs.set(`${x}>${y}`, { n: y, of: x, ...elementos }); counts.porWds = (counts.porWds || 0) + 1; }
+  }
+}
+
 // ---------- Jerarquía y compañeras ya presentes en el catálogo ----------
 const output = {};
 for (const [id, entry] of [...systems].sort((a, b) => a[0] - b[0])) {
@@ -331,14 +373,49 @@ const todasPorId = new Map(todasLasEstrellas.map(star => [star.i, star]));
 const separacionArcsec = (a, b) => Math.acos(Math.min(1, (a.x * b.x + a.y * b.y + a.z * b.z) / (Math.hypot(a.x, a.y, a.z) * Math.hypot(b.x, b.y, b.z)))) * ARCSEC_PER_RAD;
 if (fs.existsSync(COMPANERAS_CSV)) {
   for (const fila of parse(fs.readFileSync(COMPANERAS_CSV, 'utf8'), { columns: true })) {
-    const pair = fila.companera && fila.hsb_nuevo && output[fila.sistema_hsb]?.comps.find(c => c.n === fila.companera && c.cid === undefined);
+    const pair = fila.companera && fila.hsb_nuevo && output[fila.sistema_hsb]?.comps.find(c => (c.n === fila.companera || c.compuesto === fila.companera) && c.cid === undefined);
     const nueva = todasPorId.get(Number(fila.hsb_nuevo)), root = byId.get(Number(fila.sistema_hsb));
     if (!pair || !nueva || !root) continue;
-    const limite = 3 * (pair.k === 'o' ? pair.a * (1 + pair.e) : pair.rho) / root.d + 5;
+    // Una estrella que era un punto ancho compuesto (Keid B, antes «BC») se busca a la separación de ese punto.
+    const limite = 3 * (pair.rhoCompuesto ?? (pair.k === 'o' ? pair.a * (1 + pair.e) : pair.rho)) / root.d + 5;
     if (separacionArcsec(root, nueva) > limite || Math.abs(nueva.d - root.d) / root.d >= 0.25) { counts.hsbLejos = (counts.hsbLejos || 0) + 1; continue; }
     pair.cid = Number(fila.hsb_nuevo); counts.hsbCompanions = (counts.hsbCompanions || 0) + 1;
   }
 }
+for (const entry of Object.values(output)) for (const pair of entry.comps) { delete pair.compuesto; delete pair.rhoCompuesto; }
+// ---------- Raíz invertida ----------
+// La primaria de Hoshi puede ser la «B» del WDS (θ¹ Tau: el WDS llama A a θ² Tau, más brillante). Se nota porque el
+// catálogo pone a la compañera B a unos 180° del ángulo medido. Entonces se intercambian A y B en el sistema: la
+// compañera queda en θ + 180° y lo que el WDS colgaba de B (órbita Ba,Bb, par BC) cuelga de la primaria.
+const anguloDePosicion = (desde, hacia) => {
+  const d = Math.hypot(desde.x, desde.y, desde.z), h = Math.hypot(hacia.x, hacia.y, hacia.z);
+  const ra = Math.atan2(desde.y, desde.x), dec = Math.asin(desde.z / d);
+  const dx = hacia.x / h - desde.x / d, dy = hacia.y / h - desde.y / d, dz = hacia.z / h - desde.z / d;
+  const este = -dx * Math.sin(ra) + dy * Math.cos(ra);
+  const norte = -dx * Math.sin(dec) * Math.cos(ra) - dy * Math.sin(dec) * Math.sin(ra) + dz * Math.cos(dec);
+  return (Math.atan2(este, norte) * 180 / Math.PI + 360) % 360;
+};
+const invertidas = [];
+for (const [id, entry] of Object.entries(output)) {
+  const root = todasPorId.get(Number(id));
+  const b = entry.comps.find(c => c.n === 'B' && c.of === 'A' && c.k !== 'o' && c.cid !== undefined && Number.isFinite(c.theta));
+  const otra = b && todasPorId.get(b.cid);
+  if (!root || !otra || ![root, otra].every(e => [e.x, e.y, e.z].every(Number.isFinite))) continue;
+  const diferencia = Math.abs(((anguloDePosicion(root, otra) - b.theta + 540) % 360) - 180);
+  // Solo si nada más se mide desde la A del WDS: si no, cambiar las letras mezclaría medidas de las dos estrellas.
+  if (diferencia < 150 || entry.comps.some(c => c !== b && c.of === 'A')) continue;
+  b.theta = (b.theta + 180) % 360;
+  [b.v1, b.v] = [b.v, b.v1];
+  if (b.v === undefined) delete b.v;
+  if (b.v1 === undefined) delete b.v1;
+  delete b.sp;
+  const cambiar = letra => (letra === 'A' ? 'B' : letra === 'B' ? 'A' : letra);
+  for (const pair of entry.comps) if (pair !== b) pair.of = cambiar(pair.of);
+  for (const item of entry.hidden || []) item.of = cambiar(item.of);
+  invertidas.push(`${root.n || id} (${entry.wds})`);
+}
+console.log(`Órbitas sin HIP/HD unidas por el WDS: ${counts.porWds || 0}.`);
+console.log(`Raíz invertida: ${invertidas.length} sistemas con A y B intercambiadas (${invertidas.slice(0, 40).join('; ')}).`);
 // ---------- Limpieza ----------
 // 1) Compañeras que en realidad son exoplanetas ya listados (β Pic Ab = bet Pic b, HN Peg B = HN Peg b): la anfitriona
 //    del sistema tiene en la NASA (pscomppars) un planeta de la misma componente a la misma separación (±30 %), y la compañera no tiene registro

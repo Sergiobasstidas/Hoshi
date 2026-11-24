@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { colorLegible, temperatureColor } from './scene/stellarPhysics';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { indiceBusqueda } from './indiceBusqueda';
@@ -11,8 +11,9 @@ import { useTiposRevisados } from './useTiposRevisados';
 import { useTextosFichas } from './useTextosFichas';
 import { tipoEstelar } from './tipoEstelar';
 import { orbitaCompleta } from './scene/orbitasPar';
-import { gruposSistema } from './scene/gruposSistema';
-import EsquemaSistema from './EsquemaSistema';
+import MapaSistema from './MapaSistema';
+import { fraseOcultas, mapaSistema, tiempoLuz } from './scene/mapaSistema';
+import { anoActual } from './scene/orbitasPar';
 import { nombreEstrella, nombreEstrellaCrudo, nombreParaMostrar } from './scene/nombresEstrella';
 import { useTitulos } from './scene/titulos';
 import { GENITIVOS } from './scene/starSearch';
@@ -50,10 +51,11 @@ function componentesDelSistema(star) {
   }))].filter(miembro => miembro.star !== star);
 }
 
-// Sistema de la estrella: un esquema con la pareja que se orbita y las compañeras lejanas, y debajo los
-// dos grupos con sus nombres. Si el sistema no se puede agrupar (sin datos del par), queda la lista simple.
-function SeccionSistema({ star, miembros, onVerComponente, onVerOrbitas }) {
-  const { pares, lejanas } = gruposSistema(star.system || star.sistemaDe);
+// Sistema de la estrella: el mapa del cielo a escala (MapaSistema.jsx) y debajo, en palabras, cada órbita y
+// a qué distancia está cada estrella de la que se está viendo. Sin datos para el mapa, queda la lista simple.
+function SeccionSistema({ star, miembros, onVerComponente, onVerOrbitas, cumulo }) {
+  const sistema = star.system || star.sistemaDe;
+  const mapa = useMemo(() => mapaSistema(sistema, anoActual()), [sistema]);
   const esActual = m => m.star === star;
   // Cada nombre en el color de su estrella en el cielo; la de la ficha, en negrita y sin enlace.
   const nombreDe = m => {
@@ -61,30 +63,48 @@ function SeccionSistema({ star, miembros, onVerComponente, onVerOrbitas }) {
     return esActual(m) ? <strong className="ficha-sistema-actual" style={color}>{m.nombre}</strong>
       : <button className="ficha-sistema-enlace ficha-sistema-nombre" style={color} onClick={() => onVerComponente(m.star, m.nombre)}>{m.nombre}</button>;
   };
-  const parEsquema = pares.find(p => p.periodo && p.a) || null;
-  const lejanasEsquema = lejanas.filter(l => !parEsquema || l.par === parEsquema || l.de === parEsquema.uno);
-  const conEsquema = (parEsquema || lejanasEsquema.length) && lejanasEsquema.length <= 3;
-  if (!pares.length && !lejanas.length) return <section>
+  if (!mapa || mapa.estrellas.length < 2) return <section>
     <h3>Sistema</h3>
     <ul className="ficha-estrella-planetas ficha-estrella-miembros">
       {miembros.map(miembro => <li key={miembro.star.i}><button onClick={() => onVerComponente(miembro.star, miembro.nombre)}>{mostrar(miembro.nombre)}</button>
         {miembro.detalle && <small>{miembro.detalle}</small>}</li>)}
     </ul>
   </section>;
+  const aqui = mapa.estrellas.find(e => e.star === star) || mapa.porLetra.A;
+  // Con distancias iguales, la estrella padre antes que su compañera (Alcor antes que Alcor B).
+  const profundidad = e => { let n = 0; for (let x = e; x?.de; x = mapa.porLetra[x.de]) n++; return n; };
+  const anchas = mapa.estrellas.filter(e => e.de && !mapa.pares.some(p => p.otro === e.letras[0]));
+  const anos = anchas.map(e => e.pair.year).filter(Boolean);
+  const periodo = anos => anos < 1 ? `${numero(anos * 365.25, 3)} días` : `${numero(anos, 3)} años`;
+  // En un cúmulo, compañeras anchas sin órbita son vecinas: no se sabe si giran juntas.
+  const vecinas = cumulo && mapa.pares.length === 0;
   return <section className="ficha-sistema">
-    <h3>Sistema</h3>
-    {conEsquema && <EsquemaSistema par={parEsquema} lejanas={parEsquema ? lejanasEsquema : lejanasEsquema.slice(0, 3)} actual={star} />}
-    <ul className="ficha-sistema-arbol">
-      {pares.map(p => <li key={p.clave}>
-        <p>{nombreDe(p.uno)} <span className="ficha-sistema-signo" aria-label="se orbita con">⟲</span> {nombreDe(p.otro)}</p>
-        {p.periodo && p.a && <small>Se orbitan cada {numero(p.periodo, 3)} años (distancia media {numero(p.a, 2)} UA)</small>}
-        {onVerOrbitas && orbitaCompleta(p.pair) && <button className="ficha-sistema-enlace ficha-sistema-orbitas" onClick={() => onVerOrbitas(p.clave, [p.uno.nombre, p.otro.nombre])}>Ver órbitas</button>}
-      </li>)}
-      {lejanas.map(l => <li key={l.miembro.star.i}>
-        <p>{nombreDe(l.miembro)}</p>
-        <small>{l.par ? 'Viaja con el par' : <>Viaja junto a {nombreDe(l.de)}</>}{l.rho && ` · ${numero(l.rho, 2)} UA`}</small>
+    <h3>{vecinas ? 'Vecinas' : 'Sistema'}</h3>
+    <MapaSistema mapa={mapa} actual={star} />
+    <ul className="ficha-sistema-lista">
+      {mapa.pares.map(par => {
+        const uno = mapa.porLetra[par.uno], otro = mapa.porLetra[par.otro];
+        const hoy = Math.hypot(otro.este - uno.este, otro.norte - uno.norte);
+        return <li key={`${par.uno}>${par.otro}`}>
+          <p>{nombreDe(otro)} gira en torno a {nombreDe(uno)} cada {periodo(par.periodo)}.</p>
+          <small>Hoy se ven a {numero(hoy, 2)} UA; {numero(par.pair.a * (1 - par.pair.e), 2) === numero(par.pair.a * (1 + par.pair.e), 2)
+            ? `en su órbita real están siempre a unas ${numero(par.pair.a, 2)} UA.`
+            : `en su órbita real van de ${numero(par.pair.a * (1 - par.pair.e), 2)} a ${numero(par.pair.a * (1 + par.pair.e), 2)} UA.`}</small>
+          {onVerOrbitas && orbitaCompleta(par.pair) && <button className="ficha-sistema-enlace ficha-sistema-orbitas" onClick={() => onVerOrbitas(`${par.uno}>${par.otro}`, [uno.nombre, otro.nombre])}>Ver órbitas</button>}
+        </li>;
+      })}
+      {mapa.estrellas.filter(e => e !== aqui).map(e => ({ e, ua: Math.hypot(e.este - aqui.este, e.norte - aqui.norte) }))
+        .sort((x, y) => x.ua - y.ua || profundidad(x.e) - profundidad(y.e)).map(({ e, ua }) => {
+        return <li key={e.letras.join('/')}>
+          <p>{nombreDe(e)}{e.letras.length > 1 && <span className="ficha-sistema-signo"> ({e.letras.join('/')})</span>} · a {numero(ua, 2)} UA · {tiempoLuz(ua)}</p>
+        </li>;
+      })}
+      {mapa.estrellas.filter(e => e.ocultas.length).map(e => <li key={`ocultas-${e.letras[0]}`}>
+        <p>+{e.ocultas.length} · {fraseOcultas(e.nombre, e.ocultas)}</p>
       </li>)}
     </ul>
+    {vecinas && <p className="ficha-sistema-nota">{mapa.porLetra.A.nombre} es parte de {/^(Pléyades|Híades)$/.test(cumulo.nombre) ? `las ${cumulo.nombre}` : cumulo.nombre}, un cúmulo de {cumulo.miembros >= 1000 ? 'más de mil' : `unas ${cumulo.miembros}`} estrellas que viajan juntas: verse cerca no prueba que giren juntas. No se sabe.</p>}
+    <p className="ficha-sistema-nota">Como en un mapa del cielo: norte arriba, este a la izquierda.{anos.length > 0 && ` Distancias medidas en el cielo (${Math.min(...anos) === Math.max(...anos) ? Math.min(...anos) : `${Math.min(...anos)}–${Math.max(...anos)}`}): las reales pueden ser mayores.`}</p>
   </section>;
 }
 
@@ -153,7 +173,7 @@ function ComparacionSol({ nombre, radio, temperatura }) {
 
 // Página de la estrella seleccionada dentro de la ficha lateral.
 // `cumuloDe`: cúmulo globular del que es miembro ({ nombre, d }): se muestra la distancia del cúmulo (build_globulares.js).
-export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas, irA, cumuloDe = null }) {
+export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlaneta, onVerComponente, onZona, onVerOrbitas, irA, cumuloDe = null, cumuloSistema = null }) {
   const { constelacion, hd, hip, hr, gliese, bd, irc, variable, gaia: gaiaBuscador } = useConstelacion(star.i);
   const fichas = useFichas();
   const mas = { ...fichas?.estrellas[star.i], ...fichas?.anfitrionas[star.planetary?.[0]?.name] };
@@ -217,7 +237,7 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
         {(hd || hip || bd || irc || gaia || variable) && <Dato etiqueta="Catálogos" valor={[variable, hd, hip, hr, gliese, bd, irc].filter(Boolean).join(' · ')} secundario={gaia ? `Gaia DR3 ${gaia}` : undefined} />}
       </dl>
       <MapaZonaHabitable star={star} nombre={nombre} fichas={fichas} planetas={planetas} temperatura={temperatura} masa={masa} comparar onMostrar={onZona} />
-      {miembros.length > 0 && <SeccionSistema star={star} miembros={miembros} onVerComponente={onVerComponente} onVerOrbitas={onVerOrbitas} />}
+      {miembros.length > 0 && <SeccionSistema star={star} miembros={miembros} onVerComponente={onVerComponente} onVerOrbitas={onVerOrbitas} cumulo={cumuloSistema} />}
       {planetas.length > 0 && <section>
         <h3>{planetas.length === 1 ? 'Un planeta conocido' : `${planetas.length} planetas conocidos`}</h3>
         <ul className="ficha-estrella-planetas">

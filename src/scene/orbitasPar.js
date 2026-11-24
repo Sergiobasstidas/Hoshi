@@ -17,9 +17,12 @@ export function masasMedidas(pair) {
   return (pair.mc === 'pub' || pair.mc === 'sb9') && pair.m1 > 0 && pair.m2 > 0 ? [pair.m1, pair.m2] : null;
 }
 
-// El par con órbita de la estrella, por el nombre del par en ORB6 (`clave`; sin ella, el primero con órbita completa),
+// El par con órbita de la estrella, por sus componentes (`clave` = «A>B», «B>Bb»: el código de ORB6 se repite, como
+// CIA 29 en Castor Ab y Bb; sin clave, el primero con órbita completa),
 // con los nombres de las dos estrellas (`nombres`, los de la ficha). Se guarda por sistema y par para que la página no
 // reinicie su animación en cada render.
+// Identidad de un par dentro de su sistema: desde qué componente y cuál.
+export const claveDePar = pair => `${pair.of}>${pair.n}`;
 const guardadas = new WeakMap();
 export function parConOrbita(star, clave = null, nombres = null) {
   const sistema = star?.system || star?.sistemaDe;
@@ -30,14 +33,14 @@ export function parConOrbita(star, clave = null, nombres = null) {
   return pares.get(clave);
 }
 function crearPar(sistema, clave, nombres) {
-  const componente = sistema.components.find(c => orbitaCompleta(c.pair) && (clave === null || c.pair.pair === clave));
+  const componente = sistema.components.find(c => orbitaCompleta(c.pair) && (clave === null || claveDePar(c.pair) === clave));
   if (!componente) return null;
   const { pair } = componente, primaria = sistema.star;
   const padre = pair.of === 'A' ? null : sistema.components.find(c => c.name === pair.of);
   const estrellaPrincipal = padre ? estrellaDeComponente(sistema, padre) : primaria;
   const nombrePrincipal = nombres?.[0] || nombreEstrella(estrellaPrincipal) || 'Estrella principal';
   return {
-    clave: `${primaria.i}:${pair.pair}`,
+    clave: `${primaria.i}:${claveDePar(pair)}`,
     primaria: { star: estrellaPrincipal, nombre: nombrePrincipal },
     companera: { star: estrellaDeComponente(sistema, componente), nombre: nombres?.[1] || nombreEstrella(estrellaDeComponente(sistema, componente)) },
     periodo: pair.p / DIAS_ANO, periastro: mjdAAno(pair.t), e: pair.e, a: pair.a,

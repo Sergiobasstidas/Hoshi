@@ -898,6 +898,10 @@ export default function App() {
   const datosCumulosFicha = useCumulos(Boolean(estrellaFicha));
   const globularDeFicha = useMemo(() => (estrellaFicha && datosCumulosFicha?.cumulos.find(c => c.tipo === 'globular' && c.ids.includes(estrellaFicha.i))) || null,
     [estrellaFicha, datosCumulosFicha]);
+  // Cúmulo al que pertenece la primaria del sistema de la ficha (sección «Sistema»: vecinas en el cúmulo).
+  const primariaFicha = (estrellaFicha?.system || estrellaFicha?.sistemaDe)?.star;
+  const cumuloDelSistema = useMemo(() => (primariaFicha && datosCumulosFicha?.cumulos.find(c => c.ids.includes(primariaFicha.i))) || null,
+    [primariaFicha, datosCumulosFicha]);
   const orbitasFicha = !fichaPlaneta && estrellaFicha && orbitasDe?.i === estrellaFicha.i ? parConOrbita(estrellaFicha, orbitasDe.clave, orbitasDe.nombres) : null;
   const nombreFicha = fichaPlaneta ? exoplanetBody.name : estrellaVista ? nombreVigente(estrellaVista.text, estrellaVista.star) || nombreEstrella(estrellaVista.star)
     : nombreVigente(panelBody?.name, panelBody?.star);
@@ -1068,7 +1072,7 @@ export default function App() {
           onVerEstrella={verEstrellaDesdeFicha} onVerPlaneta={body => { setDireccionFicha(1); focusBody(body); }} onZona={mostrarZona}
           irA={irASi(exoplanetBody === apuntadoVigente?.body)} />
           : estrellaFicha.capa ? <FichaCapa nombre={nombreFicha} datos={estrellaFicha.capa} irA={irASi(estrellaApuntada(estrellaFicha))} />
-          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irASi(estrellaApuntada(estrellaFicha)) || irAEstrellaVista} cumuloDe={globularDeFicha} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
+          : <FichaEstrella nombre={nombreFicha} star={estrellaFicha} irA={irASi(estrellaApuntada(estrellaFicha)) || irAEstrellaVista} cumuloDe={globularDeFicha} cumuloSistema={cumuloDelSistema} onVerPlaneta={verPlanetaDesdeFicha} onVerComponente={verComponenteDesdeFicha} onZona={mostrarZona}
             onVerOrbitas={(clave, nombres) => { setDireccionFicha(1); setOrbitasDe({ i: estrellaFicha.i, clave, nombres }); }}
             onVerSuperficie={() => visitBody(estrellaEnfocada ? panelBody : starBody(estrellaFicha, nombreFicha), true)}/>}
       </FichaLateral>}

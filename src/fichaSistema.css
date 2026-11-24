@@ -1,7 +1,22 @@
-/* Sección «Sistema» de la ficha de estrella (FichaEstrella.jsx) y su esquema (EsquemaSistema.jsx). */
-.esquema-sistema { display: block; width: 100%; height: auto; margin: 2px 0 6px; overflow: visible; }
-.esquema-sistema-dato { fill: #8fd3ff; font-size: 8.5px; letter-spacing: .02em; }
-.esquema-sistema-nombre { fill: #7f8b9b; font-size: 8.5px; }
+/* Sección «Sistema» de la ficha de estrella (FichaEstrella.jsx) y su mapa (MapaSistema.jsx). */
+.mapa-sistema { display: block; width: 100%; height: auto; margin: 2px 0 8px; overflow: visible; }
+.mapa-sistema text { font-family: inherit; }
+.mapa-sistema-nombre { fill: #9aa6b4; font-size: 8.5px; }
+.mapa-sistema-nombre.actual { fill: #eef3fa; font-weight: 600; }
+.mapa-sistema-ampliado { fill: #7f8b9b; font-size: 8px; letter-spacing: .04em; }
+.mapa-sistema-orbita { fill: none; stroke-opacity: .5; stroke-width: .8; }
+.mapa-sistema-sentido { fill: none; stroke-opacity: .85; stroke-width: .9; stroke-linecap: round; stroke-linejoin: round; }
+.mapa-sistema-recuadro { fill: #05080e; fill-opacity: .85; stroke: #ffffff; stroke-opacity: .16; }
+.mapa-sistema-acelerado { fill: #7f8b9b; font-size: 7.5px; }
+.mapa-sistema-oculta { fill: #8fd3ff; font-size: 7.5px; }
+.ficha-sistema-lista { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ficha-sistema-lista p { margin: 0; color: #9aa6b4; font-size: 12px; }
+.ficha-sistema-lista small { display: block; color: #7f8b9b; font-size: 10px; line-height: 1.5; }
+.mapa-sistema-grupo { fill: none; stroke: #ffffff; stroke-opacity: .35; stroke-width: .6; stroke-dasharray: 1.5 1.5; }
+.mapa-sistema-regla path, .mapa-sistema-compas path { fill: none; stroke: #7f8b9b; stroke-width: .7; }
+.mapa-sistema-regla text, .mapa-sistema-compas text { fill: #7f8b9b; font-size: 7.5px; }
+.ficha-sistema-arbol ul { margin: 6px 0 0; padding: 0; list-style: none; }
+.ficha-sistema-nota { margin: 4px 0 0; color: #6b7686; font-size: 10px; line-height: 1.5; }
 .ficha-sistema-arbol { margin: 8px 0 0; padding: 0; list-style: none; }
 .ficha-sistema-arbol li { position: relative; padding: 0 0 10px 16px; }
 .ficha-sistema-arbol li::before { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; border-left: 1px solid #ffffff22; }

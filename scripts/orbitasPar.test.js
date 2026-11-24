@@ -49,3 +49,14 @@ test('Ver órbitas: con masas medidas giran en torno al centro de masa; sin ella
   const msc = Object.values(systems).flatMap(s => s.comps).find(c => c.k === 'o' && c.mc === 'vv' && c.pair !== 'RHD 1');
   assert.equal(masasMedidas(msc), null);
 });
+
+test('Castor: «Ver órbitas» de Bb abre la de Bb aunque comparta el código CIA 29 con Ab', async () => {
+  const { claveDePar } = await import('../src/scene/orbitasPar.js');
+  const datos = JSON.parse(readFileSync(new URL('../data/processed/star_systems.json', import.meta.url), 'utf8'));
+  const comps = datos['735275'].comps;
+  const sistemaCastor = { star: { i: 735275, n: 'Castor' }, components: comps.map(c => ({ name: c.n, pair: c, companion: { i: `c${c.n}`, n: `Castor ${c.n}` } })) };
+  const bb = comps.find(c => c.n === 'Bb');
+  const orbitaBb = parConOrbita({ system: sistemaCastor }, claveDePar(bb));
+  assert.equal(orbitaBb.companera.nombre, 'Castor Bb');
+  assert.ok(Math.abs(orbitaBb.periodo * 365.25 - bb.p) < 1e-6);
+});
