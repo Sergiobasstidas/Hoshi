@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// Ruido 3D de n³ para los grumos del polvo de la opción B (galaxiaShaders.js): gaussiana de media 0 y σ 1 suavizada con
+// Ruido 3D de n³ para los grumos del polvo de la galaxia (galaxiaShaders.js): gaussiana de media 0 y σ 1 suavizada con
 // un vecindario 3×3×3 periódico y vuelta a normalizar, guardada como gaussiana/6 + 0,5 en un canal de 8 bits.
 export function valoresRuido3D(n = 64, semilla = 1873) {
   let s = semilla >>> 0;

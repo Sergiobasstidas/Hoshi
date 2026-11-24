@@ -15,7 +15,7 @@ Sitio: [hoshi-map.pages.dev](https://hoshi-map.pages.dev/). Cómo se calcula tod
 - **Sistemas planetarios:** 6.125 exoplanetas de 4.533 sistemas, con órbitas y radios a escala. La ficha indica qué valores son medidos y cuáles supuestos. Se puede viajar a cada planeta.
 - **Mapa de exoplanetas:** el botón «Exoplanetas» atenúa estrellas y galaxia y marca los 12.134 sistemas con planetas confirmados o candidatos del NASA Exoplanet Archive, con filtros por estado, tipo de planeta y misión.
 - **Sistemas múltiples:** 5.786 sistemas que se separan en sus componentes al acercarse, con órbitas publicadas y, cuando hay masas, las dos estrellas girando en torno a su centro común.
-- **Vía Láctea:** reconstrucción con volumen a partir de la imagen de ESA/Gaia, centro galáctico y posición del Sol.
+- **Vía Láctea:** desde fuera, la imagen de ESA/Gaia con volumen de partículas; dentro del disco, nubes de gas y polvo con grosor de un modelo armado con mediciones publicadas (brazos, barra, bulbo, gas y polvo). Centro galáctico y posición del Sol.
 - **Mapa de púlsares:** los 14 púlsares de las placas Pioneer y Voyager.
 - **Navegación:** buscador por nombre e identificadores, escala lateral, viajes suaves entre escalas y vuelo libre.
 

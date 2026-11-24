@@ -1,9 +1,9 @@
-// src/scene/galaxiaModelo.js (rama f7-prototipos). Funciones puras, sin dibujo: las usan GalaxiaVolumen.jsx (presupuesto
-// de muestras, punto negro, uniforms), galaxiaShaders.js (mismas constantes en GLSL) y las pruebas.
+// Modelo del volumen de la galaxia. Funciones puras, sin dibujo: las usan GalaxiaVolumen.jsx y galaxiaCuadro.js (presupuesto
+// de muestras, punto negro, uniforms), MilkyWay.jsx (cruce con la imagen), galaxiaShaders.js (mismas constantes en GLSL) y las pruebas.
 // Marco galactocéntrico de Hoshi en kpc: x del Sol hacia el centro (GALACTIC_X), y sentido de giro (GALACTIC_Y),
 // z polo norte galáctico (GALACTIC_Z). El Sol está en (−8,121973; 0; +0,0208).
-import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC, galaxyOpacity } from './galaxy.js';
-import { LIGHT_YEAR_PC, smoothRange } from './scale.js';
+import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC } from './galaxy.js';
+import { smoothRange } from './scale.js';
 
 export const SOL_KPC = [-8.121973, 0, 0.0208];
 export const ANCHO_PLANTA_KPC = GALAXY_IMAGE_WIDTH_PC / 1000;            // 40,61 kpc, igual que el plano de hoy
@@ -13,7 +13,7 @@ export const PERFIL = {
   hGrueso: 0.90, fGruesoSol: 0.06, escalaFGrueso: 8.67, fGruesoMax: 0.4,  // BHG16: 900 ± 180 pc; fracción de luz local con las masas de BHG16 y Υ 1,5/3
   hJoven: 0.048,                                                          // Bobylev y Bajkova 2016: HII 48 pc, OB 40 pc
   bulbo: { ax: 0.70, ay: 0.44, az: 0.18, xX: 1.5, anchoX: 0.5, amplitudX: 1.2, s50: 2.2 }, // Wegg y Gerhard 2013; BHG16 (la X es ilustrativa)
-  hPolvo: 0.103,                                                          // Li et al. 2018 (opción A y C)
+  hPolvo: 0.103,                                                          // Li et al. 2018; solo si el mapa no da la altura del polvo
   ensanche: { escala: 7.18, tope: 3 },                                    // Uppal et al. 2024 (arXiv:2311.09616), grumo rojo
   alabeo: { a: 0.060, r0: 7.72, potencia: 1.33, fase: 17.5 },             // Chen et al. 2019 (cefeidas)
   burbuja: [0.08, 0.20],                                                  // Burbuja Local (Pelgrims et al. 2020; Zucker et al. 2022), kpc
@@ -25,7 +25,7 @@ export const PASOS_TOPE_GLSL = 64;                                         // to
 export const PRESUPUESTO = { pc: 8e6, tel: 3e6, quieto: 4 };              // muestras por cuadro; ×4 una vez con la cámara quieta
 export const ESCALAS = [0.25, 0.33, 0.5, 0.6, 0.75, 1];
 export const TONO = { hombro: 0.8, factorFuera: 0.64, factorDentro: 0.85, interiorZ: [0.3, 3.0], interiorR: [16, 20] };
-export const POLVO_B = { hMin: 0.04, hMax: 0.20 };                         // canal G del mapa de polvo de B: altura del polvo
+export const POLVO_B = { hMin: 0.04, hMax: 0.20 };                         // canal G del mapa de polvo: altura del polvo
 export const GRUMOS = { sigma: 0.8, celda: 0.12, escala1: 7.68, escala2: 3.84, desfase2: 0.37, peso2: 0.7, norma: 1.22 };
 
 const ss = smoothRange;
@@ -61,12 +61,6 @@ export function hBulbo(x, y, phi) {
   const [xb] = ejesBarra(x, y, phi), B = PERFIL.bulbo, q = (Math.abs(xb) - B.xX) / B.anchoX;
   return B.az * (1 + B.amplitudX * Math.exp(-q * q));
 }
-// Rampa de entrada del volumen: «hoy» = galaxyOpacity (1.800 → 7.000 al); «temprana» = logarítmica 1.500 → 5.000 al.
-export function rampaGalaxia(dPc, tipo = 'hoy') {
-  if (tipo === 'temprana') return ss(Math.log10(dPc / LIGHT_YEAR_PC), Math.log10(1500), Math.log10(5000));
-  return galaxyOpacity(dPc);
-}
-export const UMBRAL_PASE = 0.005;     // por debajo, el pase no se dibuja (a 2.000 al la rampa de hoy vale 0,0043)
 // Posición de la cámara en kpc galactocéntricos, restada en doble precisión (camera.position + origin − centro).
 export function camaraGalactica(position, origin) {
   const g = [position.x + origin[0] - GALAXY_CENTER[0], position.y + origin[1] - GALAXY_CENTER[1], position.z + origin[2] - GALAXY_CENTER[2]];
@@ -126,8 +120,8 @@ export function pasosMedios(o, base, tan, opciones) {
   return suma / 40;
 }
 // Gemela en JS del sombreador de marcha (pruebas y punto negro).
-// mapa(x, y) → { E: [r,g,b] lineal ya multiplicado por corrección de columna, bordes y uLuz, tau, fJoven, hPolvo }.
-// fuerzaCerca (opción C): 1 excluye la luz de los primeros 1,5–4 kpc como en A y B; 0 no la excluye.
+// mapa(x, y) → { E: [r,g,b] lineal ya multiplicado por escalaE y el borde, tau, fJoven, hPolvo }.
+// fuerzaCerca: 1 excluye la luz de los primeros 1,5–4 kpc; 0 no la excluye.
 export function integrarRayo(o, d, mapa, { nMax = 400, dh = 1.0, barra = -18.1 * D2R, cerca = true, fuerzaCerca = 1, jitter = 0.5, grumos = null } = {}) {
   const iv = intervaloLosa(o, d); if (!iv) return { C: [0, 0, 0], T: [1, 1, 1], n: 0 };
   let t = Math.max(iv[0], PASO.tMin);
@@ -169,7 +163,7 @@ export function integrarRayo(o, d, mapa, { nMax = 400, dh = 1.0, barra = -18.1 *
 export const TAU_CODIGO = { t0: 0.01, max: 32 };
 export const codificarTau = tau => Math.log1p(Math.max(0, tau) / TAU_CODIGO.t0) / Math.log1p(TAU_CODIGO.max / TAU_CODIGO.t0);
 export const decodificarTau = r => TAU_CODIGO.t0 * Math.expm1(r * Math.log1p(TAU_CODIGO.max / TAU_CODIGO.t0));
-// Altura del polvo de B guardada en el canal G (0–1) de f7-modelo-polvo.png.
+// Altura del polvo guardada en el canal G (0–1) de galaxia-polvo.png.
 export const codificarHPolvo = h => (h - POLVO_B.hMin) / (POLVO_B.hMax - POLVO_B.hMin);
 export const decodificarHPolvo = g => POLVO_B.hMin + (POLVO_B.hMax - POLVO_B.hMin) * g;
 
@@ -225,50 +219,54 @@ export function parametrosCuadro({ camara, origin, lienzo, telefono = false, qui
 }
 
 // ---- Mapa en la CPU (copias de 256² de las texturas) para el punto negro ----
-// emision, polvo: RGBA de getImageData (fila 0 arriba, igual que la imagen); n: lado. modeloB: true en la opción B.
+// emision, polvo: RGBA de getImageData (fila 0 arriba, igual que la imagen); n: lado.
 const lin = c => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
-// anillos (de anillosPlanta) y sinBrazos ∈ [0, 1] (opción C): mezcla la planta con el promedio de su anillo antes de escalarla,
-// igual que el sombreador, para que el punto negro de la CPU coincida con la GPU.
-export function crearMapaCpu({ emision, polvo, n, modeloB = false, escalaE = 1, luz = 1, anillos = null, sinBrazos = 0 }) {
-  const W = ANCHO_PLANTA_KPC;
+function lectorBilineal(n) {
   const leer = (datos, px, py, k) => datos[4 * (Math.min(n - 1, Math.max(0, py)) * n + Math.min(n - 1, Math.max(0, px))) + k];
-  const bilineal = (datos, u, v, k, f = x => x) => {
+  return (datos, u, v, k, f = x => x) => {
     const x = u * n - 0.5, y = v * n - 0.5, i = Math.floor(x), j = Math.floor(y), a = x - i, b = y - j;
     return (f(leer(datos, i, j, k)) * (1 - a) + f(leer(datos, i + 1, j, k)) * a) * (1 - b) + (f(leer(datos, i, j + 1, k)) * (1 - a) + f(leer(datos, i + 1, j + 1, k)) * a) * b;
   };
+}
+// Planta sin escalar en (x, y): emisión lineal, τ_V, altura del polvo y fracción joven.
+function plantaCruda(emision, polvo, bilineal, x, y) {
+  const u = 0.5 - y / ANCHO_PLANTA_KPC, v = 0.5 - x / ANCHO_PLANTA_KPC;
+  const r = bilineal(polvo, u, v, 0) / 255, g = bilineal(polvo, u, v, 1) / 255, b = bilineal(polvo, u, v, 2) / 255;
+  return { E: [0, 1, 2].map(k => bilineal(emision, u, v, k, lin)), tau: decodificarTau(r), hPolvo: decodificarHPolvo(g), fJoven: 0.8 * b };
+}
+// anillos (de anillosPlanta) y sinBrazos ∈ [0, 1]: mezcla la planta con el promedio de su anillo antes de escalarla, igual que
+// el sombreador, para que el punto negro de la CPU coincida con la GPU.
+export function crearMapaCpu({ emision, polvo, n, escalaE = 1, anillos = null, sinBrazos = 0 }) {
+  const bilineal = lectorBilineal(n);
   return (x, y) => {
-    const u = 0.5 - y / W, vImg = 0.5 - x / W, vTex = 1 - vImg;
-    const borde1 = 1 - ss(Math.hypot(u - 0.5, vTex - 0.5), 0.42, 0.50);
-    const borde2 = modeloB ? 1 : ss(Math.hypot((u - 0.5) * 1.3, vTex - 0.945), 0.045, 0.075);
-    const r = bilineal(polvo, u, vImg, 0) / 255, g = bilineal(polvo, u, vImg, 1) / 255, b = bilineal(polvo, u, vImg, 2) / 255;
-    const corr = EXT_RGB.map(e => (modeloB ? 1 : Math.min((1 + 2 * g) ** e, 1 / 0.35)));
-    let E0 = [0, 1, 2].map(k => bilineal(emision, u, vImg, k, lin));
-    let tau = decodificarTau(r), fJoven = 0.8 * b, hPolvo = modeloB ? decodificarHPolvo(g) : PERFIL.hPolvo;
+    let { E, tau, hPolvo, fJoven } = plantaCruda(emision, polvo, bilineal, x, y);
     if (anillos && sinBrazos > 0) {
       const a = leerAnillo(anillos, Math.hypot(x, y)), m = (p, q) => p + (q - p) * sinBrazos;
-      E0 = E0.map((v, k) => m(v, a.E[k])); tau = m(tau, a.tau); hPolvo = m(hPolvo, a.hPolvo); fJoven = m(fJoven, a.fJoven);
+      E = E.map((v, k) => m(v, a.E[k])); tau = m(tau, a.tau); hPolvo = m(hPolvo, a.hPolvo); fJoven = m(fJoven, a.fJoven);
     }
-    const E = E0.map((v, k) => v * escalaE * corr[k] * borde1 * borde2 * luz);
-    return { E, tau, fJoven, hPolvo };
+    const borde = 1 - ss(Math.hypot(y, x) / ANCHO_PLANTA_KPC, 0.42, 0.50);
+    return { E: E.map(v => v * escalaE * borde), tau, fJoven, hPolvo };
   };
 }
 
-// ---- Opción C: la foto de hoy por fuera y el volumen de B dentro del disco ----
-// Tramos en kpc: W baja de 1 a 0 entre z' = 0,5 y 1,5 y entre R = 15 y 20; los brazos se cambian por el promedio de su
-// anillo entre z' = 0,3 y 0,7; la exclusión de la luz cercana pierde fuerza entre z' = 0,3 y 0,9 (con 0,15 quedaba un velo gris; para que, mirando hacia
-// abajo a ~1 kpc, el disco cercano no quede negro mientras la foto todavía no entra). Ajustables por URL en la rama.
-export const CRUCE_C = { z: [0.5, 1.5], r: [15, 20], sinBrazos: [0.3, 0.7], cerca: [0.3, 0.9] };
-// Altura sobre el plano medio alabeado de B. Más allá de 16 kpc se usa el alabeo a 16 kpc (la fórmula crece sin límite).
+// ---- Cruce entre la imagen plana (fuera del disco) y el volumen (dentro) ----
+// Tramos en kpc: W baja de 1 a 0 entre z' = 0,5 y 1,5 y entre R = 15 y 20. Los brazos del volumen se cambian por el promedio de
+// su anillo entre z' = 0,3 y 0,6 y entre R = 13 y 15: así, donde la imagen ya pesa (más de 0,05), el volumen ya no tiene brazos
+// y nunca se ven dos espirales a la vez (con 0,3–0,7 y sin el tramo en R, a z' ≈ 0,63 y entre R = 15 y 20 se veían las dos).
+// La exclusión de la luz cercana pierde fuerza entre z' = 0,3 y 0,9, para que mirando hacia abajo a ~1 kpc el disco cercano no
+// quede negro mientras la imagen todavía no entra (con 0,15 quedaba un velo gris).
+export const CRUCE = { z: [0.5, 1.5], r: [15, 20], sinBrazos: [0.3, 0.6], sinBrazosR: [13, 15], cerca: [0.3, 0.9] };
+// Altura sobre el plano medio alabeado del disco. Más allá de 16 kpc se usa el alabeo a 16 kpc (la fórmula crece sin límite).
 export function alturaPlanoMedio(cam) {
   const R = Math.hypot(cam[0], cam[1]), k = Math.min(1, 16 / Math.max(R, 1e-9));
   return Math.abs(cam[2] - alabeo(cam[0] * k, cam[1] * k));
 }
-// cam: posición galactocéntrica en kpc (camaraGalactica, en doble precisión). W: peso del volumen (la foto recibe 1 − W).
-export function pesoVolumenC(cam, tramos = CRUCE_C) {
+// cam: posición galactocéntrica en kpc (camaraGalactica, en doble precisión). W: peso del volumen (la imagen recibe 1 − W).
+export function pesoVolumen(cam, tramos = CRUCE) {
   const R = Math.hypot(cam[0], cam[1]), z = alturaPlanoMedio(cam);
   return {
     W: (1 - ss(z, ...tramos.z)) * (1 - ss(R, ...tramos.r)),
-    sinBrazos: ss(z, ...tramos.sinBrazos),
+    sinBrazos: Math.max(ss(z, ...tramos.sinBrazos), ss(R, ...tramos.sinBrazosR)),
     fuerzaCerca: 1 - ss(z, ...tramos.cerca),
     z, R,
   };
@@ -277,23 +275,15 @@ export function pesoVolumenC(cam, tramos = CRUCE_C) {
 // mismas copias de 256² que crearMapaCpu. Devuelve n·2·4 valores: fila 0 = [E_r, E_g, E_b, 1], fila 1 = [τ, hPolvo, fJoven, 1];
 // el anillo i va de i/n a (i + 1)/n de RMAX_ANILLOS.
 export const RMAX_ANILLOS = ANCHO_PLANTA_KPC / 2;
-export function anillosPlanta({ emision, polvo, n, modeloB = false, nAnillos = 128, nAngulos = 512 }) {
-  const W = ANCHO_PLANTA_KPC;
-  const leer = (datos, px, py, k) => datos[4 * (Math.min(n - 1, Math.max(0, py)) * n + Math.min(n - 1, Math.max(0, px))) + k];
-  const bilineal = (datos, u, v, k, f = x => x) => {
-    const x = u * n - 0.5, y = v * n - 0.5, i = Math.floor(x), j = Math.floor(y), a = x - i, b = y - j;
-    return (f(leer(datos, i, j, k)) * (1 - a) + f(leer(datos, i + 1, j, k)) * a) * (1 - b) + (f(leer(datos, i, j + 1, k)) * (1 - a) + f(leer(datos, i + 1, j + 1, k)) * a) * b;
-  };
+export function anillosPlanta({ emision, polvo, n, nAnillos = 128, nAngulos = 512 }) {
+  const bilineal = lectorBilineal(n);
   const datos = new Float32Array(nAnillos * 2 * 4);
   for (let i = 0; i < nAnillos; i++) {
     const R = (i + 0.5) / nAnillos * RMAX_ANILLOS;
     const suma = [0, 0, 0, 0, 0, 0];
     for (let k = 0; k < nAngulos; k++) {
-      const th = (k + 0.5) / nAngulos * 2 * Math.PI, x = R * Math.cos(th), y = R * Math.sin(th);
-      const u = 0.5 - y / W, v = 0.5 - x / W;
-      for (let c = 0; c < 3; c++) suma[c] += bilineal(emision, u, v, c, lin);
-      const r = bilineal(polvo, u, v, 0) / 255, g = bilineal(polvo, u, v, 1) / 255, b = bilineal(polvo, u, v, 2) / 255;
-      suma[3] += decodificarTau(r); suma[4] += modeloB ? decodificarHPolvo(g) : PERFIL.hPolvo; suma[5] += 0.8 * b;
+      const th = (k + 0.5) / nAngulos * 2 * Math.PI, p = plantaCruda(emision, polvo, bilineal, R * Math.cos(th), R * Math.sin(th));
+      [...p.E, p.tau, p.hPolvo, p.fJoven].forEach((v, c) => { suma[c] += v; });
     }
     const m = suma.map(v => v / nAngulos);
     datos.set([m[0], m[1], m[2], 1], 4 * i);

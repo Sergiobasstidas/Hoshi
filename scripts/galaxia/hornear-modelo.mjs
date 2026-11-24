@@ -1,12 +1,12 @@
-// Opción B de F7: hornea la planta del modelo publicado en el mismo formato que la opción A.
-// Uso: node scripts/f7/hornear-modelo.mjs [N=2048] [carpeta=public/textures/galaxy] [json=src/f7/modeloB.json] [mapasEsa=src/f7/mapasEsa.json]
-// Salidas: f7-modelo-emision.png (N², RGB sRGB, emisión sin polvo / E_max) y f7-modelo-polvo.png (N/2², RGB:
+// Hornea la planta del modelo publicado de la galaxia (src/scene/galaxiaMedida.js) para el volumen (GalaxiaVolumen.jsx).
+// Uso: node scripts/galaxia/hornear-modelo.mjs [N=2048] [carpeta=public/textures/galaxy] [json=src/scene/galaxiaHorneado.json]
+// Salidas: galaxia-emision.png (N², RGB sRGB, emisión sin polvo / E_max) y galaxia-polvo.png (N/2², RGB:
 //   R = codificarTau(τ_V de frente), G = codificarHPolvo(altura del polvo), B = f_joven/0,8).
 import fs from 'node:fs';
 import { pngRgb } from './png.mjs';
-import * as B from '../../src/scene/galaxiaModeloB.js';
+import * as B from '../../src/scene/galaxiaMedida.js';
 import { codificarTau, codificarHPolvo } from '../../src/scene/galaxiaModelo.js';
-const [N = 2048, carpeta = 'public/textures/galaxy', salidaJson = 'src/f7/modeloB.json', jsonA = 'src/f7/mapasEsa.json'] = process.argv.slice(2).map((v, i) => (i === 0 ? Number(v) : v));
+const [N = 2048, carpeta = 'public/textures/galaxy', salidaJson = 'src/scene/galaxiaHorneado.json'] = process.argv.slice(2).map((v, i) => (i === 0 ? Number(v) : v));
 const W = 8122 / 0.20 / 1000, texel = W / N, areaPc2 = (texel * 1000) ** 2;
 const coordenadas = (n, i) => { const v = Math.floor(i / n), u = i % n; return [-((v + 0.5) / n - 0.5) * W, -((u + 0.5) / n - 0.5) * W]; };
 // 1) Planta a resolución N.
@@ -51,8 +51,9 @@ function avAlCentro(Sc) {
 const av0 = avAlCentro(0), av1 = avAlCentro(1000);
 const Sc = Math.max(0, (25 - av0) / ((av1 - av0) / 1000));
 B.CMZ.Sc = Sc;
-// 5) Normalización con la opción A: misma luminancia media sin polvo en el anillo del Sol (7,6–8,6 kpc).
-const lumA = JSON.parse(fs.readFileSync(jsonA, 'utf8')).lumSol;
+// 5) Normalización: luminancia media sin polvo en el anillo del Sol (7,6–8,6 kpc) igual a la de la imagen ESA/Gaia
+// (gaia-milky-way-2025.jpg) en ese anillo, medida una vez: 0,097101.
+const lumA = 0.097101;
 let lumB = 0, nB = 0; for (let i = 0; i < N * N; i++) { const [x, y] = coordenadas(N, i), R = Math.hypot(x, y); if (R > 7.6 && R < 8.6) { lumB += 0.2126 * E[3 * i] + 0.7152 * E[3 * i + 1] + 0.0722 * E[3 * i + 2]; nB++; } }
 const kA = lumA / (lumB / nB);
 const maximos = Float32Array.from({ length: N * N }, (_, i) => Math.max(E[3 * i], E[3 * i + 1], E[3 * i + 2]) * kA).sort();
@@ -61,7 +62,7 @@ const oetf = v => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
 const q = v => Math.round(Math.min(1, Math.max(0, v)) * 255);
 const rgbE = new Uint8Array(3 * N * N);
 for (let i = 0; i < 3 * N * N; i++) rgbE[i] = q(oetf(Math.min(1, E[i] * kA / eMax)));
-fs.writeFileSync(`${carpeta}/f7-modelo-emision.png`, pngRgb(rgbE, N, N));
+fs.writeFileSync(`${carpeta}/galaxia-emision.png`, pngRgb(rgbE, N, N));
 // 6) Mapa de polvo a N/2 (promedio 2×2): τ codificado, altura del polvo (ponderada por el gas; la emisión ya es intrínseca), f_joven/0,8.
 const M = N / 2, rgbP = new Uint8Array(3 * M * M);
 for (let v = 0; v < M; v++) for (let u = 0; u < M; u++) {
@@ -69,7 +70,7 @@ for (let v = 0; v < M; v++) for (let u = 0; u < M; u++) {
   for (const [dv, du] of [[0, 0], [0, 1], [1, 0], [1, 1]]) { const i = (2 * v + dv) * N + 2 * u + du, [x, y] = coordenadas(N, i); tau += tauSinCmz[i] + B.AV_POR_MSOL_PC2 * B.sigmaCmz(x, y) / 1.0857; fj += fJoven[i]; h += B.hPolvoModelo(x, y); }
   const j = v * M + u; rgbP[3 * j] = q(codificarTau(tau / 4)); rgbP[3 * j + 1] = q(codificarHPolvo(h / 4)); rgbP[3 * j + 2] = q(fj / 4 / 0.8);
 }
-fs.writeFileSync(`${carpeta}/f7-modelo-polvo.png`, pngRgb(rgbP, M, M));
+fs.writeFileSync(`${carpeta}/galaxia-polvo.png`, pngRgb(rgbP, M, M));
 // 7) Comprobaciones (también en scripts/galaxia.test.js).
 const sigmaEstelar = B.discoR({ ...B.FINO }, B.R0) + B.discoR({ ...B.GRUESO }, B.R0);
 const gasSol = B.sigmaGas(B.HI, B.R0) + B.sigmaGas(B.H2, B.R0);

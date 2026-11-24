@@ -80,8 +80,6 @@ import MenuVer from './MenuVer';
 import ControlesComputador from './ControlesComputador';
 import { colorLegible, fisicaOficial } from './scene/stellarPhysics';
 import { fisicaDibujo } from './scene/fisicaDibujo';
-import ArnesF7 from './f7/ArnesF7';
-import { VISTA_F7 } from './f7/arnes';
 import FichaEstrella from './FichaEstrella';
 import FichaCapa from './FichaCapa';
 import { datosCapa, nombrePrincipal, posicionEnCapa } from './capaBusqueda';
@@ -953,8 +951,6 @@ export default function App() {
         onStart={() => { transitionRef.current = null; setSolApuntado(false); }} />}
       {!freeFlight && !traveling && !girandoEnfoque && <ZoomSuave controlsRef={controlsRef} />}
       {!freeFlight && !traveling && !girandoEnfoque && !apuntadoVigente?.enfoque && !centroOrbita && giraSola && <GiroLento controlsRef={controlsRef} />}
-      {VISTA_F7 && <ArnesF7 listo={catalogueStatus === 'ready'} traveling={traveling} freeFlight={freeFlight} origin={origin}
-        irGalaxia={libre => navigate(galaxyView(), { duration: 1e-6, arriveFree: libre })} />}
       <CameraNavigation view={view} showPulsars={showPulsars} transitionRef={transitionRef} origin={origin} onComplete={arriveFree => { setTraveling(false); setFreeFlight(arriveFree); document.activeElement?.blur(); }} />
       <ReanclarCamara origin={origin} activo={!view.journey} />
       <EnfoqueCamara pedido={enfoque} origin={origin} alGirar={alGirarEnfoque} alSoltar={alSoltarEnfoque} controlsRef={controlsRef} />

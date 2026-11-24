@@ -123,7 +123,9 @@ Capas del entorno solar, todas **ilustrativas** salvo sus distancias:
 | Cinturón de Kuiper | 30–50 UA | 22.000 puntos sintéticos |
 | Heliosfera | nariz ≈ 107 UA, hueco entre lóbulos ≈ 370 UA, lóbulos ≈ 510 UA (norte) y ≈ 800 UA (sur) | Heliopausa translúcida estática con la forma de «croissant» del modelo de Opher, digitalizada de los cortes meridional y ecuatorial publicados por Kornbleuth et al. (2021, ApJ 923, 179) e interpolada entre ambos, orientada al viento interestelar medido por IBEX (λ 255,8°, β +5,16°) y anclada a los cruces de las Voyager (121,6 UA en 2012 y 119,0 UA en 2018, posiciones de JPL Horizons). Los lóbulos y la cola son de modelo; la forma real sigue en debate |
 | Voyager 1 y 2, Pioneer 10 y 11 | ≈ 172, 144, 142 y 118 UA en octubre de 2026 | Posición de JPL Horizons en la fecha de carga; hexágono y cola ilustrativos (ver «Sondas») |
-| Nube de Oort | 2.000–100.000 UA | 140.000 partículas sintéticas |
+| Nube de Oort | 2.000–100.000 UA | 72.000 puntos sintéticos: densidad isótropa n ∝ r⁻³·⁵ aplanada por la marea galáctica (ver abajo) |
+
+**Nube de Oort** (`oort.js`, `OortCloud.jsx`). No hay mediciones directas de la nube: su forma sale de modelos. Las posiciones y su peso siguen la densidad n ∝ r⁻³·⁵ de Duncan, Quinn y Tremaine (1987): el radio se reparte de forma logarítmica entre 2.000 y 100.000 UA y cada punto pesa n(r)·r³. El brillo en pantalla, en cambio, está ajustado a propósito para que el núcleo no se sature y se vea el halo exterior: el peso se recorta a 1 y los puntos lejanos se realzan (0,3 + 2,7 veces una rampa entre 6.000 y 45.000 UA), así que el brillo cae más o menos como r⁻² y no como r⁻³·⁵, y el halo exterior se ve más brillante de lo que sería. Más allá de 50.000 UA la nube se aplana según la superficie de igual potencial de la marea galáctica (problema de Hill con las constantes de Oort A = 15,3 y B = −11,9 km/s/kpc de Bovy 2017 y la densidad local ρ₀ = 0,102 M☉/pc³ de Holmberg y Flynn 2000; radio de marea ≈ 283.000 UA, cálculo propio): a 100.000 UA el eje perpendicular al plano galáctico mide un 92 % del eje hacia el centro. El borde interior y la caída exterior son ilustrativos.
 
 ### Sondas
 
@@ -400,7 +402,12 @@ El botón «Exoplanetas» abre un modo inspirado en Eyes on Exoplanets de la NAS
 
 ## 10. Vía Láctea y púlsares
 
-**Galaxia** (`galaxy.js`, `MilkyWay.jsx`). Es una **reconstrucción ilustrativa**, no un catálogo 3D medido. Parte de la imagen frontal de la Vía Láctea de ESA/Gaia/DPAC (Stefan Payne-Wardenaar): hasta 55.000 partículas se muestrean por rechazo sobre el brillo de la imagen y reciben espesor con una distribución gaussiana, mayor en el bulbo. La imagen abarca 40.610 pc de lado, registrada para que el vecindario solar caiga a 8.122 pc del centro. Aparece entre 1.800 y 7.000 años luz del Sol.
+**Galaxia** (`galaxy.js`, `MilkyWay.jsx`, `GalaxiaVolumen.jsx`). Es una **reconstrucción ilustrativa**, no un catálogo 3D medido, con dos representaciones que se cruzan según la posición de la cámara:
+
+- **Fuera del disco** (desde arriba, de canto o de lejos) se ve la imagen frontal de la Vía Láctea de ESA/Gaia/DPAC (Stefan Payne-Wardenaar), con hasta 55.000 partículas muestreadas por rechazo sobre su brillo y con espesor gaussiano, mayor en el bulbo. La imagen abarca 40.610 pc de lado, registrada para que el vecindario solar caiga a 8.122 pc del centro.
+- **Dentro del disco** se ve un volumen trazado por rayos de un modelo armado con mediciones publicadas (`galaxiaMedida.js`, horneado por `scripts/galaxia/hornear-modelo.mjs` en `galaxia-emision.png` y `galaxia-polvo.png`): discos fino y grueso de Bland-Hawthorn y Gerhard (2016), bulbo en forma de caja y barra larga de Wegg y Gerhard (2013) y Wegg, Gerhard y Portail (2015), brazos espirales de Reid et al. (2019), gas de McMillan (2017) con la zona molecular central ajustada a la extinción hacia el centro de Fritz et al. (2011), alabeo de Chen et al. (2019) y ensanche exterior de Uppal et al. (2024). El polvo tiene grumos 3D (ruido con semilla) y extinción por color de Cardelli, Clayton y Mathis (1989); la Burbuja Local (Pelgrims et al. 2020; Zucker et al. 2022) queda sin polvo. Las regiones de estrellas nuevas y los filamentos son ilustrativos.
+
+El cruce depende solo de la posición (`pesoVolumen` en `galaxiaModelo.js`): el volumen pesa 1 cerca del plano medio alabeado y se apaga entre 0,5 y 1,5 kpc de altura y entre 15 y 20 kpc del centro; la imagen recibe el resto y las partículas su cuadrado. Entre 0,3 y 0,6 kpc de altura, y entre 13 y 15 kpc del centro, el volumen cambia sus brazos por el promedio de cada anillo: donde la imagen ya se ve, el volumen no tiene brazos, y nunca se ven a la vez los del modelo y los de la imagen. El volumen se dibuja en un render target de menor resolución elegida por un presupuesto de muestras por cuadro, y la luz de los primeros 1,5–4 kpc se excluye dentro del plano (la ponen las estrellas del catálogo). La galaxia aparece entre 1.800 y 7.000 años luz del Sol; lejos del Sol, las estrellas invisibles del catálogo no se dibujan.
 
 **Púlsares** (`pulsarData.js`, `PulsarMap.jsx`). Los 14 púlsares del mapa de las placas Pioneer y Voyager, con coordenadas y distancias del catálogo ATNF. Las líneas unen el Sol con cada púlsar; los trazos discontinuos son decorativos y no codifican períodos.
 
@@ -507,7 +514,7 @@ El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los
 - Las órbitas de exoplanetas no están completas en 3D: el giro del plano en el cielo es convencional, y su aspecto no es conocido.
 - No es un censo estelar: el catálogo es una muestra, más completa cerca del Sol.
 - No simula relatividad, tiempo de viaje de la luz ni fotometría observacional.
-- Las nubes de partículas (Kuiper, Oort, galaxia) y los halos son recursos ilustrativos.
+- Las nubes de partículas (Kuiper, Oort, galaxia), el volumen de la galaxia y los halos son recursos ilustrativos.
 
 ## 15. Referencias
 
@@ -528,3 +535,13 @@ El catálogo (≈ 4,6 MB comprimido), los sistemas múltiples (≈ 0,3 MB) y los
 - Gaia Collaboration (2023), A&A 674, A1: Gaia DR3. Riello, M. et al. (2021), A&A 649, A3: fotometría de Gaia.
 - CDS XMatch y SIMBAD, CDS, Estrasburgo.
 - ESA/Gaia/DPAC, Stefan Payne-Wardenaar: imagen de la Vía Láctea, CC BY-SA 3.0 IGO.
+- Bland-Hawthorn, J. y Gerhard, O. (2016), ARA&A 54, 529: estructura de la Vía Láctea.
+- Wegg, C. y Gerhard, O. (2013), MNRAS 435, 1874: bulbo en forma de caja. Wegg, C., Gerhard, O. y Portail, M. (2015), MNRAS 450, 4050: barra larga.
+- Reid, M. J. et al. (2019), ApJ 885, 131: brazos espirales.
+- McMillan, P. J. (2017), MNRAS 465, 76: gas del disco.
+- Ferrière, K., Gillard, W. y Jean, P. (2007), A&A 467, 611: zona molecular central. Fritz, T. K. et al. (2011), ApJ 737, 73: extinción hacia el centro.
+- Güver, T. y Özel, F. (2009), MNRAS 400, 2050: gas y extinción. Cardelli, J. A., Clayton, G. C. y Mathis, J. S. (1989), ApJ 345, 245: ley de extinción.
+- Chen, X. et al. (2019), Nature Astronomy 3, 320: alabeo del disco. Uppal, N. et al. (2024), arXiv:2311.09616: ensanche exterior.
+- Bobylev, V. V. y Bajkova, A. T. (2016), Astronomy Letters: altura de las regiones HII y estrellas OB. Licquia, T. C. et al. (2015), ApJ 809, 96: color integrado.
+- Li, L. et al. (2018), ApJ 858, 75: altura del polvo. Pelgrims, V. et al. (2020), A&A 636, A17; Zucker, C. et al. (2022), Nature 601, 334: Burbuja Local.
+- Duncan, M., Quinn, T. y Tremaine, S. (1987), AJ 94, 1330: densidad de la nube de Oort. Bovy, J. (2017), MNRAS 468, L63: constantes de Oort. Holmberg, J. y Flynn, C. (2000), MNRAS 313, 209: densidad local.

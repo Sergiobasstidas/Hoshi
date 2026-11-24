@@ -1,5 +1,5 @@
-// src/scene/galaxiaModeloB.js (rama f7-prototipos): opción B, «la galaxia medida». Funciones puras en kpc, marco galactocéntrico
-// de Hoshi (x del Sol al centro, y giro, z polo norte). Lo usan scripts/f7/hornear-modelo.mjs, el sombreador (hPolvoModelo) y las pruebas.
+// Modelo publicado de la galaxia («la galaxia medida»). Funciones puras en kpc, marco galactocéntrico de Hoshi (x del Sol al
+// centro, y giro, z polo norte). Lo usan scripts/galaxia/hornear-modelo.mjs, MilkyWay.jsx (ángulo del bulbo) y las pruebas.
 export const D2R = Math.PI / 180;
 const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 // Bland-Hawthorn y Gerhard 2016 (ARA&A 54, 529; BHG16), discos. Υ_V (masa/luz) ilustrativa.

@@ -10,7 +10,6 @@ export const LIGHT_DAY_PC = 299792.458 * 86400 * KM_TO_PC;
 export const LIGHT_DAY_RULER_LIMIT_PC = 0.02 * LIGHT_YEAR_PC;
 export const MAX_VIEW_DISTANCE_PC = 200000 * LIGHT_YEAR_PC;
 export const MAX_FLIGHT_SPEED_PC = 15000 * LIGHT_YEAR_PC;
-export const OORT_INNER_PC = 2000 * AU_TO_PC;
 export const OORT_OUTER_PC = 100000 * AU_TO_PC;
 export const OORT_REVEAL_PC = 0.1 * LIGHT_YEAR_PC;
 export const SUN_RADIUS_KM = 695700;

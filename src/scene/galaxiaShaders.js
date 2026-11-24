@@ -1,4 +1,4 @@
-// src/scene/galaxiaShaders.js (rama f7-prototipos): sombreadores del volumen de la galaxia.
+// Sombreadores del volumen de la galaxia (GalaxiaVolumen.jsx).
 // Las constantes salen de galaxiaModelo.js para que el GLSL y la gemela en JS (integrarRayo, tono) no se separen.
 import { ANCHO_PLANTA_KPC, RMAX_ANILLOS, CERCA, EXT_RGB, GRUMOS, LOSA, PASO, PASOS_TOPE_GLSL, PERFIL, POLVO_B, SOL_KPC, TAU_CODIGO, TONO } from './galaxiaModelo.js';
 
@@ -21,24 +21,21 @@ export const marchaFragment = /* glsl */`
   uniform vec2 uTan;          // tan(fov/2)·aspecto, tan(fov/2)
   uniform float uPixAng;      // radianes por píxel del render target (2·tan(fov/2)/alto)
   uniform sampler2D uEmision; // RGB, sRGB decodificado por el hardware (lineal al leer)
-  uniform sampler2D uPolvo;   // R: τ_V codificado; G: corrección de columna (A, C) o altura del polvo (B); B: f_joven/0,8
-  uniform sampler3D uRuido;   // 64³, gaussiana/6 + 0,5 (solo B)
+  uniform sampler2D uPolvo;   // R: τ_V codificado; G: altura del polvo; B: f_joven/0,8
+  uniform sampler3D uRuido;   // 64³, gaussiana/6 + 0,5: grumos 3D del polvo
   uniform float uTexelE;      // kpc por texel de la emisión
   uniform float uTexelP;      // kpc por texel del polvo
-  uniform float uEscalaE;     // 1 en A y C; escalaE de modeloB.json en B
+  uniform float uEscalaE;     // escalaE de galaxiaHorneado.json
   uniform float uBarra;       // ángulo de la barra (rad)
-  uniform float uModeloB;     // 1 en B
-  uniform float uGrumos;      // 1 en B: grumos 3D del polvo
-  uniform float uLuz;         // 1 en A y B; 0,9 en C (el 10 % va a las estrellas)
   uniform float uDh;          // kpc (regla del paso)
   uniform int uPasosMax;      // 48 computador, 32 teléfono (≤ ${PASOS_TOPE_GLSL})
   uniform float uJitter;      // 1: primer paso con ruido; 0: sin ruido (pruebas)
   uniform float uExpo;        // exposición (1)
   uniform float uNegro;       // N en unidades de uExpo·C (CPU: puntoNegro)
   uniform float uInterior;    // ι (CPU: interiorGalaxia)
-  uniform sampler2D uAnillos; // opción C: promedio de la planta por anillo (fila 0: emisión lineal; fila 1: τ_V, hPolvo, fJoven)
-  uniform float uSinBrazos;   // opción C: 0 la planta tal cual, 1 el promedio de su anillo (sin brazos ni barra)
-  uniform float uCercaFuerza; // 1 en A y B; en C baja al subir sobre el plano (exclusión de la luz cercana)
+  uniform sampler2D uAnillos; // promedio de la planta por anillo (fila 0: emisión lineal; fila 1: τ_V, hPolvo, fJoven)
+  uniform float uSinBrazos;   // 0 la planta tal cual, 1 el promedio de su anillo (sin brazos ni barra)
+  uniform float uCercaFuerza; // exclusión de la luz cercana: 1 en el plano, baja al subir sobre él
   varying vec2 vNdc;
 
   const float ANCHO = ${f(ANCHO_PLANTA_KPC)}, RANILLOS = ${f(RMAX_ANILLOS)};
@@ -49,7 +46,7 @@ export const marchaFragment = /* glsl */`
   const float CZ = ${f(PASO.cz)}, HMIN = ${f(PASO.hMin)}, CT = ${f(PASO.ct)}, TMIN = ${f(PASO.tMin)}, DTMIN = ${f(PASO.dtMin)}, DTMAX = ${f(PASO.dtMax)};
   const float HDEL = ${f(PERFIL.hDelgado)}, HBARRA = ${f(PERFIL.hDelgadoBarra)}, BR0 = ${f(PERFIL.barraR[0])}, BR1 = ${f(PERFIL.barraR[1])};
   const float HGRU = ${f(PERFIL.hGrueso)}, FSOL = ${f(PERFIL.fGruesoSol)}, EF = ${f(PERFIL.escalaFGrueso)}, FMAX = ${f(PERFIL.fGruesoMax)};
-  const float HJOV = ${f(PERFIL.hJoven)}, HPOLVO = ${f(PERFIL.hPolvo)};
+  const float HJOV = ${f(PERFIL.hJoven)};
   const float AX = ${f(B.ax)}, AY = ${f(B.ay)}, AZ = ${f(B.az)}, XX = ${f(B.xX)}, ANCHOX = ${f(B.anchoX)}, AMPX = ${f(B.amplitudX)}, S50 = ${f(B.s50)};
   const float ESC = ${f(PERFIL.ensanche.escala)}, TOPE = ${f(PERFIL.ensanche.tope)};
   const float AW = ${f(A.a)}, R0W = ${f(A.r0)}, PW = ${f(A.potencia)}, FASEW = ${f(A.fase * Math.PI / 180)};
@@ -61,7 +58,6 @@ export const marchaFragment = /* glsl */`
   const float GDES = ${f(GRUMOS.desfase2)}, GP2 = ${f(GRUMOS.peso2)}, GNORMA = ${f(GRUMOS.norma)};
   const float HOMBRO = ${f(TONO.hombro)}, FFUERA = ${f(TONO.factorFuera)}, FDENTRO = ${f(TONO.factorDentro)};
   const int TOPE_PASOS = ${PASOS_TOPE_GLSL};
-  const float PROY_MAX = 0.8, LOD_LISO = 4.0;
 
   float ss(float a, float b, float x) { float t = clamp((x - a) / (b - a), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
   float primitiva(float z, float h) { return sign(z) * (1.0 - exp(-abs(z) / h)) * 0.5; }
@@ -128,37 +124,21 @@ export const marchaFragment = /* glsl */`
         float zw = alabeo(pm.xy);
         float fl = ensanche(R);
         float za = pa.z - zw, zb = o.z + d.z * tb - zw;
-        // A: la planta se lee donde el rayo cruza el plano medio (con tope PROY_MAX): sin eso, desde arriba los rayos oblicuos
-        // leían la planta detallada a varias alturas y la imagen quedaba con rayas radiales.
-        vec2 pp = pm.xy;
-        if (uModeloB < 0.5 && abs(d.z) > 1e-3) {
-          vec2 off = d.xy * ((pm.z - zw) / d.z);
-          float lo = length(off);
-          if (lo > PROY_MAX) off *= PROY_MAX / lo;
-          pp -= off;
-        }
-        vec2 uv = uvMapa(pp);
+        vec2 uv = uvMapa(pm.xy);
         float pie = max(tm * uPixAng, 0.5 * dt * length(d.xy));
         float lodE = log2(max(pie / uTexelE, 1.0));
         vec3 E = textureLod(uEmision, uv, lodE).rgb;
-        // El disco grueso y el bulbo son lisos: leen una planta muy suavizada (A; en B ya es lisa).
-        vec3 El = uModeloB < 0.5 ? textureLod(uEmision, uv, lodE + LOD_LISO).rgb : E;
         vec3 pol = textureLod(uPolvo, uv, log2(max(pie / uTexelP, 1.0))).rgb;
         float tau = decodTau(pol.r);
         float fJ = 0.8 * pol.b;
-        float hP = uModeloB > 0.5 ? mix(HPMIN, HPMAX, pol.g) : HPOLVO;
+        float hP = mix(HPMIN, HPMAX, pol.g);
         if (uSinBrazos > 0.0) {
           float ua = length(pm.xy) / RANILLOS;
           vec3 a0 = texture2D(uAnillos, vec2(ua, 0.25)).rgb, a1 = texture2D(uAnillos, vec2(ua, 0.75)).rgb;
-          E = mix(E, a0, uSinBrazos); El = mix(El, a0, uSinBrazos);
+          E = mix(E, a0, uSinBrazos);
           tau = mix(tau, a1.r, uSinBrazos); hP = mix(hP, a1.g, uSinBrazos); fJ = mix(fJ, a1.b, uSinBrazos);
         }
-        E *= uEscalaE; El *= uEscalaE;
-        float borde = 1.0 - ss(0.42, 0.50, length(uv - 0.5));
-        if (uModeloB < 0.5) borde *= ss(0.045, 0.075, length((uv - vec2(0.5, 0.945)) * vec2(1.3, 1.0)));
-        vec3 corr = uModeloB > 0.5 ? vec3(1.0) : min(pow(vec3(1.0 + 2.0 * pol.g), EXT), vec3(1.0 / 0.35));
-        E *= corr * (borde * uLuz);
-        El *= corr * (borde * uLuz);
+        E *= uEscalaE * (1.0 - ss(0.42, 0.50, length(uv - 0.5)));
         vec2 pb = ejesBarra(pm.xy);
         float wb = pesoBulbo(pb);
         float fT = fGrueso(R);
@@ -169,19 +149,16 @@ export const marchaFragment = /* glsl */`
         float iBul = integralTramo(za, zb, dt, hBulbo(pb));
         float iPol = integralTramo(za, zb, dt, hP * fl);
         float wE = mix(1.0, ss(CE0, CE1, tm), uCercaFuerza), wD = ss(CD0, CD1, tm);
-        float perfil = (1.0 - fy - wb) * (1.0 - fT) * iDel + fy * iJov;
-        float perfilLiso = (1.0 - fy - wb) * fT * iGru + wb * iBul;
+        float perfil = (1.0 - fy - wb) * ((1.0 - fT) * iDel + fT * iGru) + fy * iJov + wb * iBul;
         float tauV = tau * iPol * wD * ss(BUR0, BUR1, length(pm - SOL));
-        if (uGrumos > 0.5) {
-          float g1 = (texture(uRuido, pm / GE1).r - 0.5) * 6.0;
-          float g2 = (texture(uRuido, pm / GE2 + GDES).r - 0.5) * 6.0;
-          float gn = (g1 + GP2 * g2) / GNORMA;
-          float s2 = log(1.0 + GSIG2 / max(1.0, dt / GCELDA));
-          tauV *= exp(sqrt(s2) * gn - 0.5 * s2);
-        }
+        float g1 = (texture(uRuido, pm / GE1).r - 0.5) * 6.0;
+        float g2 = (texture(uRuido, pm / GE2 + GDES).r - 0.5) * 6.0;
+        float gn = (g1 + GP2 * g2) / GNORMA;
+        float s2 = log(1.0 + GSIG2 / max(1.0, dt / GCELDA));
+        tauV *= exp(sqrt(s2) * gn - 0.5 * s2);
         vec3 tc = tauV * EXT;
         vec3 fr = mix(1.0 - 0.5 * tc, (1.0 - exp(-tc)) / max(tc, vec3(1e-4)), step(vec3(1e-4), tc));
-        C += T * (E * perfil + El * perfilLiso) * wE * fr;
+        C += T * E * perfil * wE * fr;
         T *= exp(-tc);
         t = tb;
         if (max(T.r, max(T.g, T.b)) < 0.01) break;
@@ -209,9 +186,9 @@ export const composicionVertex = /* glsl */`
   }
 `;
 export const composicionFragment = /* glsl */`
-  uniform sampler2D uImagen;   // render target (tamaño del lienzo); la marcha escribió en [0, s·W] × [0, s·H]
+  uniform sampler2D uImagen;   // render target (tamaño del lienzo); la marcha escribió en [0, ancho] × [0, alto]
   uniform vec2 uLienzo;        // W, H del drawing buffer
-  uniform float uEscala;       // s
+  uniform vec2 uEscala;        // (ancho/W, alto/H): ancho y alto se redondean por separado
   uniform float uOpacidad;     // rampa · atenuación de modos
   #include <logdepthbuf_pars_fragment>
   void main() {
