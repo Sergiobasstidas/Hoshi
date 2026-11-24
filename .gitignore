@@ -83,3 +83,6 @@ data/raw/hunt2023/
 
 # Miembros de cúmulos globulares (Vasiliev & Baumgardt 2021, Zenodo 4891252; Hunt & Reffert 2023): se descargan
 data/raw/globulares/
+
+# Base de planetas de Eyes on Exoplanets (NASA/JPL-Caltech): se descarga con npm run descargar:red
+data/raw/eyes/

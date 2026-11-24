@@ -1,7 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import { AdditiveBlending, Color, SRGBColorSpace, Vector3 } from 'three';
+import { AdditiveBlending, Color, SRGBColorSpace, Vector2, Vector3 } from 'three';
+import { mantenerActivo } from './reposo';
+import { pedirMapas, soltarMapas } from './eyes/texturaExoplaneta';
 import { AU_TO_PC, smoothRange } from './scale';
 import { planetOrbitPc } from './exoplanetOrbit';
 import { useOrbitas } from './guiasOrbitales';
@@ -10,7 +12,8 @@ import { colorCatalogo } from './visualBinary';
 
 // Planetas de las anfitrionas del catálogo (NASA Exoplanet Archive). Órbitas y radios a
 // escala física; de lejos cada planeta es un marcador de tamaño fijo que no representa su
-// radio. Color neutro e iluminación desde la estrella: no hay aspecto medido. Qué
+// radio. De cerca, el aspecto ilustrativo de Eyes on Exoplanets (eyes/recetaEyes.js), con
+// iluminación desde la estrella: no hay aspecto medido. Qué
 // elementos son supuestos lo declara cada planeta. Véase docs/exoplanets/SISTEMAS_PLANETARIOS.md.
 const MAX_ACTIVE = 4;
 // Un sistema se activa cuando la cámara está a menos de este múltiplo de su órbita mayor.
@@ -23,12 +26,21 @@ const SPHERE_PIXELS = [1.5, 4];
 // las dos estrellas y sus nombres.
 const STAR_ORBIT_PIXELS = [3, 14], STAR_LABEL_PIXELS = [25, 70];
 
+// Esfera del planeta. Con mapa (el de Eyes on Exoplanets, eyes/texturaExoplaneta.js), su color; sin él, el tono
+// de su temperatura de equilibrio. El mapa normal y el especular, cuando los hay, con la estrella como única luz.
 const sphereVertex = `
   varying vec3 worldNormal;
+  varying vec3 worldTangent;
+  varying vec3 worldPosition;
+  varying vec2 vUv;
   #include <common>
   #include <logdepthbuf_pars_vertex>
   void main() {
     worldNormal = normalize(mat3(modelMatrix) * normal);
+    // Dirección este de la esfera (hacia donde crece u en SphereGeometry), para el mapa normal.
+    worldTangent = mat3(modelMatrix) * vec3(position.z, 0.0, -position.x);
+    worldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+    vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     #include <logdepthbuf_vertex>
   }`;
@@ -36,23 +48,86 @@ const sphereVertex = `
 const sphereFragment = `
   uniform vec3 tint;
   uniform vec3 towardStar;
+  uniform sampler2D map;
+  uniform sampler2D normalMap;
+  uniform sampler2D specularMap;
+  uniform float hasMap;
+  uniform float hasNormal;
+  uniform float hasSpecular;
+  uniform vec2 normalScale;
   varying vec3 worldNormal;
+  varying vec3 worldTangent;
+  varying vec3 worldPosition;
+  varying vec2 vUv;
   #include <logdepthbuf_pars_fragment>
   void main() {
-    float light = max(0.0, dot(normalize(worldNormal), towardStar));
-    gl_FragColor = vec4(tint * (0.04 + 0.96 * light), 1.0);
+    vec3 n = normalize(worldNormal);
+    float lt = length(worldTangent);
+    if (hasNormal > 0.5 && lt > 1e-5) {
+      vec3 t = normalize(worldTangent / lt - n * dot(n, worldTangent / lt));
+      vec3 m = texture2D(normalMap, vUv).xyz * 2.0 - 1.0;
+      m.xy *= normalScale;
+      n = normalize(t * m.x + cross(n, t) * m.y + n * m.z);
+    }
+    float light = max(0.0, dot(n, towardStar));
+    vec3 base = hasMap > 0.5 ? texture2D(map, vUv).rgb : tint;
+    vec3 color = base * (0.04 + 0.96 * light);
+    if (hasSpecular > 0.5) {
+      vec3 h = normalize(towardStar + normalize(cameraPosition - worldPosition));
+      color += vec3(0.5) * pow(max(dot(n, h), 0.0), 30.0) * texture2D(specularMap, vUv).r * step(0.0, dot(normalize(worldNormal), towardStar));
+    }
+    gl_FragColor = vec4(color, 1.0);
     #include <logdepthbuf_fragment>
     #include <colorspace_fragment>
   }`;
 
+// Radio en pantalla (px) desde el que se piden los mapas del planeta (como las lunas) y por debajo del cual se sueltan.
+const TEXTURE_PIXELS = 20, RELEASE_PIXELS = 3;
+const focalDe = (camera, size) => size.height / (2 * Math.tan(camera.fov * Math.PI / 360));
+
 function PlanetSphere({ planet }) {
+  const mesh = useRef(), material = useRef(), estado = useRef({ pedido: false, vigente: null });
   const uniforms = useMemo(() => ({
     tint: { value: new Color().setRGB(...planet.color, SRGBColorSpace) },
     towardStar: { value: new Vector3(...planet.offsetPc).normalize().negate() },
+    map: { value: null }, normalMap: { value: null }, specularMap: { value: null },
+    hasMap: { value: 0 }, hasNormal: { value: 0 }, hasSpecular: { value: 0 }, normalScale: { value: new Vector2(1, 1) },
   }), [planet]);
-  return <mesh position={planet.offsetPc} scale={planet.radiusPc}>
-    <sphereGeometry args={[1, 48, 32]} />
-    <shaderMaterial uniforms={uniforms} vertexShader={sphereVertex} fragmentShader={sphereFragment} toneMapped={false} />
+  const centro = useMemo(() => new Vector3(), []);
+  // Suelta los mapas (al achicarse el planeta en pantalla o al salir el sistema) y vuelve al tono liso.
+  const quitar = useCallback(() => {
+    const e = estado.current;
+    if (!e.pedido) return;
+    e.pedido = false;
+    e.vigente = null;
+    soltarMapas(planet);
+    const u = material.current?.uniforms;
+    if (u) { u.hasMap.value = u.hasNormal.value = u.hasSpecular.value = 0; u.map.value = u.normalMap.value = u.specularMap.value = null; }
+    mesh.current?.quaternion.identity();
+  }, [planet]);
+  useEffect(() => quitar, [quitar]);
+  useFrame(({ camera, size }) => {
+    if (!mesh.current || !material.current) return;
+    const pixels = planet.radiusPc / mesh.current.getWorldPosition(centro).distanceTo(camera.position) * focalDe(camera, size);
+    const e = estado.current;
+    if (!e.pedido && pixels > TEXTURE_PIXELS) {
+      e.pedido = true;
+      const vigente = e.vigente = {};
+      pedirMapas(planet).then(m => {
+        const u = material.current?.uniforms;
+        if (e.vigente !== vigente || !u) return;
+        u.map.value = m.mapa; u.hasMap.value = 1;
+        if (m.normal) { u.normalMap.value = m.normal; u.hasNormal.value = 1; u.normalScale.value.set(...m.escalaNormal); }
+        if (m.especular) { u.specularMap.value = m.especular; u.hasSpecular.value = 1; }
+        // Rotación sincrónica (Kepler-7 b y TRAPPIST-1 f en Eyes): el eje indicado mira a la estrella.
+        if (m.sincronica) mesh.current?.quaternion.setFromUnitVectors(new Vector3(...m.sincronica), u.towardStar.value);
+        mantenerActivo();
+      }).catch(() => {});
+    } else if (e.pedido && pixels < RELEASE_PIXELS) quitar();
+  });
+  return <mesh ref={mesh} position={planet.offsetPc} scale={planet.radiusPc}>
+    <sphereGeometry args={[1, 64, 48]} />
+    <shaderMaterial ref={material} uniforms={uniforms} vertexShader={sphereVertex} fragmentShader={sphereFragment} toneMapped={false} />
   </mesh>;
 }
 
