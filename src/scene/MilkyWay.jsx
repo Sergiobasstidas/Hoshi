@@ -7,6 +7,7 @@ import { solarDistance } from './scale.js';
 import GalaxiaVolumen from './GalaxiaVolumen.jsx';
 import { GALAXIA_F7, SIN_F7 } from '../f7/opciones.js';
 import modeloB from '../f7/modeloB.json';
+import { BULBO as BULBO_B } from './galaxiaModeloB.js';
 
 // F-07: con ?f7=a o ?f7=b la imagen plana y las partículas se reemplazan por el volumen (GalaxiaVolumen.jsx).
 const VOLUMEN = GALAXIA_F7 === 'a' || GALAXIA_F7 === 'b';
@@ -116,7 +117,7 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
   const {samples}=asset;
   return <>
     {VOLUMEN && <GalaxiaVolumen variante={GALAXIA_F7} origin={origin} opacidad={opacidadVolumen}
-      escalaE={GALAXIA_F7==='b'?modeloB.escalaE:1} barraGrados={GALAXIA_F7==='b'?modeloB.barraGrados??-28:undefined} />}
+      escalaE={GALAXIA_F7==='b'?modeloB.escalaE:1} barraGrados={GALAXIA_F7==='b'?BULBO_B.angulo:undefined} />}
     <group ref={group} position={GALAXY_CENTER.map((v,i)=>v-origin[i])} quaternion={rotation}>
       <mesh rotation={[0,0,-Math.PI/2]} frustumCulled={false}>
         <planeGeometry args={[GALAXY_IMAGE_WIDTH_PC,GALAXY_IMAGE_WIDTH_PC]} />

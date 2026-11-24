@@ -26,7 +26,7 @@ export const PRESUPUESTO = { pc: 8e6, tel: 3e6, quieto: 4 };              // mue
 export const ESCALAS = [0.25, 0.33, 0.5, 0.6, 0.75, 1];
 export const TONO = { hombro: 0.8, factorFuera: 0.64, factorDentro: 0.85, interiorZ: [0.3, 3.0], interiorR: [16, 20] };
 export const POLVO_B = { hMin: 0.04, hMax: 0.20 };                         // canal G del mapa de polvo de B: altura del polvo
-export const GRUMOS = { sigma: 1.4, celda: 0.12, escala1: 7.68, escala2: 3.84, desfase2: 0.37, peso2: 0.7, norma: 0.664 };
+export const GRUMOS = { sigma: 0.8, celda: 0.12, escala1: 7.68, escala2: 3.84, desfase2: 0.37, peso2: 0.7, norma: 1.22 };
 
 const ss = smoothRange;
 const D2R = Math.PI / 180;

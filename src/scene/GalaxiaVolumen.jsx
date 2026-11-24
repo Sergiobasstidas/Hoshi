@@ -14,7 +14,7 @@ import { dibujarVolumen } from './galaxiaCuadro.js';
 const D2R = Math.PI / 180;
 const ARCHIVOS = {
   a: { emision: '/textures/galaxy/gaia-milky-way-2025.jpg', polvo: '/textures/galaxy/f7-esa-polvo.png', ladoE: 2048, ladoP: 1024 },
-  b: { emision: '/textures/galaxy/f7-modelo-emision.png', polvo: '/textures/galaxy/f7-modelo-polvo.png', ladoE: 1024, ladoP: 512 },
+  b: { emision: '/textures/galaxy/f7-modelo-emision.png', polvo: '/textures/galaxy/f7-modelo-polvo.png', ladoE: 2048, ladoP: 1024 },
 };
 const cargarImagen = url => new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
 const pixeles = (imagen, n) => { const c = document.createElement('canvas'); c.width = c.height = n; const g = c.getContext('2d'); g.drawImage(imagen, 0, 0, n, n); return g.getImageData(0, 0, n, n).data; };
