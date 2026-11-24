@@ -38,6 +38,14 @@ export function galaxyFacing(position, origin) {
   if(distance<1e-9)return 0;
   return smoothRange(Math.abs(x*GALACTIC_Z[0]+y*GALACTIC_Z[1]+z*GALACTIC_Z[2])/distance,.03,.3);
 }
+// El disco es una imagen plana (sin grosor): vista desde pocos cientos de pc del plano galáctico se volvía una franja de
+// neblina con un borde recto que cruzaba medio cielo (cerca de LR Vel, a 27 pc del plano). Se desvanece al acercarse al
+// plano; desde lejos (la vista de canto de la galaxia queda a ≈ 1.700 pc del plano) no cambia.
+export function galaxyPlaneFade(position, origin) {
+  const altura = (position.x + origin[0] - GALAXY_CENTER[0]) * GALACTIC_Z[0] + (position.y + origin[1] - GALAXY_CENTER[1]) * GALACTIC_Z[1]
+    + (position.z + origin[2] - GALAXY_CENTER[2]) * GALACTIC_Z[2];
+  return smoothRange(Math.abs(altura), 150, 900);
+}
 export function catalogueGalaxyGain(distancePc) {
   return 1 - 0.985*smoothRange(distancePc / LIGHT_YEAR_PC, 8000, 55000);
 }

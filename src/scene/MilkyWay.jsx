@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC, buildGalaxyParticles, galaxyOpacity, galaxyFacing } from './galaxy.js';
+import { GALACTIC_X, GALACTIC_Y, GALACTIC_Z, GALAXY_CENTER, GALAXY_IMAGE_WIDTH_PC, buildGalaxyParticles, galaxyOpacity, galaxyFacing, galaxyPlaneFade } from './galaxy.js';
 import { solarDistance } from './scale.js';
 
 const vertex = `
@@ -89,7 +89,7 @@ export default function MilkyWay({ origin, onStatus, muted = false, dim = 1 }) {
     if(asset && lastVisible.current!==visible){lastVisible.current=visible;onStatus(visible?'visible':'ready');}
     if(group.current)group.current.visible=visible;
     if(disc.current){
-      disc.current.uniforms.opacity.value=alpha;
+      disc.current.uniforms.opacity.value=alpha*galaxyPlaneFade(camera.position,origin);
       // De canto se atenúa el disco: la atenuación se redujo un 45 % (pedido de Sergio, 31/10/2026).
       const face=1-EDGE_DIMMING*(1-galaxyFacing(camera.position,origin));
       disc.current.uniforms.face.value=face;
