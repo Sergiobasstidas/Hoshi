@@ -158,6 +158,10 @@ function StarGroup({ stars, named, origin, anchor, physicalRadius = 0, solar = f
 // Capa: más tenue que las estrellas de Hoshi en Mapa, con un piso dentro de la galaxia y sin seguir más allá de
 // 6.000 años luz (valores de la antigua EstrellasGaia.jsx).
 const TENUE_CAPA = 0.4, PISO_GALAXIA_CAPA = 0.4, PISO_HASTA_AL = [30000, 60000], EXTENSION_CAPA_AL = 6000;
+// Visto desde lejos del Sol (Mapa): el catálogo y la capa están completos hasta unos 100 pc (CNS5 y GCNS) y, con un brillo
+// fijo por estrella, desde cientos de pc esa esfera se ve como una bola brillante. Entre LEJANIA_PC[0] y LEJANIA_PC[1] de la
+// cámara al Sol, el brillo de cada estrella sin nombre pasa a depender de su distancia a la cámara. Cerca del Sol no cambia.
+const RADIO_LEJOS_PC = 150, LEJANIA_PC = [150, 450];
 const CLASE = { capa: 0, fondo: 1, nombre: 2, oculta: 3 };
 const unidoVertex = `
   attribute float magnitud;
@@ -177,6 +181,8 @@ const unidoVertex = `
   uniform float limite;
   uniform vec3 proximaPos;
   uniform float proximaAlpha;
+  uniform float lejania;
+  uniform vec3 solPos;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vHalo;
@@ -221,6 +227,11 @@ const unidoVertex = `
       vAlpha = max(vAlpha, proxima * 0.08 * gananciaK);
       gl_PointSize = max(gl_PointSize, proxima * 2.5 * pixelRatio);
     } else {
+      // Lejos del Sol, cada estrella (catálogo, capa y con nombre; no el Sol) se apaga con su distancia a la cámara
+      // (cuadrado inverso desde RADIO_LEJOS_PC): las cientos de miles a menos de 100 pc (GCNS) no forman una bola brillante
+      // vista desde lejos. Los nombres se ven solo hasta 120 años luz de la cámara (VisualGuides.jsx), muy dentro de
+      // RADIO_LEJOS_PC, así que ningún nombre queda sin su punto; la estrella elegida se dibuja aparte.
+      if (k < 2 || length(position - solPos) > 1e-6) vAlpha *= mix(1.0, min(1.0, pow(${RADIO_LEJOS_PC.toFixed(1)} / distanceToEye, 2.0)), lejania);
       // «Mapa» nunca queda más tenue ni más chico que «Binoculares» (mismo criterio que vertexShader).
       vAlpha = max(vAlpha, clamp(0.08 * pow(10.0, 0.4 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude)), 0.0, 1.0) * gananciaK);
       gl_PointSize = max(gl_PointSize, clamp(2.5 + 1.6 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude), 1.5, 34.0) * pixelRatio);
@@ -332,7 +343,7 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     areaScale: { value: [1, 1, 1] }, energyScale: { value: [1, 1, 1] }, tenue: { value: TENUE_CAPA },
     pixelRatio: { value: 1 }, distantSize: { value: 1 }, farCompression: { value: 0 }, individualMix: { value: 0 },
     fisico: { value: 0 }, limite: { value: 6 },
-    proximaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) }, proximaAlpha: { value: 0 },
+    proximaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) }, proximaAlpha: { value: 0 }, lejania: { value: 0 }, solPos: { value: new THREE.Vector3() },
   }), []);
   // Proxima en el catálogo (su punto se refuerza mientras su nombre se ve; ver modosBrillo.js).
   const proxima = useMemo(() => catalogo.find(star => star.i === PROXIMA_HSB), [catalogo]);
@@ -362,6 +373,8 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     u.individualMix.value = smoothRange(distance, 4, 12);
     u.farCompression.value = THREE.MathUtils.smoothstep(distance, 300, 3000);
     u.distantSize.value = 1 - 0.22 * THREE.MathUtils.smoothstep(distance, 50, 300);
+    u.lejania.value = smoothRange(distance, ...LEJANIA_PC);
+    u.solPos.value.set(-origin[0], -origin[1], -origin[2]);
   });
   return (
     <points frustumCulled={false} geometry={geometria}>
