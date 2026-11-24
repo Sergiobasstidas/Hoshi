@@ -48,6 +48,39 @@ test('cada exoplaneta de Hoshi tiene su tipo de Eyes, y los mapas propios y la c
   [0.3, 0.1, 0.2, 1].forEach((v, k) => assert.ok(Math.abs(px[k] - v * 255) <= 0.5, `canal ${k}: ${px[k]}`));
 });
 
+// La versión anterior de pintarMapa (con arreglos por píxel), para comprobar que la nueva da exactamente lo mismo.
+function pintarMapaAnterior(receta, imagenes, ancho, alto) {
+  const salida = new Uint8ClampedArray(ancho * alto * 4);
+  const [base0, base1] = receta.bases.map(f => imagenes[f]), [c0, c1, c2] = receta.canales;
+  const capas = receta.detalles.map(d => [imagenes[d.archivo], d.color]);
+  for (let p = 0; p < salida.length; p += 4) {
+    let mezcla = [0, 1, 2].map(k => (base0[p + k] + (base1 ? receta.pesoBase1 * base1[p + k] : 0)) / 255);
+    mezcla = [0, 1, 2].map(k => mezcla[0] * c0[k] + mezcla[1] * c1[k] + mezcla[2] * c2[k]);
+    for (const [pixeles, color] of capas) {
+      const opacidad = pixeles[p + 3] / 255;
+      mezcla = mezcla.map((v, k) => v + (color[k] - v) * opacidad);
+    }
+    salida.set([mezcla[0] * 255, mezcla[1] * 255, mezcla[2] * 255, 255], p);
+  }
+  return salida;
+}
+
+test('pintarMapa da exactamente lo mismo que la versión anterior, con una base o dos y varios detalles', () => {
+  let semilla = 7;
+  const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
+  const ancho = 64, alto = 32, imagen = () => Uint8ClampedArray.from({ length: ancho * alto * 4 }, () => Math.floor(azar() * 256));
+  const imagenes = { b0: imagen(), b1: imagen(), d0: imagen(), d1: imagen(), d2: imagen() };
+  for (const id of ['Kepler-22_b', 'HD_209458_b', 'WASP-12_b', 'TRAPPIST-1_e', 'GJ_436_b']) {
+    for (const tipo of ['Gas Giant', 'Hot Jupiter', 'Neptune-like', 'lavaAtmos', 'desertNoAtmos', 'iceAtmos', 'Unknown']) {
+      const receta = recetaEyes(id, tipo);
+      for (const bases of [['b0'], ['b0', 'b1']]) {
+        const prueba = { ...receta, bases, detalles: receta.detalles.map((d, k) => ({ ...d, archivo: `d${k % 3}` })) };
+        assert.deepEqual(pintarMapa(prueba, imagenes, ancho, alto), pintarMapaAnterior(prueba, imagenes, ancho, alto), `${id} ${tipo} ${bases.length}`);
+      }
+    }
+  }
+});
+
 test('la regla de tipos sigue la clasificación de Eyes', () => {
   assert.equal(tipoPorRegla({ m: 0.5, r: 0.9, a: 0.01 }), 'lavaNoAtmos');
   assert.equal(tipoPorRegla({ m: 4, r: 1.5, a: 0.1 }), 'lavaAtmos');

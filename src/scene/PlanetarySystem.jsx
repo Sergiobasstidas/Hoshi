@@ -37,8 +37,9 @@ const sphereVertex = `
   #include <logdepthbuf_pars_vertex>
   void main() {
     worldNormal = normalize(mat3(modelMatrix) * normal);
-    // Dirección este de la esfera (hacia donde crece u en SphereGeometry), para el mapa normal.
-    worldTangent = mat3(modelMatrix) * vec3(position.z, 0.0, -position.x);
+    // Dirección este de la esfera (hacia donde crece u en SphereGeometry), para el mapa normal. Sin la escala del modelo
+    // (en pc, diminuta), que la dejaba siempre bajo el umbral del fragmento y el mapa normal nunca se aplicaba.
+    worldTangent = mat3(modelMatrix) * vec3(position.z, 0.0, -position.x) / length(modelMatrix[0].xyz);
     worldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);

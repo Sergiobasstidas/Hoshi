@@ -107,17 +107,26 @@ export function recetaEyes(id, tipo) {
 // mezcla pesan cada uno su color de canal; cada capa de detalle tapa con su color según su opacidad. `imagenes`: los
 // píxeles de cada archivo de la receta, del mismo tamaño.
 export function pintarMapa(receta, imagenes, ancho, alto) {
+  // Con números sueltos y no arreglos por píxel (crearlos bloqueaba el hilo principal 90–230 ms por planeta); las cuentas
+  // son las mismas y en el mismo orden, así que el resultado es idéntico.
   const salida = new Uint8ClampedArray(ancho * alto * 4);
   const [base0, base1] = receta.bases.map(f => imagenes[f]), [c0, c1, c2] = receta.canales;
-  const capas = receta.detalles.map(d => [imagenes[d.archivo], d.color]);
+  const peso = base1 ? receta.pesoBase1 : 0;
+  const capas = receta.detalles.map(d => ({ pixeles: imagenes[d.archivo], r: d.color[0], g: d.color[1], b: d.color[2] }));
   for (let p = 0; p < salida.length; p += 4) {
-    let mezcla = [0, 1, 2].map(k => (base0[p + k] + (base1 ? receta.pesoBase1 * base1[p + k] : 0)) / 255);
-    mezcla = [0, 1, 2].map(k => mezcla[0] * c0[k] + mezcla[1] * c1[k] + mezcla[2] * c2[k]);
-    for (const [pixeles, color] of capas) {
-      const opacidad = pixeles[p + 3] / 255;
-      mezcla = mezcla.map((v, k) => v + (color[k] - v) * opacidad);
+    const m0 = (base0[p] + (base1 ? peso * base1[p] : 0)) / 255;
+    const m1 = (base0[p + 1] + (base1 ? peso * base1[p + 1] : 0)) / 255;
+    const m2 = (base0[p + 2] + (base1 ? peso * base1[p + 2] : 0)) / 255;
+    let r = m0 * c0[0] + m1 * c1[0] + m2 * c2[0];
+    let g = m0 * c0[1] + m1 * c1[1] + m2 * c2[1];
+    let b = m0 * c0[2] + m1 * c1[2] + m2 * c2[2];
+    for (let k = 0; k < capas.length; k++) {
+      const capa = capas[k], opacidad = capa.pixeles[p + 3] / 255;
+      r = r + (capa.r - r) * opacidad;
+      g = g + (capa.g - g) * opacidad;
+      b = b + (capa.b - b) * opacidad;
     }
-    salida.set([mezcla[0] * 255, mezcla[1] * 255, mezcla[2] * 255, 255], p);
+    salida[p] = r * 255; salida[p + 1] = g * 255; salida[p + 2] = b * 255; salida[p + 3] = 255;
   }
   return salida;
 }
