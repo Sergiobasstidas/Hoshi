@@ -1,6 +1,6 @@
 // Arnés de capturas de F-07 (solo en la rama f7-prototipos). Parámetros de URL:
 //   ?vista=a|b|c|d2000|d8000|e|f1|f3  deja la cámara en una de las 8 posiciones del «antes», sin animación;
-//   ?f7=hoy|paso0|a|b y ?oort=hoy|o1|o2  eligen la galaxia y la nube de Oort (src/f7/opciones.js).
+//   ?f7=hoy|paso0|a|b|c y ?oort=hoy|o1|o2  eligen la galaxia y la nube de Oort (src/f7/opciones.js).
 // En la consola: await hoshiF7.listo() y después await hoshiF7.medir() (5 s de dibujo continuo).
 import { GALACTIC_X, GALACTIC_Z, GALAXY_CENTER, galacticVector } from '../scene/galaxy.js';
 import { LIGHT_YEAR_PC } from '../scene/scale.js';

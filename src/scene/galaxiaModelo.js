@@ -127,7 +127,8 @@ export function pasosMedios(o, base, tan, opciones) {
 }
 // Gemela en JS del sombreador de marcha (pruebas y punto negro).
 // mapa(x, y) → { E: [r,g,b] lineal ya multiplicado por corrección de columna, bordes y uLuz, tau, fJoven, hPolvo }.
-export function integrarRayo(o, d, mapa, { nMax = 400, dh = 1.0, barra = -18.1 * D2R, cerca = true, jitter = 0.5, grumos = null } = {}) {
+// fuerzaCerca (opción C): 1 excluye la luz de los primeros 1,5–4 kpc como en A y B; 0 no la excluye.
+export function integrarRayo(o, d, mapa, { nMax = 400, dh = 1.0, barra = -18.1 * D2R, cerca = true, fuerzaCerca = 1, jitter = 0.5, grumos = null } = {}) {
   const iv = intervaloLosa(o, d); if (!iv) return { C: [0, 0, 0], T: [1, 1, 1], n: 0 };
   let t = Math.max(iv[0], PASO.tMin);
   const C = [0, 0, 0], T = [1, 1, 1];
@@ -146,7 +147,7 @@ export function integrarRayo(o, d, mapa, { nMax = 400, dh = 1.0, barra = -18.1 *
     const iDel = integralTramo(za, zb, dt, hDelgado(R) * fl), iGru = integralTramo(za, zb, dt, PERFIL.hGrueso * fl);
     const iJov = integralTramo(za, zb, dt, PERFIL.hJoven * fl), iBul = integralTramo(za, zb, dt, hBulbo(pm[0], pm[1], barra));
     const iPol = integralTramo(za, zb, dt, (m.hPolvo ?? PERFIL.hPolvo) * fl);
-    const wE = cerca ? ss(tm, ...CERCA.emision) : 1, wD = cerca ? ss(tm, ...CERCA.polvo) : 1;
+    const wE = cerca ? 1 + (ss(tm, ...CERCA.emision) - 1) * fuerzaCerca : 1, wD = cerca ? ss(tm, ...CERCA.polvo) : 1;
     const rSol = Math.hypot(pm[0] - SOL_KPC[0], pm[1] - SOL_KPC[1], pm[2] - SOL_KPC[2]);
     const perfil = (1 - fy - wb) * ((1 - fT) * iDel + fT * iGru) + fy * iJov + wb * iBul;
     let tauV = m.tau * iPol * wD * ss(rSol, ...PERFIL.burbuja);
@@ -210,7 +211,7 @@ export function tono(C, { expo = 1, N = 0, iota = 0 } = {}) {
 
 // ---- Parámetros de cada cuadro (los usa GalaxiaVolumen.jsx; todo es función de la pose, sin estado) ----
 // camara: { position: {x,y,z}, elementos: camera.matrixWorld.elements, fov (grados), aspecto }; lienzo: [W, H] del drawing buffer.
-export function parametrosCuadro({ camara, origin, lienzo, telefono = false, quieto = false, muestras = null, mapa = null, negro = NEGRO, alturaNegro = ALTURA_NEGRO, expo = 1, barra = -18.1 * D2R }) {
+export function parametrosCuadro({ camara, origin, lienzo, telefono = false, quieto = false, muestras = null, mapa = null, negro = NEGRO, alturaNegro = ALTURA_NEGRO, expo = 1, barra = -18.1 * D2R, fuerzaCerca = 1 }) {
   const o = camaraGalactica(camara.position, origin);
   const base = baseCamara(camara.elementos);
   const tanY = Math.tan(camara.fov * D2R / 2), tan = [tanY * camara.aspecto, tanY];
@@ -219,14 +220,16 @@ export function parametrosCuadro({ camara, origin, lienzo, telefono = false, qui
   const nMedio = pasosMedios(o, base, tan, { nMax, dh });
   const s = escalaPorPresupuesto(lienzo[0], lienzo[1], Math.max(nMedio, 1), presupuesto);
   const ancho = Math.max(1, Math.round(lienzo[0] * s)), alto = Math.max(1, Math.round(lienzo[1] * s));
-  const { iota, N } = mapa ? puntoNegro(o, mapa, { negro, altura: alturaNegro, expo, nMax, dh, barra }) : { iota: interiorGalaxia(o), N: 0 };
+  const { iota, N } = mapa ? puntoNegro(o, mapa, { negro, altura: alturaNegro, expo, nMax, dh, barra, fuerzaCerca }) : { iota: interiorGalaxia(o), N: 0 };
   return { o, base, tan, nMax, dh, nMedio, s, ancho, alto, pixAng: 2 * tanY / alto, iota, N };
 }
 
 // ---- Mapa en la CPU (copias de 256² de las texturas) para el punto negro ----
 // emision, polvo: RGBA de getImageData (fila 0 arriba, igual que la imagen); n: lado. modeloB: true en la opción B.
 const lin = c => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
-export function crearMapaCpu({ emision, polvo, n, modeloB = false, escalaE = 1, luz = 1 }) {
+// anillos (de anillosPlanta) y sinBrazos ∈ [0, 1] (opción C): mezcla la planta con el promedio de su anillo antes de escalarla,
+// igual que el sombreador, para que el punto negro de la CPU coincida con la GPU.
+export function crearMapaCpu({ emision, polvo, n, modeloB = false, escalaE = 1, luz = 1, anillos = null, sinBrazos = 0 }) {
   const W = ANCHO_PLANTA_KPC;
   const leer = (datos, px, py, k) => datos[4 * (Math.min(n - 1, Math.max(0, py)) * n + Math.min(n - 1, Math.max(0, px))) + k];
   const bilineal = (datos, u, v, k, f = x => x) => {
@@ -239,7 +242,68 @@ export function crearMapaCpu({ emision, polvo, n, modeloB = false, escalaE = 1, 
     const borde2 = modeloB ? 1 : ss(Math.hypot((u - 0.5) * 1.3, vTex - 0.945), 0.045, 0.075);
     const r = bilineal(polvo, u, vImg, 0) / 255, g = bilineal(polvo, u, vImg, 1) / 255, b = bilineal(polvo, u, vImg, 2) / 255;
     const corr = EXT_RGB.map(e => (modeloB ? 1 : Math.min((1 + 2 * g) ** e, 1 / 0.35)));
-    const E = [0, 1, 2].map(k => bilineal(emision, u, vImg, k, lin) * escalaE * corr[k] * borde1 * borde2 * luz);
-    return { E, tau: decodificarTau(r), fJoven: 0.8 * b, hPolvo: modeloB ? decodificarHPolvo(g) : PERFIL.hPolvo };
+    let E0 = [0, 1, 2].map(k => bilineal(emision, u, vImg, k, lin));
+    let tau = decodificarTau(r), fJoven = 0.8 * b, hPolvo = modeloB ? decodificarHPolvo(g) : PERFIL.hPolvo;
+    if (anillos && sinBrazos > 0) {
+      const a = leerAnillo(anillos, Math.hypot(x, y)), m = (p, q) => p + (q - p) * sinBrazos;
+      E0 = E0.map((v, k) => m(v, a.E[k])); tau = m(tau, a.tau); hPolvo = m(hPolvo, a.hPolvo); fJoven = m(fJoven, a.fJoven);
+    }
+    const E = E0.map((v, k) => v * escalaE * corr[k] * borde1 * borde2 * luz);
+    return { E, tau, fJoven, hPolvo };
   };
+}
+
+// ---- Opción C: la foto de hoy por fuera y el volumen de B dentro del disco ----
+// Tramos en kpc: W baja de 1 a 0 entre z' = 0,5 y 1,5 y entre R = 15 y 20; los brazos se cambian por el promedio de su
+// anillo entre z' = 0,3 y 0,7; la exclusión de la luz cercana pierde fuerza entre z' = 0,3 y 0,9 (con 0,15 quedaba un velo gris; para que, mirando hacia
+// abajo a ~1 kpc, el disco cercano no quede negro mientras la foto todavía no entra). Ajustables por URL en la rama.
+export const CRUCE_C = { z: [0.5, 1.5], r: [15, 20], sinBrazos: [0.3, 0.7], cerca: [0.3, 0.9] };
+// Altura sobre el plano medio alabeado de B. Más allá de 16 kpc se usa el alabeo a 16 kpc (la fórmula crece sin límite).
+export function alturaPlanoMedio(cam) {
+  const R = Math.hypot(cam[0], cam[1]), k = Math.min(1, 16 / Math.max(R, 1e-9));
+  return Math.abs(cam[2] - alabeo(cam[0] * k, cam[1] * k));
+}
+// cam: posición galactocéntrica en kpc (camaraGalactica, en doble precisión). W: peso del volumen (la foto recibe 1 − W).
+export function pesoVolumenC(cam, tramos = CRUCE_C) {
+  const R = Math.hypot(cam[0], cam[1]), z = alturaPlanoMedio(cam);
+  return {
+    W: (1 - ss(z, ...tramos.z)) * (1 - ss(R, ...tramos.r)),
+    sinBrazos: ss(z, ...tramos.sinBrazos),
+    fuerzaCerca: 1 - ss(z, ...tramos.cerca),
+    z, R,
+  };
+}
+// Promedio de la planta por anillos (sin escalar: emisión lineal, τ_V lineal, altura del polvo y fracción joven), con las
+// mismas copias de 256² que crearMapaCpu. Devuelve n·2·4 valores: fila 0 = [E_r, E_g, E_b, 1], fila 1 = [τ, hPolvo, fJoven, 1];
+// el anillo i va de i/n a (i + 1)/n de RMAX_ANILLOS.
+export const RMAX_ANILLOS = ANCHO_PLANTA_KPC / 2;
+export function anillosPlanta({ emision, polvo, n, modeloB = false, nAnillos = 128, nAngulos = 512 }) {
+  const W = ANCHO_PLANTA_KPC;
+  const leer = (datos, px, py, k) => datos[4 * (Math.min(n - 1, Math.max(0, py)) * n + Math.min(n - 1, Math.max(0, px))) + k];
+  const bilineal = (datos, u, v, k, f = x => x) => {
+    const x = u * n - 0.5, y = v * n - 0.5, i = Math.floor(x), j = Math.floor(y), a = x - i, b = y - j;
+    return (f(leer(datos, i, j, k)) * (1 - a) + f(leer(datos, i + 1, j, k)) * a) * (1 - b) + (f(leer(datos, i, j + 1, k)) * (1 - a) + f(leer(datos, i + 1, j + 1, k)) * a) * b;
+  };
+  const datos = new Float32Array(nAnillos * 2 * 4);
+  for (let i = 0; i < nAnillos; i++) {
+    const R = (i + 0.5) / nAnillos * RMAX_ANILLOS;
+    const suma = [0, 0, 0, 0, 0, 0];
+    for (let k = 0; k < nAngulos; k++) {
+      const th = (k + 0.5) / nAngulos * 2 * Math.PI, x = R * Math.cos(th), y = R * Math.sin(th);
+      const u = 0.5 - y / W, v = 0.5 - x / W;
+      for (let c = 0; c < 3; c++) suma[c] += bilineal(emision, u, v, c, lin);
+      const r = bilineal(polvo, u, v, 0) / 255, g = bilineal(polvo, u, v, 1) / 255, b = bilineal(polvo, u, v, 2) / 255;
+      suma[3] += decodificarTau(r); suma[4] += modeloB ? decodificarHPolvo(g) : PERFIL.hPolvo; suma[5] += 0.8 * b;
+    }
+    const m = suma.map(v => v / nAngulos);
+    datos.set([m[0], m[1], m[2], 1], 4 * i);
+    datos.set([m[3], m[4], m[5], 1], 4 * (nAnillos + i));
+  }
+  return { datos, n: nAnillos };
+}
+// Valor del anillo en el radio R (interpolación lineal entre centros, como el filtrado lineal de la textura).
+export function leerAnillo({ datos, n }, R) {
+  const x = Math.min(Math.max(R / RMAX_ANILLOS * n - 0.5, 0), n - 1), i = Math.floor(x), a = x - i, j = Math.min(i + 1, n - 1);
+  const v = (fila, k) => datos[4 * (fila * n + i) + k] * (1 - a) + datos[4 * (fila * n + j) + k] * a;
+  return { E: [v(0, 0), v(0, 1), v(0, 2)], tau: v(1, 0), hPolvo: v(1, 1), fJoven: v(1, 2) };
 }

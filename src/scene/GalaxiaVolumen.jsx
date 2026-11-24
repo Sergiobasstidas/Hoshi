@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { UMBRAL_PASE, crearMapaCpu } from './galaxiaModelo.js';
+import { UMBRAL_PASE, anillosPlanta, crearMapaCpu } from './galaxiaModelo.js';
 import { composicionFragment, composicionVertex, marchaFragment, marchaVertex } from './galaxiaShaders.js';
 import { ANCHO_PLANTA_KPC } from './galaxiaModelo.js';
 import mapasEsa from '../f7/mapasEsa.json';
@@ -19,7 +19,17 @@ const ARCHIVOS = {
 const cargarImagen = url => new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
 const pixeles = (imagen, n) => { const c = document.createElement('canvas'); c.width = c.height = n; const g = c.getContext('2d'); g.drawImage(imagen, 0, 0, n, n); return g.getImageData(0, 0, n, n).data; };
 
-export default function GalaxiaVolumen({ variante, origin, opacidad, escalaE = 1, barraGrados = mapasEsa.barraGrados }) {
+// Textura de anillos (opción C): 128 × 2 en media precisión, filtrado lineal.
+function texturaAnillos({ datos, n }) {
+  const medios = new Uint16Array(datos.length);
+  for (let i = 0; i < datos.length; i++) medios[i] = THREE.DataUtils.toHalfFloat(datos[i]);
+  const t = new THREE.DataTexture(medios, n, 2, THREE.RGBAFormat, THREE.HalfFloatType);
+  t.minFilter = t.magFilter = THREE.LinearFilter; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+  return t;
+}
+
+// cruce (opción C): ref con { W, sinBrazos, fuerzaCerca }; umbral: opacidad bajo la cual no se marcha ni se compone.
+export default function GalaxiaVolumen({ variante, origin, opacidad, escalaE = 1, barraGrados = mapasEsa.barraGrados, cruce = null, umbral = UMBRAL_PASE }) {
   const { gl } = useThree();
   const [recursos, setRecursos] = useState(null);
   const compuesto = useRef();
@@ -36,12 +46,15 @@ export default function GalaxiaVolumen({ variante, origin, opacidad, escalaE = 1
         return t;
       };
       // Copias de 256² en la CPU para el punto negro (brillo del cielo hacia los polos desde dentro del disco).
-      const mapa = crearMapaCpu({ emision: pixeles(ie, 256), polvo: pixeles(ip, 256), n: 256, modeloB: variante === 'b', escalaE });
-      setRecursos({ emision: textura(ie, true), polvo: textura(ip, false), mapa, ruido: variante === 'b' ? crearRuido3D(64) : null });
+      const copia = { emision: pixeles(ie, 256), polvo: pixeles(ip, 256), n: 256, modeloB: variante === 'b' };
+      const mapa = crearMapaCpu({ ...copia, escalaE });
+      const anillos = anillosPlanta(copia);
+      setRecursos({ emision: textura(ie, true), polvo: textura(ip, false), mapa, copia, anillos, texAnillos: texturaAnillos(anillos), escalaE,
+        ruido: variante === 'b' ? crearRuido3D(64) : null });
     }).catch(error => console.warn('Galaxia F-07 no disponible:', error));
     return () => { activo = false; };
   }, [variante, escalaE]);
-  useEffect(() => () => { recursos?.emision.dispose(); recursos?.polvo.dispose(); recursos?.ruido?.dispose(); }, [recursos]);
+  useEffect(() => () => { recursos?.emision.dispose(); recursos?.polvo.dispose(); recursos?.ruido?.dispose(); recursos?.texAnillos.dispose(); }, [recursos]);
   const objetivo = useMemo(() => new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }), []);
   useEffect(() => () => objetivo.dispose(), [objetivo]);
   const marcha = useMemo(() => {
@@ -57,6 +70,7 @@ export default function GalaxiaVolumen({ variante, origin, opacidad, escalaE = 1
         uEscalaE: { value: escalaE }, uBarra: { value: barraGrados * D2R }, uModeloB: { value: variante === 'b' ? 1 : 0 },
         uGrumos: { value: variante === 'b' ? 1 : 0 }, uLuz: { value: 1 }, uDh: { value: 1 }, uPasosMax: { value: 48 },
         uJitter: { value: 1 }, uExpo: { value: 1 }, uNegro: { value: 0 }, uInterior: { value: 0 },
+        uAnillos: { value: null }, uSinBrazos: { value: 0 }, uCercaFuerza: { value: 1 },
       },
     });
     const malla = new THREE.Mesh(geometria, material);
@@ -71,9 +85,9 @@ export default function GalaxiaVolumen({ variante, origin, opacidad, escalaE = 1
     const malla = compuesto.current;
     if (!malla) return;
     const alfa = opacidad.current;
-    malla.visible = Boolean(recursos) && alfa > UMBRAL_PASE;
+    malla.visible = Boolean(recursos) && alfa > umbral;
     if (!malla.visible) return;
-    dibujarVolumen({ gl, camera, origin, marcha, objetivo, recursos, malla, alfa, tamano, barra: barraGrados * D2R });
+    dibujarVolumen({ gl, camera, origin, marcha, objetivo, recursos, malla, alfa, tamano, barra: barraGrados * D2R, cruce: cruce?.current });
   });
   return <mesh ref={compuesto} renderOrder={-1000} frustumCulled={false}>
     <bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3]} /></bufferGeometry>

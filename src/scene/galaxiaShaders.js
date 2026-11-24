@@ -1,6 +1,6 @@
 // src/scene/galaxiaShaders.js (rama f7-prototipos): sombreadores del volumen de la galaxia.
 // Las constantes salen de galaxiaModelo.js para que el GLSL y la gemela en JS (integrarRayo, tono) no se separen.
-import { ANCHO_PLANTA_KPC, CERCA, EXT_RGB, GRUMOS, LOSA, PASO, PASOS_TOPE_GLSL, PERFIL, POLVO_B, SOL_KPC, TAU_CODIGO, TONO } from './galaxiaModelo.js';
+import { ANCHO_PLANTA_KPC, RMAX_ANILLOS, CERCA, EXT_RGB, GRUMOS, LOSA, PASO, PASOS_TOPE_GLSL, PERFIL, POLVO_B, SOL_KPC, TAU_CODIGO, TONO } from './galaxiaModelo.js';
 
 // Literal float de GLSL (siempre con punto o exponente).
 const f = v => { const s = Number(v).toPrecision(9); return /[.e]/.test(s) ? s : `${s}.0`; };
@@ -36,9 +36,12 @@ export const marchaFragment = /* glsl */`
   uniform float uExpo;        // exposición (1)
   uniform float uNegro;       // N en unidades de uExpo·C (CPU: puntoNegro)
   uniform float uInterior;    // ι (CPU: interiorGalaxia)
+  uniform sampler2D uAnillos; // opción C: promedio de la planta por anillo (fila 0: emisión lineal; fila 1: τ_V, hPolvo, fJoven)
+  uniform float uSinBrazos;   // opción C: 0 la planta tal cual, 1 el promedio de su anillo (sin brazos ni barra)
+  uniform float uCercaFuerza; // 1 en A y B; en C baja al subir sobre el plano (exclusión de la luz cercana)
   varying vec2 vNdc;
 
-  const float ANCHO = ${f(ANCHO_PLANTA_KPC)};
+  const float ANCHO = ${f(ANCHO_PLANTA_KPC)}, RANILLOS = ${f(RMAX_ANILLOS)};
   const vec3 SOL = ${v3(SOL_KPC)};
   const float RSOL = ${f(Math.abs(SOL_KPC[0]))};
   const vec3 EXT = ${v3(EXT_RGB)};
@@ -137,18 +140,25 @@ export const marchaFragment = /* glsl */`
         vec2 uv = uvMapa(pp);
         float pie = max(tm * uPixAng, 0.5 * dt * length(d.xy));
         float lodE = log2(max(pie / uTexelE, 1.0));
-        vec3 E = textureLod(uEmision, uv, lodE).rgb * uEscalaE;
+        vec3 E = textureLod(uEmision, uv, lodE).rgb;
         // El disco grueso y el bulbo son lisos: leen una planta muy suavizada (A; en B ya es lisa).
-        vec3 El = uModeloB < 0.5 ? textureLod(uEmision, uv, lodE + LOD_LISO).rgb * uEscalaE : E;
+        vec3 El = uModeloB < 0.5 ? textureLod(uEmision, uv, lodE + LOD_LISO).rgb : E;
         vec3 pol = textureLod(uPolvo, uv, log2(max(pie / uTexelP, 1.0))).rgb;
+        float tau = decodTau(pol.r);
+        float fJ = 0.8 * pol.b;
+        float hP = uModeloB > 0.5 ? mix(HPMIN, HPMAX, pol.g) : HPOLVO;
+        if (uSinBrazos > 0.0) {
+          float ua = length(pm.xy) / RANILLOS;
+          vec3 a0 = texture2D(uAnillos, vec2(ua, 0.25)).rgb, a1 = texture2D(uAnillos, vec2(ua, 0.75)).rgb;
+          E = mix(E, a0, uSinBrazos); El = mix(El, a0, uSinBrazos);
+          tau = mix(tau, a1.r, uSinBrazos); hP = mix(hP, a1.g, uSinBrazos); fJ = mix(fJ, a1.b, uSinBrazos);
+        }
+        E *= uEscalaE; El *= uEscalaE;
         float borde = 1.0 - ss(0.42, 0.50, length(uv - 0.5));
         if (uModeloB < 0.5) borde *= ss(0.045, 0.075, length((uv - vec2(0.5, 0.945)) * vec2(1.3, 1.0)));
         vec3 corr = uModeloB > 0.5 ? vec3(1.0) : min(pow(vec3(1.0 + 2.0 * pol.g), EXT), vec3(1.0 / 0.35));
         E *= corr * (borde * uLuz);
         El *= corr * (borde * uLuz);
-        float tau = decodTau(pol.r);
-        float fJ = 0.8 * pol.b;
-        float hP = uModeloB > 0.5 ? mix(HPMIN, HPMAX, pol.g) : HPOLVO;
         vec2 pb = ejesBarra(pm.xy);
         float wb = pesoBulbo(pb);
         float fT = fGrueso(R);
@@ -158,7 +168,7 @@ export const marchaFragment = /* glsl */`
         float iJov = integralTramo(za, zb, dt, HJOV * fl);
         float iBul = integralTramo(za, zb, dt, hBulbo(pb));
         float iPol = integralTramo(za, zb, dt, hP * fl);
-        float wE = ss(CE0, CE1, tm), wD = ss(CD0, CD1, tm);
+        float wE = mix(1.0, ss(CE0, CE1, tm), uCercaFuerza), wD = ss(CD0, CD1, tm);
         float perfil = (1.0 - fy - wb) * (1.0 - fT) * iDel + fy * iJov;
         float perfilLiso = (1.0 - fy - wb) * fT * iGru + wb * iBul;
         float tauV = tau * iPol * wD * ss(BUR0, BUR1, length(pm - SOL));
