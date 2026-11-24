@@ -175,3 +175,50 @@ test('giros grandes (135° y a la espalda) sin roll en ningún cuadro, con la ve
     assert.ok(maximo < 1e-9, `roll máximo ${maximo}`);
   }
 });
+
+test('teléfono en horizontal: la ficha ocupa todo el alto y la estrella no baja al borde inferior', () => {
+  const lienzo = { left: 0, top: 0, right: 844, bottom: 390, width: 844, height: 390 };
+  // Ficha ancha (más del 70 % del ancho) que cubre todo el alto: sin franja libre arriba ni abajo.
+  const ndc = centroVisible(lienzo, { left: 0, top: 0, right: 844, bottom: 390, width: 844, height: 390 }, 60);
+  assert.deepEqual(ndc, [0, 0]);
+});
+
+test('teléfono en vertical: una estrella cerca del polo sur (beta Hydri) queda sobre la ficha, no bajo ella', async () => {
+  const { direccionFinal } = await import('../src/scene/enfoque.js');
+  const arriba = new Vector3(0, 1, 0), aspecto = 390 / 844, ndc = [0, 0.5];
+  // 78° bajo el horizonte: para dejarla en ndc y = 0,5 la cámara tendría que mirar más allá del nadir.
+  const alt = -78 * Math.PI / 180, estrella = new Vector3(0, Math.sin(alt), -Math.cos(alt));
+  const adelanteFinal = direccionFinal(estrella, arriba, { fov: 50, aspecto, ndc });
+  const c = new PerspectiveCamera(50, aspecto, 0.1, 100);
+  c.up.copy(arriba); c.lookAt(adelanteFinal); c.updateMatrixWorld();
+  const [x, y] = enPantalla(c, estrella.clone().multiplyScalar(10));
+  assert.ok(Math.abs(x) < 1e-3 && y > 0.1, `${x} ${y}`);
+  assert.ok(roll(c) < 1e-9);
+});
+
+test('un giro que pasa cerca del cenit no hace girar la imagen de golpe', () => {
+  const c = camara(), arriba = new Vector3(0, 1, 0);
+  // De mirar al horizonte (−z) a una estrella a 85° de altura del lado opuesto: el círculo máximo pasa a 5° del cenit.
+  const alt = 85 * Math.PI / 180, estrella = new Vector3(0, Math.sin(alt), Math.cos(alt));
+  const e = crearEnfoque(c, estrella, { fov: c.fov, aspecto: c.aspect, arriba });
+  assert.ok(e?.acimut);
+  let derecha = new Vector3(1, 0, 0).applyQuaternion(c.quaternion), maximo = 0, fin = false;
+  for (let k = 0; k < 200 && !fin; k++) {
+    fin = avanzarEnfoque(c, e, 1 / 60);
+    const nueva = new Vector3(1, 0, 0).applyQuaternion(c.quaternion);
+    maximo = Math.max(maximo, nueva.angleTo(derecha));
+    derecha = nueva;
+    assert.ok(roll(c) < 1e-9);
+  }
+  assert.ok(fin && adelante(c).angleTo(estrella) < 1e-6);
+  // 180° de acimut repartidos en el giro: ningún cuadro gira la imagen más de 15°.
+  assert.ok(maximo < 15 * Math.PI / 180, `${maximo * 180 / Math.PI}°`);
+  // Lejos de la vertical se sigue el círculo máximo, como antes.
+  assert.equal(crearEnfoque(camara(), new Vector3(1, 0.2, -1).normalize(), { arriba })?.acimut, null);
+});
+
+test('el centro de la órbita nunca queda más allá de la estrella', async () => {
+  const { centroDeOrbita } = await import('../src/scene/enfoque.js');
+  assert.deepEqual(centroDeOrbita([0, 0, 0], [0, 0, -1], [0, 0, 1000], [0, 0, -2.6]), [0, 0, -2.6]);
+  assert.deepEqual(centroDeOrbita([0, 0, 0], [0, 0, -1], [0, 0, 5], [0, 0, -50]), [0, 0, -5]);
+});

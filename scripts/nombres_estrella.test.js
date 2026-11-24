@@ -80,6 +80,18 @@ test('el clic elige la estrella más brillante a pocos píxeles del cursor entre
   assert.equal(elegir({ cx: 150 }), -1);
 });
 
+test('sin margen: un clic no elige una estrella más débil que el límite del modo, ni una tapada', () => {
+  const matriz = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, -1, 0, 0, -0.002, 0];
+  const datos = prepararSeleccion([{ i: 1, x: 0, y: 0, z: -10, m: 5 }, { i: 2, x: 0.05, y: 0, z: -10, m: 1 }]);
+  const elegir = opciones => estrellaBajoCursor(datos, { matriz, origen: [0, 0, 0], camara: [0, 0, 0], ancho: 200, alto: 200, cx: 100, cy: 100, ...opciones });
+  // Magnitud aparente 1 con límite 0,5: el punto ya no se ve, así que no se elige (antes contaba hasta límite + 1).
+  assert.equal(elegir({ fisico: 1, limite: 0.5 }), -1);
+  assert.equal(datos.estrellas[elegir({ fisico: 1, limite: 1.01 })].i, 2);
+  // Tapada por un disco más cercano: se elige la otra, y si todas están tapadas, ninguna.
+  assert.equal(datos.estrellas[elegir({ oculta: k => datos.estrellas[k].i === 2 })].i, 1);
+  assert.equal(elegir({ oculta: () => true }), -1);
+});
+
 test('el nombre al pasar el mouse no se repite si ya se ve en la escena', () => {
   const escena = [{ texto: 'Tau Ceti', visible: true }, { texto: 'Sirio A', visible: false }, { texto: 'TOI-4156 B', visible: true }];
   assert.equal(nombreYaVisible('Tau Ceti', escena), true);

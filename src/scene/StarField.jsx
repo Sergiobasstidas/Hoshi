@@ -184,6 +184,7 @@ const unidoVertex = `
   uniform float proximaAlpha;
   uniform float lejania;
   uniform vec3 solPos;
+  uniform vec3 elegidaPos;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vHalo;
@@ -231,8 +232,9 @@ const unidoVertex = `
       // Lejos del Sol, cada estrella (catálogo, capa y con nombre; no el Sol) se apaga con su distancia a la cámara
       // (cuadrado inverso desde RADIO_LEJOS_PC): las cientos de miles a menos de 100 pc (GCNS) no forman una bola brillante
       // vista desde lejos. Los nombres se ven solo hasta 120 años luz de la cámara (VisualGuides.jsx), muy dentro de
-      // RADIO_LEJOS_PC, así que ningún nombre queda sin su punto; la estrella elegida se dibuja aparte.
-      if (k < 2 || length(position - solPos) > 1e-6) vAlpha *= mix(1.0, min(1.0, pow(${RADIO_LEJOS_PC.toFixed(1)} / distanceToEye, 2.0)), lejania);
+      // RADIO_LEJOS_PC, así que ningún nombre queda sin su punto; la estrella visitada se dibuja aparte y la elegida (la de
+      // la ficha y la marca, elegidaPos) no se apaga.
+      if ((k < 2 || length(position - solPos) > 1e-6) && length(position - elegidaPos) > 0.1) vAlpha *= mix(1.0, min(1.0, pow(${RADIO_LEJOS_PC.toFixed(1)} / distanceToEye, 2.0)), lejania);
       // «Mapa» nunca queda más tenue ni más chico que «Binoculares» (mismo criterio que vertexShader).
       vAlpha = max(vAlpha, clamp(0.08 * pow(10.0, 0.4 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude)), 0.0, 1.0) * gananciaK);
       gl_PointSize = max(gl_PointSize, clamp(2.5 + 1.6 * (${LIMITE_BINOCULARES.toFixed(1)} - apparentMagnitude), 1.5, 34.0) * pixelRatio);
@@ -282,7 +284,7 @@ function escalasCatalogo(lista) {
   return { areaScale, energyScale: energia ? luz / energia : 1 };
 }
 
-function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido }) {
+function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido, elegida = null }) {
   const materialRef = useRef();
   const invalidate = useThree(state => state.invalidate);
   const nCat = catalogo.length, nCapa = capa?.n ?? 0, total = nCat + nCapa;
@@ -345,6 +347,7 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     pixelRatio: { value: 1 }, distantSize: { value: 1 }, farCompression: { value: 0 }, individualMix: { value: 0 },
     fisico: { value: 0 }, limite: { value: 6 },
     proximaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) }, proximaAlpha: { value: 0 }, lejania: { value: 0 }, solPos: { value: new THREE.Vector3() },
+    elegidaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) },
   }), []);
   // Proxima en el catálogo (su punto se refuerza mientras su nombre se ve; ver modosBrillo.js).
   const proxima = useMemo(() => catalogo.find(star => star.i === PROXIMA_HSB), [catalogo]);
@@ -376,6 +379,8 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido })
     u.distantSize.value = 1 - 0.22 * THREE.MathUtils.smoothstep(distance, 50, 300);
     u.lejania.value = smoothRange(distance, ...LEJANIA_PC);
     u.solPos.value.set(-origin[0], -origin[1], -origin[2]);
+    if (elegida && Number.isFinite(elegida.x)) u.elegidaPos.value.set(elegida.x - origin[0], elegida.y - origin[1], elegida.z - origin[2]);
+    else u.elegidaPos.value.set(1e9, 1e9, 1e9);
   });
   return (
     <points frustumCulled={false} geometry={geometria}>
@@ -407,7 +412,8 @@ const parts = star => star ? star.components || [star] : [];
 // realce fijo que entra con un fundido corto; las demás se atenúan un poco y todo vuelve a la normalidad al soltarlas.
 // REALCE_FIJO es el 60 % del pico que tenía el latido descartado.
 const ATENUACION = 0.7, REALCE_FIJO = 0.6;
-export default function StarField({ stars, catalogo = stars, capa = null, origin, focusedStar, departureStar, gain = 1, resaltadas = null }) {
+// `elegida`: la estrella de la ficha (enfoque), que no se atenúa con la lejanía.
+export default function StarField({ stars, catalogo = stars, capa = null, origin, focusedStar, departureStar, gain = 1, resaltadas = null, elegida = null }) {
   const groups = useMemo(() => ({
     solar: stars.filter(s => s.n === 'Sol' || s.n === 'Sun').map(s => ({...s,x:0,y:0,z:0})),
     named: stars.filter(s => s.n && s.n !== 'Sol' && s.n !== 'Sun'),
@@ -432,7 +438,7 @@ export default function StarField({ stars, catalogo = stars, capa = null, origin
     const elegir = lista => resaltadas ? lista.filter(s => resaltadas.has(s.i) && s.i !== focusedStar?.i && s.i !== retained?.i) : [];
     return { named: elegir(groups.named), background: elegir(groups.background) };
   }, [groups, resaltadas, focusedStar, retained]);
-  return <><CieloUnido catalogo={catalogo} capa={capa} visibles={visibles} aparte={aparte} origin={origin} gain={gain} fundido={fundido} />
+  return <><CieloUnido catalogo={catalogo} capa={capa} visibles={visibles} aparte={aparte} origin={origin} gain={gain} fundido={fundido} elegida={elegida} />
     {destacadas.background.length > 0 && <StarGroup gain={gain} destaque={destaque} stars={destacadas.background} named={false} origin={origin} />}
     {destacadas.named.length > 0 && <StarGroup gain={gain} destaque={destaque} stars={destacadas.named} named origin={origin} />}
     <StarGroup gain={gain} stars={groups.solar} named solar origin={origin} physicalRadius={SUN_RADIUS_PC} />

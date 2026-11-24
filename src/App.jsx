@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useProgress } from '@react-three/drei';
 import { cargaInicial, progresoCarga } from './progresoCarga';
@@ -252,6 +252,14 @@ export default function App() {
   // Enfoque de cámara (EnfoqueCamara.jsx): la estrella elegida a la que gira la cámara y que queda fija al centro.
   const [enfoque, setEnfoque] = useState(null);
   const [girandoEnfoque, setGirandoEnfoque] = useState(false);
+  // Centro de la órbita movido por un enfoque (catálogo, pc): no se guarda en la vista para no cambiar su identidad (con
+  // ella se comparan la región cerrada y la sonda soltada). Un viaje lo devuelve a null.
+  const [centroOrbita, setCentroOrbita] = useState(null);
+  // Lo elegido en el buscador o enfocado (con «Ir a» en su ficha y la marca); ver apuntarA y enfocarAhora.
+  const [apuntado, setApuntado] = useState(null);
+  // Cada elección (estrella, viaje, cerrar la ficha, Esc) sube el contador: lo que llega tarde (el índice del buscador,
+  // los datos de una estrella de la capa) solo actúa si no hubo otra elección entre medio.
+  const eleccion = useRef(0);
   const esComputador = useEsComputador();
   const verOrbitas = useOrbitas(), verZona = useZonaVisible(), verCumulos = useCumulosVisibles(), verRutas = useRutasSondas();
   // Cúmulo elegido: encuadrado, con su ficha; sus miembros brillan algo más y el resto se atenúa un poco.
@@ -328,9 +336,12 @@ export default function App() {
     const start = camera.position.toArray().map((v, i) => v + origin[i]);
     const rotation = camera.quaternion.toArray();
     transitionRef.current = null;
+    eleccion.current++;
     releaseAim();
     setEnfoque(null);
     setGirandoEnfoque(false);
+    setCentroOrbita(null);
+    setApuntado(null);
     setSolApuntado(false);
     setEstrellaVista(null);
     setCumulo(null);
@@ -435,7 +446,7 @@ export default function App() {
   // la vista (una sonda cuenta como una sola, se vea su sobrevuelo o una etapa), la sonda, la estrella o
   // el cúmulo de la ficha, el vuelo libre (salir volando es irse) y cada vez que se suelta algo (×, Esc).
   useEffect(() => {
-    const tecla = event => { if (event.key === 'Escape') { setSoltadas(n => n + 1); setEnfoque(null); } };
+    const tecla = event => { if (event.key === 'Escape') { eleccion.current++; setSoltadas(n => n + 1); setEnfoque(null); } };
     window.addEventListener('keydown', tecla);
     return () => window.removeEventListener('keydown', tecla);
   }, []);
@@ -480,7 +491,8 @@ export default function App() {
     if (!camera) return;
     if (traveling && !final) return;
     setSolApuntado(false);
-    if (view.id !== 'escala' || view.centro || traveling || freeFlight || valor >= 99.9) { viajarDesdeBarra(valor, true); return; }
+    // Con el centro de la órbita movido por un enfoque, la cámara no mira a la Tierra: se viaja a la vista de escala.
+    if (view.id !== 'escala' || view.centro || centroOrbita || traveling || freeFlight || valor >= 99.9) { viajarDesdeBarra(valor, true); return; }
     const destino = destinoDesdeBarra(valor, camera.position.toArray(), origin);
     camera.position.set(...destino.target.map((v, i) => v - origin[i] + destino.direction[i] * destino.distance));
   };
@@ -527,20 +539,23 @@ export default function App() {
   };
   // Estrella de la capa de fondo elegida en el buscador: se piden sus datos de Gaia DR3 y se viaja a su posición en la
   // capa. Magnitud y color para dibujarla de cerca, como en la capa: M_V = G + 5·log10(paralaje/100) − (G − V).
-  const visitarCapa = async (fila, alElegir = body => visitBody(body, true)) => {
+  // `enfocar`: solo girar hacia ella (elegida en el buscador) en vez de viajar. Si mientras llegan los datos se eligió otra
+  // cosa, no se hace nada; al llegar se usa la versión vigente de App (vigente.current).
+  const visitarCapa = async (fila, enfocar = false) => {
     if (!capaEstrellas || !cameraRef.current) return;
+    const turno = ++eleccion.current;
     const datos = await datosCapa(fila).catch(() => null);
-    if (!datos) return;
+    if (!datos || eleccion.current !== turno) return;
     const [x, y, z] = posicionEnCapa(capaEstrellas, datos.indice);
     const nombre = nombrePrincipal(datos);
     const m = datos.paralaje > 0 && Number.isFinite(datos.g) ? datos.g + 5 * Math.log10(datos.paralaje / 100) - gMenosV(datos.bpRp) : undefined;
     const star = { i: datos.hsb, n: nombre, x, y, z, d: datos.paralaje > 0 ? 1000 / datos.paralaje : Math.hypot(x, y, z), m, rgb: rgbDesdeBpRp(datos.bpRp), capa: datos };
     setShowPulsars(false);
-    alElegir(starBody(star, nombre));
+    const body = starBody(star, nombre);
+    if (enfocar) vigenteApp.current.enfocarAhora(body, body.name); else vigenteApp.current.visitBody(body, true);
   };
   // Elegido en el buscador: la cámara gira sin moverse hasta dejarlo al centro, queda marcado con su nombre y
   // se abre su ficha; recién con «Ir a» se viaja como antes (visitBody o focusBody).
-  const [apuntado, setApuntado] = useState(null);
   const apuntarA = (elegido, viajar) => {
     const camera = cameraRef.current;
     if (!camera) return;
@@ -578,51 +593,61 @@ export default function App() {
   // la estrella, a la misma distancia que el anterior: arrastrar mira a otro lado sin mover la cámara años luz.
   // Sin el índice del buscador cargado, una estrella sin nombre propio se llamaría «HSB …»: se espera a que cargue
   // (una sola vez) para que el título sea su nombre más conocido.
+  const enfocarAhora = (elegido, n) => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    const body = elegido.kind === 'star' && elegido.position ? elegido
+      : STELLAR_TARGETS.find(b => b.catalogueId === elegido.i) || starBody(elegido, n);
+    const star = body.star || elegido;
+    if (enfoque && !giroCortado(enfoque) && enfoque.star === star) return; // la misma estrella: no se suelta ni se repite
+    setDireccionFicha(1);
+    const ficha = { kind: 'star', star, catalogueId: star.i, text: n, position: body.position };
+    // Durante un viaje («Ir a», «Viajar a»), elegir una estrella solo abre su ficha: no corta el viaje ni gira.
+    if (traveling) { setEstrellaVista(ficha); return; }
+    // La estrella que se está visitando ya está en el centro de la órbita: solo su ficha.
+    if (!freeFlight && view.body?.star === star) { setEstrellaVista(ficha); return; }
+    setShowPulsars(false); setShowDiscoveries(false); setInspectedTarget(null);
+    releaseAim(); setSolApuntado(false); setCumulo(null);
+    setEstrellaVista(ficha);
+    // La vista no cambia de cuerpo: el origen de la escena no se mueve (moverlo recalcula un millón de posiciones) y
+    // los límites de la órbita siguen siendo los de la vista. Solo «Ir a» viaja a la estrella.
+    setApuntado({ body, nombre: body.name, viajar: () => visitBody(body, true), enfoque: true });
+    if (freeFlight) { setEnfoque({ posicion: body.position, libre: true, star }); return; }
+    // El centro de la órbita queda en la dirección de la estrella a la misma distancia que el anterior: al volver los
+    // controles, la cámara no se mueve.
+    transitionRef.current = null;
+    setGirandoEnfoque(true);
+    const centro = controlsRef.current ? controlsRef.current.target.toArray().map((v, i) => v + origin[i])
+      : (girandoEnfoque && enfoque?.centro) || centroOrbita || view.target || SOLAR_ORIGIN;
+    setEnfoque({ posicion: body.position, libre: false, star, centro });
+  };
   const enfocarEstrella = (elegido, nombre) => {
-    const enfocar = n => {
-      const camera = cameraRef.current;
-      if (!camera) return;
-      const body = elegido.kind === 'star' && elegido.position ? elegido
-        : STELLAR_TARGETS.find(b => b.catalogueId === elegido.i) || starBody(elegido, n);
-      const star = body.star || elegido;
-      if (enfoque && !giroCortado(enfoque) && enfoque.star === star) return; // la misma estrella: no se suelta ni se repite
-      setDireccionFicha(1);
-      const ficha = { kind: 'star', star, catalogueId: star.i, text: n, position: body.position };
-      // Durante un viaje («Ir a», «Viajar a»), elegir una estrella solo abre su ficha: no corta el viaje ni gira.
-      if (traveling) { setEstrellaVista(ficha); return; }
-      setShowPulsars(false); setShowDiscoveries(false); setInspectedTarget(null);
-      releaseAim(); setSolApuntado(false); setCumulo(null);
-      setEstrellaVista(ficha);
-      // La vista no cambia de cuerpo: el origen de la escena no se mueve (moverlo recalcula un millón de posiciones) y
-      // los límites de la órbita siguen siendo los de la vista. Solo «Ir a» viaja a la estrella.
-      setApuntado({ body, nombre: body.name, viajar: () => visitBody(body, true), enfoque: true });
-      if (freeFlight) { setEnfoque({ posicion: body.position, libre: true, star }); return; }
-      // El centro de la órbita queda en la dirección de la estrella a la misma distancia que el anterior: al volver los
-      // controles, la cámara no se mueve.
-      transitionRef.current = null;
-      setGirandoEnfoque(true);
-      setEnfoque({ posicion: body.position, libre: false, star, centro: view.target || SOLAR_ORIGIN });
-    };
-    if (nombre && !/^HSB \d/.test(nombre)) { enfocar(nombre); return; }
-    indiceBusqueda().then(() => enfocar(nombreEstrella(elegido.star || elegido)), () => enfocar(nombre));
+    const turno = ++eleccion.current;
+    if (nombre && !/^HSB \d/.test(nombre)) { enfocarAhora(elegido, nombre); return; }
+    const alLlegar = n => { if (eleccion.current === turno) vigenteApp.current.enfocarAhora(elegido, n); };
+    indiceBusqueda().then(() => alLlegar(nombreEstrella(elegido.star || elegido)), () => alLlegar(nombre));
   };
   // Fin del giro (o giro cortado por el usuario): en órbita, el centro de la órbita queda en la dirección final.
   const alGirarEnfoque = (adelante, pedido) => {
     const camera = cameraRef.current;
-    if (camera && !pedido.libre) {
-      const centro = centroDeOrbita(camera.position.toArray().map((v, i) => v + origin[i]), adelante.toArray(), pedido.centro);
-      setView(v => ({ ...v, target: centro, journey: undefined }));
+    if (camera && !pedido.libre && !traveling) {
+      const centro = centroDeOrbita(camera.position.toArray().map((v, i) => v + origin[i]), adelante.toArray(), pedido.centro, pedido.posicion);
+      setCentroOrbita(centro);
       setGirandoEnfoque(false);
     }
     if (giroCortado(pedido)) setEnfoque(actual => (actual === pedido ? null : actual));
   };
   // El usuario toma la cámara durante el giro (arrastre, rueda, teclado o toque): se corta donde está.
   const cortarEnfoque = () => { if (enfoque && girandoEnfoque) cortarGiro(enfoque, mantenerActivo); };
-  const soltarEnfoque = () => setEnfoque(null);
+  // En vuelo libre, mirar con el mouse, el dedo o las flechas suelta la fijación. Estable: FreeFlight la tiene entre las
+  // dependencias de su efecto principal, que se volvería a montar en cada dibujo de App.
+  const alMirarLibre = useCallback(() => { releaseAim(); setEnfoque(e => (e?.libre ? null : e)); }, [releaseAim]);
+  // Fijada en órbita, arrastrar la suelta (EnfoqueCamara.jsx): la estrella sigue elegida.
+  const alSoltarEnfoque = pedido => setEnfoque(actual => (actual === pedido ? null : actual));
   // Clic en el vacío (sin estrella y sin otro objeto de la escena): suelta la fijación y quita la selección.
   const clicSinEstrella = useRef(0);
   const elegirDesdeBuscador = result => {
-    if (result.capa) { visitarCapa(result.capa.fila, body => enfocarEstrella(body, body.name)); return; }
+    if (result.capa) { visitarCapa(result.capa.fila, true); return; }
     const star = starsById.get(result.id);
     if (!star || !cameraRef.current) return;
     if (star.n === 'Sol' || star.n === 'Sun') { apuntarA(SOLAR_BODIES[0], () => focusBody(SOLAR_BODIES[0])); return; }
@@ -803,7 +828,7 @@ export default function App() {
     else if (id === 'filtro') cambiarFiltroEstelar();
   };
   // Al cerrar la ficha también se suelta lo apuntado en el buscador: se van la marca y su nombre, y vuelve la etiqueta normal.
-  const cerrarFicha = () => { setEnfoque(null); setOrbitasDe(null); setEstrellaVista(null); setShowBodyPanel(false); setApuntado(null); releaseAim(); setSoltadas(n => n + 1); };
+  const cerrarFicha = () => { eleccion.current++; setEnfoque(null); setOrbitasDe(null); setEstrellaVista(null); setShowBodyPanel(false); setApuntado(null); releaseAim(); setSoltadas(n => n + 1); };
   const elegirCumulo = elegido => {
     setShowPulsars(false); setShowDiscoveries(false); setShowBodyPanel(false); setInspectedTarget(null);
     navigate({ id: 'cumulo', target: [elegido.x, elegido.y, elegido.z], ...encuadreDeCumulo(elegido, starsById, cameraRef.current?.fov) });
@@ -825,7 +850,10 @@ export default function App() {
     visitBody(starBody(hostStar, hostName));
     setShowBodyPanel(true);
   };
-  const orbitTarget = (view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
+  const orbitTarget = (centroOrbita || view.target || SOLAR_ORIGIN).map((v,i)=>v-origin[i]);
+  // Versión vigente de lo que se llama al llegar algo asíncrono (índice del buscador, datos de la capa).
+  const vigenteApp = useRef({});
+  useLayoutEffect(() => { vigenteApp.current = { enfocarAhora, visitBody }; });
   // La zona habitable se dibuja para la estrella de la ficha abierta; si no cabría en pantalla, la cámara se aleja.
   const estrellaZona = exoplanetBody && showBodyPanel ? exoplanetBody.star : estrellaVista?.star ?? (showBodyPanel ? stellarBody?.star : null);
   const mostrarZona = () => {
@@ -903,31 +931,31 @@ export default function App() {
     <Canvas onPointerMissed={() => {
       if (sondaElegida !== null && !traveling) soltarSonda();
       // Clic en el vacío (ni estrella ni otro objeto): suelta la fijación y quita la selección. El fin de un arrastre no cuenta.
-      if (enfoque && performance.now() - clicSinEstrella.current < 400) cerrarFicha();
+      if ((enfoque || apuntadoVigente?.enfoque) && performance.now() - clicSinEstrella.current < 400) cerrarFicha();
     }} camera={{ position: START_POSITION, up: INITIAL_VIEW.up, fov: 50, near: BODY_CAMERA_NEAR_PC, far: SCENE_FAR_PC }}
       dpr={[1, 1.5]} frameloop="demand" gl={{ antialias: true, logarithmicDepthBuffer: true }}>
       <Reposo />
       <SceneReady catalogueReady={catalogueStatus !== 'loading'} />
       <color attach="background" args={['#020305']} />
-      {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={() => { releaseAim(); if (enfoque?.libre) soltarEnfoque(); }} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && !girandoEnfoque && <OrbitControls ref={controlsRef} target={orbitTarget}
+      {freeFlight ? <FreeFlight velocidadSolicitada={velocidadSolicitada} onSpeedChange={setSpeed} initialBody={view.body} origin={origin} onManualLook={alMirarLibre} aimTarget={aimTarget} inspectedTarget={inspectedTarget} /> : !traveling && !girandoEnfoque && <OrbitControls ref={controlsRef} target={orbitTarget}
         minDistance={view.minDistance ?? SUN_RADIUS_PC * 1.02} maxDistance={MAX_VIEW_DISTANCE_PC}
         enablePan={false} enableDamping dampingFactor={GIRO_AMORTIGUAMIENTO} rotateSpeed={GIRO_RATON} zoomSpeed={1.35}
         onStart={() => { transitionRef.current = null; setSolApuntado(false); }} />}
       {!freeFlight && !traveling && !girandoEnfoque && <ZoomSuave controlsRef={controlsRef} />}
-      {!freeFlight && !traveling && !girandoEnfoque && !apuntadoVigente?.enfoque && giraSola && <GiroLento controlsRef={controlsRef} />}
+      {!freeFlight && !traveling && !girandoEnfoque && !apuntadoVigente?.enfoque && !centroOrbita && giraSola && <GiroLento controlsRef={controlsRef} />}
       <CameraNavigation view={view} showPulsars={showPulsars} transitionRef={transitionRef} origin={origin} onComplete={arriveFree => { setTraveling(false); setFreeFlight(arriveFree); document.activeElement?.blur(); }} />
       <ReanclarCamara origin={origin} activo={!view.journey} />
-      <EnfoqueCamara pedido={enfoque} origin={origin} alGirar={alGirarEnfoque} />
+      <EnfoqueCamara pedido={enfoque} origin={origin} alGirar={alGirarEnfoque} alSoltar={alSoltarEnfoque} controlsRef={controlsRef} />
       <MarcaApuntada posicion={apuntadoVigente?.body?.position ?? (apuntadoVigente?.cumuloId ? view.target : null)} origin={origin} />
       <StarAim target={aimTarget} origin={origin} onRelease={releaseAim} cameraRef={cameraRef} />
       {/* Clic en cualquier estrella del campo: su ficha; doble clic: viajar (anfitrionas, con la llegada de Exoplanetas). */}
-      <SeleccionEstrellas estrellas={stars} origin={origin} activo={!traveling && !showPulsars && !binaryBody}
+      <SeleccionEstrellas estrellas={stars} origin={origin} activo={!showPulsars && !binaryBody && !showDiscoveries}
         onElegir={star => enfocarEstrella(star, nombreEstrella(star))} onVacio={() => { clicSinEstrella.current = performance.now(); }}
-        onViajar={star => visitBody(starBody(star, nombreEstrella(star)), true, Boolean(star.planetary))} />
+        onViajar={star => { if (!traveling) visitBody(starBody(star, nombreEstrella(star)), true, Boolean(star.planetary)); }} />
       <MilkyWay origin={origin} onStatus={setGalaxyStatus} muted={showPulsars} dim={showDiscoveries ? 0.32 : 1} />
       {showPulsars && <PulsarMap origin={origin} />}
       <StarField gain={showPulsars ? 0.18 : showDiscoveries ? 0.08 : 1} stars={binaryBody || departureBody?.kind === 'system' ? BINARY_BACKGROUND : stars} catalogo={stars} capa={capaEstrellas} origin={origin}
-        focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} resaltadas={miembrosCumulo} />
+        focusedStar={inspectedTarget?.star || hostStar} departureStar={departureBody?.star} resaltadas={miembrosCumulo} elegida={estrellaVista?.star} />
       {verCumulos && datosCumulos && !binaryBody && !showPulsars && <Cumulos datos={datosCumulos} origin={origin}
         elegido={cumulo} onElegir={elegirCumulo} />}
       {binaryBody && <BinarySystem />}

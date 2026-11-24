@@ -1,20 +1,34 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
-import { avanzarEnfoque, centroVisible, crearEnfoque, direccionFinal, giroCortado, orientacionMirando } from './enfoque';
+import { avanzarEnfoque, centroDeOrbita, centroVisible, cortarGiro, crearEnfoque, direccionFinal, giroCortado, orientacionMirando } from './enfoque';
 import { mantenerActivo } from './reposo';
 
+// Giro alrededor del centro de la órbita que cuenta como arrastre (un píxel arrastrado gira unos 0,002 rad).
+const GIRO_ALREDEDOR_RAD = 1e-4;
 const reducirMovimiento = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 // Gira la cámara hacia la estrella pedida (`pedido`: { posicion: [x, y, z] del catálogo, libre }) y después la mantiene
 // fija en el centro de lo que se ve aunque la cámara se mueva. En órbita (`libre` falso) la fijación la dan los
 // controles: al terminar el giro, `alGirar(adelante)` recibe la dirección final para poner ahí el centro de la órbita; en
 // vuelo libre, la cámara se vuelve a orientar en cada cuadro que cambia de lugar. `cortarGiro(pedido)` corta el giro donde
-// esté (el usuario tomó la cámara) y avisa igual con `alGirar`.
-export default function EnfoqueCamara({ pedido, origin, alGirar }) {
+// esté (el usuario tomó la cámara) y avisa igual con `alGirar`. Si el pedido se quita a mitad del giro (×, Esc o clic en
+// el vacío), cuenta como un corte. Fijada en órbita, acercarse o alejarse (rueda, pellizco) la vuelve a dejar en su punto
+// moviendo el centro de la órbita (`controlsRef`); girar alrededor del centro (arrastrar) la suelta.
+export default function EnfoqueCamara({ pedido, origin, alGirar, alSoltar, controlsRef }) {
   const { camera, gl } = useThree();
   const estado = useRef(null);
-  useLayoutEffect(() => { estado.current = pedido ? { pedido, giro: undefined, fijada: false, ultima: null } : null; mantenerActivo(); }, [pedido]);
+  useLayoutEffect(() => {
+    const previo = estado.current;
+    if (!pedido && previo && !previo.fijada && !previo.pedido.libre) {
+      cortarGiro(previo.pedido);
+      alGirar?.(new Vector3(0, 0, -1).applyQuaternion(camera.quaternion), previo.pedido);
+    }
+    estado.current = pedido ? { pedido, giro: undefined, fijada: false, ultima: null, desplazamiento: null } : null;
+    mantenerActivo();
+  // Solo al cambiar el pedido: alGirar cambia en cada dibujo de App.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedido]);
   useFrame((_, delta) => {
     const e = estado.current;
     if (!e) return;
@@ -39,8 +53,27 @@ export default function EnfoqueCamara({ pedido, origin, alGirar }) {
       if (!e.fijada) estado.current = null;
       return;
     }
+    const controles = e.pedido.libre ? null : controlsRef?.current;
+    // Los controles de órbita vuelven un cuadro después del giro: desde ahí se mide si la cámara gira alrededor del centro.
+    if (controles && !e.desplazamiento) e.desplazamiento = camera.position.clone().sub(controles.target);
+    if (camera.position.equals(e.ultima)) return;
+    if (!e.pedido.libre) {
+      // En órbita: si la cámara giró alrededor del centro (arrastre), se suelta; si solo se acercó o se alejó, la
+      // estrella vuelve a su punto y el centro pasa a esa dirección, sin quedar más allá de ella.
+      if (!controles) return;
+      const desplazamiento = camera.position.clone().sub(controles.target);
+      if (desplazamiento.angleTo(e.desplazamiento) > GIRO_ALREDEDOR_RAD) { estado.current = null; alSoltar?.(e.pedido); return; }
+      const adelante = direccionFinal(estrella.clone().sub(camera.position).normalize(), arriba, opciones);
+      orientacionMirando(adelante, arriba, camera.quaternion);
+      camera.updateMatrixWorld();
+      const centro = centroDeOrbita(camera.position.toArray(), adelante.toArray(), controles.target.toArray(), estrella.toArray());
+      controles.target.set(...centro);
+      e.desplazamiento = camera.position.clone().sub(controles.target);
+      e.ultima.copy(camera.position);
+      mantenerActivo();
+      return;
+    }
     // Fijada en vuelo libre: si la cámara cambió de lugar, vuelve a dejar la estrella en su punto.
-    if (!e.pedido.libre || camera.position.equals(e.ultima)) return;
     e.ultima.copy(camera.position);
     const adelante = direccionFinal(estrella.clone().sub(camera.position).normalize(), arriba, opciones);
     orientacionMirando(adelante, arriba, camera.quaternion);
