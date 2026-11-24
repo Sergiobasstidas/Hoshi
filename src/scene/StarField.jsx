@@ -1,3 +1,4 @@
+import { PASO0_F7, SIN_F7 } from '../f7/opciones.js';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -185,6 +186,7 @@ const unidoVertex = `
   uniform float lejania;
   uniform vec3 solPos;
   uniform vec3 elegidaPos;
+  uniform float descartarLejos;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vHalo;
@@ -244,7 +246,10 @@ const unidoVertex = `
     vHalo = mix(1.0, 0.2, farView);
     vNamed = named;
     gl_Position = projectionMatrix * mvPosition;
-    if (esCapa > 0.5 && vAlpha < 0.002) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    // Las invisibles no se dibujan: la capa siempre; con el paso 0 de F-07, también las del catálogo lejos del Sol (salvo
+    // el Sol y la elegida), que apiladas en el píxel del Sol costaban ~20.000 fragmentos por cuadro desde la galaxia.
+    bool protegida = (k == 2 && length(position - solPos) < 1e-6) || length(position - elegidaPos) < 0.1;
+    if (vAlpha < 0.002 && (esCapa > 0.5 || (descartarLejos > 0.5 && lejania > 0.0 && !protegida))) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     #include <logdepthbuf_vertex>
   }
 `;
@@ -285,7 +290,7 @@ function escalasCatalogo(lista) {
 }
 
 function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido, elegida = null }) {
-  const materialRef = useRef();
+  const materialRef = useRef(), puntosRef = useRef();
   const invalidate = useThree(state => state.invalidate);
   const nCat = catalogo.length, nCapa = capa?.n ?? 0, total = nCat + nCapa;
   // Clase base de cada estrella, escalas de grupo y tabla de color de la capa.
@@ -347,7 +352,7 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido, e
     pixelRatio: { value: 1 }, distantSize: { value: 1 }, farCompression: { value: 0 }, individualMix: { value: 0 },
     fisico: { value: 0 }, limite: { value: 6 },
     proximaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) }, proximaAlpha: { value: 0 }, lejania: { value: 0 }, solPos: { value: new THREE.Vector3() },
-    elegidaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) },
+    elegidaPos: { value: new THREE.Vector3(1e9, 1e9, 1e9) }, descartarLejos: { value: PASO0_F7 ? 1 : 0 },
   }), []);
   // Proxima en el catálogo (su punto se refuerza mientras su nombre se ve; ver modosBrillo.js).
   const proxima = useMemo(() => catalogo.find(star => star.i === PROXIMA_HSB), [catalogo]);
@@ -378,12 +383,14 @@ function CieloUnido({ catalogo, capa, visibles, aparte, origin, gain, fundido, e
     u.farCompression.value = THREE.MathUtils.smoothstep(distance, 300, 3000);
     u.distantSize.value = 1 - 0.22 * THREE.MathUtils.smoothstep(distance, 50, 300);
     u.lejania.value = smoothRange(distance, ...LEJANIA_PC);
+    // Paso 0 de F-07: lejos (hacia los 53.000 años luz) el cielo unido ya no aporta nada visible y se apaga.
+    if (puntosRef.current) puntosRef.current.visible = !(PASO0_F7 && u.ganancia.value[1] < 0.02 && u.exposicion.value[0] < 0.002) && !SIN_F7.has('estrellas');
     u.solPos.value.set(-origin[0], -origin[1], -origin[2]);
     if (elegida && Number.isFinite(elegida.x)) u.elegidaPos.value.set(elegida.x - origin[0], elegida.y - origin[1], elegida.z - origin[2]);
     else u.elegidaPos.value.set(1e9, 1e9, 1e9);
   });
   return (
-    <points frustumCulled={false} geometry={geometria}>
+    <points ref={puntosRef} frustumCulled={false} geometry={geometria}>
       <shaderMaterial ref={materialRef} uniforms={uniforms} vertexShader={unidoVertex} fragmentShader={unidoFragment}
         transparent depthWrite={false} depthTest blending={THREE.AdditiveBlending} toneMapped={false} />
     </points>
