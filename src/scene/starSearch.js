@@ -42,6 +42,15 @@ export function normalizeStarQuery(value) {
     .replace(PATRON_FRASES, (_, frase) => ` ${ABREVIATURA.get(frase.replace(/\s+/g, ' '))} `)
     .replace(/[a-z]+/g, token => greek[token] || token).replace(/[^a-z0-9]/g, '');
 }
+// ¿Dos nombres son el mismo, salvo mayúsculas, tildes, espacios y guiones? («Dìwö» y «Diwo», «Tau Cet» y «tau Cet»).
+const claveNombre = nombre => nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[\s\-‐‑–−]+/g, '');
+export const mismoNombre = (a, b) => claveNombre(a) === claveNombre(b);
+// Línea de alias bajo una sugerencia: el nombre con que se encontró y otros, nunca uno igual al título.
+export function lineaDeAlias(aliases, matched, cuantos = 4) {
+  const titulo = aliases[0], vistos = [];
+  for (const n of [matched, ...aliases]) if (n && !mismoNombre(n, titulo) && !vistos.some(v => mismoNombre(v, n))) vistos.push(n);
+  return vistos.slice(0, cuantos);
+}
 export function buildSearchIndex(rows) {
   return rows.map(([id, aliases]) => ({ id, aliases, keys: aliases.map(normalizeStarQuery) }));
 }
@@ -71,8 +80,26 @@ export function searchStars(index, query, limit=8) {
     }
     if(Number.isFinite(score)) matches.push({...item,score,matched});
   }
-  if(!matches.some(m=>m.score===0)) matches.push(...porComponente(index,query,key,matches));
-  return matches.sort((a,b)=>a.score-b.score || a.aliases[0].localeCompare(b.aliases[0])).slice(0,limit);
+  const exactas=matches.filter(m=>m.score===0);
+  if(!exactas.length) matches.push(...porComponente(index,query,key,matches), ...porBayerConNumero(index,key,matches));
+  // «Phi Cancri» da exacto con la variable FI Cnc («fi» es phi en español): las φ¹ y φ² Cnc van con ella, antes.
+  else if(exactas.every(m=>esVariableCorta(m.matched))) matches.push(...porBayerConNumero(index,key,matches).map(m=>({...m,score:0})));
+  // En un empate, un nombre propio o un Bayer gana a una variable de dos letras («Anser» antes que AN Ser, «Nu Dra»
+  // antes que NU Dra); después, por el primer nombre.
+  return matches.sort((a,b)=>a.score-b.score || esVariableCorta(a.matched)-esVariableCorta(b.matched) || a.aliases[0].localeCompare(b.aliases[0])).slice(0,limit);
+}
+const esVariableCorta = nombre => (/^[A-Z]{1,2} [A-Z][a-z]{2}$/.test(nombre || '') ? 1 : 0);
+
+// «Zeta Reticuli», «Omega Scorpii»: si ninguna estrella se llama así, las componentes con número (ζ¹ y ζ² Ret), con
+// puntaje 1. No se inventa la forma sin número: solo se ofrecen las que existen.
+const LETRAS_GRIEGAS = new Set(Object.values(greek));
+const ABREVIATURAS = new Set(CONSTELACIONES.map(([abreviatura]) => abreviatura));
+function porBayerConNumero(index, key, yaEstan) {
+  const m = /^([a-z]{2,3})([a-z]{3})$/.exec(key);
+  if (!m || !LETRAS_GRIEGAS.has(m[1]) || !ABREVIATURAS.has(m[2])) return [];
+  const conNumero = new RegExp(`^${m[1]}\\d${m[2]}$`), vistos = new Set(yaEstan.map(x => x.id));
+  return index.filter(item => !vistos.has(item.id) && item.keys.some(k => conNumero.test(k)))
+    .map(item => ({ ...item, score: 1, matched: item.aliases[item.keys.findIndex(k => conNumero.test(k))] }));
 }
 
 // «HD 37525Ab», «HIP 26579 B»: si ninguna estrella tiene ese nombre, se ofrece la del sistema (HD 37525).

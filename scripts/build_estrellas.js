@@ -12,6 +12,7 @@
 // no lo baja al abrir). Uso: node scripts/build_estrellas.js (después de process_gaia.js y build_hsb.js).
 
 import fs from 'node:fs';
+import { idsDesdeCapa } from './catalog/desde_capa.js';
 import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { C_OCULTA, leerGaia } from '../src/scene/gaiaCapa.js';
@@ -21,7 +22,6 @@ import { leerEnlaces } from './catalog/enlaces_registro.js';
 const STARS = './data/processed/stars_15pc.json', CAPA = './data/processed/gaia-1m.bin';
 const ORDEN = './data/catalog/gaia_capa_orden.txt.gz', REGISTRO = './data/catalog/hsb_registro.csv', LOTES = './data/catalog/hsb_gaia';
 const ENLAZADAS = './data/catalog/hsb_capa_enlazadas.csv';
-const GLOBULARES = './data/catalog/added_globulares.json';
 const SALIDA = './public/data/estrellas.bin.gz', SALIDA_HSB = './public/data/estrellas-hsb.bin';
 
 // Octree sobre las posiciones: celdas cúbicas de hasta MAX_POR_CELDA estrellas y de lado ≤ MAX_LADO_PC; además, cerca
@@ -92,7 +92,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const enCatalogo = new Set(hsb);
   // Números de lote que la auditoría dio por iguales a otra estrella (data/catalog/hsb_enlaces.csv, igual_a).
   const igualA = new Map(leerEnlaces().filter(f => f.campo === 'igual_a').map(f => [Number(f.hsb), Number(f.valor)]));
-  const globulares = new Set(fs.existsSync(GLOBULARES) ? JSON.parse(fs.readFileSync(GLOBULARES, 'utf8')).stars.map(s => s.i) : []);
+  // Miembros de cúmulos globulares y estrellas famosas que pasaron de la capa al catálogo (desde_capa.js).
+  const globulares = idsDesdeCapa();
   const ocultas = new Set();
   const quedan = [], hsbFuente = [];
   let quitadas = 0, sinNumero = 0;

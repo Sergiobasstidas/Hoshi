@@ -2,17 +2,21 @@ import { Dato } from './FichaLateral';
 import MapaZonaHabitable from './MapaZona';
 import { planetaComparado, zonaDeEstrella } from './scene/zonaHabitable';
 import { useFichas } from './useFichas';
-import textos from '../data/processed/textos_fichas.json';
+import { useTipoFicha } from './scene/eyes/tablaEyes';
+import { tipoPorRadio } from './scene/eyes/recetaEyes';
+import { useTextosFichas } from './useTextosFichas';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 const JUPITER_RADIOS_TIERRA = 11.2;
 
-function clasePlaneta(radio) {
-  if (radio < 1.25) return ['Planeta rocoso', 'Un planeta de tamaño parecido al de la Tierra, probablemente de roca y metal. Son los más difíciles de detectar, porque apenas oscurecen a su estrella al pasar frente a ella.'];
-  if (radio < 2) return ['Supertierra', 'Un planeta más grande que la Tierra y más pequeño que Neptuno. En el sistema solar no hay ninguno así, pero en la galaxia son de los más comunes.'];
-  if (radio < 6) return ['Tipo Neptuno', 'Un planeta con una atmósfera espesa de hidrógeno y helio sobre un interior de roca y hielo, como Neptuno o Urano.'];
-  return ['Gigante gaseoso', 'Un planeta de hidrógeno y helio, sin superficie sólida, como Júpiter o Saturno.'];
-}
+// Qué es cada tipo de planeta. El tipo es el mismo con que se pinta su aspecto (eyes/recetaEyes.js, clasificarPlaneta);
+// mientras se carga, o sin él, sale del radio.
+const RELATOS = {
+  'Planeta rocoso': 'Un planeta de tamaño parecido al de la Tierra, probablemente de roca y metal. Son los más difíciles de detectar, porque apenas oscurecen a su estrella al pasar frente a ella.',
+  Supertierra: 'Un planeta más grande que la Tierra y más pequeño que Neptuno. En el sistema solar no hay ninguno así, pero en la galaxia son de los más comunes.',
+  'Tipo Neptuno': 'Un planeta con una atmósfera espesa de hidrógeno y helio sobre un interior de roca y hielo, como Neptuno o Urano.',
+  'Gigante gaseoso': 'Un planeta de hidrógeno y helio, sin superficie sólida, como Júpiter o Saturno.',
+};
 const duracionAno = dias => dias < 2 ? `${numero(dias * 24)} horas` : dias < 730 ? `${numero(dias)} días` : `${numero(dias / 365.25)} años`;
 // Tamaño comparado con la Tierra y Júpiter, a la misma escala.
 function ComparacionPlaneta({ nombre, radio, color }) {
@@ -31,18 +35,29 @@ function ComparacionPlaneta({ nombre, radio, color }) {
 const conError = (valor, error) => `${numero(valor)}${error ? ` ± ${numero(error, 2)}` : ''}`;
 const LECTURA_DENSIDAD = densidad => densidad > 3.5 ? 'Rocoso' : densidad > 1.5 ? 'Con mucha agua o hielo, o atmósfera' : 'Gaseoso';
 
-export default function FichaPlaneta({ planeta, sistema, nombreEstrella, onVerEstrella, onVerPlaneta, onZona }) {
+// Métodos de descubrimiento del NASA Exoplanet Archive (discoverymethod), en español.
+const METODOS = {
+  'Transit': 'Tránsito', 'Radial Velocity': 'Velocidad radial', 'Imaging': 'Imagen directa', 'Microlensing': 'Microlente gravitacional',
+  'Transit Timing Variations': 'Variación del tiempo de tránsito', 'Eclipse Timing Variations': 'Variación del tiempo de eclipse',
+  'Orbital Brightness Modulation': 'Modulación del brillo orbital', 'Astrometry': 'Astrometría',
+  'Pulsation Timing Variations': 'Variación del tiempo de pulsación', 'Pulsar Timing': 'Cronometraje de púlsar', 'Disk Kinematics': 'Cinemática del disco',
+};
+
+export default function FichaPlaneta({ planeta, sistema, nombreEstrella, onVerEstrella, onVerPlaneta, onZona, irA }) {
   const fichas = useFichas();
   const mas = fichas?.planetas[planeta.n] || {};
   const masaMinima = mas.tipoMasa && /sin/i.test(mas.tipoMasa);
-  const [tipo, relato] = clasePlaneta(planeta.r);
+  const tipo = useTipoFicha(planeta.n) || tipoPorRadio(planeta.r), relato = RELATOS[tipo];
+  const textos = useTextosFichas();
   const hermanos = sistema.planets.filter(otro => otro.n !== planeta.n);
   const excentrica = planeta.e >= 0.3;
   return <>
     <button className="ficha-estrella-volver" onClick={onVerEstrella}>‹ {nombreEstrella}</button>
     <h2 className="marca-hoshi">{planeta.n}</h2>
-    <p className="ficha-estrella-tipo">{tipo}</p>
-    <p className="ficha-estrella-relato">{textos.planetas[planeta.n] || relato}</p>
+    {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
+    {/* El aspecto en la escena es un concepto artístico de Eyes on Exoplanets: se avisa en la línea del tipo. */}
+    <p className="ficha-estrella-tipo">{tipo}<span className="ficha-aspecto-ilustrativo"> · aspecto ilustrativo</span></p>
+    {textos && <p className="ficha-estrella-relato">{textos.planetas[planeta.n] || relato}</p>}
     <ComparacionPlaneta nombre={planeta.n} radio={planeta.r} color={`rgb(${planeta.color.map(v => Math.round(v * 255)).join(', ')})`} />
     <dl>
       <Dato etiqueta="Radio" valor={`${conError(planeta.r, mas.errorRadio)} Tierras`} />
@@ -54,7 +69,7 @@ export default function FichaPlaneta({ planeta, sistema, nombreEstrella, onVerEs
       {planeta.e !== undefined && <Dato etiqueta="Órbita" valor={planeta.e >= 0.3 ? 'Muy alargada' : planeta.e >= 0.1 ? 'Algo alargada' : 'Casi circular'} secundario={`Excentricidad ${numero(planeta.e, 2)}`} />}
       {mas.insolacion > 0 && <Dato etiqueta="Luz que recibe" valor={`${numero(mas.insolacion)} veces la de la Tierra`} />}
       {mas.transito > 0 && <Dato etiqueta="Tránsito" valor={`${numero(mas.transito)} horas`} secundario={mas.profundidad > 0 ? `Oscurece su estrella un ${numero(mas.profundidad, 2)} %` : undefined} />}
-      {mas.metodo && <Dato etiqueta="Descubrimiento" valor={`${mas.metodo}${mas.ano ? `, ${mas.ano}` : ''}`} secundario={mas.telescopio} />}
+      {mas.metodo && <Dato etiqueta="Descubrimiento" valor={`${METODOS[mas.metodo] || mas.metodo}${mas.ano ? `, ${mas.ano}` : ''}`} secundario={mas.telescopio} />}
       {planeta.teq > 0 && <Dato etiqueta="Temperatura" valor={`${Math.round(planeta.teq).toLocaleString('es-CL')} K`} secundario={`${Math.round(planeta.teq - 273.15).toLocaleString('es-CL')} °C`} />}
     </dl>
     <MapaZonaHabitable star={sistema.star} nombre={nombreEstrella} fichas={fichas} planetas={sistema.planets} temperatura={sistema.st?.teff ?? sistema.star.physics?.temperatureK} masa={sistema.st?.m} onMostrar={onZona} planeta={planeta} />

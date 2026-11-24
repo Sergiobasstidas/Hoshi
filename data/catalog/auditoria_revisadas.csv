@@ -4591,6 +4591,9 @@ hsb,tipo,dato,veredicto,decision,motivo
 100006670,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 100009101,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 101346210,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,Elias 2-24: estrella T Tauri joven dentro de la nube de ρ Ophiuchi; el polvo de la nube la oscurece varias magnitudes
+101351417,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
+101351427,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
+101351432,ALERTA-MAG-TIPO,magnitud absoluta frente al tipo,Decide Sergio,E,alerta de magnitud absoluta frente al tipo: no es una medida y no cambia ningún dato
 ,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 ,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
 ,CAPA-REGLA,RUWE,Decide Sergio,A,"RUWE ≥ 1,4 en la capa de fondo: se sigue dibujando (D-020)"
@@ -77891,6 +77894,8 @@ hsb,tipo,dato,veredicto,decision,motivo
 100004668,NOMBRE,nombre propio en la compañera,Decide Sergio,M,Alrakis es μ Draconis A (SIMBAD); la estrella brillante del sistema es el par μ Dra AB sin resolver (GJ 9584AB)
 125360,NOMBRE,nombre propio,Decide Sergio,M,p Eridani A: el renombre a «p Eridani A» espera una descarga nueva de datos oficiales (cambia sus consultas)
 125364,NOMBRE,nombre propio,Decide Sergio,M,p Eridani B: el renombre a «p Eridani B» espera una descarga nueva de datos oficiales (cambia sus consultas)
+2233247,NOMBRE,nombre propio en la compañera,Decide Sergio,M,"Dhanishta: el CSN de la IAU da el nombre a γ¹ Del (HIP 102531), la componente más débil del par"
+100005331,NOMBRE,nombre propio en la compañera,Decide Sergio,M,VB 10: el nombre es la designación de esa estrella (Gl 752 B)
 153426,POS,posición (″ respecto de Gaia DR3),Decide Sergio,F,"a más de 10″ de su Gaia y el brillo no calza (±0,5 mag): enlace dudoso, se deja la posición"
 197985,POS,posición (″ respecto de Gaia DR3),Decide Sergio,F,"a más de 10″ de su Gaia y el brillo no calza (±0,5 mag): enlace dudoso, se deja la posición"
 287923,POS,posición (″ respecto de Gaia DR3),Decide Sergio,F,"a más de 10″ de su Gaia y el brillo no calza (±0,5 mag): enlace dudoso, se deja la posición"
@@ -78223,3 +78228,4 @@ hsb,tipo,dato,veredicto,decision,motivo
 100005714,TIPO,tipo espectral frente a B−V,Decide Sergio,I,"estrella O, B o A lejana: el color medido incluye el enrojecimiento por polvo"
 100005782,TIPO,tipo espectral frente a B−V,Decide Sergio,I,el tipo es solo texto; el color medido manda en el dibujo y no hay otra medida para cambiarlo
 100006045,TIPO,tipo espectral frente a B−V,Decide Sergio,I,el tipo es solo texto; el color medido manda en el dibujo y no hay otra medida para cambiarlo
+101351432,TIPO,tipo espectral frente a B−V,Decide Sergio,I,"Dust-Ball: estrella joven envuelta en polvo (IC 348): el color medido incluye el enrojecimiento por polvo"

@@ -59,3 +59,20 @@ export const DISTANCIAS_CURADAS = [
   { i: 427355, n: 'Alnilam', dNueva: 400, fuente: BRICENO },
   { i: 419386, n: 'Mintaka', dNueva: 400, fuente: BRICENO },
 ];
+
+// Estrellas famosas (famosas.js, build_famosas.js) cuya paralaje propia de Gaia DR3 no cumple la regla: distancia
+// medida y publicada, por su Gaia DR3.
+export const DISTANCIAS_FAMOSAS = {
+  // RS Persei: miembro de NGC 884 en el UCC (probabilidad 0,827); Baron et al. 2014 la llaman «firmly established member».
+  '458407464445792384': { n: 'RS Persei', dNueva: 1000 / 0.4009, fuente: `${UCC('NGC 884 (χ Persei)', '0,4009')}; pertenencia: Baron et al. 2014, ApJ 785, 46` },
+  '2056188624872569088': { n: 'V404 Cygni', dNueva: 1000 / 0.418, fuente: 'Miller-Jones et al. 2009, ApJ 706, L230 (paralaje de radio VLBI, 0,418 ± 0,024 mas)' },
+  '2065235853217670656': { n: 'NML Cygni', dNueva: 1000 / 0.620, fuente: 'Zhang et al. 2012, A&A 544, A42 (paralaje de máseres de agua con VLBA, 0,620 ± 0,047 mas)' },
+  '5940106041452150272': { n: 'Westerlund 1-26', dNueva: 1000 / 0.238, fuente: 'Negueruela et al. 2022, A&A 664, A146 (paralaje del cúmulo Westerlund 1 con Gaia EDR3 y punto cero corregido, 0,238 ± 0,012 mas); Gaia DR3 de W26: Navarete et al. 2022, tabla A1' },
+  // Gaia BH1 y BH2: paralaje de la solución orbital de Gaia DR3 (gaiadr3.nss_two_body_orbit).
+  '4373465352415301632': { n: 'Gaia BH1', dNueva: 1000 / 2.0954515888832432, fuente: 'Gaia DR3, solución orbital (nss_two_body_orbit): 2,0955 ± 0,0175 mas; El-Badry et al. 2023, MNRAS 518, 1057' },
+  '5870569352746779008': { n: 'Gaia BH2', dNueva: 1000 / 0.8591918579064037, fuente: 'Gaia DR3, solución orbital AstroSpectroSB1 (nss_two_body_orbit): 0,8592 ± 0,0183 mas; El-Badry et al. 2023, MNRAS 521, 4323' },
+  '4318465066420528000': { n: 'Gaia BH3', dNueva: 1000 / 1.6933, fuente: 'Gaia Collaboration, Panuzzo et al. 2024, A&A 686, L2 (paralaje de la solución orbital previa a DR4, 1,6933 ± 0,0164 mas)' },
+  '3107789548859766016': { n: 'V838 Monocerotis', dNueva: 6100, fuente: 'Sparks et al. 2008, AJ 135, 605, arXiv:0711.1495 (eco de luz polarizado, 6,1 ± 0,6 kpc)' },
+  // Dust-Ball (V927 Per): miembro de IC 348 en el UCC (probabilidad 1); su paralaje propia falla por RUWE 2,40.
+  '216708248573262208': { n: 'Dust-Ball', dNueva: 1000 / 3.1721, fuente: UCC('IC 348', '3,1721') },
+};

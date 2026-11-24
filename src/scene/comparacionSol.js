@@ -7,7 +7,7 @@ export const UA_POR_RADIO_SOLAR = 695700 / 149597870.7;
 export const SOL = { id: 'sol', nombre: 'Sol', radiusSolar: 1, temperatureK: 5772, fuente: 'IAU 2015 (radio solar nominal)' };
 // Estrellas de la lista sin buscar, por su nombre del catálogo.
 // De mayor a menor: hipergigantes, supergigantes, gigantes, estrellas como el Sol y enanas.
-const DESTACADAS = ['VY Canis Majoris', 'Betelgeuse', 'VV Cephei A', 'Antares', 'La Superba', 'Deneb', 'Mirach', 'Rigel', 'Canopus', 'Aldebaran',
+const DESTACADAS = ['VY Canis Majoris', 'UY Scuti', 'Betelgeuse', 'VV Cephei A', 'Antares', 'La Superba', 'Deneb', 'Mirach', 'Rigel', 'Canopus', 'Aldebaran',
   'Kochab', 'Alnilam', 'Arcturus', 'Cygnus X-1', 'Capella', 'Pollux', 'Spica', 'Vega', 'Sirius', 'Rigil Kentaurus', 'Toliman', "Barnard's Star", 'Proxima Centauri'];
 // Nombres en español de las conocidas; el resto, como en el catálogo.
 const NOMBRES = { Sirius: 'Sirio A', Arcturus: 'Arturo', Aldebaran: 'Aldebarán', Procyon: 'Proción', 'Proxima Centauri': 'Próxima Centauri',

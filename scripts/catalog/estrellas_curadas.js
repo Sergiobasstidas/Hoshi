@@ -20,6 +20,8 @@ const MILLER_JONES = 'Miller-Jones et al. 2021, Science 371, 1046, arXiv:2102.09
 const PUEBLA = 'Puebla et al. 2016, MNRAS 456, 2907, arXiv:1511.09365';
 const BAINES = 'Baines et al. 2021, AJ 162, 198, arXiv:2211.09030';
 const WITTKOWSKI = 'Wittkowski et al. 2012, A&A 540, L12, arXiv:1203.5194';
+const ARROYO_TORRES = 'Arroyo-Torres et al. 2013, A&A 554, A76, arXiv:1305.6179';
+const BARON = 'Baron et al. 2014, ApJ 785, 46, arXiv:1405.4032';
 
 export const ESTRELLAS_CURADAS = {
   Sirius: { radiusSolar: [1.713, DAVIS] },
@@ -53,6 +55,17 @@ export const ESTRELLAS_CURADAS = {
 export const ESTRELLAS_CURADAS_POR_ID = {
   700584: { nombre: ['VY Canis Majoris', WITTKOWSKI], alias: ['VY CMa', WITTKOWSKI], radiusSolar: [1458, `${WITTKOWSKI}; diámetro angular 11,3 ± 0,3 mas (VLTI/AMBER) × distancia del catálogo, 1,2 kpc (Zhang et al. 2012)`],
     temperatureK: [3490, WITTKOWSKI], temperatureUncertaintyK: [90, WITTKOWSKI] },
+  // UY Scuti (build_famosas.js): diámetro angular de Rosseland 5,48 ± 0,10 mas (VLTI/AMBER, banda K) × la distancia de Gaia
+  // DR3 (1000 / 0,5166 mas = 1935,7 pc): R = 0,1075 × 5,48 × 1935,7 = 1140 R☉. Arroyo-Torres et al. usaron 2,9 kpc y daban
+  // 1708 R☉; con la paralaje de Gaia queda en 1140 ± 111 R☉ (error del diámetro y de la paralaje).
+  101351417: { radiusSolar: [1140, `${ARROYO_TORRES}; diámetro angular de Rosseland 5,48 ± 0,10 mas (VLTI/AMBER) × distancia de Gaia DR3 4152993273702130432, 1935,7 pc (paralaje 0,5166 ± 0,0494 mas)`],
+    radiusUncertaintySolar: [111, `${ARROYO_TORRES} y Gaia DR3: error del diámetro angular y de la paralaje`],
+    temperatureK: [3365, ARROYO_TORRES], temperatureUncertaintyK: [134, ARROYO_TORRES] },
+  // RS Persei (famosas.js): diámetro con oscurecimiento del borde 3,05 ± 0,05 mas (CHARA/MIRC, banda H) × la distancia del
+  // cúmulo NGC 884, 2494,4 pc (distancias_curadas.js); el error es solo el del diámetro.
+  101351418: { radiusSolar: [818, `${BARON}; diámetro angular 3,05 ± 0,05 mas (CHARA/MIRC) × distancia del cúmulo NGC 884, 2494,4 pc (UCC)`],
+    radiusUncertaintySolar: [13, `${BARON}: error del diámetro angular`],
+    temperatureK: [3470, BARON], temperatureUncertaintyK: [90, BARON] },
   // La compañera B es unas 3,5 magnitudes más débil: casi no pesa en el diámetro medido.
   2368905: { nombre: ['VV Cephei A', BAINES], alias: ['VV Cep', BAINES], radiusSolar: [777, `${BAINES}; diámetro angular 7,251 ± 0,012 mas (NPOI) × distancia del catálogo, 996,7 pc`], temperatureK: [3396, BAINES], temperatureUncertaintyK: [35, BAINES], luminositySolar: [72881, BAINES] },
 };

@@ -339,7 +339,72 @@ if (fs.existsSync(COMPANERAS_CSV)) {
     pair.cid = Number(fila.hsb_nuevo); counts.hsbCompanions = (counts.hsbCompanions || 0) + 1;
   }
 }
+// ---------- Limpieza ----------
+// 1) Compañeras que en realidad son exoplanetas ya listados (β Pic Ab = bet Pic b, HN Peg B = HN Peg b): la anfitriona
+//    del sistema tiene en la NASA (pscomppars) un planeta de la misma componente a la misma separación (±30 %), y la compañera no tiene registro
+//    propio ni tipo espectral de estrella normal: vacío, M7 o más tardío (los planetas jóvenes y calientes, como β Pic b),
+//    L, T o Y. No se dibujan como estrella: el planeta ya está.
+const identidades = JSON.parse(fs.readFileSync('data/catalog/exoplanet_host_identity.json', 'utf8')).hosts;
+const idDeAnfitriona = new Map(identidades.filter(h => h.i !== null && h.i !== undefined).map(h => [h.h, h.i]));
+if (fs.existsSync('data/catalog/added_hosts.json')) {
+  for (const star of JSON.parse(fs.readFileSync('data/catalog/added_hosts.json', 'utf8')).stars) for (const h of star.hosts || [star.h]) if (!idDeAnfitriona.has(h)) idDeAnfitriona.set(h, star.i);
+}
+const SUBESTELAR = /^(?:M[7-9]|[LTY])/;
+const planetasDe = new Map();
+for (const p of parse(fs.readFileSync('data/raw/exoplanets/nasa_pscomppars.csv', 'utf8'), { columns: true, skip_empty_lines: true, comment: '#', relax_quotes: true })) {
+  const i = idDeAnfitriona.get(p.hostname), a = Number(p.pl_orbsmax);
+  if (i === undefined || !(a > 0)) continue;
+  if (!planetasDe.has(i)) planetasDe.set(i, []);
+  // Componente que orbita el planeta: la letra final de su anfitriona en la NASA («HIP 81208 C»), o A.
+  planetasDe.get(i).push({ n: p.pl_name, a, de: / ([A-E])$/.exec(p.hostname)?.[1] || 'A' });
+}
+const quitadas = [], companerasPlaneta = {};
+const COMPANERAS_PLANETA_PATH = 'data/processed/companeras_planeta.json';
+for (const [id, entry] of Object.entries(output)) {
+  const planetas = planetasDe.get(Number(id));
+  if (!planetas) continue;
+  const esPlaneta = pair => {
+    if (pair.cid !== undefined || (pair.sp && !SUBESTELAR.test(pair.sp))) return null;
+    const sep = pair.k === 'o' ? pair.a : pair.rho;
+    return sep > 0 ? planetas.find(p => p.de === pair.of && Math.abs(p.a - sep) / p.a <= 0.3) || null : null;
+  };
+  const quitar = new Set(entry.comps.filter(esPlaneta).map(pair => pair.n));
+  if (!quitar.size) continue;
+  // Lo que cuelga de una compañera quitada también se va.
+  for (let cambio = true; cambio;) { cambio = false; for (const pair of entry.comps) if (quitar.has(pair.of) && !quitar.has(pair.n)) { quitar.add(pair.n); cambio = true; } }
+  for (const pair of entry.comps) if (quitar.has(pair.n)) quitadas.push(`${byId.get(Number(id))?.n || id} ${pair.n} (${pair.pair}) = ${esPlaneta(pair)?.n || 'cuelga de otra'}`);
+  // Se guardan aparte (COMPANERAS_PLANETA_PATH), sin dibujarse: la capa de Gaia (process_gaia.js) sigue quitando su
+  // punto, que es el planeta.
+  companerasPlaneta[id] = entry.comps.filter(pair => quitar.has(pair.n));
+  entry.comps = entry.comps.filter(pair => !quitar.has(pair.n));
+  if (entry.hidden) entry.hidden = entry.hidden.filter(item => !quitar.has(item.of));
+  if (!entry.comps.length) delete output[id];
+}
+// 2) Una estrella del catálogo es una sola compañera: si dos componentes (del mismo sistema o de dos) apuntan a la misma
+//    estrella, la conserva la de menor separación y la otra se dibuja aparte. Una primaria no es compañera de otro
+//    sistema que a la vez es compañera suya (ξ Sco ↔ 1578253): se queda en el sistema de la primaria con menor número.
+const separacion = pair => (pair.k === 'o' ? pair.a : pair.rho) ?? Infinity;
+const duenoDe = new Map();
+let repetidas = 0, ciclos = 0;
+for (const [id, entry] of Object.entries(output).sort((a, b) => Number(a[0]) - Number(b[0]))) {
+  for (const pair of entry.comps) {
+    if (pair.cid === undefined) continue;
+    if (pair.cid === Number(id)) { delete pair.cid; repetidas++; continue; }
+    const previo = duenoDe.get(pair.cid);
+    if (!previo) { duenoDe.set(pair.cid, { id, pair }); continue; }
+    repetidas++;
+    if (separacion(pair) < separacion(previo.pair)) { delete previo.pair.cid; duenoDe.set(pair.cid, { id, pair }); } else delete pair.cid;
+  }
+}
+for (const [id, entry] of Object.entries(output)) {
+  for (const pair of entry.comps) {
+    const otro = pair.cid !== undefined && output[pair.cid];
+    if (otro && otro.comps.some(c => c.cid === Number(id)) && Number(id) > pair.cid) { delete pair.cid; ciclos++; }
+  }
+}
+console.log(`Limpieza: ${quitadas.length} compañeras que son exoplanetas ya listados (${quitadas.join('; ')}); ${repetidas} compañeras que repetían estrella y ${ciclos} ciclos sueltos.`);
 fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output));
+fs.writeFileSync(COMPANERAS_PLANETA_PATH, JSON.stringify(companerasPlaneta));
 console.log(`HSB: ${counts.hsbCompanions || 0} compañeras dibujadas pasan a ser su estrella del registro; ${counts.hsbLejos || 0} no, porque la estrella nueva está lejos de donde dice el par (en el cielo o en distancia).`);
 const all = Object.values(output).flatMap(entry => entry.comps);
 console.log(`ORB6: ${counts.orbits} órbitas; ${counts.incomplete} incompletas o sin componentes legibles, ${counts.grade} de grado > ${MAX_GRADE}, `

@@ -17,6 +17,7 @@ import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { DESCARGAR, pedir } from '../red.js';
 import { vFromGaia } from '../photometry.js';
+import { calzaSinTopeDeBrillo, movimientoCoincide } from '../criterios_enlace.js';
 import { COLUMNAS_ENLACES, ENLACES_CSV, leerEnlaces } from '../enlaces_registro.js';
 
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync', GAIA_TAP = 'https://gaia.ari.uni-heidelberg.de/tap/sync';
@@ -93,13 +94,12 @@ export async function revisar() {
     const c = Math.sin(dec0 * rad) * Math.sin(decA * rad) + Math.cos(dec0 * rad) * Math.cos(decA * rad) * Math.cos((ra0 - raA) * rad);
     const sep = Math.acos(Math.min(1, c)) / rad * 3600;
     const vg = vFromGaia(num(g.phot_g_mean_mag), num(g.bp_rp)) ?? num(g.phot_g_mean_mag), dv = Math.abs(vg - num(a.mag));
-    const pmA = [num(a.pmra), num(a.pmdec)], dpm = gaiaConPm && Number.isFinite(pmA[0]) && Number.isFinite(pmA[1]) && (pmA[0] || pmA[1]) ? Math.hypot(pmra - pmA[0], pmdec - pmA[1]) : null;
-    const pmOk = dpm === null || dpm <= Math.max(10, 0.2 * Math.hypot(pmra, pmdec));
+    const { dpm, ok: pmOk } = movimientoCoincide(gaiaConPm ? [pmra, pmdec] : [NaN, NaN], [num(a.pmra), num(a.pmdec)]);
     const plx = num(g.parallax), plxE = num(g.parallax_error);
     const dGaia = plx > 0 ? 1000 / plx : null, dAhora = s ? s.d : num(a.dist);
     const medidas = { sep: +sep.toFixed(2), vAtHyg: num(a.mag), vGaia: +vg.toFixed(2), dv: +dv.toFixed(2), dpm: dpm === null ? null : +dpm.toFixed(1), plx: +plx.toFixed(4), plxErr: +plxE.toFixed(4),
       dAhora: dAhora ? +dAhora.toFixed(3) : null, dGaia: dGaia ? +dGaia.toFixed(3) : null, cambioD: dGaia && dAhora ? +((dGaia - dAhora) / dAhora * 100).toFixed(1) : null, lote: lote.get(id) || null };
-    const variable = /^V\* /.test(base.simbad) && sep <= 1 && dpm !== null && pmOk;
+    const variable = /^V\* /.test(base.simbad) && calzaSinTopeDeBrillo({ separacion: sep, dpm, pmOk });
     const calza = sep <= MAX_SEP && (dv <= MAX_DV || variable) && pmOk;
     const nota = [variable && dv > MAX_DV && `variable, ΔV ${dv.toFixed(2)}`, !gaiaConPm && 'Gaia sin movimiento propio'].filter(Boolean).join('; ');
     resultado.push({ ...base, ...medidas, nota, variable, estado: calza ? 'calza' : `no calza: ${[sep > MAX_SEP && `a ${sep.toFixed(1)}″`, dv > MAX_DV && `ΔV ${dv.toFixed(2)}`, !pmOk && `Δpm ${dpm.toFixed(0)} mas/año`].filter(Boolean).join(', ')}` });

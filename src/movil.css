@@ -16,6 +16,8 @@
   .menu-explorar { display: block; }
   /* Con maximum-scale=1 (index.html) iOS no acerca la página al enfocar letras menores de 16 px. */
   .menu-explorar select, .body-selector select, .star-search input { font-size: 13px; padding: 6px 8px; }
+  .star-search input { padding-left: 28px; }
+  .star-search-lupa { left: 9px; }
   .distance-panel { top: 30px; left: 30px; }
   .marca-hoshi { font-size: 20px; }
   .star-search, .menu-explorar, .body-selector { right: 18px; left: auto; width: min(210px, calc(100% - 36px)); }
@@ -40,6 +42,8 @@
   .menu-explorar { display: block; }
   .menu-explorar select, .body-selector select, .star-search input { font-size: 16px; }
   .menu-explorar select, .body-selector select, .star-search input { padding: 6px 10px; }
+  .star-search input { padding-left: 32px; }
+  .star-search-lupa { left: 11px; width: 15px; height: 15px; }
   .distance-panel { top: 24px; left: 24px; }
   .marca-hoshi { font-size: 22px; }
   .scene-overlay .star-search { top: 10px; left: 50%; right: auto; width: 240px; transform: translateX(-50%); font-size: 13px; }

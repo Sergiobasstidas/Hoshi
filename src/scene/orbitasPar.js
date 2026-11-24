@@ -1,6 +1,7 @@
 import { eccentricAnomaly } from './binaryOrbit.js';
 import { MASAS_DINAMICAS } from './masasDinamicas.js';
 import { estrellaDeComponente } from './visualBinary.js';
+import { nombreEstrella } from './nombresEstrella.js';
 
 const DIAS_ANO = 365.25;
 const mjdAAno = mjd => 2000 + (mjd - 51544.5) / DIAS_ANO;
@@ -34,11 +35,11 @@ function crearPar(sistema, clave, nombres) {
   const { pair } = componente, primaria = sistema.star;
   const padre = pair.of === 'A' ? null : sistema.components.find(c => c.name === pair.of);
   const estrellaPrincipal = padre ? estrellaDeComponente(sistema, padre) : primaria;
-  const nombrePrincipal = nombres?.[0] || estrellaPrincipal?.n || (padre ? `${primaria.n} ${pair.of}` : primaria.n) || 'Estrella principal';
+  const nombrePrincipal = nombres?.[0] || nombreEstrella(estrellaPrincipal) || 'Estrella principal';
   return {
     clave: `${primaria.i}:${pair.pair}`,
     primaria: { star: estrellaPrincipal, nombre: nombrePrincipal },
-    companera: { star: componente.companion || estrellaDeComponente(sistema, componente), nombre: nombres?.[1] || componente.companion?.n || `${primaria.n} ${componente.name}` },
+    companera: { star: estrellaDeComponente(sistema, componente), nombre: nombres?.[1] || nombreEstrella(estrellaDeComponente(sistema, componente)) },
     periodo: pair.p / DIAS_ANO, periastro: mjdAAno(pair.t), e: pair.e, a: pair.a,
     masas: masasMedidas(pair), fuente: 'Sixth Catalog of Orbits of Visual Binary Stars (ORB6)',
   };

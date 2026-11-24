@@ -26,7 +26,7 @@
 
 import { applyDistance } from './catalog_patches.js';
 import { DISTANCIAS_CURADAS } from './distancias_curadas.js';
-import { vFromGaia } from './photometry.js';
+import { vDeGaiaConRango, vFromGaia } from './photometry.js';
 import { bvDesdeBpRp } from '../../src/scene/gaiaCapa.js';
 
 export const ERROR_PARALAJE_MAX = 0.1;
@@ -34,6 +34,13 @@ export const G_SATURA = 4;
 const FUENTE = { gaia: 'Gaia DR3', hip: 'Hipparcos (van Leeuwen 2007)', cns5: 'CNS5' };
 
 const num = v => (v === undefined || v === null || v === '' ? null : Number(v));
+// Estrellas de CNS5 sin G en CNS5 ni en AT-HYG: la G y el BP−RP de su fuente de Gaia DR3 (de 2 parámetros, sin
+// paralaje; la distancia sigue siendo la de CNS5). No se enlaza ese Gaia en el registro porque cambiaría cómo se
+// concilian las filas de CNS5.
+const MAGNITUD_GAIA_CNS5 = {
+  100008153: { gaia: '5353626573555863424', g: 16.919827, bpRp: 6.102331 }, // Luhman 16 AB (una sola fuente para el par)
+  100007681: { gaia: '3048443305671969152', g: 15.307901, bpRp: 4.8866253 }, // Estrella de Scholz
+};
 const glClave = gl => {
   const m = String(gl || '').match(/^(?:[A-Za-z]+\s*)?(\d+(?:\.\d+)?)\s*([A-Za-z]*)$/);
   return m ? m[1] + m[2] : '';
@@ -182,8 +189,10 @@ export const FUENTE_COLOR_TIPO = 'color por tipo (dibujo)';
 export function fusionarBase(stars, { registro, gaia, hip, espectros, cns5 = null, pmAthyg = new Map(), sinColor = new Set(), colorPorTipo = null }) {
   const curadas = new Set(DISTANCIAS_CURADAS.map(c => c.i));
   const fuentes = [];
+  // Las famosas (build_famosas.js) ya traen su distancia, posición y brillo con la regla del catálogo.
   const estrellas = stars.map(s => {
     const r = registro.get(s.i);
+    if (s.dataOrigin === 'famosa') { fuentes.push({ hsb: s.i, d: s.d, fuente_d: `famosas.js (${s.ds})`, c: s.c, fuente_c: 'famosas.js', sp: s.sp, fuente_sp: s.sp ? 'SIMBAD' : '' }); return s; }
     if (!r || s.dataOrigin === 'curated') { fuentes.push({ hsb: s.i, d: s.d, fuente_d: s.ds || 'AT-HYG', c: s.c, fuente_c: 'AT-HYG', sp: s.sp, fuente_sp: 'AT-HYG' }); return s; }
     let out = s, fd = s.ds || (r.origen === 'anfitriona' ? 'anfitriona' : 'AT-HYG');
     const antes = { d: s.d, fuente_d: fd };
@@ -254,7 +263,9 @@ export function estrellasNuevas(registro, { gaia, hip, espectros, v40, cns5, col
       pos = { ra: num(c5.ra) + (num(c5.pmra) || 0) * anos / 3.6e6 / Math.cos(dec * Math.PI / 180), dec: dec + (num(c5.pmdec) || 0) * anos / 3.6e6 };
       d = 1000 / num(c5.parallax); fd = `${FUENTE.cns5} (${c5.parallax_bibcode})`;
       const bpRp = num(c5.bp_mag) !== null && num(c5.rp_mag) !== null ? num(c5.bp_mag) - num(c5.rp_mag) : null;
-      v = vFromGaia(num(c5.g_mag), bpRp) ?? num(f40?.mag);
+      // Sin G en CNS5 (Luhman 16, Estrella de Scholz), la de su Gaia DR3 (MAGNITUD_GAIA_CNS5).
+      const gExtra = MAGNITUD_GAIA_CNS5[r.hsb];
+      v = vFromGaia(num(c5.g_mag), bpRp) ?? num(f40?.mag) ?? (gExtra ? vDeGaiaConRango(gExtra.g, gExtra.bpRp).v : null);
     } else { omitir('sin paralaje con error ≤ 10 %'); continue; }
     // Con un Gaia propio (aunque su paralaje no sirva), la posición es la de Gaia llevada a J2000.
     if (g && num(g.ra) !== null && fd !== FUENTE.gaia) {
@@ -265,6 +276,7 @@ export function estrellasNuevas(registro, { gaia, hip, espectros, v40, cns5, col
     d = Number(d.toPrecision(7));
     let c = num(f40?.ci), fc = f40?.ci ? 'AT-HYG v4.0' : 'sin color';
     if (gaiaUtil(g, { paraColor: true })) { c = Number(bvDesdeBpRp(num(g.bp_rp)).toFixed(3)); fc = 'Gaia DR3 BP−RP'; }
+    else if (MAGNITUD_GAIA_CNS5[r.hsb]) { c = Number(bvDesdeBpRp(MAGNITUD_GAIA_CNS5[r.hsb].bpRp).toFixed(3)); fc = 'Gaia DR3 BP−RP'; }
     else if (h && num(h.b_v) !== null) { c = num(h.b_v); fc = 'Hipparcos'; }
     const spSimbad = espectroSimbad(r, espectros);
     const sp = spSimbad || f40?.spect || null;

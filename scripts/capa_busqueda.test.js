@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { SALIDA, estrellasCapa } from './catalog/capa_nombres.js';
+import { idsDesdeCapa } from './catalog/desde_capa.js';
 import { ordenNombres, tipoNombre } from '../src/scene/capaNombres.js';
 import { normalizeStarQuery } from '../src/scene/starSearch.js';
 
@@ -17,9 +18,9 @@ const archivos = prefijo => fs.readdirSync(CARPETA).filter(f => f.startsWith(pre
 const capa = estrellasCapa();
 const indiceDe = new Map(capa.map((e, k) => [e.hsb, k]));
 const filas = parse(zlib.gunzipSync(fs.readFileSync(SALIDA)).toString('utf8'), { columns: true }).map(f => ({ hsb: Number(f.hsb), gaia: f.gaia_dr3, nombres: f.nombres.split('|') }));
-// Fuentes de la capa que pasaron a un cúmulo globular del catálogo (número de lote «igual a» un miembro): siguen en su
-// lugar, pero el buscador no las tiene (build_capa_busqueda.js).
-const miembros = new Set(JSON.parse(fs.readFileSync('data/catalog/added_globulares.json', 'utf8')).stars.map(s => s.i));
+// Fuentes de la capa que pasaron al catálogo (miembros de cúmulos globulares y famosas; número de lote «igual a» la
+// estrella nueva): siguen en su lugar, pero el buscador no las tiene (build_capa_busqueda.js).
+const miembros = idsDesdeCapa();
 const { leerEnlaces } = await import('./catalog/enlaces_registro.js');
 const lotesOcultos = new Set(leerEnlaces().filter(f => f.campo === 'igual_a' && miembros.has(Number(f.valor))).map(f => Number(f.hsb)));
 const oculta = k => lotesOcultos.has(capa[k].hsb);
@@ -101,4 +102,50 @@ test('BD+NN y BD−NN con el mismo número son estrellas distintas', async () =>
   assert.equal(await hsbDe(par), bd.get(par));
   assert.equal(await hsbDe(menos), bd.get(menos));
   assert.equal(await hsbDe(menos.replace('-', '−')), bd.get(menos));
+});
+
+test('UY Scuti está en el catálogo, no en la capa, y en «Estrella en lugar del Sol» con su radio publicado', async () => {
+  const { buildSearchIndex, searchStars } = await import('../src/scene/starSearch.js');
+  const { definirCandidatas, destacadas, estadoComparacion } = await import('../src/scene/comparacionSol.js');
+  const UY = 101351417;
+  const filasCatalogo = JSON.parse(fs.readFileSync('public/data/star-search.json', 'utf8'));
+  assert.equal(filasCatalogo.filter(([i]) => i === UY).length, 1);
+  const indice = buildSearchIndex(filasCatalogo);
+  for (const consulta of ['UY Scuti', 'UY Sct', 'uy sct', 'BD-12 5055', `HSB ${UY}`]) {
+    assert.equal(searchStars(indice, consulta)[0]?.id, UY, consulta);
+    // La capa ya no la tiene: su fuente quedó oculta y sin nombres.
+    assert.ok(!(await buscarEnCapa(consulta)).some(r => r.capa?.nombre?.startsWith('UY')), `${consulta} en la capa`);
+  }
+  assert.equal((await buscarEnCapa('Gaia DR3 4152993273702130432')).length, 0);
+  // En la comparación, entre VY Canis Majoris y Betelgeuse.
+  const oficiales = JSON.parse(fs.readFileSync('data/processed/stellar_official.json', 'utf8'));
+  const estrellas = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).map(s => ({ ...s, datos: oficiales[s.i] }));
+  definirCandidatas(estrellas);
+  const { candidatas } = estadoComparacion();
+  const uy = candidatas.find(c => c.id === UY);
+  assert.deepEqual([uy.nombre, uy.radiusSolar, uy.temperatureK], ['UY Scuti', 1140, 3365]);
+  assert.match(uy.fuente, /Arroyo-Torres et al\. 2013/);
+  assert.deepEqual(destacadas(candidatas).slice(0, 3).map(c => c.nombre), ['VY Canis Majoris', 'UY Scuti', 'Betelgeuse']);
+  // RS Persei: cuarta por radio, sin estar entre las destacadas.
+  assert.deepEqual(candidatas.slice(0, 4).map(c => c.nombre), ['VY Canis Majoris', 'UY Scuti', 'Betelgeuse', 'RS Persei']);
+  assert.ok(!destacadas(candidatas).some(c => c.nombre === 'RS Persei'));
+});
+
+test('la ficha de UY Scuti: tipo espectral, texto propio, catálogos y «Datos:» sin repetir la cita', async () => {
+  const { fuentesSinRepetir } = await import('../src/fuentesFicha.js');
+  const { tipoEstelar } = await import('../src/tipoEstelar.js');
+  const uy = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8')).find(s => s.i === 101351417);
+  assert.equal(uy.sp, 'M4Iae');
+  assert.equal(tipoEstelar(uy.sp).clase, 'M');
+  const textos = JSON.parse(fs.readFileSync('public/data/textos-fichas.json', 'utf8'));
+  assert.match(textos.estrellas['UY Scuti'], /1\.140 veces/);
+  const alias = JSON.parse(fs.readFileSync('public/data/star-search.json', 'utf8')).find(([i]) => i === 101351417)[1];
+  for (const a of ['BD-12 5055', 'IRC -10422', 'Gaia DR3 4152993273702130432']) assert.ok(alias.includes(a), a);
+  const oficiales = JSON.parse(fs.readFileSync('data/processed/stellar_official.json', 'utf8'));
+  // VY CMa (700584) y UY Scuti: la cita de la temperatura es el comienzo de la del radio.
+  for (const id of ['700584', '101351417']) {
+    const f = oficiales[id].fuentes, lista = fuentesSinRepetir([f.temperatureK, f.radiusSolar].filter(Boolean));
+    assert.deepEqual(lista, [f.radiusSolar], id);
+  }
+  assert.deepEqual(fuentesSinRepetir(['SIMBAD', 'Gaia DR3', 'SIMBAD']), ['SIMBAD', 'Gaia DR3']);
 });

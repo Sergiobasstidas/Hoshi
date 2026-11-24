@@ -1,18 +1,19 @@
 import { colorCatalogo, estrellaDeComponente } from './visualBinary.js';
+import { nombreEstrella } from './nombresEstrella.js';
 
 const DIAS_ANO = 365.25;
 
 // Las estrellas de un sistema en dos grupos, solo con los datos de star_systems:
 // «pares», las parejas con órbita (k = 'o'), y «lejanas», las compañeras anchas (k = 'w') que
 // viajan con el sistema a una separación proyectada (rho, en UA).
-// `titulo` (opcional): nombre de una estrella del catálogo; si no, su nombre propio.
-export function gruposSistema(sistema, titulo = estrella => estrella.n) {
+// `titulo` (opcional): nombre de una estrella; por omisión, nombreEstrella.
+export function gruposSistema(sistema, titulo = estrella => nombreEstrella(estrella)) {
   if (!sistema) return { pares: [], lejanas: [] };
   const primaria = sistema.star;
   const nombrePrimaria = titulo(primaria) || 'Estrella principal';
   const miembros = { A: { star: primaria, nombre: nombrePrimaria, sp: primaria.sp } };
   for (const c of sistema.components) {
-    miembros[c.name] = { star: estrellaDeComponente(sistema, c), nombre: (c.companion && titulo(c.companion)) || `${nombrePrimaria} ${c.name}`, sp: c.pair.sp };
+    miembros[c.name] = { star: estrellaDeComponente(sistema, c), nombre: titulo(estrellaDeComponente(sistema, c)), sp: c.pair.sp };
   }
   for (const m of Object.values(miembros)) m.color = colorCatalogo(m.star, m.sp);
   const pares = sistema.components.filter(c => c.pair.k === 'o' && miembros[c.pair.of]).map(c => {

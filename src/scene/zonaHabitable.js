@@ -44,7 +44,8 @@ export function anoEnBorde(ua, masaSolar) {
 const DISTANCIA_POR_RADIO = 2.13, PLANETA_LEJANO = 10;
 export function encuadreDeSistema(star, fichas) {
   const sistema = star?.planetary?.[0];
-  if (!sistema || sistema.binary || star.system) return null;
+  // Con compañeras lejanas (star.system) también: se encuadran los planetas; las compañeras llevan su nombre (App.jsx).
+  if (!sistema || sistema.binary) return null;
   const zona = zonaDeEstrella(star, fichas), borde = zona?.optimistaExterior || 0;
   const orbitas = sistema.planets.map(planeta => planeta.a).filter(a => a > 0);
   const cercanas = borde ? orbitas.filter(a => a <= borde * PLANETA_LEJANO) : orbitas;

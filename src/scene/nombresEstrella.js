@@ -1,3 +1,6 @@
+import { GENITIVOS } from './starSearch.js';
+import { basesCompaneras, titulosEstrellas } from './titulos.js';
+
 // Orden de los nombres de una estrella: el primero es el título de su ficha y de la lista del buscador.
 //   0 nombre propio (IAU)               4 estrella variable con letras del GCVS (R Leo, RR Lyr)
 //   1 Bayer (alf Cen, Alp Cyg)          5 catálogos (HIP, HD, HR, GJ/Gl, TYC, Gaia DR3, 2MASS…), en el orden de siempre
@@ -63,3 +66,42 @@ export function nombreParaMostrar(nombre, genitivos) {
   const partes = [griega && griega + (indice ? [...String(Number(indice))].map(d => SUPERINDICE[d]).join('') : ''), numero, genitivo, componente];
   return partes.filter(Boolean).join(' ');
 }
+
+// --- Nombre de una estrella para etiquetas, fichas, el dial y el buscador ---
+// Una sola regla para todo lo que nombra una estrella de la escena (estrellas.bin solo trae `n` para unas 600):
+//   1. su nombre de etiqueta (`n`);
+//   2. su título en el buscador (`titulos`: id → el nombre más conocido, «Kepler-90» y no «KOI-351»; titulos.js);
+//   3. el nombre de su sistema planetario (Kepler-90);
+//   4. si es una compañera, el nombre de su primaria (sin la A, AB o Aa final) y su letra: «LTT 1445 C»; sin nombre de
+//      la primaria, «WDS 15231+7620 B»;
+//   5. «HSB <número>».
+// Se muestra con nombreParaMostrar («61 Cyg B» → «61 Cygni B»).
+
+// «LTT 1445 A» → «LTT 1445»; «COCONUTS-2 A» → «COCONUTS-2»; «51 Psc AB» → «51 Psc».
+const sinLetraPrimaria = nombre => nombre.replace(/(?<=[\d\s])(?:A|AB|Aa)$/, '').trim();
+// Compañera de un sistema: la letra de su componente (las que no tienen registro propio la traen en `componente`).
+function letraDeCompanera(star) {
+  if (star.componente) return star.componente;
+  const sistema = star.sistemaDe;
+  return sistema?.components?.find(c => c.companion === star)?.name || null;
+}
+function nombrePropio(star, titulos) {
+  return star.n || titulos?.get(star.i) || star.planetary?.[0]?.name || null;
+}
+// `titulos` (id → título) y `bases` (id → nombre para sus compañeras): por omisión, los de titulos.js.
+export function nombreEstrellaCrudo(star, titulos = titulosEstrellas(), bases = undefined) {
+  if (!star) return null;
+  const propio = star.componente ? null : nombrePropio(star, titulos);
+  if (propio) return propio;
+  const letra = letraDeCompanera(star), sistema = star.sistemaDe;
+  if (letra && sistema) {
+    const mapaBases = bases !== undefined ? bases : titulos === titulosEstrellas() ? basesCompaneras() : null;
+    const primaria = mapaBases?.get(sistema.star.i) || nombrePropio(sistema.star, titulos);
+    return primaria ? `${sinLetraPrimaria(primaria)} ${letra}` : sistema.wds ? `WDS ${sistema.wds} ${letra}` : `HSB ${sistema.star.i} ${letra}`;
+  }
+  return Number.isFinite(star.i) ? `HSB ${star.i}` : null;
+}
+export const nombreEstrella = (star, titulos, bases) => {
+  const crudo = nombreEstrellaCrudo(star, titulos, bases);
+  return crudo && nombreParaMostrar(crudo, GENITIVOS);
+};

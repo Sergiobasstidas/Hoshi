@@ -1,6 +1,16 @@
 // scripts/catalog/photometry.js
 // Conversiones fotométricas compartidas por los generadores de data/catalog/.
 
+// V desde G y BP−RP, con el rango de la relación de Riello et al. (2021, tabla C.2: −0,5 ≤ BP−RP ≤ 5,0): fuera de él (estrellas
+// muy rojas o envueltas en polvo, como NML Cyg) la relación no vale y se usa la G tal cual. Devuelve { v, fuente }.
+export const RANGO_RIELLO = [-0.5, 5.0];
+export function vDeGaiaConRango(g, bpRp) {
+  if (!Number.isFinite(g)) return null;
+  if (!Number.isFinite(bpRp)) return { v: g, fuente: 'G de Gaia DR3 usada como V (sin color)' };
+  if (bpRp < RANGO_RIELLO[0] || bpRp > RANGO_RIELLO[1]) return { v: g, fuente: `G de Gaia DR3 usada como V (BP−RP ${bpRp.toFixed(2)}, fuera del rango de Riello et al. 2021)` };
+  return { v: vFromGaia(g, bpRp), fuente: 'G y BP−RP de Gaia DR3 (Riello et al. 2021)' };
+}
+
 // V de Johnson desde G y BP−RP de Gaia: Riello et al. (2021), tabla C.2,
 // G − V = −0,02704 + 0,01424·c − 0,2156·c² + 0,01426·c³ con c = BP−RP (−0,5 < c < 5).
 export function vFromGaia(g, bpRp) {

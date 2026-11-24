@@ -131,7 +131,7 @@ function aliasIds(alias) {
     else if ((m = a.match(/^HD (\d+)$/))) ids.hd = Number(m[1]);
     else if ((m = a.match(/^Gaia DR3 (\d+)$/))) ids.gaia = m[1];
     else if ((m = a.match(/^(GJ|Gl) (.+)$/))) ids.gj = ids.gj || `GJ ${m[2]}`;
-    else if ((m = a.match(/^NAME (.+)$/))) ids.nombre = ids.nombre || m[1];
+    else if ((m = a.match(/^NAME(?:-IAU)? (.+)$/))) ids.nombre = ids.nombre || m[1]; // «NAME-IAU X»: nombre aprobado por la IAU
   }
   return ids;
 }

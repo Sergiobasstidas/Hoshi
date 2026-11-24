@@ -107,7 +107,7 @@ const withoutId = [];
 for (const s of hoshiStars) {
   // Los miembros de cúmulos globulares (build_globulares.js) no se sacan de la capa: build_estrellas.js los deja en su
   // lugar como ocultos, para que no cambien los índices de la capa.
-  if (s.dataOrigin === 'globular') continue;
+  if (s.dataOrigin === 'globular' || s.dataOrigin === 'famosa') continue;
   const extra = registryGaia.get(s.i);
   if (extra && extra !== gaiaById.get(s.i)) { knownSourceIds.add(extra); idBySourceId.set(extra, s.i); }
   if (!gaiaById.has(s.i) && extra) gaiaById.set(s.i, extra);
@@ -243,12 +243,21 @@ for (const [lista, soloGcns] of [[probes, false], [probesGcns, true]]) for (cons
 // trae la magnitud V de la compañera, con un brillo compatible.
 const hoshiById = new Map(hoshiStars.map(s => [s.i, s]));
 let dupByCompanion = 0;
-for (const [id, system] of Object.entries(JSON.parse(fs.readFileSync(SYSTEMS_PATH, 'utf-8')))) {
+// Los exoplanetas que WDS o MSC listaban como compañeras (data/processed/companeras_planeta.json, process_binaries.js)
+// también se quitan de la capa: su punto es el planeta.
+const sistemasCapa = JSON.parse(fs.readFileSync(SYSTEMS_PATH, 'utf-8'));
+const COMPANERAS_PLANETA = './data/processed/companeras_planeta.json';
+if (fs.existsSync(COMPANERAS_PLANETA)) {
+  for (const [id, planetas] of Object.entries(JSON.parse(fs.readFileSync(COMPANERAS_PLANETA, 'utf-8')))) {
+    sistemasCapa[id] = { ...(sistemasCapa[id] || {}), planetas };
+  }
+}
+for (const [id, system] of Object.entries(sistemasCapa)) {
   const host = hoshiById.get(Number(id));
   // También cuentan las compañeras que sí son estrella de Hoshi pero no tienen fuente Gaia
   // propia (sin enlace, o enlazadas a la misma fuente que la principal, como p Eridani A y B).
   const hostSid = gaiaById.get(Number(id));
-  const comps = (system.comps ?? []).filter(c => c.cid === undefined || !gaiaById.get(c.cid) || gaiaById.get(c.cid) === hostSid);
+  const comps = [...(system.comps ?? []), ...(system.planetas ?? [])].filter(c => c.cid === undefined || !gaiaById.get(c.cid) || gaiaById.get(c.cid) === hostSid);
   if (!host || !(host.d > 0) || comps.length === 0) continue;
   const maxSepAu = Math.max(...comps.map(c => Math.max(c.rho ?? 0, (c.a ?? 0) * (1 + (c.e ?? 0)))));
   if (!(maxSepAu > 0)) continue;

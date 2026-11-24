@@ -17,6 +17,7 @@
 // astrometría de data/raw/gaia/gaia_dr3_1m.csv.gz y data/raw/gcns/gcns_main.csv.gz. Distancia de la ficha: 1/paralaje
 // (D-014). Uso: node scripts/build_capa_busqueda.js (después de scripts/catalog/capa_nombres.js).
 import fs from 'node:fs';
+import { idsDesdeCapa } from './catalog/desde_capa.js';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import { parse } from 'csv-parse/sync';
@@ -26,7 +27,6 @@ import { normalizeStarQuery } from '../src/scene/starSearch.js';
 import { claveCatalogo, ordenNombres, tipoNombre } from '../src/scene/capaNombres.js';
 
 const CARPETA = './public/data/capa';
-const GLOBULARES = './data/catalog/added_globulares.json';
 const GAIA_1M = './data/raw/gaia/gaia_dr3_1m.csv.gz', GCNS = './data/raw/gcns/gcns_main.csv.gz';
 export const POR_DATOS = 4096, POR_NUMEROS = 16384;
 
@@ -51,7 +51,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // Fuentes de la capa que ahora son un miembro de un cúmulo globular del catálogo (su número de lote quedó «igual a»
   // él, build_globulares.js): siguen en su lugar, pero sin nombres, sin Gaia DR3 en los datos y con su HSB apuntando a
   // ninguna fila (−1). Así no aparecen en el buscador y no cambia el resto de los trozos.
-  const globulares = new Set(fs.existsSync(GLOBULARES) ? JSON.parse(fs.readFileSync(GLOBULARES, 'utf8')).stars.map(s => s.i) : []);
+  // También las estrellas famosas que pasaron al catálogo (desde_capa.js).
+  const globulares = idsDesdeCapa();
   const lotesOcultos = new Set(leerEnlaces().filter(f => f.campo === 'igual_a' && globulares.has(Number(f.valor))).map(f => Number(f.hsb)));
   const oculta = new Set(capa.map((e, k) => (lotesOcultos.has(e.hsb) ? k : -1)).filter(k => k >= 0));
   const indiceDe = new Map(capa.map((e, k) => [e.hsb, k]));

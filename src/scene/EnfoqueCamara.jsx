@@ -1,0 +1,66 @@
+import { useLayoutEffect, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Vector3 } from 'three';
+import { avanzarEnfoque, centroVisible, crearEnfoque, direccionFinal, giroCortado, orientacionMirando } from './enfoque';
+import { mantenerActivo } from './reposo';
+
+const reducirMovimiento = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// Gira la cámara hacia la estrella pedida (`pedido`: { posicion: [x, y, z] del catálogo, libre }) y después la mantiene
+// fija en el centro de lo que se ve aunque la cámara se mueva. En órbita (`libre` falso) la fijación la dan los
+// controles: al terminar el giro, `alGirar(adelante)` recibe la dirección final para poner ahí el centro de la órbita; en
+// vuelo libre, la cámara se vuelve a orientar en cada cuadro que cambia de lugar. `cortarGiro(pedido)` corta el giro donde
+// esté (el usuario tomó la cámara) y avisa igual con `alGirar`.
+export default function EnfoqueCamara({ pedido, origin, alGirar }) {
+  const { camera, gl } = useThree();
+  const estado = useRef(null);
+  useLayoutEffect(() => { estado.current = pedido ? { pedido, giro: undefined, fijada: false, ultima: null } : null; mantenerActivo(); }, [pedido]);
+  useFrame((_, delta) => {
+    const e = estado.current;
+    if (!e) return;
+    const estrella = new Vector3(...e.pedido.posicion).sub(new Vector3(...origin));
+    const lienzo = gl.domElement.getBoundingClientRect();
+    const ficha = document.querySelector('aside.ficha-estrella')?.getBoundingClientRect() ?? null;
+    // Bajo los controles de arriba (buscador y menús), que en el teléfono ocupan la parte alta de la pantalla.
+    const techo = Math.max(lienzo.top, ...[...document.querySelectorAll('.star-search, .menu-explorar, .body-selector')]
+      .map(el => el.getBoundingClientRect()).filter(r => r.height > 0 && r.bottom < lienzo.top + lienzo.height / 2).map(r => r.bottom));
+    const ndc = centroVisible(lienzo, ficha, techo);
+    const arriba = e.pedido.libre ? new Vector3(0, 1, 0).applyQuaternion(camera.quaternion) : camera.up;
+    const opciones = { fov: camera.fov, aspecto: camera.aspect, ndc, arriba };
+    if (!e.fijada) {
+      if (e.giro === undefined) e.giro = crearEnfoque(camera, estrella.clone().sub(camera.position).normalize(), { ...opciones, reducido: reducirMovimiento() });
+      const cortado = giroCortado(e.pedido);
+      const termino = !e.giro || cortado || avanzarEnfoque(camera, e.giro, delta);
+      mantenerActivo();
+      if (!termino) return;
+      e.fijada = !cortado;
+      e.ultima = camera.position.clone();
+      alGirar?.(new Vector3(0, 0, -1).applyQuaternion(camera.quaternion), e.pedido);
+      if (!e.fijada) estado.current = null;
+      return;
+    }
+    // Fijada en vuelo libre: si la cámara cambió de lugar, vuelve a dejar la estrella en su punto.
+    if (!e.pedido.libre || camera.position.equals(e.ultima)) return;
+    e.ultima.copy(camera.position);
+    const adelante = direccionFinal(estrella.clone().sub(camera.position).normalize(), arriba, opciones);
+    orientacionMirando(adelante, arriba, camera.quaternion);
+    camera.updateMatrixWorld();
+  });
+  return null;
+}
+
+// Al elegir una estrella sin viajar, el origen local de la escena pasa a ella (App.jsx): la cámara se vuelve a anclar
+// para quedar en el mismo lugar del espacio. Los viajes ya lo hacen al empezar (navigation.js, beginJourney).
+export function ReanclarCamara({ origin, activo }) {
+  const { camera } = useThree();
+  const anterior = useRef(origin);
+  useLayoutEffect(() => {
+    const previo = anterior.current;
+    anterior.current = origin;
+    if (!activo || previo === origin || previo.every((v, i) => v === origin[i])) return;
+    camera.position.add(new Vector3(previo[0] - origin[0], previo[1] - origin[1], previo[2] - origin[2]));
+    camera.updateMatrixWorld();
+    mantenerActivo();
+  }, [camera, origin, activo]);
+  return null;
+}

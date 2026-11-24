@@ -35,7 +35,8 @@ export const CURATED_SEARCH_ROWS = [[ETA_CARINAE_ID, [
 ]]];
 
 // Nombres en español de las estrellas conocidas, además del nombre del catálogo.
-const ALIAS_EN_ESPANOL = { Sirius: ['Sirio'], Arcturus: ['Arturo'], Procyon: ['Proción'], Aldebaran: ['Aldebarán'], Canopus: ['Canopo'], Polaris: ['Polar', 'Estrella Polar'], Betelgeuse: ['Betelgeuze'], Rigel: ['Rígel'], Vega: ['Wega'], Antares: ['Antáres'], Altair: ['Altaír'] };
+const ALIAS_EN_ESPANOL = { Sirius: ['Sirio'], Arcturus: ['Arturo'], Procyon: ['Proción'], Aldebaran: ['Aldebarán'], Canopus: ['Canopo'], Polaris: ['Polar', 'Estrella Polar'], Betelgeuse: ['Betelgeuze'], Rigel: ['Rígel'], Vega: ['Wega'], Antares: ['Antáres'], Altair: ['Altaír'],
+  'Rigil Kentaurus': ['Alpha Centauri A', 'Alfa Centauri A'], Toliman: ['Alpha Centauri B', 'Alfa Centauri B'] };
 export function addCuratedSearchRows(rows) {
   const ids = new Set(rows.map(([id]) => id));
   const conAlias = rows.map(([id, aliases]) => [id, ALIAS_EN_ESPANOL[aliases[0]] ? [...aliases, ...ALIAS_EN_ESPANOL[aliases[0]]] : aliases]);

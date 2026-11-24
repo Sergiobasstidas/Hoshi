@@ -5,6 +5,7 @@
 // corregidos. Campos:
 //   gaia_dr3  Gaia DR3 de la estrella (vacío: se quita y queda gaia_revisar = 1)
 //   hip, hd   número de Hipparcos o Henry Draper (vacío: se quita)
+//   hr        número del Bright Star Catalogue (vacío: se quita)
 //   cns5      fila de CNS5 (gj_id + componente) para la escalera de distancias
 //   igual_a   la estrella es la misma que otra del registro: queda «retirada» apuntando a esa
 //   gl, tmass nombre de Gliese o designación 2MASS (vacío: se quita)
@@ -34,7 +35,7 @@ export function enlacesPorEstrella(filas = leerEnlaces()) {
 export function corregirFila(fila, c) {
   if (!c) return false;
   if ('gaia_dr3' in c) { fila.gaia_dr3 = c.gaia_dr3; fila.gaia_revisar = c.gaia_dr3 ? '' : '1'; }
-  for (const campo of ['hip', 'hd', 'cns5', 'igual_a', 'gl', 'tmass']) if (campo in c) fila[campo] = c[campo];
+  for (const campo of ['hip', 'hd', 'hr', 'cns5', 'igual_a', 'gl', 'tmass']) if (campo in c) fila[campo] = c[campo];
   if ('nombre' in c) { fila.nombre = c.nombre; fila.nombreCorregido = true; }
   if ('sp' in c) fila.spCorregido = c.sp;
   if ('posicion' in c) fila.posicion = c.posicion;

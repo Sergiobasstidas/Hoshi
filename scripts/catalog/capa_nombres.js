@@ -9,7 +9,8 @@
 // No se guarda ningún TIC.
 // Revisión de identidad (lo dudoso queda sin nombre y va al informe):
 //  - posición: SIMBAD a más de 2″ de la posición de Gaia llevada a J2000 (DR3 es de época 2016,0);
-//  - brillo: la V de SIMBAD difiere en más de 1,5 mag de la V que da Gaia (G y BP−RP, vFromGaia);
+//  - brillo: la V de SIMBAD difiere en más de 1,5 mag de la V que da Gaia (G y BP−RP, vFromGaia), salvo variables conocidas
+//    y estrellas de color fuera del rango de esa relación a ≤ 1″ con el mismo movimiento propio en SIMBAD (brilloCalza);
 //    en esos dos casos la estrella pierde los nombres de SIMBAD (el TYC del cruce de Gaia se queda);
 //  - un mismo nombre en dos estrellas de la capa: no queda en ninguna;
 //  - un nombre que ya usa una estrella del catálogo principal (public/data/star-search*.json): no queda. Un nombre
@@ -27,6 +28,8 @@ import zlib from 'node:zlib';
 import { parse } from 'csv-parse/sync';
 import { DESCARGAR, pedir } from './red.js';
 import { vFromGaia } from './photometry.js';
+import { SEP_SIN_TOPE_DV, calzaSinTopeDeBrillo, movimientoCoincide } from './criterios_enlace.js';
+import { NOMBRES_CAPA } from './nombres_curados.js';
 
 const REGISTRO = './data/catalog/hsb_registro.csv', LOTES = './data/catalog/hsb_gaia', CAPA_HSB = './public/data/estrellas-hsb.bin';
 const GAIA_1M = './data/raw/gaia/gaia_dr3_1m.csv.gz', GCNS = './data/raw/gcns/gcns_main.csv.gz';
@@ -34,6 +37,19 @@ const BUSCADOR = ['star-search.json', 'star-search-variables.json', 'star-search
 export const SALIDA = './data/catalog/hsb_capa_nombres.csv.gz';
 const SIMBAD = 'https://simbad.harvard.edu/simbad/sim-tap/sync', GAIA_TAP = 'https://gaia.ari.uni-heidelberg.de/tap/sync';
 const POR_TANDA = 5000, MAX_SEP = 2, MAX_DV = 1.5;
+// Supergigantes rojas y otras variables (UY Sct, KY Cyg, SU Per): la V de SIMBAD es de una sola época y su color puede
+// quedar fuera del rango de la relación G−V de Riello et al. (2021, tabla C.2: −0,5 ≤ BP−RP ≤ 5,0), así que la V que da
+// Gaia puede diferir más de MAX_DV aunque sea el mismo objeto. Se aceptan con el mismo criterio que los enlaces a Gaia de
+// la auditoría (criterios_enlace.js): a ≤ 1″, con el movimiento propio de SIMBAD comparado y coincidente y un solo objeto
+// de SIMBAD; sin tope de ΔV. El movimiento propio evita pegarle el nombre a una vecina en campos densos (Scutum, Cygnus).
+const RANGO_RIELLO = [-0.5, 5.0];
+export const fueraDeRiello = bpRp => Number.isFinite(bpRp) && (bpRp < RANGO_RIELLO[0] || bpRp > RANGO_RIELLO[1]);
+
+// ¿Calza el brillo de SIMBAD con el de Gaia? `variable`: SIMBAD la nombra «V* …»; `dpm`, `pmOk`: movimientoCoincide.
+export function brilloCalza({ vSimbad, vGaia, bpRp, separacion: sep, unObjeto, variable, dpm = null, pmOk = false }) {
+  if (Math.abs(vSimbad - vGaia) <= MAX_DV) return true;
+  return unObjeto && (variable || fueraDeRiello(bpRp)) && calzaSinTopeDeBrillo({ separacion: sep, dpm, pmOk });
+}
 
 // Tipos de nombre, en el orden en que se guardan.
 const TIPOS = [
@@ -127,6 +143,20 @@ async function bajarSimbad(porLote, tiempos) {
   return salida;
 }
 
+// Movimiento propio de SIMBAD (mas/año) de unas pocas estrellas: Map source_id → [pmra, pmdec].
+async function bajarPmSimbad(ids) {
+  const salida = new Map(), lista = [...new Set(ids)].sort(comparar);
+  for (let k = 0; k < lista.length; k += POR_TANDA) {
+    const query = `SELECT g.id AS gaia, b.pmra, b.pmdec FROM ident AS g JOIN basic AS b ON b.oid = g.oidref `
+      + `WHERE g.id IN (${lista.slice(k, k + POR_TANDA).map(s => `'Gaia DR3 ${s}'`).join(',')})`;
+    const texto = await consultar('capa_simbad', SIMBAD, query, 'gaia,');
+    for (const f of parse(texto, { columns: true, skip_empty_lines: true })) {
+      salida.set(f.gaia.replace(/^Gaia DR3\s+/, ''), [f.pmra === '' ? NaN : Number(f.pmra), f.pmdec === '' ? NaN : Number(f.pmdec)]);
+    }
+  }
+  return salida;
+}
+
 // Cruce de Gaia con Tycho-2: Map source_id → «TYC n-n-n».
 async function bajarTycho(tiempos) {
   const salida = new Map();
@@ -180,6 +210,15 @@ export async function armar() {
   const enCatalogo = new Set();
   for (const ruta of BUSCADOR) for (const [, alias] of JSON.parse(fs.readFileSync(ruta, 'utf8'))) for (const a of alias) enCatalogo.add(clave(a));
 
+  // Movimiento propio de SIMBAD, solo para las que la regla de brillo descartaría y podrían calzar sin tope de ΔV.
+  const esVariable = s => [...s.ids].some(id => /^V\* /.test(id.trim()));
+  const candidatasPm = capa.filter(({ gaia }) => {
+    const s = gaia && simbad.get(gaia), g = gaia && astro.get(gaia);
+    if (!s || !g || s.oids.size > 1 || s.V === null || !(esVariable(s) || fueraDeRiello(g.bpRp))) return false;
+    const vg = vFromGaia(g.g, g.bpRp);
+    return vg !== null && Math.abs(s.V - vg) > MAX_DV && separacion(s, g) <= SEP_SIN_TOPE_DV;
+  }).map(({ gaia }) => gaia);
+  const pmSimbad = await bajarPmSimbad(candidatasPm);
   const dudosas = { posicion: [], brillo: [], varios_objetos: [], repetido: [], catalogo: [] };
   const conNombres = [];
   let tycDistinto = 0, sinAstrometria = 0;
@@ -194,7 +233,9 @@ export async function armar() {
       const sep = separacion(s, g);
       if (sep > MAX_SEP) { simbadVale = false; dudosas.posicion.push({ hsb, gaia, detalle: `${sep.toFixed(2)}″` }); }
       const vg = vFromGaia(g.g, g.bpRp);
-      if (simbadVale && s.V !== null && vg !== null && Math.abs(s.V - vg) > MAX_DV) {
+      const pm = movimientoCoincide([g.pmra, g.pmdec], pmSimbad.get(gaia) || [NaN, NaN]);
+      if (simbadVale && s.V !== null && vg !== null && !brilloCalza({ vSimbad: s.V, vGaia: vg, bpRp: g.bpRp, separacion: sep, unObjeto: s.oids.size === 1,
+        variable: esVariable(s), dpm: pm.dpm, pmOk: pm.ok })) {
         simbadVale = false; dudosas.brillo.push({ hsb, gaia, detalle: `V SIMBAD ${s.V} / V Gaia ${vg.toFixed(2)}` });
       }
     }
@@ -223,6 +264,12 @@ export async function armar() {
   for (const e of conNombres) for (const [k, n] of [...e.nombres]) {
     if (usos.get(k) > 1) { e.nombres.delete(k); dudosas.repetido.push({ hsb: e.hsb, gaia: e.gaia, detalle: `${n.nombre} (en ${usos.get(k)} estrellas de la capa)` }); }
     else if (enCatalogo.has(k)) { e.nombres.delete(k); dudosas.catalogo.push({ hsb: e.hsb, gaia: e.gaia, detalle: `${n.nombre}${tieneLetra(n.nombre) ? '' : ' (sin letra)'}` }); }
+  }
+  // Nombres revisados a mano (nombres_curados.js, NOMBRES_CAPA): van primero, como nombre propio o de variable.
+  for (const { hsb, nombres } of NOMBRES_CAPA) {
+    const e = conNombres.find(x => x.hsb === hsb);
+    if (!e) throw new Error(`NOMBRES_CAPA: HSB ${hsb} no tiene fila en la capa`);
+    for (const n of nombres) e.nombres.set(clave(n), { tipo: /^(V\d+|[A-Z]{1,2}) [A-Z][A-Za-z]{2}$/.test(n) ? 'V*' : 'NAME', nombre: n });
   }
   const orden = new Map(TIPOS.map(([t], k) => [t, k]));
   const filas = conNombres.filter(e => e.nombres.size).sort((a, b) => a.hsb - b.hsb).map(e => ({

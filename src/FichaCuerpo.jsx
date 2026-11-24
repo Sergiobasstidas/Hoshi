@@ -5,7 +5,7 @@ import { HORIZONS_SOURCE, MOON_ELEMENTS_SOURCE, MOON_PHYSICAL_SOURCE } from './s
 import { RING_FACTS_SOURCE, RING_REGIONS } from './scene/ringParticles';
 import { PLANET_TEXTURE_LICENSE, PLANET_TEXTURE_SOURCE, PLANET_TEXTURES } from './scene/planetTextures';
 import { lightDaysText } from './scene/probeTrajectories';
-import textos from '../data/processed/textos_fichas.json';
+import { useTextosFichas } from './useTextosFichas';
 
 const numero = (valor, digitos = 3) => valor.toLocaleString('es-CL', { maximumSignificantDigits: digitos });
 const km = valor => `${valor.toLocaleString('es-CL', { maximumFractionDigits: 0 })} km`;
@@ -49,7 +49,8 @@ function Anillos() {
 // `sistema`: datos del modelo de WR 140 (App.jsx).
 export default function FichaCuerpo({ cuerpo, sistema, irA }) {
   const tipo = tipoDe(cuerpo);
-  const relato = textos.sistemaSolar[cuerpo.name];
+  const textos = useTextosFichas();
+  const relato = textos?.sistemaSolar[cuerpo.name];
   const textura = PLANET_TEXTURES[cuerpo.name];
   const esPlaneta = cuerpo.au !== undefined;
   return <>

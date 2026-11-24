@@ -148,7 +148,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const record = buildHost({ host, system: systems.get(host.h), gaia: host.gaia ? gaiaBySource.get(host.gaia) : null });
     if (record.skip) { (skipped[record.skip] ||= []).push(host.h); continue; }
     const star = { i: numero(host), ...record, hosts: [host.h],
-      alias: [...new Set([host.h, ...host.alias.map(a => a.replace(/^NAME /, ''))])] };
+      alias: [...new Set([host.h, ...host.alias.map(a => a.replace(/^NAME(?:-IAU)? /, ''))])] };
     added.push(star);
     if (host.gaia) byGaia.set(host.gaia, star);
   }

@@ -12,6 +12,7 @@ import { estrellasNuevas, fusionarBase, indiceCns5 } from './catalog/fusion.js';
 import { aplicarEnlaces, enlacesPorEstrella, retiradasPorEnlace } from './catalog/enlaces_registro.js';
 import { leerGaiaRegistro } from './catalog/gaia_local.js';
 import { bvPorTipo, tablaPecautMamajek } from './catalog/pecaut_mamajek.js';
+import { NOMBRES_CURADOS } from './catalog/nombres_curados.js';
 
 // === CONFIGURACIÓN ===
 const MAX_DISTANCE_PC = 400000;
@@ -178,6 +179,12 @@ if (fs.existsSync(REGISTRO_CSV)) {
   console.log(`  color ${JSON.stringify(conteo('fuente_c'))}; espectro ${JSON.stringify(conteo('fuente_sp'))}`);
   console.log(`✓ Estrellas nuevas del registro HSB: ${nuevas.estrellas.length}; omitidas ${JSON.stringify(nuevas.omitidas)}`);
 }
+
+
+// === 5d. Nombres revisados a mano (scripts/catalog/nombres_curados.js): nombres de la IAU y nombres conocidos ===
+const curados = new Map(NOMBRES_CURADOS.filter(c => c.n).map(c => [c.i, c.titulo]));
+for (const star of catalogo) if (curados.has(star.i)) star.n = curados.get(star.i);
+console.log(`✓ Nombres revisados: ${catalogo.filter(s => curados.has(s.i)).length} de ${curados.size}`);
 
 
 // === 6. Ordenar por distancia (Sol primero) ===

@@ -87,7 +87,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       else c.rho = Number((c.rho * f).toPrecision(5));
     }
   };
-  for (const miembros of sistemasAUnificar(sistemas, dInicial)) {
+  // Una compañera que es a su vez primaria de otro sistema (θ¹ Ori A en el de θ¹ Ori C) suma a sus compañeras: si no, al
+  // quedar vista en el primer sistema, las suyas no se unifican con nadie.
+  const companerasDe = new Map(Object.entries(sistemas).map(([clave, s]) => [Number(clave), s.comps.filter(c => c.cid !== undefined).map(c => c.cid)]));
+  const conSubsistemas = miembros => {
+    const todos = [...miembros];
+    for (let k = 1; k < todos.length; k++) for (const c of companerasDe.get(todos[k]) || []) if (!todos.includes(c)) todos.push(c);
+    return todos;
+  };
+  for (const miembros of sistemasAUnificar(sistemas, dInicial).map(conSubsistemas)) {
     const primaria = miembros[0];
     const ids = [...new Set(miembros)].filter(i => porId.has(i) && !vistos.has(i));
     if (ids.length < 2) continue;

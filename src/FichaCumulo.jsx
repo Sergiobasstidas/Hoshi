@@ -2,7 +2,7 @@ import { Dato } from './FichaLateral';
 import { LIGHT_YEAR_PC } from './scene/scale';
 import { CONSTELACIONES } from './constelaciones';
 import { rangoEdad } from './scene/datosCumulos';
-import textos from '../data/processed/textos_fichas.json';
+import { useTextosFichas } from './useTextosFichas';
 import './cumulos.css';
 
 const numero = (valor, decimales = 1) => valor.toLocaleString('es-CL', { maximumFractionDigits: decimales });
@@ -16,6 +16,7 @@ export default function FichaCumulo({ cumulo, irA, estrellaDe, fuente, fuenteBri
   const brillantes = cumulo.ids.map(id => estrellaDe.get(id)).filter(star => star?.n).slice(0, 10);
   const edad = cumulo.edadMyr;
   const globular = cumulo.tipo === 'globular';
+  const textos = useTextosFichas();
   const relatoPorDefecto = globular
     ? 'Un cúmulo globular: una esfera de cientos de miles de estrellas muy viejas, unidas por su propia gravedad, que orbita la galaxia fuera de su disco.'
     : 'Un grupo de estrellas nacidas de la misma nube de gas, que todavía viajan juntas por la galaxia. Se reconocen como familia porque comparten distancia y movimiento en el cielo, medidos por el satélite Gaia.';
@@ -23,7 +24,7 @@ export default function FichaCumulo({ cumulo, irA, estrellaDe, fuente, fuenteBri
     <h2 className="marca-hoshi">{cumulo.nombre}</h2>
     {irA && <button className="ficha-ir-a" onClick={irA.onIr}>{irA.texto}</button>}
     <p className="ficha-estrella-tipo">{globular ? 'Cúmulo globular' : 'Cúmulo abierto'}{CONSTELACIONES[cumulo.constelacion] ? ` · ${CONSTELACIONES[cumulo.constelacion]}` : ''}</p>
-    <p className="ficha-estrella-relato">{textos.cumulos[cumulo.id] || relatoPorDefecto}</p>
+    {textos && <p className="ficha-estrella-relato">{textos.cumulos[cumulo.id] || relatoPorDefecto}</p>}
     <dl>
       {globular
         ? <Dato etiqueta="Distancia al Sol" valor={`${tresCifras(cumulo.d / LIGHT_YEAR_PC)} años luz`} secundario={`${tresCifras(cumulo.d / 1000)} kpc`} />

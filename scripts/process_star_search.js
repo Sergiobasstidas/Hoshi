@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { WR140_ID } from '../src/scene/stellarTargets.js';
 import { CANDIDATA, ordenarNombres, rangoNombre } from '../src/scene/nombresEstrella.js';
+import { NOMBRES_CURADOS } from './catalog/nombres_curados.js';
 const stars = JSON.parse(fs.readFileSync('data/processed/stars_15pc.json', 'utf8'));
 const ids = new Set(stars.filter(s => [s.x, s.y, s.z].every(Number.isFinite)).map(s => s.i));
 const rows = parse(fs.readFileSync('data/raw/hyglike_from_athyg_v32.csv', 'utf8'), { columns: true });
@@ -31,6 +32,11 @@ const globularesPath = 'data/catalog/added_globulares.json';
 if (fs.existsSync(globularesPath)) for (const star of JSON.parse(fs.readFileSync(globularesPath, 'utf8')).stars) {
   if (ids.has(star.i)) index.push([star.i, [...star.alias, `HSB ${star.i}`]]);
 }
+// Estrellas famosas añadidas (data/catalog/added_famosas.json): su nombre, sus otros nombres de SIMBAD, su Gaia DR3 y su HSB.
+const famosasPath = 'data/catalog/added_famosas.json';
+if (fs.existsSync(famosasPath)) for (const star of JSON.parse(fs.readFileSync(famosasPath, 'utf8')).stars) {
+  if (ids.has(star.i)) index.push([star.i, [star.n, ...star.alias, `HSB ${star.i}`]]);
+}
 // Estrellas que entraron desde el registro HSB (AT-HYG v4.0 y CNS5): nombre propio y luego números de catálogo
 // (Gliese, HIP, HD, TYC, Gaia DR3, 2MASS), como dice la regla de nombres del catálogo HSB.
 const registroPath = 'data/catalog/hsb_registro.csv';
@@ -54,9 +60,12 @@ if (fs.existsSync(idsNasa)) for (const p of parse(fs.readFileSync(idsNasa, 'utf8
   if (!previo || (CANDIDATA.test(previo) && !CANDIDATA.test(sistema))) sistemaDeAnfitriona.set(p.hostname, sistema);
 }
 const sistemas = new Set(sistemaDeAnfitriona.values());
+const NO_ES_NOMBRE = / Parent Star$|^KOINTREAU-|^Bergfors-/;
 const propiosDe = new Map();
 const agregarPropio = (i, n) => { if (!n) return; if (!propiosDe.has(i)) propiosDe.set(i, new Set()); propiosDe.get(i).add(n); };
 for (const r of rows) if (r.proper) agregarPropio(Number(r.id), r.proper);
+// El nombre de una estrella famosa añadida (UY Scuti) va primero, como un nombre propio.
+if (fs.existsSync(famosasPath)) for (const star of JSON.parse(fs.readFileSync(famosasPath, 'utf8')).stars) agregarPropio(star.i, star.n);
 agregarPropio(WR140_ID, 'Wolf-Rayet 140');
 const porId = new Map(index.map(row => [row[0], row]));
 const anfitrionaAnadida = new Map();
@@ -64,7 +73,13 @@ if (fs.existsSync(addedPath)) for (const star of JSON.parse(fs.readFileSync(adde
 if (fs.existsSync(identityPath)) for (const host of JSON.parse(fs.readFileSync(identityPath, 'utf8')).hosts) {
   const i = host.i ?? anfitrionaAnadida.get(host.h);
   if (i === undefined) continue;
-  for (const a of host.alias) if (a.startsWith('NAME ')) agregarPropio(i, a.slice(5));
+  // Los «NAME» de SIMBAD que son designaciones de un estudio y no nombres («TrES-1 Parent Star», «KOINTREAU-4»,
+  // «Bergfors-6») no van como nombre propio: quedan entre los catálogos.
+  // «NAME-IAU X» (nombre aprobado por la IAU) vale igual que «NAME X».
+  for (const a of host.alias) {
+    const nombre = /^NAME(?:-IAU)? (.+)$/.exec(a)?.[1];
+    if (nombre && !NO_ES_NOMBRE.test(nombre)) agregarPropio(i, nombre);
+  }
   // El nombre del sistema planetario también se busca, aunque la anfitriona tenga otro.
   const sistema = sistemaDeAnfitriona.get(host.h), row = porId.get(i);
   if (sistema && row && !row[1].includes(sistema)) row[1].push(sistema);
@@ -87,11 +102,37 @@ for (const [n, ids] of compartidos) {
     row[1] = row[1].flatMap(a => (a === n ? (letras[k] === 'A' ? [n, `${n} ${letras[k]}`] : [`${n} ${letras[k]}`]) : [a]));
   });
 }
-// Sin los prefijos de SIMBAD («* rho Cnc B» → rho Cnc B, «V* R Leo» → R Leo).
-for (const row of index) row[1] = [...new Set(row[1].map(n => n.replace(/^V?\* /, '')))];
+// Sin los prefijos de SIMBAD («* rho Cnc B» → rho Cnc B, «V* R Leo» → R Leo, «NAME-IAU Absolutno» → Absolutno,
+// «HIDDEN NAME TrES-2A» → TrES-2A).
+for (const row of index) row[1] = [...new Set(row[1].map(n => n.replace(/^V?\* |^NAME(?:-IAU)? |^HIDDEN NAME /, '')))];
+// Una componente B, C… no va primero si la estrella también tiene el nombre del sistema o de la A (HD 41004: la fila es
+// la de HD 41004 A, que AT-HYG nombra también «HD 41004 B»).
+const componenteDespues = (nombres, principales) => {
+  const m = /^(.*) [B-E]$/.exec(nombres[0] || '');
+  if (!m) return nombres;
+  const a = nombres.indexOf(`${m[1]} A`), base = nombres.indexOf(m[1]);
+  const mejor = a >= 0 && (!principales || a < principales) ? a : base >= 0 && (!principales || base < principales) ? base : -1;
+  return mejor < 0 ? nombres : [nombres[mejor], ...nombres.filter((_, k) => k !== mejor)];
+};
+// Nombres revisados a mano (scripts/catalog/nombres_curados.js): se quitan los de otra estrella, se suman los alias y el
+// título va primero.
+const curados = new Map(NOMBRES_CURADOS.map(c => [c.i, c]));
+for (const row of index) {
+  const c = curados.get(row[0]);
+  if (!c) continue;
+  row[1] = [...new Set([...row[1].filter(n => !(c.quitar || []).includes(n)), ...(c.titulo ? [c.titulo] : []), ...(c.alias || [])])];
+  if (c.titulo) agregarPropio(row[0], c.titulo);
+}
 const salida = index.map(([i, nombres]) => {
-  const [orden, principales] = ordenarNombres(nombres, { propios: propiosDe.get(i), sistemas });
-  return principales ? [i, orden, principales] : [i, orden];
+  const [ordenados, principales] = ordenarNombres(nombres, { propios: propiosDe.get(i), sistemas });
+  const titulo = curados.get(i)?.titulo;
+  const conTitulo = titulo ? [titulo, ...ordenados.filter(n => n !== titulo)] : componenteDespues(ordenados, principales);
+  // Sin alias idénticos al título salvo por mayúsculas («tau Cet» bajo «Tau Cet»); las formas sin tildes (Diwo) quedan.
+  const repetido = (n, k) => k > 0 && n.toLowerCase() === conTitulo[0].toLowerCase();
+  const orden = conTitulo.filter((n, k) => !repetido(n, k));
+  const quitadosAntes = conTitulo.slice(0, principales).filter((n, k) => repetido(n, k)).length;
+  const p = principales - quitadosAntes;
+  return p ? [i, orden, p] : [i, orden];
 });
 fs.mkdirSync('public/data', { recursive: true });
 fs.writeFileSync('public/data/star-search.json', JSON.stringify(salida));

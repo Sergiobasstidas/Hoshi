@@ -36,7 +36,7 @@
 .scene-label.is-target .label-text { color: #b8e6ed; background: transparent; }
 .label-text:disabled { cursor: default; }
 .aim-reticle { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); border: 1px solid #89c9d18c; border-radius: 50%; }
-.aim-panel { position: absolute; right: 28px; top: 125px; display: grid; gap: 6px; padding: 12px; background: #12161c80; border: 1px solid #89c9d133; border-radius: 4px; color: #afc4d0; font-size: 11px; pointer-events: auto; z-index: 20; }
+.aim-panel { position: absolute; right: 28px; top: 125px; display: grid; gap: 6px; padding: 12px; background: #12161c80; -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); border: 1px solid #89c9d133; border-radius: 4px; color: #afc4d0; font-size: 11px; pointer-events: auto; z-index: 20; }
 .aim-panel strong { font-weight: 500; color: #c7e3e8; }
 .aim-panel button { margin-top: 4px; padding: 4px 10px; border: 1px solid #7f9aa952; border-radius: 999px; background: transparent; color: #9fb2c0; font: inherit; font-size: 11px; cursor: pointer; }
 .aim-panel button:hover, .aim-panel button:focus-visible { color: #e6ebf3; border-color: #aac8dca6; outline: none; }
@@ -56,9 +56,15 @@
 
 .star-search { position:absolute; top:119px; right:28px; width:300px; pointer-events:auto; z-index:35; font-size:11px; }
 .star-search label { display:block; color:#9da7b8; margin-bottom:5px; }
-.star-search input { box-sizing:border-box; width:100%; padding:9px 10px; border:1px solid #ffffff30; border-radius:4px; background:#12161c80; color:#d5dbe4; font:inherit; }
+.star-search input { box-sizing:border-box; width:100%; padding:9px 10px 9px 30px; border:1px solid #ffffff30; border-radius:4px; background:#12161c80; color:#d5dbe4; font:inherit; }
+/* Lupa antes de «Buscar»: fina, del alto de las letras y en el gris del texto de ejemplo; un clic sobre ella llega al campo. */
+.star-search-campo { position:relative; display:block; }
+.star-search-lupa { position:absolute; left:10px; top:50%; width:13px; height:13px; transform:translateY(-50%); color:#757575; pointer-events:none; }
+/* El gris del texto de ejemplo, el de Chrome, fijo para que la lupa sea del mismo gris en todos los navegadores. */
+.star-search input::placeholder { color:#757575; opacity:1; }
 .star-search input:focus { outline:1px solid #80aabb; }
-.search-dropdown { background:#12161c80; border:1px solid #ffffff30; border-radius:4px; max-height:55vh; overflow:auto; }
+/* Vidrio esmerilado como la ficha (fichaEstrella.css): lo de atrás no se lee a través de la lista. */
+.search-dropdown { background:#12161c80; -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2); border:1px solid #ffffff30; border-radius:4px; max-height:55vh; overflow:auto; }
 .search-dropdown [role=status] { padding:8px 10px; color:#8e9aa9; }
 .search-dropdown ul { list-style:none; padding:0; margin:0; }
 .search-dropdown li { display:grid; gap:5px; padding:10px; cursor:pointer; border-top:1px solid #ffffff10; }

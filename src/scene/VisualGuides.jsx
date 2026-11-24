@@ -34,7 +34,9 @@ const FICHA_CERCA = [1, 2];
 // Rapidez (1/s) con que los nombres aparecen y desaparecen al taparse o destaparse (≈ 200 ms).
 const FUNDIDO = 12;
 
-export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget, distanceTarget, fichaFoco = null }) {
+const SIN_CONTEXTO = new Set();
+// `contexto`: ids de las estrellas del sistema donde se está (App.jsx), que conservan su nombre como la elegida.
+export default function VisualGuides({ overlayRef, labels, focusedBody, origin, binary, aimTarget, distanceTarget, fichaFoco = null, contexto = SIN_CONTEXTO }) {
   const elapsed = useRef(0);
   const visibleStars = useRef(new Set());
   // Desplazamiento vertical (px) del nombre de cada compañera apilada bajo el de su primaria.
@@ -85,7 +87,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       * (1 - presencia.valor);
     // La estrella elegida (ficha o rumbo) conserva siempre su nombre.
     const elegidaId = aimTarget?.catalogueId ?? fichaFoco?.id ?? focusedBody?.star?.i;
-    const esElegida = label => label === aimTarget || (elegidaId !== undefined && elegidaId !== null && label.catalogueId === elegidaId);
+    // Las estrellas del sistema donde se está (etiquetas de contexto, App.jsx) también conservan su nombre.
+    const esElegida = label => label === aimTarget || contexto.has(label.catalogueId) || (elegidaId !== undefined && elegidaId !== null && label.catalogueId === elegidaId);
     if (focusedBody) {
       const distancePc = camera.position.distanceTo(vector.set(...focusedBody.position).sub({ x: origin[0], y: origin[1], z: origin[2] }));
       const altitude = root.querySelector('[data-body-altitude]');
@@ -167,7 +170,8 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
       const sistema = (label.star?.system || label.star?.sistemaDe)?.star.i;
       candidates.push({ id: label.catalogueId, width, sistema,
         x: Math.max(8, Math.min(point.x + 9, size.width - width - 12)), y: point.y - 8,
-        hovered: labelElements[i]?.matches(':hover'),
+        // Las del sistema donde se está entran siempre, como la que está bajo el mouse.
+        hovered: labelElements[i]?.matches(':hover') || contexto.has(label.catalogueId),
         distance: camera.position.distanceTo(vector.set(...label.position)
           .sub({ x: origin[0], y: origin[1], z: origin[2] })),
       });
@@ -219,10 +223,7 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
         alpha = label === aimTarget ? 0.9 : esElegida(label) ? 0.9 * (1 - presencia.valor) : nameOpacity * visibleEnModo(label) * lejania(label);
         if (!visibleStars.current.has(label.catalogueId)) alpha = 0;
         const button = el.querySelector('button');
-        if (button) {
-          button.disabled = false;
-          button.title = 'Doble clic: fijar rumbo sin desplazarse';
-        }
+        if (button) button.disabled = false;
       } else if (label.kind === 'oort') {
         alpha = oortLabelOpacity(pc) * 3;
       } else if (label.kind === 'kuiper') {

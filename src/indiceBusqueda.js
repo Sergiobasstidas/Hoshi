@@ -1,6 +1,7 @@
 import { buildSearchIndex } from './scene/starSearch';
 import { addCuratedSearchRows } from './scene/curatedStars';
 import { sumarVariablesEnOrden } from './scene/nombresEstrella';
+import { sumarTitulos } from './scene/titulos';
 
 const json = url => fetch(url).then(r => { if (!r.ok) throw Error('index'); return r.json(); });
 // Suma a cada fila del catálogo los nombres de estrella variable, por ID, en su lugar (src/scene/nombresEstrella.js):
@@ -19,7 +20,9 @@ function sumarVariables(rows, variables) {
 let cached;
 export const indiceBusqueda = () => {
   cached ||= Promise.all([json('/data/star-search.json'), json('/data/star-search-variables.json').catch(() => [])])
-    .then(([rows, variables]) => sumarVariables(rows, variables)).then(addCuratedSearchRows).then(buildSearchIndex).catch(e => { cached = null; throw e; });
+    .then(([rows, variables]) => sumarVariables(rows, variables)).then(addCuratedSearchRows).then(buildSearchIndex)
+    // Con el índice, el título de todas las estrellas (nombreEstrella).
+    .then(indice => { sumarTitulos(indice.map(item => [item.id, item.aliases[0]])); return indice; }).catch(e => { cached = null; throw e; });
   return cached;
 };
 

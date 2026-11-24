@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { ESTRELLAS_VERSION, codificarValor, leerCapa, leerCatalogo, posicionesCapa } from '../src/scene/estrellasBin.js';
 import { leerGaia } from '../src/scene/gaiaCapa.js';
+import { idsDesdeCapa } from './catalog/desde_capa.js';
 
 const abrir = ruta => { const a = fs.readFileSync(ruta); return a.buffer.slice(a.byteOffset, a.byteOffset + a.byteLength); };
 const comoBuffer = a => a.buffer.slice(a.byteOffset, a.byteOffset + a.byteLength);
@@ -46,8 +47,9 @@ for (const lote of fs.readdirSync('data/catalog/hsb_gaia').filter(f => f.endsWit
   for (const l of zlib.gunzipSync(fs.readFileSync(`data/catalog/hsb_gaia/${lote}`)).toString('utf8').split('\n').slice(1)) { const c = l.split(','); if (c[1] && !deGaia.has(c[1])) deGaia.set(c[1], Number(c[0])); }
 }
 const igualA = new Map(fs.readFileSync('data/catalog/hsb_enlaces.csv', 'utf8').split('\n').slice(1).map(l => l.split(',')).filter(c => c[1] === 'igual_a').map(c => [Number(c[0]), Number(c[2])]));
-// Los miembros de cúmulos globulares que estaban en la capa no se quitan: quedan en su lugar, ocultos (build_estrellas.js).
-const miembrosGlobulares = new Set(JSON.parse(fs.readFileSync('data/catalog/added_globulares.json', 'utf8')).stars.map(s => s.i));
+// Las estrellas que pasaron de la capa al catálogo (miembros de cúmulos globulares y famosas) no se quitan: quedan en su
+// lugar, ocultas (build_estrellas.js).
+const miembrosGlobulares = idsDesdeCapa();
 const estrellaDe = g => [enlazadas.get(g), deGaia.get(g), igualA.get(deGaia.get(g))].find(h => idsCatalogo.has(h));
 const alCatalogo = g => { const h = estrellaDe(g); return h !== undefined && !miembrosGlobulares.has(h); };
 const capa = leerCapa(buffer, cabecera, finCatalogo);
@@ -76,7 +78,7 @@ test('ninguna fuente dibujada en la capa está enlazada a una estrella del catá
 test('la capa de fondo conserva magnitud y color, y su posición se mueve muy poco', () => {
   // Mismos (magnitud, color) en otro orden, menos las fuentes que ya son una estrella del catálogo.
   const histo = (m, c) => { const h = new Uint32Array(65536); for (let k = 0; k < m.length; k++) h[(m[k] << 8) | c[k]]++; return h; };
-  // Las ocultas (byte de color 254, miembros de globulares) cuentan como quitadas.
+  // Las ocultas (byte de color 254, las que pasaron al catálogo) cuentan como quitadas.
   const visibles = [...capa.colores.keys()].filter(k => capa.colores[k] !== 254);
   const ahora = histo(visibles.map(k => capa.magnitudes[k]), visibles.map(k => capa.colores[k])), previo = histo(antes.magnitudes, antes.colores);
   let faltan = 0;
@@ -111,10 +113,10 @@ test('cada estrella de la capa tiene su número HSB, propio y distinto de los de
   assert.equal(new Set(hsb).size, hsb.length, 'número HSB repetido dentro de la capa');
 });
 
-test('las fuentes de la capa que pasaron a un cúmulo globular quedan en su lugar, ocultas y fuera del buscador', async () => {
+test('las fuentes de la capa que pasaron al catálogo (cúmulos globulares y famosas) quedan en su lugar, ocultas y fuera del buscador', async () => {
   const { C_OCULTA, capaOculta } = await import('../src/scene/gaiaCapa.js');
   const { leerEnlaces } = await import('./catalog/enlaces_registro.js');
-  const globulares = new Set(JSON.parse(fs.readFileSync('data/catalog/added_globulares.json', 'utf8')).stars.map(s => s.i));
+  const globulares = idsDesdeCapa();
   const lotes = new Set(leerEnlaces().filter(f => f.campo === 'igual_a' && globulares.has(Number(f.valor))).map(f => Number(f.hsb)));
   const hsbCapa = new Uint32Array(fs.readFileSync('public/data/estrellas-hsb.bin').buffer.slice(0));
   const ocultas = [...hsbCapa.keys()].filter(k => lotes.has(hsbCapa[k]));

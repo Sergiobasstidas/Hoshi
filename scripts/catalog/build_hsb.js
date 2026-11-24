@@ -70,6 +70,7 @@ const STARS_JSON = './data/processed/stars_15pc.json';
 const SYSTEMS_JSON = './data/processed/star_systems.json';
 const ADDED_HOSTS_JSON = './data/catalog/added_hosts.json';
 const ADDED_GLOBULARES_JSON = './data/catalog/added_globulares.json';
+const ADDED_FAMOSAS_JSON = './data/catalog/added_famosas.json';
 const HOSTS_JSON = './data/catalog/exoplanet_host_identity.json';
 const ATHYG_V32 = ['./data/raw/athyg/athyg_v32-1.csv.gz', './data/raw/athyg/athyg_v32-2.csv.gz'];
 const ATHYG_V40 = ['./data/raw/athyg/v40/athyg_40.csv.gz'];
@@ -243,7 +244,7 @@ const deAlias = (alias, patron) => (alias || []).map(a => a.match(patron)?.[1]).
 // stars: stars_15pc.json; athyg: Map id → fila de AT-HYG v3.2; anfitrionas: Map i → registro de
 // added_hosts.json; nasa: anfitriones de exoplanet_host_identity.json.
 // globulares: Map i → miembro de added_globulares.json (build_globulares.js).
-export function identidades({ stars, athyg, anfitrionas, nasa, globulares = new Map() }) {
+export function identidades({ stars, athyg, anfitrionas, nasa, globulares = new Map(), famosas = new Map() }) {
   const ticPorEstrella = new Map(), nasaPorNombre = new Map();
   for (const h of nasa) {
     if (h.i !== null && h.tic && !ticPorEstrella.has(h.i)) ticPorEstrella.set(h.i, h.tic);
@@ -252,7 +253,7 @@ export function identidades({ stars, athyg, anfitrionas, nasa, globulares = new 
   const tic = v => texto(v).replace(/^TIC\s*/, '');
   // Las estrellas que ya entraron desde el registro (i ≥ HSB_NUEVO_BASE) no son de la carga base; una anfitriona
   // nueva sí, aunque su número ya sea del rango nuevo (lo reservó build_added_hosts.js desde el registro).
-  return stars.filter(s => s.i < HSB_NUEVO_BASE || s.dataOrigin === 'exoplanet-host' || s.dataOrigin === 'globular').map(s => {
+  return stars.filter(s => s.i < HSB_NUEVO_BASE || s.dataOrigin === 'exoplanet-host' || s.dataOrigin === 'globular' || s.dataOrigin === 'famosa').map(s => {
     const radec = { ra: Math.atan2(s.y, s.x) * 180 / Math.PI, dec: s.d > 0 ? Math.asin(s.z / s.d) * 180 / Math.PI : 0 };
     // Miembro de un cúmulo globular: se identifica por su Gaia DR3, como una anfitriona añadida.
     if (s.dataOrigin === 'globular') {
@@ -260,6 +261,13 @@ export function identidades({ stars, athyg, anfitrionas, nasa, globulares = new 
       if (!g) throw new Error(`El miembro de cúmulo globular ${s.i} no está en added_globulares.json`);
       return { i: s.i, origen: 'globular', athyg_v32: '', hip: '', hd: '', hr: '', gl: '', tyc: '', gaia_dr3: texto(g.gaia), gaia_v32: texto(g.gaia),
         tic: '', nombre: '', d: s.d, pos: { ra: (radec.ra + 360) % 360, dec: radec.dec }, mag: null };
+    }
+    // Estrella famosa que pasó de la capa (build_famosas.js): también por su Gaia DR3, con su nombre.
+    if (s.dataOrigin === 'famosa') {
+      const f = famosas.get(s.i);
+      if (!f) throw new Error(`La estrella famosa ${s.i} no está en added_famosas.json`);
+      return { i: s.i, origen: 'famosa', athyg_v32: '', hip: '', hd: '', hr: '', gl: '', tyc: '', gaia_dr3: texto(f.gaia), gaia_v32: texto(f.gaia),
+        tic: '', nombre: texto(f.n), d: s.d, pos: { ra: (radec.ra + 360) % 360, dec: radec.dec }, mag: null };
     }
     if (s.dataOrigin === 'exoplanet-host') {
       const a = anfitrionas.get(s.i);
@@ -309,7 +317,7 @@ export function asignarV40(estrellas, v40) {
   }
   const pares = [], sinNumeros = [];
   for (const s of estrellas) {
-    const llaves = s.origen === 'anfitriona' || s.origen === 'globular' ? LLAVES_V40.filter(([cv]) => cv === 'tyc' || cv === 'gaia') : LLAVES_V40;
+    const llaves = s.origen === 'anfitriona' || s.origen === 'globular' || s.origen === 'famosa' ? LLAVES_V40.filter(([cv]) => cv === 'tyc' || cv === 'gaia') : LLAVES_V40;
     const candidatas = new Set();
     for (const [cv, cs] of llaves) {
       const v = cs === 'gl' ? glNormal(s.gl) : s[cs];
@@ -317,7 +325,7 @@ export function asignarV40(estrellas, v40) {
     }
     if (!candidatas.size) { sinNumeros.push(s); continue; }
     for (const f of candidatas) {
-      const p = s.origen === 'anfitriona' || s.origen === 'globular' ? (f.gaia && f.gaia === s.gaia_v32 ? 2 : 0) + (f.tyc && f.tyc === s.tyc ? 3 : 0) : puntaje(s, f);
+      const p = s.origen === 'anfitriona' || s.origen === 'globular' || s.origen === 'famosa' ? (f.gaia && f.gaia === s.gaia_v32 ? 2 : 0) + (f.tyc && f.tyc === s.tyc ? 3 : 0) : puntaje(s, f);
       if (p > 0) pares.push({ s, f, p, sep: s.pos ? separacion(s.pos, f.pos) : 0 });
     }
   }
@@ -600,11 +608,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const sistemas = JSON.parse(fs.readFileSync(SYSTEMS_JSON, 'utf8'));
   const anfitrionas = new Map(JSON.parse(fs.readFileSync(ADDED_HOSTS_JSON, 'utf8')).stars.map(s => [s.i, s]));
   const globulares = new Map(fs.existsSync(ADDED_GLOBULARES_JSON) ? JSON.parse(fs.readFileSync(ADDED_GLOBULARES_JSON, 'utf8')).stars.map(s => [s.i, s]) : []);
+  const famosas = new Map(fs.existsSync(ADDED_FAMOSAS_JSON) ? JSON.parse(fs.readFileSync(ADDED_FAMOSAS_JSON, 'utf8')).stars.map(s => [s.i, s]) : []);
   const nasa = JSON.parse(fs.readFileSync(HOSTS_JSON, 'utf8')).hosts;
   const revision = parseSync(fs.readFileSync(GAIA_REVISION_CSV, 'utf8'), { columns: true, skip_empty_lines: true });
 
   // 1) AT-HYG v3.2: filas de Hoshi y números presentes (para saber qué filas de la v4.0 son nuevas).
-  const ids32 = new Set(stars.filter(s => s.dataOrigin !== 'exoplanet-host' && s.dataOrigin !== 'globular').map(s => (s.i === 0 ? 1 : s.i)));
+  const ids32 = new Set(stars.filter(s => s.dataOrigin !== 'exoplanet-host' && s.dataOrigin !== 'globular' && s.dataOrigin !== 'famosa').map(s => (s.i === 0 ? 1 : s.i)));
   const v32 = new Map(), en32 = { tyc: new Set(), gaia: new Set(), hip: new Set(), hyg: new Set() };
   await recorrerAthyg(ATHYG_V32, (fila, cab) => {
     const c = Object.fromEntries(cab.map((n, k) => [n, k]));
@@ -612,7 +621,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const id = Number(fila[0]);
     if (ids32.has(id)) v32.set(id, Object.fromEntries(cab.map((n, k) => [n, fila[k]])));
   });
-  const base = identidades({ stars, athyg: v32, anfitrionas, nasa, globulares });
+  const base = identidades({ stars, athyg: v32, anfitrionas, nasa, globulares, famosas });
   const revisadas = aplicarRevisionGaia(base, revision);
   // Correcciones de enlace de la auditoría (data/catalog/hsb_enlaces.csv): mandan sobre AT-HYG y la revisión.
   const enlaces = enlacesPorEstrella();
@@ -742,9 +751,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     primariaHsb.set(filaPorEstrella.get(s).hsb, raiz);
     companerasDe.set(s.primaria.i, [...(companerasDe.get(s.primaria.i) || []), { fila: filaPorEstrella.get(s), mag: s.mag }]);
   }
+  // Estrellas famosas que son compañeras de una del catálogo (Pulcherrima, ε Boo B, de Izar; famosas.js).
+  const compDeFamosa = new Map();
+  for (const f of famosas.values()) {
+    if (!f.primaria) continue;
+    const sp = lista.find(x => x.i === f.primaria), sf = lista.find(x => x.i === f.i && x.origen === 'famosa');
+    if (!sp || !sf) continue;
+    const hp = filaPorEstrella.get(sp).hsb, raiz = primariaHsb.get(hp) ?? hp;
+    if (!primariaHsb.has(hp)) primariaHsb.set(hp, hp);
+    primariaHsb.set(filaPorEstrella.get(sf).hsb, raiz);
+    compDeFamosa.set(sf, f.comp);
+    filaPorEstrella.get(sf).comp = f.comp;
+    companerasDe.set(sp.i, [...(companerasDe.get(sp.i) || []), { fila: filaPorEstrella.get(sf), mag: f.m + 5 * Math.log10(f.d / 10) }]);
+  }
   for (const s of lista) {
     const f = filaPorEstrella.get(s);
-    f.comp = partesGl(s.gl)?.comp || '';
+    f.comp = compDeFamosa.get(s) || partesGl(s.gl)?.comp || '';
     f.primaria_hsb = primariaHsb.has(f.hsb) ? String(primariaHsb.get(f.hsb)) : '';
   }
 

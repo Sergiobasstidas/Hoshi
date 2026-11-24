@@ -80,6 +80,9 @@ export async function cargarTodo() {
   const athyg = new Map(csv(fs.readFileSync('data/raw/hyglike_from_athyg_v32.csv', 'utf8')).map(r => [Number(r.id), r]));
   const sistemas = JSON.parse(fs.readFileSync('data/processed/star_systems.json', 'utf8'));
   const curadas = new Map(DISTANCIAS_CURADAS.map(c => [c.i, c]));
+  // Estrellas famosas con distancia curada (distancias_curadas.js, DISTANCIAS_FAMOSAS) o la de su sistema (famosas.js).
+  const famosas = fs.existsSync('data/catalog/added_famosas.json') ? JSON.parse(fs.readFileSync('data/catalog/added_famosas.json', 'utf8')).stars : [];
+  for (const f of famosas) if (f.ds === 'curada') curadas.set(f.i, { i: f.i, n: f.n, dNueva: f.d, fuente: f.src.d });
   log(`Hoshi: ${estrellas.length} estrellas, ${registro.size} filas del registro, ${Object.keys(sistemas).length} sistemas`);
   // --- Gaia DR3 (estrellas del registro) ---
   const gaia = new Map();

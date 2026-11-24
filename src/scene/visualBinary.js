@@ -126,8 +126,7 @@ export function buildStarSystems(data, starsById) {
       const massRatio = pair.k === 'o' && pair.m1 > 0 && pair.m2 > 0 ? pair.m2 / (pair.m1 + pair.m2) : null;
       return [{ name: pair.n, pair, companion, parentOffsetPc: parent, offsetPc, separationAu, massRatio, unido,
         scalePc: (pair.k === 'o' ? apastronAu(pair) : unido ? separationAu : proyectadaAu) * AU_TO_PC,
-        color: companion?.rgb || companionColor(pair.sp), sizePx: companionSizePx(pair.v, star.d),
-        label: `${star.n || entry.wds} ${pair.n}` }];
+        color: companion?.rgb || companionColor(pair.sp), sizePx: companionSizePx(pair.v, star.d) }];
     });
     if (!components.length) return [];
     // Encuadre de llegada: lo más ancho del sistema que siga siendo un conjunto compacto.
@@ -148,11 +147,12 @@ export function rectaAncha(component) {
   return { anchor: ancla, points: new Float32Array([...padre.map((v, i) => v - ancla[i]), 0, 0, 0]) };
 }
 
-// Registro de una compañera sin estrella propia en el catálogo, para poder fijarla y ver su ficha.
+// Registro de una compañera sin estrella propia en el catálogo, para poder fijarla y ver su ficha. Sin nombre propio:
+// `componente` es su letra y nombreEstrella (nombresEstrella.js) la nombra por su primaria al dibujarla.
 export function estrellaDeComponente(system, c) {
   if (c.companion) return c.companion;
   const { star, position } = system;
-  return c.estrella ||= { i: `${star.i}-${c.name}`, n: `${star.n} ${c.name}`, sp: c.pair.sp, d: star.d, rgb: c.color,
+  return c.estrella ||= { i: `${star.i}-${c.name}`, n: null, componente: c.name, sp: c.pair.sp, d: star.d, rgb: c.color,
     m: Number.isFinite(c.pair.v) ? c.pair.v - 5 * Math.log10(star.d / 10) : undefined,
     x: position[0] + c.offsetPc[0], y: position[1] + c.offsetPc[1], z: position[2] + c.offsetPc[2], physics: null, datos: null, sistemaDe: system };
 }

@@ -16,6 +16,7 @@
 .ficha-estrella-cerrar { position: absolute; z-index: 1; top: 18px; left: 292px; pointer-events: auto; width: 26px; height: 26px; border: 1px solid #ffffff2e; border-radius: 50%; background: transparent; color: #c6d1de; font-size: 15px; line-height: 1; cursor: pointer; }
 .ficha-estrella-cerrar:hover, .ficha-estrella-cerrar:focus-visible { color: #fff; border-color: #ffffff80; outline: none; }
 .ficha-estrella-tipo { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #ffffff2b; color: #8fd3ff; font-size: 11px; letter-spacing: .08em; }
+.ficha-aspecto-ilustrativo { color: #7f8b9b; font-size: 10px; letter-spacing: 0; }
 .ficha-estrella-relato { margin: 10px 0 0; color: #b4c0ce; }
 .ficha-estrella dl { display: grid; margin: 14px 0 0; }
 .ficha-estrella-dato { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 0; border-top: 1px solid #ffffff12; }
