@@ -33,15 +33,20 @@ export default function EnfoqueCamara({ pedido, origin, alGirar, alSoltar, contr
     const e = estado.current;
     if (!e) return;
     const estrella = new Vector3(...e.pedido.posicion).sub(new Vector3(...origin));
-    const lienzo = gl.domElement.getBoundingClientRect();
-    const ficha = document.querySelector('aside.ficha-estrella')?.getBoundingClientRect() ?? null;
-    // Bajo los controles de arriba (buscador y menús), que en el teléfono ocupan la parte alta de la pantalla.
-    const techo = Math.max(lienzo.top, ...[...document.querySelectorAll('.star-search, .menu-explorar, .body-selector')]
-      .map(el => el.getBoundingClientRect()).filter(r => r.height > 0 && r.bottom < lienzo.top + lienzo.height / 2).map(r => r.bottom));
-    const ndc = centroVisible(lienzo, ficha, techo);
-    const arriba = e.pedido.libre ? new Vector3(0, 1, 0).applyQuaternion(camera.quaternion) : camera.up;
-    const opciones = { fov: camera.fov, aspecto: camera.aspect, ndc, arriba };
+    // Dónde queda la estrella en pantalla (lienzo, ficha y controles de arriba). Se lee solo cuando hay que apuntar: leer el
+    // DOM en cada cuadro de reposo cuesta.
+    const medir = () => {
+      const lienzo = gl.domElement.getBoundingClientRect();
+      const ficha = document.querySelector('aside.ficha-estrella')?.getBoundingClientRect() ?? null;
+      // Bajo los controles de arriba (buscador y menús), que en el teléfono ocupan la parte alta de la pantalla.
+      const techo = Math.max(lienzo.top, ...[...document.querySelectorAll('.star-search, .menu-explorar, .body-selector')]
+        .map(el => el.getBoundingClientRect()).filter(r => r.height > 0 && r.bottom < lienzo.top + lienzo.height / 2).map(r => r.bottom));
+      const ndc = centroVisible(lienzo, ficha, techo);
+      const arriba = e.pedido.libre ? new Vector3(0, 1, 0).applyQuaternion(camera.quaternion) : camera.up;
+      return { arriba, opciones: { fov: camera.fov, aspecto: camera.aspect, ndc, arriba } };
+    };
     if (!e.fijada) {
+      const { opciones } = medir();
       if (e.giro === undefined) e.giro = crearEnfoque(camera, estrella.clone().sub(camera.position).normalize(), { ...opciones, reducido: reducirMovimiento() });
       const cortado = giroCortado(e.pedido);
       const termino = !e.giro || cortado || avanzarEnfoque(camera, e.giro, delta);
@@ -56,7 +61,11 @@ export default function EnfoqueCamara({ pedido, origin, alGirar, alSoltar, contr
     const controles = e.pedido.libre ? null : controlsRef?.current;
     // Los controles de órbita vuelven un cuadro después del giro: desde ahí se mide si la cámara gira alrededor del centro.
     if (controles && !e.desplazamiento) e.desplazamiento = camera.position.clone().sub(controles.target);
-    if (camera.position.equals(e.ultima)) return;
+    // OrbitControls.update() mueve la cámara ~1e-15 en cada cuadro: eso es ruido, no un movimiento. Sin este umbral se volvía
+    // a apuntar en cada cuadro y la escena nunca quedaba en reposo con una estrella fijada (e.ultima no se actualiza).
+    const radio = controles ? camera.position.distanceTo(controles.target) : camera.position.distanceTo(estrella);
+    if (camera.position.distanceTo(e.ultima) <= 1e-9 * Math.max(radio, camera.position.length())) return;
+    const { arriba, opciones } = medir();
     if (!e.pedido.libre) {
       // En órbita: si la cámara giró alrededor del centro (arrastre), se suelta; si solo se acercó o se alejó, la
       // estrella vuelve a su punto y el centro pasa a esa dirección, sin quedar más allá de ella.

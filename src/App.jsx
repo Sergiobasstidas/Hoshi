@@ -604,8 +604,9 @@ export default function App() {
     const ficha = { kind: 'star', star, catalogueId: star.i, text: n, position: body.position };
     // Durante un viaje («Ir a», «Viajar a»), elegir una estrella solo abre su ficha: no corta el viaje ni gira.
     if (traveling) { setEstrellaVista(ficha); return; }
-    // La estrella que se está visitando ya está en el centro de la órbita: solo su ficha.
-    if (!freeFlight && view.body?.star === star) { setEstrellaVista(ficha); return; }
+    // La estrella que se está visitando ya está en el centro de la órbita: solo su ficha. Si antes se fijó otra (el centro
+    // de la órbita o el enfoque quedaron en ella), se sigue el camino normal, que gira de vuelta hacia la visitada.
+    if (!freeFlight && view.body?.star === star && !centroOrbita && !enfoque) { setEstrellaVista(ficha); return; }
     setShowPulsars(false); setShowDiscoveries(false); setInspectedTarget(null);
     releaseAim(); setSolApuntado(false); setCumulo(null);
     setEstrellaVista(ficha);
@@ -731,8 +732,8 @@ export default function App() {
   // Un nombre «HSB …» tomado antes de que cargara el índice del buscador pasa al nombre de la estrella cuando llega (useTitulos
   // vuelve a dibujar App), sin repetir el viaje.
   const nombreVigente = (nombre, star) => (star && /^HSB \d/.test(nombre || '') ? nombreEstrella(star) : nombre);
-  const distanceTarget = aimTarget?.kind === 'star' ? { name: aimTarget.text, position: aimTarget.position }
-    : freeFlight ? inspectedTarget ? { name: inspectedTarget.text, position: inspectedTarget.position } : null
+  const distanceTarget = aimTarget?.kind === 'star' ? { name: nombreVigente(aimTarget.text, aimTarget.star), position: aimTarget.position }
+    : freeFlight ? inspectedTarget ? { name: nombreVigente(inspectedTarget.text, inspectedTarget.star), position: inspectedTarget.position } : null
     : view.body ? { name: nombreVigente(view.body.name, view.body.star), position: view.body.position }
     : view.id === 'galaxy' || view.centro === 'galaxia' ? { name: 'centro galáctico', position: GALAXY_CENTER }
     : view.id === 'escala' ? { name: 'Tierra', position: EARTH.position } : null;

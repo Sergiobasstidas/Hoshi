@@ -149,7 +149,10 @@ export default function VisualGuides({ overlayRef, labels, focusedBody, origin, 
     };
     const disks = labels.filter(label => label.body?.radiusKm)
       .map(label => sphereOf(claveDisco(label), label.position, label.body.radiusKm * KM_TO_PC));
+    // En la vista de un exoplaneta el objetivo es el planeta: una esfera del radio de su estrella centrada en él taparía los
+    // clics y el cursor sobre las estrellas (en HD 209458 b, casi toda la pantalla).
     for (const target of [focusedBody, aimTarget]) {
+      if (target?.kind === 'exoplanet') continue;
       const radiusPc = fisicaDibujo(target?.star)?.radiusPc;
       if (radiusPc) disks.push(sphereOf(claveDisco(target), target.position, radiusPc));
     }

@@ -103,7 +103,8 @@ export default function SeleccionEstrellas({ estrellas, origin, onElegir, onViaj
     lienzo.addEventListener('dblclick', dobleClic);
     lienzo.addEventListener('pointerleave', ocultar);
     lienzo.addEventListener('pointercancel', cancelar);
-    lienzo.addEventListener('wheel', ocultar, { passive: true });
+    // En la ventana y en captura: en órbita, ZoomSuave detiene la rueda antes de que llegue al lienzo.
+    window.addEventListener('wheel', ocultar, { capture: true, passive: true });
     return () => {
       clearTimeout(pendiente);
       lienzo.removeEventListener('pointermove', mover);
@@ -112,7 +113,7 @@ export default function SeleccionEstrellas({ estrellas, origin, onElegir, onViaj
       lienzo.removeEventListener('dblclick', dobleClic);
       lienzo.removeEventListener('pointerleave', ocultar);
       lienzo.removeEventListener('pointercancel', cancelar);
-      lienzo.removeEventListener('wheel', ocultar);
+      window.removeEventListener('wheel', ocultar, { capture: true });
       nombre.remove();
     };
   }, [gl, camera]);
