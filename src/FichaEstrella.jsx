@@ -191,7 +191,8 @@ export default function FichaEstrella({ nombre, star, onVerSuperficie, onVerPlan
       {/* Texto propio de la estrella si lo tiene; si no, el de su tipo. */}
       {textos && (textos.estrellas[star.n] || (tiposRevisados !== undefined && (tipo || vista))) && <p className="ficha-estrella-relato">{[textos.estrellas[star.n] || tipo?.texto, vista?.frase].filter(Boolean).join(' ')}</p>}
       {radio > 0 && <ComparacionSol nombre={mostrar(nombre)} radio={radio} temperatura={temperatura || 5772} />}
-      {onVerSuperficie && physics && <div className="ficha-estrella-superficie"><button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button></div>}
+      {/* Con radio medido o de catálogo; sin temperatura medida, la esfera usa la de su tipo o color (fisicaDibujo.js), que la ficha no muestra. */}
+      {onVerSuperficie && (physics || datos?.radiusSolar > 0) && <div className="ficha-estrella-superficie"><button className="ficha-estrella-accion" onClick={onVerSuperficie}>Ver superficie</button></div>}
       <dl>
         {temperatura && <Dato etiqueta="Temperatura" valor={`${Math.round(temperatura).toLocaleString('es-CL')} K`} secundario={`${Math.round(temperatura - 273.15).toLocaleString('es-CL')} °C`}>
           <i className="ficha-estrella-color" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
